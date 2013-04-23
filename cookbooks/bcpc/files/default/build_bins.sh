@@ -6,6 +6,11 @@ export HTTP_PROXY=
 export HTTPS_PROXY=
 
 DIR=`dirname $0`
+BINS="$DIR/bins/"
+
+if [ ! -d $BINS ]; then
+  mkdir -p $BINS
+fi
 
 pushd $DIR/bins/
 
