@@ -34,18 +34,38 @@ and tweak accordingly for your setup (by adding them to an environment file).
 Step 1 - One-time setup
 ----------------------
 
+Make sure that you have `rubygems` and `chef` installed:
+
+```
+ $ [sudo] gem install chef
+```
+
 These cookbooks assume that you already have the following cookbooks
 available:
  - apt
  - ubuntu
+ - cron
  - chef-client
 
 You can install these cookbooks via:
 
 ```
+ $ cd cookbooks/
  $ knife cookbook site download apt  
  $ knife cookbook site download ubuntu  
+ $ knife cookbook site download cron
  $ knife cookbook site download chef-client  
+```
+
+This will download the cookbooks locally. You need to untar them into `/cookbooks`:
+
+```
+ $ tar -zxvf apt*.tar.gz
+ $ tar -zxvf ubuntu*.tar.gz
+ $ tar -zxvf cron*.tar.gz
+ $ tar -zxvf chef-client*.tar.gz
+ $ rm apt*.tar.gz ubuntu*.tar.gz rm cron*.tar.gz chef-client*.tar.gz
+ $ cd ../
 ```
 
 You also need to build the installer bins for a number of external
@@ -53,6 +73,13 @@ dependencies, and there's a script to help (tested on Ubuntu 12.04)
 
 ```
  $ ./cookbooks/bcpc/files/default/build_bins.sh
+```
+
+If you're planning to run OpenStack on top of VirtualBox, be sure to build the base VirtualBox images first:
+
+```
+ $ cd path/to/chef-bcpc
+ $ ./vbox_create.sh
 ```
 
 Step 2 - Prep the servers

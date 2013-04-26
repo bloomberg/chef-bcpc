@@ -1,2 +1,7 @@
 .rake_test_cache
+.chef/
+cookbooks/apt/
+cookbooks/chef-client/
+cookbooks/cron/
+cookbooks/ubuntu/
 
