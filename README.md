@@ -34,10 +34,13 @@ and tweak accordingly for your setup (by adding them to an environment file).
 Step 1 - One-time setup
 ----------------------
 
-Make sure that you have `rubygems` and `chef` installed:
+Make sure that you have `rubygems` and `chef` installed. Currently this only works on `chef@10.18` which requires some massaging to install due to a newer version of `net-ssh`.
 
 ```
- $ [sudo] gem install chef --version 10.18
+ $ [sudo] gem install net-ssh -v 2.2.2 --no-ri --no-rdoc
+ $ [sudo] gem install net-ssh-gateway -v 1.1.0 --no-ri --no-rdoc --ignore-dependencies
+ $ [sudo] gem install net-ssh-multi -v 1.1.0 --no-ri --no-rdoc --ignore-dependencies
+ $ [sudo] gem install chef --no-ri --no-rdoc -v 10.18
 ```
 
 These cookbooks assume that you already have the following cookbooks
