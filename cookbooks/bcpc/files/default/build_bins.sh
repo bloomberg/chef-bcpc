@@ -12,10 +12,10 @@ apt-get -y dist-upgrade
 
 # Install tools needed for packaging
 apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev
-if [ -z `gem list --local bundler | grep bundler` ]; then
+if [ -z `gem list --local bundler | grep bundler | cut -f1 -d" "` ]; then
   gem install bundler --no-ri --no-rdoc
 fi
-if [ -z `gem list --local fpm | grep fpm` ]; then
+if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
 
