@@ -222,19 +222,22 @@ Assigning roles to VM
 
 At this point, you can then run:
 ```
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12
+$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
+$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
+$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
 ```
 
-Also, after the first run, make the client an administrator, or you will get the error:
+Also, after the first run, make the client VM an administrator, or you will get the error:
 '''
 [...]error: Net::HTTPServerException: 403 "Forbidden"
 '''
 To make a host an administrator, one can access the Chef web UI via
 http://10.0.100.1:4040 and follow:
-Clients -> <Host> -> Edit -> Admin (toggle true) -> Save Client
-Then, re-run the bootstrap command.
+Clients -> &lt;Host> -> Edit -> Admin (toggle true) -> Save Client
+where &lt;Host> is something like bcpc-vm1.local.lan, then re-run the bootstrap command. 
+
+Note that a clue to the current name and password is on the right-hand side of that page 
+and will likely still be the defaults if this is your first time through.
 
 Using BCPC
 ==========
