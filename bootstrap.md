@@ -189,9 +189,9 @@ Registering VMs for PXE boot
 
 Once you have provisioned the local Chef server (via Vagrant or
 bootstrap_chef.sh), you will need to register the bcpc-vm1, bcpc-vm2, and
-bcpc-vm3 VMs.  
+bcpc-vm3 VMs. 
 
-When using vagrant you can do this through:
+When using vagrant you can register the remaining VMs like this :
 
 ```
 $ ./enroll_cobbler.sh
@@ -209,6 +209,8 @@ If you have other VMs to register:
 ```
 cobbler system add --name=bcpc-vm10 --hostname=bcpc-vm10 --profile=bcpc_host --ip-address=10.0.100.20 --mac=AA:BB:CC:DD:EE:FF
 ```
+
+You can boot up the other VMs now. 
 
 User account on VM
 ==================
@@ -229,7 +231,7 @@ Linux bcpc-vm1 3.2.0-41-generic #66-Ubuntu SMP Thu Apr 25 03:27:11 UTC 2013 x86_
 Assigning roles to VM
 =====================
 
-At this point, you can then run:
+At this point, from the bootstrap node you can then run:
 ```
 $ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
 $ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
@@ -243,10 +245,16 @@ Also, after the first run, make the client VM an administrator, or you will get 
 To make a host an administrator, one can access the Chef web UI via
 http://10.0.100.1:4040 and follow:
 Clients -> &lt;Host> -> Edit -> Admin (toggle true) -> Save Client
-where &lt;Host> is something like bcpc-vm1.local.lan, then re-run the bootstrap command. 
+where &lt;Host> is something like bcpc-vm1.local.lan, then re-run the
+bootstrap command. 
 
 Note that a clue to the current name and password is on the right-hand side of that page 
-and will likely still be the defaults if this is your first time through.
+and will likely still be the defaults if this is your first time
+through. Also note that this will change your password in the
+data bag.
+
+If you get a "Tampered with cookie 500" error clear out your cookies
+from your browser for 10.0.100.1
 
 Using BCPC
 ==========
