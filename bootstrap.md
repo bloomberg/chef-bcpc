@@ -248,7 +248,7 @@ At this point, from the bootstrap node you can then run:
 ```
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
-ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.13 -x ubuntu --sudo
 ```
 
 Also, after the first run, make the bootstrap node VM an administrator, or you will get the error:
@@ -268,6 +268,10 @@ data bag.
 
 If you get a "Tampered with cookie 500" error clear out your cookies
 from your browser for 10.0.100.1
+
+Boostrapping these nodes will take quite a long time - as much as an
+hour or more. You can monitor progress by logging into the VMs and
+using tools such as 'top' or 'ps'.
 
 Using BCPC
 ==========
