@@ -109,8 +109,14 @@ Manual install notes:
 Login to new VM.
 
 If using NAT, port 22 inbound may be blocked; so, set up the other interfaces
-on the hostonlyif ifaces (eth1-3).  Add to /etc/network/interfaces on
-bcpc-bootstrap:
+on the hostonlyif ifaces (eth1-3).  Edit /etc/network/interfaces on
+bcpc-bootstrap (for example using pico) :
+
+```
+$ sudo pico /etc/network/interfaces
+```
+
+add the following to the end
 
 ```
 # Static interfaces
@@ -189,7 +195,7 @@ Registering VMs for PXE boot
 
 Once you have provisioned the local Chef server (via Vagrant or
 bootstrap_chef.sh), you will need to register the bcpc-vm1, bcpc-vm2, and
-bcpc-vm3 VMs. 
+bcpc-vm3 VMs before they can boot. 
 
 When using vagrant you can register the remaining VMs like this :
 
@@ -210,7 +216,14 @@ If you have other VMs to register:
 cobbler system add --name=bcpc-vm10 --hostname=bcpc-vm10 --profile=bcpc_host --ip-address=10.0.100.20 --mac=AA:BB:CC:DD:EE:FF
 ```
 
-You can boot up the other VMs now. 
+You can boot up the other VMs now, for example :
+
+```
+$ VBoxManage startvm bcpc-vm1
+$ VBoxManage startvm bcpc-vm2
+$ VBoxManage startvm bcpc-vm3
+```
+
 
 User account on VM
 ==================
@@ -233,12 +246,12 @@ Assigning roles to VM
 
 At this point, from the bootstrap node you can then run:
 ```
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
-$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.12 -x ubuntu --sudo
 ```
 
-Also, after the first run, make the client VM an administrator, or you will get the error:
+Also, after the first run, make the bootstrap node VM an administrator, or you will get the error:
 '''
 [...]error: Net::HTTPServerException: 403 "Forbidden"
 '''
@@ -266,7 +279,7 @@ data bag for your environment under ``keystone-admin-user`` and
 ``keystone-admin-password``:
 
 ```
-$ knife data bag show configs Test-Laptop | grep keystone-admin
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ knife data bag show configs Test-Laptop | grep keystone-admin
 keystone-admin-password:       abcdefgh
 keystone-admin-token:          this-is-my-token
 keystone-admin-user:           admin

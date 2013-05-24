@@ -127,6 +127,7 @@ BCPC currently relies upon a number of open-source packages:
  - [Cobbler](http://www.cobblerd.org/)
  - [Diamond](https://github.com/BrightcoveOS/Diamond)
  - [ElasticSearch](http://www.elasticsearch.org/)
+ - [Etherboot](http://etherboot.org/)
  - [Graphite](http://graphite.readthedocs.org/en/latest/)
  - [HAProxy](http://haproxy.1wt.eu/)
  - [Keepalived](http://www.keepalived.org/)
