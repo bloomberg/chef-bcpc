@@ -46,9 +46,14 @@ else
   echo "Vagrant not detected - using raw VirtualBox for bcpc-bootstrap"
   # Make the three BCPC networks we'll need, but clear all nets and dhcpservers first
   for i in 0 1 2 3 4 5 6 7 8 9; do
-    $VBM hostonlyif remove vboxnet$i || true
+    if [ ! -z `$VBM list hostonlyifs | grep vboxnet$i | cut -f2 -d" "` ]; then
+      $VBM hostonlyif remove vboxnet$i || true
+    fi
   done
-  $VBM list dhcpservers | grep NetworkName | awk '{print $2}' | xargs -n1 $VBM dhcpserver remove --netname
+
+  if [ ! -z `$VBM list dhcpservers` ]; then
+    $VBM list dhcpservers | grep NetworkName | awk '{print $2}' | xargs -n1 $VBM dhcpserver remove --netname
+  fi
   $VBM hostonlyif create
   $VBM hostonlyif create
   $VBM hostonlyif create
