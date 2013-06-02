@@ -8,6 +8,7 @@
 # XXX: The following is a work-around to allow any cinder process
 #      to serve any volume (since they're RBD backed)
 host = bcpc
+storage_availability_zone=<%="#{node[:bcpc][:region_name]}"%>
 rootwrap_config = /etc/cinder/rootwrap.conf
 api_paste_confg = /etc/cinder/api-paste.ini
 verbose = True
@@ -35,7 +36,7 @@ rabbit_durable_queues=True
 #qpid_password=<%="#{get_config('rabbitmq-password')}"%>
 
 # Volume driver settings for RBD
-volume_driver=cinder.volume.driver.RBDDriver
+volume_driver=cinder.volume.drivers.rbd.RBDDriver
 rbd_user=admin
 rbd_pool=<%="#{node['bcpc']['cinder_rbd_pool']}"%>
 rbd_secret_uuid=<%="#{get_config('libvirt-secret-uuid')}"%>

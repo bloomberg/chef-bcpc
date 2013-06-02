@@ -14,6 +14,7 @@ rabbit_host=<%="#{node[:bcpc][:management][:vip]}"%>
 rabbit_password=<%="#{get_config('rabbitmq-password')}"%>
 rabbit_ha_queues=False
 rabbit_durable_queues=True
+
 # If using qpid...
 #rpc_backend=nova.openstack.common.rpc.impl_qpid
 #qpid_hostname=<%="#{node[:bcpc][:management][:vip]}"%>
@@ -33,7 +34,7 @@ dmz_cidr=169.254.169.254/32
 enabled_apis=ec2,osapi_compute,metadata
 
 # Nova Scheduler
-scheduler_driver=nova.scheduler.simple.SimpleScheduler
+scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler
 
 # Nova Network settings
 network_manager=nova.network.manager.VlanManager
@@ -47,17 +48,21 @@ network_size=<%="#{node[:bcpc][:fixed][:network_size]}"%>
 dhcpbridge_flagfile=/etc/nova/nova.conf
 dhcpbridge=/usr/bin/nova-dhcpbridge
 force_dhcp_release=True
-fixed_ip_disassociate_timeout=180
+share_dhcp_address=True
+teardown_unused_network_gateway=True
+fixed_ip_disassociate_timeout=30
 send_arp_for_ha=True
 my_ip=<%="#{node[:bcpc][:management][:ip]}"%>
 routing_source_ip=<%="#{node[:bcpc][:floating][:ip]}"%>
+dhcp_domain=<%="#{node[:bcpc][:domain_name]}"%>
+default_availability_zone=<%="#{node[:bcpc][:region_name]}"%>
 
 # Nova Compute settings
 connection_type=libvirt
 libvirt_type=<%="#{node[:bcpc][:virt_type]}"%>
 libvirt_use_virtio_for_bridges=True
 use_cow_images=True
-snapshot_image_format=qcow2
+#snapshot_image_format=qcow2
 #start_guests_on_host_boot=True
 #resume_guests_state_on_host_boot=True
 

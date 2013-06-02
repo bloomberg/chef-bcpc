@@ -52,24 +52,8 @@ template "/etc/glance/glance-api.conf" do
     notifies :run, "bash[restart-glance]", :delayed
 end
 
-template "/etc/glance/glance-api-paste.ini" do
-    source "glance-api-paste.ini.erb"
-    owner "glance"
-    group "glance"
-    mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
-end
-
 template "/etc/glance/glance-registry.conf" do
     source "glance-registry.conf.erb"
-    owner "glance"
-    group "glance"
-    mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
-end
-
-template "/etc/glance/glance-registry-paste.ini" do
-    source "glance-registry-paste.ini.erb"
     owner "glance"
     group "glance"
     mode 00600

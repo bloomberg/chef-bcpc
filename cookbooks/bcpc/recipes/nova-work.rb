@@ -155,18 +155,18 @@ bash "libvirt-device-acls" do
     notifies :restart, "service[libvirt-bin]", :delayed
 end
 
-cookbook_file "/tmp/folsom-volumes.patch" do
-    source "folsom-volumes.patch"
+cookbook_file "/tmp/nova.patch" do
+    source "nova.patch"
     owner "root"
     mode 00644
 end
 
-bash "patch-for-folsom-volumes" do
+bash "patch-for-nova-bugs" do
     user "root"
     code <<-EOH
         cd /usr/lib/python2.7/dist-packages/nova
-        patch -p2 < /tmp/folsom-volumes.patch
-        cp /tmp/folsom-volumes.patch .
+        patch -p1 < /tmp/nova.patch
+        cp /tmp/nova.patch .
     EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/folsom-volumes.patch"
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova.patch"
 end

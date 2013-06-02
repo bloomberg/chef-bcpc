@@ -47,7 +47,6 @@ auth_url = http://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
 admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
 admin_user = <%="#{get_config('keystone-admin-user')}"%>
 admin_password = <%="#{get_config('keystone-admin-password')}"%>
-admin_token = <%="#{get_config('keystone-admin-token')}"%>
 
 # List of which store classes and store class locations are
 # currently known to glance at startup.

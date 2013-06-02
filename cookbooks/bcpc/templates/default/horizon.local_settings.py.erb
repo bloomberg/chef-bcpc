@@ -8,6 +8,8 @@ import os
 
 from django.utils.translation import ugettext_lazy as _
 
+from openstack_dashboard import exceptions
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -18,16 +20,10 @@ TEMPLATE_DEBUG = DEBUG
 # https://docs.djangoproject.com/en/1.4/ref/settings/#secure-proxy-ssl-header
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 
-# Specify a regular expression to validate user passwords.
-# HORIZON_CONFIG = {
-#     "password_validator": {
-#         "regex": '.*',
-#         "help_text": _("Your password does not meet the requirements.")
-#     },
-#    'help_url': "http://docs.openstack.org"
-# }
-
-LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
+# If Horizon is being served through SSL, then uncomment the following two
+# settings to better secure the cookies from security exploits
+#CSRF_COOKIE_SECURE = True
+#SESSION_COOKIE_SECURE = True
 
 DATABASES = {
     'default': {
@@ -39,6 +35,38 @@ DATABASES = {
         'default-character-set': 'utf8'
     },
 }
+
+# Default OpenStack Dashboard configuration.
+HORIZON_CONFIG = {
+    'dashboards': ('project', 'admin', 'settings',),
+    'default_dashboard': 'project',
+    'user_home': 'openstack_dashboard.views.get_user_home',
+    'ajax_queue_limit': 10,
+    'auto_fade_alerts': {
+        'delay': 3000,
+        'fade_duration': 1500,
+        'types': ['alert-success', 'alert-info']
+    },
+    'help_url': "http://docs.openstack.org",
+    'exceptions': {'recoverable': exceptions.RECOVERABLE,
+                   'not_found': exceptions.NOT_FOUND,
+                   'unauthorized': exceptions.UNAUTHORIZED},
+}
+
+# Specify a regular expression to validate user passwords.
+# HORIZON_CONFIG["password_validator"] = {
+#     "regex": '.*',
+#     "help_text": _("Your password does not meet the requirements.")
+# }
+
+# Disable simplified floating IP address management for deployments with
+# multiple floating IP pools or complex network requirements.
+# HORIZON_CONFIG["simple_ip_management"] = False
+
+# Turn off browser autocompletion for the login form if so desired.
+# HORIZON_CONFIG["password_autocomplete"] = "off"
+
+LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 
 # Set custom secret key:
 # You can either set it to a specific value or you can let horizion generate a
@@ -54,13 +82,41 @@ DATABASES = {
 
 # We recommend you use memcached for development; otherwise after every reload
 # of the django development server, you will have to login again. To use
-# memcached set CACHE_BACKED to something like 'memcached://127.0.0.1:11211/'
-CACHE_BACKEND = 'memcached://<%="#{node[:bcpc][:management][:vip]}"%>:11211/'
+# memcached set CACHES to something like
+# CACHES = {
+#    'default': {
+#        'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
+#        'LOCATION' : '127.0.0.1:11211',
+#    }
+#}
+
+CACHES = {
+    'default': {
+        'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION' : '<%="#{node[:bcpc][:management][:vip]}"%>:11211'
+    }
+}
 
 # Send email to the console by default
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Or send them to /dev/null
 #EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+# Enable the Ubuntu theme if it is present.
+try:
+    from ubuntu_theme import *
+except ImportError:
+    pass
+
+# Default Ubuntu apache configuration uses /horizon as the application root.
+# Configure auth redirects here accordingly.
+LOGIN_URL='/horizon/auth/login/'
+LOGIN_REDIRECT_URL='/horizon'
+
+# The Ubuntu package includes pre-compressed JS and compiled CSS to allow
+# offline compression by default.  To enable online compression, install
+# the node-less package and enable the following option.
+COMPRESS_OFFLINE = True
 
 # Configure these for your outgoing email host
 # EMAIL_HOST = 'smtp.my-company.com'
@@ -89,11 +145,23 @@ OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%="#{node[:bcpc][:member_role]}"%>"
 # TODO(tres): Remove these once Keystone has an API to identify auth backend.
 OPENSTACK_KEYSTONE_BACKEND = {
     'name': 'native',
-    'can_edit_user': True
+    'can_edit_user': True,
+    'can_edit_project': True
 }
 
 OPENSTACK_HYPERVISOR_FEATURES = {
-    'can_set_mount_point': True
+    'can_set_mount_point': True,
+
+    # NOTE: as of Grizzly this is not yet supported in Nova so enabling this
+    # setting will not do anything useful
+    'can_encrypt_volumes': False
+}
+
+# The OPENSTACK_QUANTUM_NETWORK settings can be used to enable optional
+# services provided by quantum.  Currently only the load balancer service
+# is available.
+OPENSTACK_QUANTUM_NETWORK = {
+    'enable_lb': False
 }
 
 # OPENSTACK_ENDPOINT_TYPE specifies the endpoint type to use for the endpoints
@@ -112,63 +180,57 @@ API_RESULT_PAGE_SIZE = 20
 TIME_ZONE = "UTC"
 
 LOGGING = {
-        'version': 1,
-        # When set to True this will disable all logging except
-        # for loggers specified in this configuration dictionary. Note that
-        # if nothing is specified here and disable_existing_loggers is True,
-        # django.db.backends will still log unless it is disabled explicitly.
-        'disable_existing_loggers': False,
-        'handlers': {
-            'null': {
-                'level': 'DEBUG',
-                'class': 'django.utils.log.NullHandler',
-                },
-            'console': {
-                # Set the level to "DEBUG" for verbose output logging.
-                'level': 'INFO',
-                'class': 'logging.StreamHandler',
-                },
-            },
-        'loggers': {
-            # Logging from django.db.backends is VERY verbose, send to null
-            # by default.
-            'django.db.backends': {
-                'handlers': ['null'],
-                'propagate': False,
-                },
-            'horizon': {
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'openstack_dashboard': {
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'novaclient': {
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'keystoneclient': {
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'glanceclient': {
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'nose.plugins.manager': {
-                'handlers': ['console'],
-                'propagate': False,
-            }
+    'version': 1,
+    # When set to True this will disable all logging except
+    # for loggers specified in this configuration dictionary. Note that
+    # if nothing is specified here and disable_existing_loggers is True,
+    # django.db.backends will still log unless it is disabled explicitly.
+    'disable_existing_loggers': False,
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
+        'console': {
+            # Set the level to "DEBUG" for verbose output logging.
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        # Logging from django.db.backends is VERY verbose, send to null
+        # by default.
+        'django.db.backends': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'requests': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'horizon': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'openstack_dashboard': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'novaclient': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'keystoneclient': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'glanceclient': {
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'nose.plugins.manager': {
+            'handlers': ['console'],
+            'propagate': False,
         }
+    }
 }
-
-# Default Ubuntu apache configuration uses /horizon as the application root.
-# Configure auth redirects here accordingly.
-LOGIN_URL='/horizon/auth/login/'
-LOGIN_REDIRECT_URL='/horizon'
-
-# The Ubuntu package includes pre-compressed JS and compiled CSS to allow
-# offline compression by default.  To enable online compression, install
-# the node-less package and enable the following option.
-COMPRESS_OFFLINE = True

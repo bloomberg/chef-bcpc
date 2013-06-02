@@ -73,6 +73,14 @@ use_syslog = False
 # CA certificate file to use to verify connecting clients
 #ca_file = /path/to/cafile
 
+[keystone_authtoken]
+auth_host = <%="#{node[:bcpc][:management][:vip]}"%>
+auth_port = 35357
+auth_protocol = http
+admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
+admin_user = <%="#{get_config('keystone-admin-user')}"%>
+admin_password = <%="#{get_config('keystone-admin-password')}"%>
+
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines
 #config_file = /etc/glance/glance-registry-paste.ini

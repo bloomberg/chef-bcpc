@@ -83,6 +83,13 @@ admin_role = <%="#{node[:bcpc][:admin_role]}"%>
 # Allow access to version 2 of glance api
 #enable_v2_api = True
 
+# Return the URL that references where the data is stored on
+# the backend storage system.  For example, if using the
+# file system store a URL of 'file:///path/to/image' will
+# be returned to the user in the 'direct_url' meta-data field.
+# The default value is false.
+show_image_direct_url = True
+
 # ================= Syslog Options ============================
 
 # Send logs to syslog (/dev/log) instead of to file specified
@@ -137,6 +144,17 @@ registry_client_protocol = http
 # GLANCE_CLIENT_CA_FILE environ variable to a filepath of the CA cert file
 #registry_client_ca_file = /path/to/ca/file
 
+# When using SSL in connections to the registry server, do not require
+# validation via a certifying authority. This is the registry's equivalent of
+# specifying --insecure on the command line using glanceclient for the API
+# Default: False
+#registry_client_insecure = False
+
+# The period of time, in seconds, that the API server will wait for a registry
+# request to complete. A value of '0' implies no timeout.
+# Default: 600
+#registry_client_timeout = 600
+
 # ============ Notification System Options =====================
 
 # Notifications can be sent when images are create, updated or deleted.
@@ -154,12 +172,13 @@ rabbit_userid = guest
 rabbit_password = <%="#{get_config('rabbitmq-password')}"%>
 rabbit_virtual_host = /
 rabbit_notification_exchange = glance
-rabbit_notification_topic = glance_notifications
+rabbit_notification_topic = notifications
+rabbit_durable_queues = False
 
 # Configuration options if sending notifications via Qpid (these are
 # the defaults)
 qpid_notification_exchange = glance
-qpid_notification_topic = glance_notifications
+qpid_notification_topic = notifications
 qpid_host = localhost
 qpid_port = 5672
 qpid_username =
@@ -233,9 +252,17 @@ swift_enable_snet = False
 # to be stored in tenant specific Swift accounts.
 #swift_store_multi_tenant = False
 
-# A list of tenants that will be granted read/write access on all Swift
-# containers created by Glance in multi-tenant mode.
-#swift_store_admin_tenants = []
+# A list of swift ACL strings that will be applied as both read and
+# write ACLs to the containers created by Glance in multi-tenant
+# mode. This grants the specified tenants/users read and write access
+# to all newly created image objects. The standard swift ACL string
+# formats are allowed, including:
+# <tenant_id>:<username>
+# <tenant_name>:<username>
+# *:<username>
+# Multiple ACLs can be combined using a comma separated list, for
+# example: swift_store_admin_tenants = service:glance,*:admin
+#swift_store_admin_tenants =
 
 # The region of the swift endpoint to be used for single tenant. This setting
 # is only necessary if the tenant has multiple swift endpoints.
@@ -295,9 +322,6 @@ rbd_store_pool = <%="#{node[:bcpc][:glance_rbd_pool]}"%>
 # For best performance, this should be a power of two
 rbd_store_chunk_size = 8
 
-# Needed for CoW images to volumes
-show_image_direct_url=True
-
 # ============ Delayed Delete Options =============================
 
 # Turn on/off delayed delete
@@ -314,6 +338,14 @@ scrubber_datadir = /var/lib/glance/scrubber
 
 # Base directory that the Image Cache uses
 image_cache_dir = /var/lib/glance/image-cache/
+
+[keystone_authtoken]
+auth_host = <%="#{node[:bcpc][:management][:vip]}"%>
+auth_port = 35357
+auth_protocol = http
+admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
+admin_user = <%="#{get_config('keystone-admin-user')}"%>
+admin_password = <%="#{get_config('keystone-admin-password')}"%>
 
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines

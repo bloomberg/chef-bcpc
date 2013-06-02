@@ -56,6 +56,17 @@ directory "/etc/rabbitmq/rabbitmq.conf.d" do
     group "root"
 end
 
+template "/etc/rabbitmq/rabbitmq-env.conf" do
+    source "rabbitmq-env.conf.erb"
+    mode 0644
+end
+
+directory "/etc/rabbitmq/rabbitmq.conf.d" do
+    mode 00755
+    owner "root"
+    group "root"
+end
+
 template "/etc/rabbitmq/rabbitmq.conf.d/bcpc.conf" do
     source "rabbitmq-bcpc.conf.erb"
     mode 00644

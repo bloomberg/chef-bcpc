@@ -4,7 +4,7 @@
 #
 ###########################################
 # Can be "folsom" or "grizzly"
-default['bcpc']['openstack_release'] = "folsom"
+default['bcpc']['openstack_release'] = "grizzly"
 # Can be "updates" or "proposed"
 default['bcpc']['openstack_branch'] = "proposed"
 # Should be kvm (or qemu if testing in VMs)

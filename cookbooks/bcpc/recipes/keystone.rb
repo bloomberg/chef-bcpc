@@ -92,7 +92,7 @@ bash "keystone-service-catalog-keystone" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:35357/v2.0" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:5000/v2.0"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep keystone"
+    not_if ". /root/keystonerc; keystone service-list | grep ' keystone '"
 end
 
 bash "keystone-service-catalog-glance" do
@@ -105,7 +105,7 @@ bash "keystone-service-catalog-glance" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:9292/v1" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:9292/v1"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep glance"
+    not_if ". /root/keystonerc; keystone service-list | grep ' glance '"
 end
 
 bash "keystone-service-catalog-nova" do
@@ -118,7 +118,7 @@ bash "keystone-service-catalog-nova" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8774/v1.1/\\\$(tenant_id)s" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8774/v1.1/\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep nova"
+    not_if ". /root/keystonerc; keystone service-list | grep ' nova '"
 end
 
 bash "keystone-service-catalog-cinder" do
@@ -131,7 +131,7 @@ bash "keystone-service-catalog-cinder" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8776/v1/\\\$(tenant_id)s" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8776/v1/\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep cinder"
+    not_if ". /root/keystonerc; keystone service-list | grep ' cinder '"
 end
 
 bash "keystone-service-catalog-ec2" do
@@ -144,7 +144,7 @@ bash "keystone-service-catalog-ec2" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8773/services/Admin" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8773/services/Cloud"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep ec2"
+    not_if ". /root/keystonerc; keystone service-list | grep ' ec2 '"
 end
 
 bash "keystone-service-catalog-s3" do
@@ -158,7 +158,7 @@ bash "keystone-service-catalog-s3" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8080/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8080/"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep s3"
+    not_if ". /root/keystonerc; keystone service-list | grep ' s3 '"
 end
 
 bash "keystone-service-catalog-swift" do
@@ -172,7 +172,7 @@ bash "keystone-service-catalog-swift" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8080/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8080/v1/AUTH_\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep swift"
+    not_if ". /root/keystonerc; keystone service-list | grep ' swift '"
 end
 
 bash "keystone-service-catalog-quantum" do
@@ -186,7 +186,7 @@ bash "keystone-service-catalog-quantum" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:9696/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:9696/"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep quantum"
+    not_if ". /root/keystonerc; keystone service-list | grep ' quantum '"
 end
 
 bash "keystone-create-users-tenants" do

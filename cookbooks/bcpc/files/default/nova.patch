@@ -1,0 +1,45 @@
+--- nova/consoleauth/manager.py 2013-04-27 14:06:01.780134755 -0400
++++ nova-new/consoleauth/manager.py  2013-04-27 14:06:25.315368222 -0400
+@@ -118,7 +118,7 @@
+     def delete_tokens_for_instance(self, context, instance_uuid):
+         tokens = self._get_tokens_for_instance(instance_uuid)
+         for token in tokens:
+-            self.mc.delete(token)
++            self.mc.delete(token.encode('UTF-8'))
+         self.mc.delete(instance_uuid.encode('UTF-8'))
+ 
+     def get_backdoor_port(self, context):
+
+diff -ru nova/api/ec2/ec2utils.py nova-new/api/ec2/ec2utils.py
+--- nova/api/ec2/ec2utils.py    2013-04-21 16:38:02.160288757 -0400
++++ nova-new/api/ec2/ec2utils.py    2013-04-21 16:42:39.764972496 -0400
+@@ -42,10 +42,10 @@
+         if not _CACHE:
+             _CACHE = memorycache.get_client()
+         key = "%s:%s" % (func.__name__, reqid)
+-        value = _CACHE.get(key)
++        value = _CACHE.get(key.encode('UTF-8'))
+         if value is None:
+             value = func(context, reqid)
+-            _CACHE.set(key, value, time=_CACHE_TIME)
++            _CACHE.set(key.encode('UTF-8'), value, time=_CACHE_TIME)
+         return value
+     return memoizer
+
+diff -ru nova/api/openstack/compute/contrib/extended_availability_zone.py nova-new/api/openstack/compute/contrib/extended_availability_zone.py
+--- nova/api/openstack/compute/contrib/extended_availability_zone.py    2013-04-21 16:39:10.365592284 -0400
++++ nova-new/api/openstack/compute/contrib/extended_availability_zone.py    2013-04-21 16:41:51.490998880 -0400
+@@ -41,11 +41,11 @@
+         if not host:
+             return None
+         cache_key = "azcache-%s" % host
+-        az = self.mc.get(cache_key)
++        az = self.mc.get(cache_key.encode('UTF-8'))
+         if not az:
+             elevated = context.elevated()
+             az = availability_zones.get_host_availability_zone(elevated, host)
+-            self.mc.set(cache_key, az, AZ_CACHE_SECONDS)
++            self.mc.set(cache_key.encode('UTF-8'), az, AZ_CACHE_SECONDS)
+         return az
+ 
+     def _extend_server(self, context, server, instance):

@@ -22,7 +22,7 @@ include_recipe "bcpc::nova-common"
 
 package "python-memcache"
 
-%w{nova-scheduler nova-cert nova-consoleauth}.each do |pkg|
+%w{nova-scheduler nova-cert nova-consoleauth nova-conductor}.each do |pkg|
     package pkg do
         action :upgrade
     end
@@ -38,6 +38,7 @@ bash "restart-nova-scheduler-cert" do
     notifies :restart, "service[nova-scheduler]", :immediately
     notifies :restart, "service[nova-cert]", :immediately
     notifies :restart, "service[nova-consoleauth]", :immediately
+    notifies :restart, "service[nova-conductor]", :immediately
 end
 
 ruby_block "nova-database-creation" do

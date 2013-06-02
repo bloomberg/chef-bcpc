@@ -31,6 +31,10 @@ package "openstack-dashboard" do
     action :upgrade
 end
 
+package "openstack-dashboard-ubuntu-theme" do
+    action :remove
+end
+
 bash "set-apache-bind-address" do
     code <<-EOH
         sed -i "s/\\\(^[\\\t ]*Listen[\\\t ]*\\\)80[\\\t ]*$/\\\\1#{node[:bcpc][:management][:ip]}:80/g" /etc/apache2/ports.conf
