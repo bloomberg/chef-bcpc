@@ -302,7 +302,7 @@ ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.13 -x ubuntu --sudo
 ```
 
-Also, after the first run, make the bootstrap node VM an administrator, or you will get the error:
+Also, after the first run, make the BCPC-Headnode an administrator, or you will get the error:
 '''
 [...]error: Net::HTTPServerException: 403 "Forbidden"
 '''
