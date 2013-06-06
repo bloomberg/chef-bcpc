@@ -66,6 +66,10 @@ else
   $VBM dhcpserver remove --ifname vboxnet0 || true
   $VBM dhcpserver remove --ifname vboxnet1 || true
   $VBM dhcpserver remove --ifname vboxnet2 || true
+  # FIX: VBox 4.2.4 had dhcpserver operating without the below.
+  $VBM dhcpserver remove --netname HostInterfaceNetworking-vboxnet0 || true
+  $VBM dhcpserver remove --netname HostInterfaceNetworking-vboxnet1 || true
+  $VBM dhcpserver remove --netname HostInterfaceNetworking-vboxnet2 || true
   $VBM hostonlyif ipconfig vboxnet0 --ip 10.0.100.2 --netmask 255.255.255.0
   $VBM hostonlyif ipconfig vboxnet1 --ip 172.16.100.2 --netmask 255.255.255.0
   $VBM hostonlyif ipconfig vboxnet2 --ip 192.168.100.2 --netmask 255.255.255.0
