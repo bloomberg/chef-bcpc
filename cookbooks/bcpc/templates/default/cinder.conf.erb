@@ -25,7 +25,7 @@ sql_connection=mysql://<%="#{get_config('mysql-cinder-user')}"%>:<%="#{get_confi
 sql_idle_timeout=10
 
 # Rabbit message queue settings
-rabbit_host=<%="#{node[:bcpc][:management][:vip]}"%>
+rabbit_hosts=<%= "#{@servers.collect{|x| x['bcpc']['management']['ip']}.join(',')}" %>
 rabbit_password=<%="#{get_config('rabbitmq-password')}"%>
 rabbit_ha_queues=False
 rabbit_durable_queues=True

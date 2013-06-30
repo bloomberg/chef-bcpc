@@ -65,6 +65,13 @@ template "/etc/logstash.conf" do
     notifies :restart, "service[logstash]", :delayed
 end
 
+package "libzmq1"
+
+link "/usr/local/lib/libzmq.so" do
+    to "/usr/lib/libzmq.so.1"
+    notifies :restart, "service[logstash]", :delayed
+end
+
 service "logstash" do
     provider Chef::Provider::Service::Upstart
     action [ :enable, :start ]

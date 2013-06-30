@@ -45,6 +45,17 @@ listen stats-vip <%="#{node[:bcpc][:management][:vip]}"%>:1936
   mode http
   server myself <%="#{node[:bcpc][:management][:ip]}"%>:1936
 
+listen logstash-zmq <%="#{node[:bcpc][:management][:vip]}"%>:5556
+  timeout  client 1h
+  timeout  server 1h
+  mode tcp
+  balance leastconn
+  option  tcplog
+  option tcpka
+<% @servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:5556 check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+
 listen mysql-galera <%="#{node[:bcpc][:management][:vip]}"%>:3306
   timeout  client 1h
   timeout  server 1h
@@ -152,7 +163,7 @@ listen horizon-https <%="#{node[:bcpc][:management][:vip]}"%>:443
   option  tcplog
   option tcpka
 <% @servers.each do |server| -%>
-  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:443 check inter 1s rise 1 fall 1" %>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:443 check inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
 
 listen memcached <%="#{node[:bcpc][:management][:vip]}"%>:11211

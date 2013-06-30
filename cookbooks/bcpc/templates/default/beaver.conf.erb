@@ -5,11 +5,7 @@
 ################################################
 
 [beaver]
-rabbitmq_host: <%="#{node[:bcpc][:management][:vip]}"%>
-rabbitmq_password: <%="#{get_config('rabbitmq-password')}"%>
-rabbitmq_exchange_durable: 1
-rabbitmq_queue_durable: 1
-rabbitmq_ha_queue: 0
+zeromq_address: tcp://<%="#{node[:bcpc][:management][:vip]}"%>:5556
 
 [/var/log/{syslog,auth.log}]
 type: syslog

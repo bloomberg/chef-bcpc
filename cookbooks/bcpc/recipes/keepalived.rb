@@ -36,7 +36,7 @@ template "/etc/keepalived/keepalived.conf" do
     notifies :restart, "service[keepalived]", :immediately
 end
 
-%w{if_vip if_not_vip}.each do |script|
+%w{if_vip if_not_vip vip_change}.each do |script|
     template "/usr/local/bin/#{script}" do
         source "keepalived-#{script}.erb"
         mode 0755

@@ -5,16 +5,11 @@
 ################################################
 
 input {
-    amqp {
-        host => "<%="#{node[:bcpc][:management][:vip]}"%>"
-        password => "<%="#{get_config('rabbitmq-password')}"%>"
-        exchange => 'logstash-exchange'
-        queue => 'logstash-queue'
-        key => 'logstash-key'
-        type => 'direct'
-        auto_delete => false
-        exclusive => false
-        durable => true
+    zeromq {
+        type => 'shipper-input'
+        mode => 'server'
+        topology => 'pushpull'
+        address => 'tcp://<%="#{node[:bcpc][:management][:ip]}"%>:5556'
     }
 }
 
@@ -48,6 +43,12 @@ output {
     #    debug => true
     # }
     elasticsearch_http {
-        host => "<%="#{node[:bcpc][:management][:vip]}"%>"
+        host => "<%="#{node[:bcpc][:management][:ip]}"%>"
+    #elasticsearch {
+    #    embedded => false
+    #    bind_host => "<%="#{node[:bcpc][:management][:ip]}"%>"
+    #    host => "<%="#{node[:bcpc][:management][:ip]}"%>"
+    #    cluster => "<%="#{node[:bcpc][:region_name]}"%>"
+    #    node_name => "<%="#{node.hostname}-logstash"%>"
     }
 }

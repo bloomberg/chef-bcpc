@@ -41,4 +41,7 @@ vrrp_instance <%= "BCPC_#{node[:bcpc][:region_name]}" %> {
     auth_type PASS
     auth_pass <%="#{get_config('keepalived-password')}"%>
   }
+  notify_stop "/usr/local/bin/vip_change"
+  notify_fault "/usr/local/bin/vip_change"
+  notify_backup "/usr/local/bin/vip_change"
 }
