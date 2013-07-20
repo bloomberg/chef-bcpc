@@ -89,8 +89,6 @@ default['bcpc']['beaver']['user'] = "beaver"
 default['bcpc']['beaver']['group'] = "adm"
 default['bcpc']['logstash']['user'] = "logstash"
 default['bcpc']['logstash']['group'] = "adm"
-default['bcpc']['kibana']['user'] = "kibana"
-default['bcpc']['kibana']['group'] = "adm"
 default['bcpc']['zabbix']['user'] = "zabbix"
 default['bcpc']['zabbix']['group'] = "adm"
 

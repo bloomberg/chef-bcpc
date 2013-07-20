@@ -20,23 +20,17 @@ apt-get -y dist-upgrade
 
 # Install tools needed for packaging
 apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev
-if [ -z `gem list --local bundler | grep bundler | cut -f1 -d" "` ]; then
-  gem install bundler --no-ri --no-rdoc
-fi
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
 
-# Build kibana installable bundle
-if [ ! -f kibana.tgz ]; then
-    git clone https://github.com/rashidkpc/Kibana.git kibana
-    cd kibana
-    bundle install --standalone
-    cd ..
-    tar czf kibana.tgz kibana
-    rm -rf kibana
+# Build kibana3 installable bundle
+if [ ! -f kibana3.tgz ]; then
+    git clone https://github.com/elasticsearch/kibana.git kibana3
+    tar czf kibana3.tgz kibana3
+    rm -rf kibana3
 fi
-FILES="kibana.tgz $FILES"
+FILES="kibana3.tgz $FILES"
 
 # Fetch the cirros image for testing
 if [ ! -f cirros-0.3.0-x86_64-disk.img ]; then
