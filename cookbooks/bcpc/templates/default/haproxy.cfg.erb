@@ -81,6 +81,17 @@ listen rabbitmq-web <%="#{node[:bcpc][:management][:vip]}"%>:55672
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:55672 check inter 1s rise 1 fall 1" %>
 <% end -%>
 
+listen ldap-389ds <%="#{node[:bcpc][:management][:vip]}"%>:389
+  timeout  client 1h
+  timeout  server 1h
+  mode tcp
+  balance leastconn
+  option  tcplog
+  option tcpka
+<% @servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:389 check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+
 listen keystone-api <%="#{node[:bcpc][:management][:vip]}"%>:5000
   balance  source
   option  tcplog
