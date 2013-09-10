@@ -62,7 +62,7 @@ SourceIP=<%="#{node[:bcpc][:management][:ip]}"%>
 #
 # Mandatory: no
 # Default:
-# EnableRemoteCommands=0
+EnableRemoteCommands=1
 
 ### Option: LogRemoteCommands
 #   Enable logging of executed shell commands as warnings.
@@ -225,7 +225,7 @@ Include=/usr/local/etc/zabbix_agentd.conf.d/
 # Mandatory: no
 # Range: 0-1
 # Default:
-# UnsafeUserParameters=0
+UnsafeUserParameters=1
 
 ### Option: UserParameter
 #   User-defined parameter to monitor. There can be several user-defined parameters.
@@ -234,4 +234,8 @@ Include=/usr/local/etc/zabbix_agentd.conf.d/
 #
 # Mandatory: no
 # Default:
-# UserParameter=
+UserParameter=mysql.status[*],echo "show global status where Variable_name='$1';" | mysql -N  -u<%="#{get_config('mysql-zabbix-user')}"%> --password=<%="#{get_config('mysql-zabbix-password')}"%> | awk '{print $$2}'
+UserParameter=mysql.size[*],echo "select sum($(case "$3" in both|"") echo "data_length+index_length";; data|index) echo "$3_length";; free) echo "data_free";; esac)) from information_schema.tables$([[ "$1" = "all" || ! "$1" ]] || echo " where table_schema='$1'")$([[ "$2" = "all" || ! "$2" ]] || echo "and table_name='$2'");" | HOME=/var/lib/zabbix mysql -N -u<%="#{get_config('mysql-zabbix-user')}"%> --password=<%="#{get_config('mysql-zabbix-password')}"%>
+
+UserParameter=mysql.ping,HOME=/var/lib/zabbix mysqladmin ping -u<%="#{get_config('mysql-zabbix-user')}"%> --password=<%="#{get_config('mysql-zabbix-password')}"%> | grep -c alive
+UserParameter=mysql.version,mysql -V

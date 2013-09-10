@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+"""
+Silly little script to spit out the hostname or ip (if unresolved) of 
+the host that currently claims the vip (arroding to arp).
+
+Used by zabbix monitoring to alert when the vip changes. 
+"""
+
+vip = "<%="#{node[:bcpc][:management][:vip]}"%>"
+
+import subprocess
+import sys
+
+def fail():
+    """When we fail to determine the vip, make sure we return 1 
+    so zabbix knows this failed"""
+    print "?"
+    sys.exit(1)
+
+def runcmd(cmd):
+    """Run the command cmd with options, e.g. ["ls", "-l"]
+    and create a generator to spit back stdout. 
+    Note currently just sucks everything into memory before
+    yield."""
+
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    r = p.wait()
+    if r:
+        fail()
+    stdout = p.stdout.read()        
+    for line in stdout.split("\n"):
+        line.strip()
+        if line:
+            yield line
+
+if "__main__" == __name__:
+    lines = [ l for l in runcmd(["arp", vip])]
+    if len(lines)!=2:
+        fail()
+    args = lines[1].split()
+    vip_mac = args[2]
+    vip_interface = args[4]
+    for line in runcmd(["arp", "-an"]):
+        if vip_mac in line:
+            if vip not in line:
+                v = line.split()
+                hostname = v[0]
+                if hostname != "?":
+                    print hostname
+                else:
+                    ip = v[1].strip(" ()")
+                    print ip
+
+                sys.exit(0)
+    sys.exit(1) # if I get here something aint right
