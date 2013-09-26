@@ -146,6 +146,8 @@ listen nova-compute <%="#{node[:bcpc][:management][:vip]}"%>:8774
 listen horizon-http <%="#{node[:bcpc][:management][:vip]}"%>:80
   balance  source
   option  tcplog
+  option httpchk GET /
+  http-check expect status 200
 <% @servers.each do |server| -%>
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:80 check inter 1s rise 1 fall 1" %>
 <% end -%>
@@ -155,8 +157,10 @@ listen horizon-https <%="#{node[:bcpc][:management][:vip]}"%>:443
   balance source
   option  tcplog
   option tcpka
+  option httpchk GET /
+  http-check expect status 200
 <% @servers.each do |server| -%>
-  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:443 check inter 1s rise 1 fall 1 observe layer4" %>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:443 check port 80 inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
 
 listen elasticsearch <%="#{node[:bcpc][:management][:vip]}"%>:9200
