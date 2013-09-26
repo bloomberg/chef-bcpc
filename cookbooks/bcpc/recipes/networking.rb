@@ -185,9 +185,30 @@ bash "disable-noninteractive-pam-logging" do
     only_if "grep -e '^session\\s*required\\s*pam_unix.so' /etc/pam.d/common-session-noninteractive"
 end
 
-package "apache2" do
-    action :upgrade
+apt_repository "ceph-fcgi" do
+    uri node['bcpc']['repos']['ceph-fcgi']
+    distribution node['lsb']['codename']
+    components ["main"]
+    key "ceph-autobuild2.key"
 end
+
+apt_repository "ceph-apache" do
+    uri node['bcpc']['repos']['ceph-apache']
+    distribution node['lsb']['codename']
+    components ["main"]
+    key "ceph-autobuild2.key"
+end
+
+package "apache2" do
+   action :upgrade
+   version "2.2.22-1ubuntu1-inktank1"
+end
+
+package "libapache2-mod-fastcgi" do
+   action :upgrade
+   version "2.4.7~0910052141-1-inktank2"
+end
+
 
 directory "/etc/apache2/vhost-root.d" do
   owner "root"
@@ -227,7 +248,7 @@ template "/etc/apache2/sites-enabled/000-default" do
     notifies :restart, "service[apache2]", :delayed
 end
 
-%w{proxy_http ssl}.each do |mod|
+%w{proxy_http rewrite ssl}.each do |mod|
     bash "apache-enable-#{mod}" do
         user "root"
         code <<-EOH

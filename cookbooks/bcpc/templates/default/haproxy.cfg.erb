@@ -176,3 +176,31 @@ listen logstash-zmq <%="#{node[:bcpc][:management][:vip]}"%>:5556
 <% @servers.each do |server| -%>
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:5556 check inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
+
+#listen radosgw-redir-http  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw_redir]}"%>
+#  balance source
+#<% @work_servers.each do |server| -%>
+#  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw]} redir http://#{server[:bcpc][:management][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw]} check" %>
+#<% end -%>
+
+#listen radosgw-redir-https  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw_redir_https]}"%>
+#  balance source
+#<% @work_servers.each do |server| -%>
+#  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw_https]} redir https://#{server[:bcpc][:management][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw_https]} check" %>
+#<% end -%>
+
+listen radosgw-passthru-http  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw]}"%>
+  balance source
+<% @work_servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:floating][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw]} check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+
+listen radosgw-passthru-https  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw_https]}"%>
+  mode tcp
+  balance source
+  option  tcplog
+  option tcpka
+<% @work_servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:floating][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw_https]} check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+

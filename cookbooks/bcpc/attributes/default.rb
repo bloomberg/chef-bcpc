@@ -20,6 +20,7 @@ default['bcpc']['domain_name'] = "bcpc.example.com"
 #
 ###########################################
 default['bcpc']['ceph_disks'] = [ "sdb", "sdc", "sdd", "sde" ]
+default['bcpc']['ceph_node_count'] = 3
 default['bcpc']['management']['interface'] = "eth0"
 default['bcpc']['storage']['interface'] = "eth1"
 default['bcpc']['floating']['interface'] = "eth2"
@@ -34,6 +35,7 @@ default['bcpc']['management']['vip'] = "10.17.1.15"
 default['bcpc']['management']['netmask'] = "255.255.255.0"
 default['bcpc']['management']['cidr'] = "10.17.1.0/24"
 default['bcpc']['management']['gateway'] = "10.17.1.1"
+default['bcpc']['metadata']['ip'] = "169.254.169.254"
 
 default['bcpc']['storage']['netmask'] = "255.255.255.0"
 default['bcpc']['storage']['cidr'] = "100.100.0.0/24"
@@ -93,4 +95,20 @@ default['bcpc']['logstash']['user'] = "logstash"
 default['bcpc']['logstash']['group'] = "adm"
 default['bcpc']['zabbix']['user'] = "zabbix"
 default['bcpc']['zabbix']['group'] = "adm"
+
+default[:bcpc][:ports][:apache][:radosgw] = 8080
+default[:bcpc][:ports][:apache][:radosgw_https] = 8443
+default[:bcpc][:ports][:haproxy][:radosgw] = 10080
+default[:bcpc][:ports][:haproxy][:radosgw_https] = 10443
+
+default['bcpc']['rgw_pool_multiplier']['.rgw.buckets'] = 100 
+default['bcpc']['rgw_pool_multiplier']['.log'] = 100 
+default['bcpc']['rgw_pool_multiplier']['.rgw'] = 100 
+default['bcpc']['rgw_pool_multiplier']['.rgw.control'] = 50
+default['bcpc']['rgw_pool_multiplier']['.users.uid'] = 50 
+default['bcpc']['rgw_pool_multiplier']['.users.email'] =  50
+default['bcpc']['rgw_pool_multiplier']['.users'] = 100 
+default['bcpc']['rgw_pool_multiplier']['.usage'] =  100 
+default['bcpc']['rgw_pool_multiplier']['.intent-log'] = 50
+
 

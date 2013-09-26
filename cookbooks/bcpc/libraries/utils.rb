@@ -74,6 +74,23 @@ def get_head_nodes
 	return (results == []) ? [node] : results
 end
 
+def get_work_nodes
+        all = Set.new get_all_nodes
+        head = Set.new get_head_nodes
+        results = (all - head).to_a
+        return (results = []) ? [node] : results
+end
+
+#pgs work best when a power of 2, use this to calculate the number of pgs in a pool
+#base on a multiplier (which should never be 0)
+def get_num_pgs(multiplier) 
+	multiplier = multiplier || 1
+	result = 1
+	count = node[:bcpc][:ceph_node_count] * node[:bcpc][:ceph_disks].length * multiplier
+	while (result < count) do result = result << 1 end
+	return result
+end
+
 def secure_password
 	pw = String.new
 	while pw.length < 20
