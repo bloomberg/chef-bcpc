@@ -1,0 +1,10 @@
+--- out_elasticsearch.rb.orig   2013-09-24 23:04:30.181446205 -0400
++++ out_elasticsearch.rb        2013-09-24 23:13:45.824739341 -0400
+@@ -41,6 +41,7 @@
+
+     chunk.msgpack_each do |tag, time, record|
+       if @logstash_format
++        record.keys.each { |k| record['@'+k]=record[k]; record.delete(k) }
+         record.merge!({"@timestamp" => Time.at(time).to_datetime.to_s})
+         target_index = "#{@logstash_prefix}-#{Time.at(time).getutc.strftime("%Y.%m.%d")}"
+       else

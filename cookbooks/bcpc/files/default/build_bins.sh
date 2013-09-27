@@ -39,6 +39,15 @@ if [ ! -f kibana3.tgz ]; then
 fi
 FILES="kibana3.tgz $FILES"
 
+# Grab plugins for fluentd
+for i in elasticsearch tail-multiline tail-ex record-reformer rewrite; do
+    if [ ! -f fluent-plugin-${i}.gem ]; then
+        gem fetch fluent-plugin-${i}
+        mv fluent-plugin-${i}-*.gem fluent-plugin-${i}.gem
+    fi
+    FILES="fluent-plugin-${i}.gem $FILES"
+done
+
 # Fetch the cirros image for testing
 if [ ! -f cirros-0.3.0-x86_64-disk.img ]; then
     $CURL -O -L https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
@@ -93,54 +102,11 @@ if [ ! -f elasticsearch-plugins.tgz ]; then
 fi
 FILES="elasticsearch-plugins.tgz $FILES"
 
-
-# Snag logstash
-if [ ! -f logstash-1.1.13-flatjar.jar ]; then
-    $CURL -O -L https://logstash.objects.dreamhost.com/release/logstash-1.1.13-flatjar.jar
-fi
-FILES="logstash-1.1.13-flatjar.jar $FILES"
-
 # Fetch pyrabbit
 if [ ! -f pyrabbit-1.0.1.tar.gz ]; then
     $CURL -O -L https://pypi.python.org/packages/source/p/pyrabbit/pyrabbit-1.0.1.tar.gz
 fi
 FILES="pyrabbit-1.0.1.tar.gz $FILES"
-
-# Build python ujson
-if [ ! -f python-ujson_1.30-1_amd64.deb ]; then
-    $CURL -L -O https://pypi.python.org/packages/source/u/ujson/ujson-1.30.zip
-    unzip ujson-1.30.zip
-    cd ujson-1.30
-    python setup.py --command-packages=stdeb.command bdist_deb
-    cd ..
-    cp ujson-1.30/deb_dist/python-ujson_1.30-1_amd64.deb .
-    rm -rf ujson-1.30 ujson-1.30.zip
-fi
-FILES="python-ujson_1.30-1_amd64.deb $FILES"
-
-# Build python glob2
-if [ ! -f python-glob2_0.3-1_all.deb ]; then
-    $CURL -L -O https://pypi.python.org/packages/source/g/glob2/glob2-0.3.tar.gz
-    tar zxf glob2-0.3.tar.gz
-    cd glob2-0.3
-    python setup.py --command-packages=stdeb.command bdist_deb
-    cd ..
-    cp glob2-0.3/deb_dist/python-glob2_0.3-1_all.deb .
-    rm -rf glob2-0.3 glob2-0.3.tar.gz
-fi
-FILES="python-glob2_0.3-1_all.deb $FILES"
-
-# Build beaver package
-if [ ! -f python-beaver_28-1_all.deb ]; then
-    $CURL -L -O https://pypi.python.org/packages/source/B/Beaver/Beaver-28.tar.gz
-    tar zxf Beaver-28.tar.gz
-    cd Beaver-28
-    python setup.py --command-packages=stdeb.command bdist_deb
-    cd ..
-    cp Beaver-28/deb_dist/python-beaver_28-1_all.deb .
-    rm -rf Beaver-28 Beaver-28.tar.gz
-fi
-FILES="python-beaver_28-1_all.deb $FILES"
 
 # Build graphite packages
 if [ ! -f python-carbon_0.9.10_all.deb ] || [ ! -f python-whisper_0.9.10_all.deb ] || [ ! -f python-graphite-web_0.9.10_all.deb ]; then

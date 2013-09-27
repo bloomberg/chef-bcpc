@@ -13,12 +13,8 @@
 # kicks in)
 #
 
-# Kill beaver if it's defunct or normal, then restart it
-if [ X"`ps -ef | grep beaver | grep defunct | grep -v grep`" != X ]; then
-	ps -ef | grep "beaver -t zmq" | grep -v grep | awk '{print $2}' | xargs -n1 kill -9
-fi
-killall beaver || true
-service beaver start
+# Restart the fluentd logging daemon
+service td-agent restart
 
 # Restart the diamond service 
 service diamond restart

@@ -169,14 +169,3 @@ listen elasticsearch <%="#{node[:bcpc][:management][:vip]}"%>:9200
 <% @servers.each do |server| -%>
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:9200 check inter 1s rise 1 fall 1" %>
 <% end -%>
-
-listen logstash-zmq <%="#{node[:bcpc][:management][:vip]}"%>:5556
-  timeout  client 1h
-  timeout  server 1h
-  mode tcp
-  balance leastconn
-  option  tcplog
-  option tcpka
-<% @servers.each do |server| -%>
-  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:5556 check inter 1s rise 1 fall 1 observe layer4" %>
-<% end -%>
