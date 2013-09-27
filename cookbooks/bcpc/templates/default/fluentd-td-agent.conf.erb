@@ -121,7 +121,7 @@
     path /var/lib/mysql/<%="#{node.hostname}"%>.err
     pos_file /var/log/td-agent/mysql.pos
     tag pre.mysql
-    format /^(?<ident>[^ ]*)\s*(?<time>[^ ]*)\s*(\[(?<level>[^ ]+)\])?\s*(?<message>.*)$/
+    format /^(?<ident>[0-9]+)\s*(?<time>[0-9]+:[0-9]+:[0-9]+)\s*(\[(?<level>[^ ]+)\])?\s*(?<message>.*)$/
     time_format %H:%M:%S
 </source>
 
