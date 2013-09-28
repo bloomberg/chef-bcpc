@@ -3,6 +3,10 @@
 #  General configuration for this cluster
 #
 ###########################################
+default['bcpc']['country'] = "US"
+default['bcpc']['state'] = "NY"
+default['bcpc']['location'] = "New York"
+default['bcpc']['organization'] = "Bloomberg"
 # Can be "folsom" or "grizzly"
 default['bcpc']['openstack_release'] = "grizzly"
 # Can be "updates" or "proposed"
