@@ -43,7 +43,7 @@ registry_host = <%="#{node[:bcpc][:management][:vip]}"%>
 registry_port = 9191
 
 # Auth settings if using Keystone
-auth_url = http://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
+auth_url = https://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
 admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
 admin_user = <%="#{get_config('keystone-admin-user')}"%>
 admin_password = <%="#{get_config('keystone-admin-password')}"%>

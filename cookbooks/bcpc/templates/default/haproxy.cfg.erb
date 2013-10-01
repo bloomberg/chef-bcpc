@@ -94,18 +94,22 @@ listen ldap-389ds <%="#{node[:bcpc][:management][:vip]}"%>:389
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:389 check inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
 
-listen keystone-api <%="#{node[:bcpc][:management][:vip]}"%>:5000
-  balance  source
+listen keystone-api-ssl <%="#{node[:bcpc][:management][:vip]}"%>:5000
+  mode tcp
+  balance source
   option  tcplog
+  option tcpka
 <% @servers.each do |server| -%>
-  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:5000 check inter 1s rise 1 fall 1" %>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:5000 check inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
 
-listen keystone-admin <%="#{node[:bcpc][:management][:vip]}"%>:35357
-  balance  source
+listen keystone-admin-ssl <%="#{node[:bcpc][:management][:vip]}"%>:35357
+  mode tcp
+  balance source
   option  tcplog
+  option tcpka
 <% @servers.each do |server| -%>
-  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:35357 check inter 1s rise 1 fall 1" %>
+  <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:35357 check inter 1s rise 1 fall 1 observe layer4" %>
 <% end -%>
 
 listen glance-api <%="#{node[:bcpc][:management][:vip]}"%>:9292

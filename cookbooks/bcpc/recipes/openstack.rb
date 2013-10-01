@@ -42,3 +42,9 @@ template "/usr/local/bin/hup_openstack" do
     owner "root"
     group "root"
 end
+
+directory "/opt/openstack" do
+    owner "root"
+    group "root"
+    mode 00755
+end

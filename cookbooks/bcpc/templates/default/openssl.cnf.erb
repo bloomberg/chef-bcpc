@@ -9,7 +9,7 @@ distinguished_name      = req_distinguished_name
 req_extensions          = v3_req
 
 [ v3_req ]
-subjectAltName          = DNS:openstack.<%="#{node[:bcpc][:domain_name]}"%>, DNS:kibana.<%="#{node[:bcpc][:domain_name]}"%>, DNS:graphite.<%="#{node[:bcpc][:domain_name]}"%>, DNS:zabbix.<%="#{node[:bcpc][:domain_name]}"%>
+subjectAltName          = IP:<%="#{node[:bcpc][:management][:vip]}"%>, DNS:<%="#{node[:bcpc][:management][:vip]}"%>, DNS:openstack.<%="#{node[:bcpc][:domain_name]}"%>, DNS:kibana.<%="#{node[:bcpc][:domain_name]}"%>, DNS:graphite.<%="#{node[:bcpc][:domain_name]}"%>, DNS:zabbix.<%="#{node[:bcpc][:domain_name]}"%>
 
 [ req_distinguished_name ]
 commonName              = Common Name (eg, YOUR name)

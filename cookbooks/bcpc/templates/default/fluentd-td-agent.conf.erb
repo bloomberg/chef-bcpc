@@ -108,6 +108,23 @@
 </source>
 
 <source>
+    type tail
+    path /var/log/apache2/keystone-access.log
+    pos_file /var/log/td-agent/apache-access.pos
+    tag pre.openstack.keystone.access
+    format apache2
+</source>
+
+<source>
+    type tail
+    path /var/log/apache2/keystone-error.log
+    pos_file /var/log/td-agent/apache-error.pos
+    tag pre.openstack.keystone.error
+    format /^\[(?<time>[^ ]* [^ ]* [^ ]* [^ ]* [^ ]*)\] \[(?<level>[^ ]*)\] (?<message>.*)$/
+    time_format %a %b %d %H:%M:%S %Y
+</source>
+
+<source>
     type tail_multiline
     path /var/log/nova/nova-api.log,/var/log/nova/nova-compute.log,/var/log/nova/nova-consoleauth.log,/var/log/nova/nova-network.log,/var/log/nova/nova-cert.log,/var/log/nova/nova-conductor.log,/var/log/nova/nova-manage.log,/var/log/nova/nova-scheduler.log
     pos_file /var/log/td-agent/openstack-nova.pos

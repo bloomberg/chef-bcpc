@@ -5,6 +5,6 @@
 #
 ################################################
 
-for i in keystone glance-api glance-registry cinder-api cinder-scheduler cinder-volume nova-api nova-cert nova-compute nova-conductor nova-consoleauth nova-network nova-novncproxy nova-scheduler; do
+for i in glance-api glance-registry cinder-api cinder-scheduler cinder-volume nova-api nova-cert nova-compute nova-conductor nova-consoleauth nova-network nova-novncproxy nova-scheduler; do
 	service $i restart
 done

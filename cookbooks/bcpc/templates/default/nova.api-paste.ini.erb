@@ -106,7 +106,7 @@ paste.filter_factory = nova.api.auth:NovaKeystoneContext.factory
 paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
 auth_host = <%="#{node[:bcpc][:management][:vip]}"%>
 auth_port = 35357
-auth_protocol = http
+auth_protocol = https
 admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
 admin_user = <%="#{get_config('keystone-admin-user')}"%>
 admin_password = <%="#{get_config('keystone-admin-password')}"%>
