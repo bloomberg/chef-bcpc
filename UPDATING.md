@@ -68,12 +68,12 @@ replaced by fluentd.  You can safely remove those packages now.
 
 Automatic boot-from-volumes patches in Grizzly is added back in to the tree.
 You must upload RAW images again.  For example, to convert the public
-Ubuntu 12.04.2 QCOW2 image to RAW:
+Ubuntu 12.04 QCOW2 image to RAW:
 
 ```
-$ curl -O http://cloud-images.ubuntu.com/releases/precise/release/ubuntu-12.04.2-server-cloudimg-amd64-disk1.img
-$ qemu-img convert -O raw ubuntu-12.04.2-server-cloudimg-amd64-disk1.img ubuntu-12.04.2-server-cloudimg-amd64-disk1.raw
-$ glance image-create --name='Ubuntu 12.04.2 x86_64' --is-public=True --container-format=bare --disk-format=raw --file ubuntu-12.04.2-server-cloudimg-amd64-disk1.raw
+$ curl -O http://cloud-images.ubuntu.com/releases/precise/release/ubuntu-12.04-server-cloudimg-amd64-disk1.img
+$ qemu-img convert -O raw ubuntu-12.04-server-cloudimg-amd64-disk1.img ubuntu-12.04-server-cloudimg-amd64-disk1.raw
+$ glance image-create --name='Ubuntu 12.04 x86_64' --is-public=True --container-format=bare --disk-format=raw --file ubuntu-12.04-server-cloudimg-amd64-disk1.raw
 ```
 
 Apache httpd site configurations were switched to use the site model rather
