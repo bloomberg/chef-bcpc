@@ -33,6 +33,10 @@ metadata_listen=169.254.169.254
 metadata_host=169.254.169.254
 dmz_cidr=169.254.169.254/32
 enabled_apis=ec2,osapi_compute,metadata
+<% if not node[:bcpc][:vms_key].nil? %>
+osapi_compute_extension=nova.api.openstack.compute.contrib.standard_extensions
+osapi_compute_extension=cobalt.nova.osapi.cobalt_extension.Cobalt_extension
+<% end %>
 
 # Nova Scheduler
 scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler

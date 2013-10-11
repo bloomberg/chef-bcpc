@@ -5,6 +5,7 @@
 ################################################
 
 import os
+import sys
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -235,3 +236,8 @@ LOGGING = {
         }
     }
 }
+
+<% if not node[:bcpc][:vms_key].nil? %>
+mod = sys.modules['openstack_dashboard.settings']
+mod.INSTALLED_APPS += ('cobalt.horizon',)
+<% end %>

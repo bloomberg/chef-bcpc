@@ -20,6 +20,7 @@
 include_recipe "bcpc::mysql"
 include_recipe "bcpc::openstack"
 include_recipe "bcpc::apache2"
+include_recipe "bcpc::cobalt"
 
 ruby_block "initialize-horizon-config" do
     block do
@@ -30,6 +31,17 @@ end
 
 package "openstack-dashboard" do
     action :upgrade
+end
+
+if not node["bcpc"]["vms_key"].nil?
+    package "cobalt-horizon" do
+        action :upgrade
+        options "-o APT::Install-Recommends=0 -o Dpkg::Options::='--force-confnew'"
+    end
+    package "cobalt-novaclient" do
+        action :upgrade
+        options "-o APT::Install-Recommends=0 -o Dpkg::Options::='--force-confnew'"
+    end
 end
 
 package "openstack-dashboard-ubuntu-theme" do

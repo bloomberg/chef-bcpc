@@ -19,6 +19,7 @@
 
 include_recipe "bcpc::openstack"
 include_recipe "bcpc::ceph-work"
+include_recipe "bcpc::cobalt"
 
 ruby_block "initialize-nova-work-config" do
     block do
@@ -38,10 +39,6 @@ end
     service pkg do
         action [ :enable, :start ]
     end
-end
-
-service "nova-api" do
-    restart_command "service nova-api stop && service nova-api start && sleep 5"
 end
 
 %w{novnc pm-utils memcached python-memcache sysfsutils}.each do |pkg|
@@ -70,6 +67,64 @@ template "/etc/nova/api-paste.ini" do
     notifies :restart, "service[nova-compute]", :delayed
     notifies :restart, "service[nova-network]", :delayed
     notifies :restart, "service[nova-novncproxy]", :delayed
+end
+
+if not node['bcpc']['vms_key'].nil?
+    apt_repository "vms" do
+        uri node['bcpc']['repos']['gridcentric'] % [node['bcpc']['vms_key'], 'vms']
+        distribution "gridcentric"
+        components ["multiverse"]
+        key "gridcentric.key"
+    end
+
+    template "/etc/nova/cobalt-compute.conf" do
+        source "cobalt-compute.conf.erb"
+        owner "root"
+        group "root"
+        mode 00644
+    end
+
+    directory "/etc/sysconfig" do
+        owner "root"
+        group "root"
+        mode 00755
+    end
+
+    template "/etc/sysconfig/vms" do
+        source "vms.erb"
+        owner "root"
+        group "root"
+        mode 00644
+    end
+
+    %w{vms vms-apparmor vms-rados vms-libvirt}.each do |pkg|
+        package pkg do
+            action :upgrade
+            options "-o APT::Install-Recommends=0 -o Dpkg::Options::='--force-confnew'"
+        end
+    end
+
+    %w{cobalt-api cobalt-compute}.each do |pkg|
+        package pkg do
+            action :upgrade
+            options "-o APT::Install-Recommends=0 -o Dpkg::Options::='--force-confnew'"
+        end
+    end
+
+    service "cobalt-compute" do
+        action [ :enable, :start ]
+    end
+
+    bash "restart-cobalt" do
+        subscribes :run, resources("template[/etc/nova/nova.conf]"), :delayed
+        subscribes :run, resources("template[/etc/nova/cobalt-compute.conf]"), :delayed
+        subscribes :run, resources("template[/etc/sysconfig/vms]"), :delayed
+        notifies :restart, "service[cobalt-compute]", :immediately
+    end
+end
+
+service "nova-api" do
+    restart_command "service nova-api stop && service nova-api start && sleep 5"
 end
 
 directory "/var/lib/nova/.ssh" do
@@ -203,4 +258,22 @@ bash "patch-for-grizzly-volumes" do
     EOH
     not_if "test -f /usr/lib/python2.7/dist-packages/nova/grizzly-volumes.patch"
     notifies :restart, "service[nova-compute]", :delayed
+end
+
+bash "create-vms-disk-pool" do
+    user "root"
+    code <<-EOH
+        ceph osd pool create #{node[:bcpc][:vms_disk_pool]} 1000
+        ceph osd pool set #{node[:bcpc][:vms_disk_pool]} size 3
+    EOH
+    not_if "rados lspools | grep #{node[:bcpc][:vms_disk_pool]}"
+end
+
+bash "create-vms-mem-pool" do
+    user "root"
+    code <<-EOH
+        ceph osd pool create #{node[:bcpc][:vms_mem_pool]} 1000
+        ceph osd pool set #{node[:bcpc][:vms_mem_pool]} size 3
+    EOH
+    not_if "rados lspools | grep #{node[:bcpc][:vms_mem_pool]}"
 end
