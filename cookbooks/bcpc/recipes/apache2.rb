@@ -17,13 +17,23 @@
 # limitations under the License.
 #
 
-%w{apache2 libapache2-mod-wsgi libapache2-mod-python libapache2-mod-php5}.each do |pkg|
+package "apache2" do
+   action :upgrade
+   version "2.2.22-1ubuntu1-inktank1"
+end
+
+package "libapache2-mod-fastcgi" do
+   action :upgrade
+   version "2.4.7~0910052141-1-inktank2"
+end
+
+%w{libapache2-mod-wsgi libapache2-mod-python libapache2-mod-php5}.each do |pkg|
     package pkg do
         action :upgrade
     end
 end
 
-%w{ssl wsgi python php5 proxy_http}.each do |mod|
+%w{ssl wsgi python php5 proxy_http rewrite}.each do |mod|
     bash "apache-enable-#{mod}" do
         user "root"
         code "a2enmod #{mod}"

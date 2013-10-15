@@ -6,7 +6,8 @@
 
 NameVirtualHost <%="#{node[:bcpc][:management][:ip]}"%>:443
 
-WSGIDaemonProcess horizon user=www-data group=www-data processes=3 threads=10
+#removed by Rick because apache will not start when there are 2 WSGIDaemonProcess directives .. ?
+#WSGIDaemonProcess horizon user=www-data group=www-data processes=3 threads=10
 
 <VirtualHost <%="#{node[:bcpc][:management][:ip]}"%>:443>
     ServerName "openstack.<%="#{node[:bcpc][:domain_name]}"%>"

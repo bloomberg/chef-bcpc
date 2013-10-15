@@ -1,0 +1,68 @@
+NameVirtualHost <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%>
+
+
+Listen <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%>
+Listen <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%>
+Listen <%="#{node[:bcpc][:metadata][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%>
+Listen <%="#{node[:bcpc][:metadata][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%>
+
+FastCgiExternalServer /var/www/s3gw.fcgi -socket /var/lib/ceph/radosgw/rgw_fcgi.sock
+
+<VirtualHost  <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%> >
+	    ServerName <%="s3.#{node[:bcpc][:domain_name]}"%>
+        ServerAlias <%="#{node[:hostname]}"%>
+        ServerAlias <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%>
+				ServerAlias <%="#{node[:bcpc][:metadata][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw]}"%>
+        ServerAdmin rrichardson6@bloomberg.net
+        DocumentRoot /var/www
+	
+        RewriteEngine On
+	    RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+        <IfModule mod_fastcgi.c>
+                <Directory /var/www>
+                        Options +ExecCGI
+                        AllowOverride All
+                        SetHandler fastcgi-script
+                        Order allow,deny
+                        Allow from all
+                        AuthBasicAuthoritative Off
+                </Directory>
+        </IfModule>
+        AllowEncodedSlashes On
+        ErrorLog /var/log/apache2/rgw_error.log
+        CustomLog /var/log/apache2/rgw_access.log combined
+        ServerSignature Off
+</VirtualHost>
+
+NameVirtualHost <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%>
+
+<VirtualHost  <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%> >
+	    ServerName <%="s3.#{node[:bcpc][:domain_name]}"%>
+        ServerAlias <%="#{node[:hostname]}"%>
+        ServerAlias <%="#{node[:bcpc][:floating][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%>
+				ServerAlias <%="#{node[:bcpc][:metadata][:ip]}:#{node[:bcpc][:ports][:apache][:radosgw_https]}"%>
+        ServerAdmin rrichardson6@bloomberg.net
+        DocumentRoot /var/www
+
+	    SSLEngine on
+        SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
+        SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
+
+        RewriteEngine On
+	    RewriteRule ^/([a-zA-Z0-9-_.]*)([/]?.*) /s3gw.fcgi?page=$1&params=$2&%{QUERY_STRING} [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+        <IfModule mod_fastcgi.c>
+                <Directory /var/www>
+                        Options +ExecCGI
+                        AllowOverride All
+                        SetHandler fastcgi-script
+                        Order allow,deny
+                        Allow from all
+                        AuthBasicAuthoritative Off
+                </Directory>
+        </IfModule>
+        AllowEncodedSlashes On
+        ErrorLog /var/log/apache2/rgw_error.log
+        CustomLog /var/log/apache2/rgw_access.log combined
+        ServerSignature Off
+</VirtualHost>
+

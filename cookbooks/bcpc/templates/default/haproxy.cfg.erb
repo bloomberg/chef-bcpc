@@ -173,3 +173,19 @@ listen elasticsearch <%="#{node[:bcpc][:management][:vip]}"%>:9200
 <% @servers.each do |server| -%>
   <%= "server #{server.hostname} #{server[:bcpc][:management][:ip]}:9200 check inter 1s rise 1 fall 1" %>
 <% end -%>
+
+listen radosgw-passthru-http  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw]}"%>
+  balance source
+<% @work_servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:floating][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw]} check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+
+listen radosgw-passthru-https  <%="#{node[:bcpc][:management][:vip]}:#{node[:bcpc][:ports][:haproxy][:radosgw_https]}"%>
+  mode tcp
+  balance source
+  option  tcplog
+  option tcpka
+<% @work_servers.each do |server| -%>
+  <%= "server #{server.hostname} #{server[:bcpc][:floating][:ip]}:#{server[:bcpc][:ports][:apache][:radosgw_https]} check inter 1s rise 1 fall 1 observe layer4" %>
+<% end -%>
+

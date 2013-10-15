@@ -8,6 +8,7 @@
       "recipe[bcpc::default]",
       "recipe[bcpc::networking]",
       "recipe[bcpc::ceph-work]",
+      "recipe[bcpc::ceph-rgw]",
       "recipe[bcpc::nova-work]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",

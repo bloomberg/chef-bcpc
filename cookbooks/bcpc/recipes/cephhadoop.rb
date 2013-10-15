@@ -1,8 +1,9 @@
+
 #
 # Cookbook Name:: bcpc
-# Recipe:: ceph-apt
+# Recipe:: ceph-osd
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2013, Bloomberg L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,24 +17,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-apt_repository "ceph" do
-    uri node['bcpc']['repos']['ceph']
-    distribution node['lsb']['codename']
-    components ["main"]
-    key "ceph-release.key"
-end
 
-apt_repository "ceph-fcgi" do
-    uri node['bcpc']['repos']['ceph-fcgi']
-    distribution node['lsb']['codename']
-    components ["main"]
-    key "ceph-autobuild2.key"
-end
-
-apt_repository "ceph-apache" do
-    uri node['bcpc']['repos']['ceph-apache']
-    distribution node['lsb']['codename']
-    components ["main"]
-    key "ceph-autobuild2.key"
-end
-
+#Adaptor which allows HDFS to work over Ceph
