@@ -92,10 +92,10 @@ template "/etc/mysql/conf.d/wsrep.cnf" do
     source "wsrep.cnf.erb"
     mode 00644
     notifies :restart, "service[mysql]", :immediately
-    results = get_head_nodes
+    results = get_cached_head_node_names
     # If we are the first one, special case
     seed = ""
-    if ((results.length == 1) && (results[0].hostname == node.hostname)) then
+    if ((results.length == 1) && (results == node.hostname)) then
         seed = "gcomm://"
         # Commented out to prevent mysql from always restarting when 1 head-node
         notifies :run, "bash[remove-bare-gcomm]", :delayed

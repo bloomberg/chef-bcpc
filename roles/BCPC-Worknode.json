@@ -12,7 +12,8 @@
       "recipe[bcpc::nova-work]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
-      "recipe[bcpc::zabbix-work]"
+      "recipe[bcpc::zabbix-work]",
+      "recipe[bcpc::disable-chef]"
     ],
     "description": "A functional compute node in a BCPC cluster",
     "chef_type": "role",

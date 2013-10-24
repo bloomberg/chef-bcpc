@@ -52,6 +52,13 @@ def make_config(key, value)
 	end
 end
 
+def reset_config(key, value)
+        init_config if $dbi.nil?
+        $dbi[key] = value
+        $dbi.save
+        return value
+end
+
 def get_config(key)
 	init_config if $dbi.nil?
 	puts "------------ Fetching value for key \"#{key}\""
@@ -73,6 +80,19 @@ def get_head_nodes
 	results.map!{ |x| x.hostname == node.hostname ? node : x }
 	return (results == []) ? [node] : results
 end
+
+def get_cached_head_node_names
+  results = search(:node, "role:BCPC-Headnode AND chef_environment:#{node.chef_environment}")
+  hostnames = results.map{ |x| x.hostname }
+  cached = get_config("#{node.hostname}_seen_headnodes")
+  if cached.nil?
+    cached = Array.new
+  end
+  all_heads = hostnames  | cached
+  reset_config("#{node.hostname}_seen_headnodes", all_heads)
+  return all_heads
+end
+
 
 #pgs work best when a power of 2, use this to calculate the number of pgs in a pool
 #base on a multiplier (which should never be 0)
