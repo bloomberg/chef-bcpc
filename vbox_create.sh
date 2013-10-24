@@ -64,7 +64,7 @@ if hash vagrant ; then
   VBN2=vboxnet2
 else
   echo "Vagrant not detected - using raw VirtualBox for bcpc-bootstrap"
-  if [[ -z "WIN" ]]; then
+  if [[ -z "$WIN" ]]; then
     # Make the three BCPC networks we'll need, but clear all nets and dhcpservers first
     for i in 0 1 2 3 4 5 6 7 8 9; do
       if [[ ! -z `$VBM list hostonlyifs | grep vboxnet$i | cut -f2 -d" "` ]]; then
@@ -87,10 +87,30 @@ else
     done
   fi
 
-  if [[ ! -z `$VBM list dhcpservers` ]]; then
-    $VBM list dhcpservers | grep NetworkName | awk '{print $2}' | xargs -n1 $VBM dhcpserver remove --netname
-  fi
 
+
+  #
+  # Remove all dhcp servers
+  #
+
+  if [[ -z "$WIN" ]]; then 
+      if [[ ! -z `$VBM list dhcpservers` ]]; then
+	  $VBM list dhcpservers | grep NetworkName | awk '{print $2}' | xargs -n1 $VBM dhcpserver remove --netname
+      fi
+  else
+      for i in 1 2 3; do
+	  if [[ i -gt 1 ]]; then
+	      V="HostInterfaceNetworking-VirtualBox Host-Only Ethernet Adapter #$i";
+	  else
+	      V="HostInterfaceNetworking-VirtualBox Host-Only Ethernet Adapter";
+	  fi  
+	  $VBM dhcpserver remove --netname "$V" || true
+	  
+      done 
+  fi
+  
+
+  
   $VBM hostonlyif create
   $VBM hostonlyif create
   $VBM hostonlyif create
