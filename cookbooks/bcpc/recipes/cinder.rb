@@ -83,11 +83,22 @@ end
 
 bash "create-cinder-rados-pool" do
     user "root"
-    code <<-EOH
-        ceph osd pool create #{node[:bcpc][:cinder_rbd_pool]} 1000
-        ceph osd pool set #{node[:bcpc][:cinder_rbd_pool]} size 3
-    EOH
-    not_if "rados lspools | grep #{node[:bcpc][:cinder_rbd_pool]}"
+    optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:volumes][:replicas]*node[:bcpc][:ceph][:volumes][:portion]/100)
+    code "ceph osd pool create #{node[:bcpc][:ceph][:volumes][:name]} #{optimal}"
+    not_if "rados lspools | grep #{node[:bcpc][:ceph][:volumes][:name]}"
+end
+
+bash "set-cinder-rados-pool-replicas" do
+    user "root"
+    code "ceph osd pool set #{node[:bcpc][:ceph][:volumes][:name]} size #{node[:bcpc][:ceph][:volumes][:replicas]}"
+    not_if "ceph osd pool get #{node[:bcpc][:ceph][:volumes][:name]} size | grep #{node[:bcpc][:ceph][:volumes][:replicas]}"
+end
+
+bash "set-cinder-rados-pool-pgs" do
+    user "root"
+    optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:volumes][:replicas]*node[:bcpc][:ceph][:volumes][:portion]/100)
+    code "ceph osd pool set #{node[:bcpc][:ceph][:volumes][:name]} pg_num #{optimal}"
+    not_if "ceph osd pool get #{node[:bcpc][:ceph][:volumes][:name]} pg_num | grep #{optimal}"
 end
 
 service "tgt" do

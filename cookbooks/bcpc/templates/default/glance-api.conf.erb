@@ -316,7 +316,7 @@ rbd_store_ceph_conf = /etc/ceph/ceph.conf
 rbd_store_user = admin
 
 # RADOS pool in which images are stored
-rbd_store_pool = <%="#{node[:bcpc][:glance_rbd_pool]}"%>
+rbd_store_pool = <%="#{node[:bcpc][:ceph][:images][:name]}"%>
 
 # Images will be chunked into objects of this size (in megabytes).
 # For best performance, this should be a power of two

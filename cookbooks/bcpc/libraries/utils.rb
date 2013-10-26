@@ -91,14 +91,9 @@ def get_cached_head_node_names
   return headnodes  
 end
 
-
-#pgs work best when a power of 2, use this to calculate the number of pgs in a pool
-#base on a multiplier (which should never be 0)
-def get_num_pgs(multiplier) 
-	multiplier = multiplier || 1
+def power_of_2(number)
 	result = 1
-	count = node[:bcpc][:ceph_node_count] * node[:bcpc][:ceph_disks].length * multiplier
-	while (result < count) do result = result << 1 end
+	while (result < number) do result <<= 1 end
 	return result
 end
 

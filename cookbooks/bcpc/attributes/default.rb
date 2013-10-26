@@ -25,13 +25,37 @@ default['bcpc']['vms_key'] = nil
 #  Host-specific defaults for the cluster
 #
 ###########################################
-default['bcpc']['ceph_disks'] = [ "sdb", "sdc", "sdd", "sde" ]
-default['bcpc']['ceph_node_count'] = 3
-default['bcpc']['ceph_s3_replica_count'] = 3
+default['bcpc']['hdd_disks'] = [ "sdb", "sdc" ]
+default['bcpc']['ssd_disks'] = [ "sdd", "sde" ]
 default['bcpc']['management']['interface'] = "eth0"
 default['bcpc']['storage']['interface'] = "eth1"
 default['bcpc']['floating']['interface'] = "eth2"
 default['bcpc']['fixed']['vlan_interface'] = node[:bcpc][:floating][:interface]
+
+###########################################
+#
+#  Ceph settings for the cluster
+#
+###########################################
+default['bcpc']['ceph']['hdd_disks'] = node[:bcpc][:hdd_disks]
+default['bcpc']['ceph']['ssd_disks'] = node[:bcpc][:ssd_disks]
+default['bcpc']['ceph']['pgs_per_node'] = 1024
+# The 'portion' parameters should add up to ~100 across all pools
+default['bcpc']['ceph']['rgw']['replicas'] = 3
+default['bcpc']['ceph']['rgw']['portion'] = 33
+default['bcpc']['ceph']['rgw']['name'] = '.rgw.buckets'
+default['bcpc']['ceph']['images']['replicas'] = 3
+default['bcpc']['ceph']['images']['portion'] = 33
+default['bcpc']['ceph']['images']['name'] = "images"
+default['bcpc']['ceph']['volumes']['replicas'] = 3
+default['bcpc']['ceph']['volumes']['portion'] = 33
+default['bcpc']['ceph']['volumes']['name'] = "volumes"
+default['bcpc']['ceph']['vms_disk']['replicas'] = 3
+default['bcpc']['ceph']['vms_disk']['portion'] = 10
+default['bcpc']['ceph']['vms_disk']['name'] = "vmsdisk"
+default['bcpc']['ceph']['vms_mem']['replicas'] = 3
+default['bcpc']['ceph']['vms_mem']['portion'] = 10
+default['bcpc']['ceph']['vms_mem']['name'] = "vmsmem"
 
 ###########################################
 #
@@ -93,11 +117,6 @@ default['bcpc']['graphite_dbname'] = "graphite"
 default['bcpc']['pdns_dbname'] = "pdns"
 default['bcpc']['zabbix_dbname'] = "zabbix"
 
-default['bcpc']['cinder_rbd_pool'] = "volumes"
-default['bcpc']['glance_rbd_pool'] = "images"
-default['bcpc']['vms_disk_pool'] = "vmsdisk"
-default['bcpc']['vms_mem_pool'] = "vmsmem"
-
 default['bcpc']['admin_tenant'] = "AdminTenant"
 default['bcpc']['admin_role'] = "Admin"
 default['bcpc']['member_role'] = "Member"
@@ -110,15 +129,3 @@ default[:bcpc][:ports][:apache][:radosgw] = 8080
 default[:bcpc][:ports][:apache][:radosgw_https] = 8443
 default[:bcpc][:ports][:haproxy][:radosgw] = 10080
 default[:bcpc][:ports][:haproxy][:radosgw_https] = 10443
-
-default['bcpc']['rgw_pool_multiplier']['.rgw.buckets'] = 100
-default['bcpc']['rgw_pool_multiplier']['.log'] = 100
-default['bcpc']['rgw_pool_multiplier']['.rgw'] = 100
-default['bcpc']['rgw_pool_multiplier']['.rgw.control'] = 50
-default['bcpc']['rgw_pool_multiplier']['.users.uid'] = 50
-default['bcpc']['rgw_pool_multiplier']['.users.email'] =  50
-default['bcpc']['rgw_pool_multiplier']['.users'] = 100
-default['bcpc']['rgw_pool_multiplier']['.usage'] =  100
-default['bcpc']['rgw_pool_multiplier']['.intent-log'] = 50
-
-

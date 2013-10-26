@@ -5,8 +5,8 @@
 ################################################
 
 VMS_SHARED_PATH=/var/gridcentric
-VMS_DISK_URL=rbd:<%="#{node[:bcpc][:vms_disk_pool]}"%>
-VMS_MEMORY_URL=rados://<%="#{node[:bcpc][:vms_mem_pool]}"%>
+VMS_DISK_URL=rbd:<%="#{node[:bcpc][:ceph][:vms_disk][:name]}"%>
+VMS_MEMORY_URL=rados://<%="#{node[:bcpc][:ceph][:vms_mem][:name]}"%>
 VMS_LOGS=/var/log/vms
 VMS_CACHE=/dev/shm/vms
 VMS_SHELF_PATH=/dev/shm
