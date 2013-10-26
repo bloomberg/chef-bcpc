@@ -19,17 +19,23 @@
 
 include_recipe "bcpc::ceph-common"
 
+ruby_block "initialize-ceph-common-config" do
+    block do
+        make_config('ceph-osd-uuid', %x[uuidgen -r].strip)
+    end
+end
+
 node['bcpc']['ceph']['hdd_disks'].each do |disk|
     execute "ceph-disk-prepare-#{disk}" do
-        command "ceph-disk-prepare /dev/#{disk}"
-        not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
+        command "ceph-disk prepare --osd-uuid #{get_config('ceph-osd-uuid')} /dev/#{disk}"
+        not_if "sgdisk -i1 /dev/#{disk} | grep -i #{get_config('ceph-osd-uuid')}"
     end
 end
 
 node['bcpc']['ceph']['ssd_disks'].each do |disk|
     execute "ceph-disk-prepare-#{disk}" do
-        command "ceph-disk-prepare /dev/#{disk}"
-        not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
+        command "ceph-disk-prepare --osd-uuid #{get_config('ceph-osd-uuid')} /dev/#{disk}"
+        not_if "sgdisk -i1 /dev/#{disk} | grep -i #{get_config('ceph-osd-uuid')}"
     end
 end
 
