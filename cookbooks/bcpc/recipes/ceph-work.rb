@@ -19,7 +19,14 @@
 
 include_recipe "bcpc::ceph-common"
 
-node['bcpc']['ceph_disks'].each do |disk|
+node['bcpc']['ceph']['hdd_disks'].each do |disk|
+    execute "ceph-disk-prepare-#{disk}" do
+        command "ceph-disk-prepare /dev/#{disk}"
+        not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
+    end
+end
+
+node['bcpc']['ceph']['ssd_disks'].each do |disk|
     execute "ceph-disk-prepare-#{disk}" do
         command "ceph-disk-prepare /dev/#{disk}"
         not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"

@@ -92,21 +92,43 @@ if not node["bcpc"]["vms_key"].nil?
         notifies :restart, "service[cobalt-compute]", :immediately
     end
 
-    bash "create-vms-disk-pool" do
+    bash "create-vms-disk-rados-pool" do
         user "root"
-        code <<-EOH
-            ceph osd pool create #{node[:bcpc][:vms_disk_pool]} 1000
-            ceph osd pool set #{node[:bcpc][:vms_disk_pool]} size 3
-        EOH
-        not_if "rados lspools | grep #{node[:bcpc][:vms_disk_pool]}"
+        optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:vms_disk][:replicas]*node[:bcpc][:ceph][:vms_disk][:portion]/100)
+        code "ceph osd pool create #{node[:bcpc][:ceph][:vms_disk][:name]} #{optimal}"
+        not_if "rados lspools | grep #{node[:bcpc][:ceph][:vms_disk][:name]}"
     end
 
-    bash "create-vms-mem-pool" do
+    bash "set-vms-disk-rados-pool-replicas" do
         user "root"
-        code <<-EOH
-            ceph osd pool create #{node[:bcpc][:vms_mem_pool]} 1000
-            ceph osd pool set #{node[:bcpc][:vms_mem_pool]} size 3
-        EOH
-        not_if "rados lspools | grep #{node[:bcpc][:vms_mem_pool]}"
+        code "ceph osd pool set #{node[:bcpc][:ceph][:vms_disk][:name]} size #{node[:bcpc][:ceph][:vms_disk][:replicas]}"
+        not_if "ceph osd pool get #{node[:bcpc][:ceph][:vms_disk][:name]} size | grep #{node[:bcpc][:ceph][:vms_disk][:replicas]}"
+    end
+
+    bash "set-vms-disk-rados-pool-pgs" do
+        user "root"
+        optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:vms_disk][:replicas]*node[:bcpc][:ceph][:vms_disk][:portion]/100)
+        code "ceph osd pool set #{node[:bcpc][:ceph][:vms_disk][:name]} pg_num #{optimal}"
+        not_if "ceph osd pool get #{node[:bcpc][:ceph][:vms_disk][:name]} pg_num | grep #{optimal}"
+    end
+
+    bash "create-vms-mem-rados-pool" do
+        user "root"
+        optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:vms_mem][:replicas]*node[:bcpc][:ceph][:vms_mem][:portion]/100)
+        code "ceph osd pool create #{node[:bcpc][:ceph][:vms_mem][:name]} #{optimal}"
+        not_if "rados lspools | grep #{node[:bcpc][:ceph][:vms_mem][:name]}"
+    end
+
+    bash "set-vms-mem-rados-pool-replicas" do
+        user "root"
+        code "ceph osd pool set #{node[:bcpc][:ceph][:vms_mem][:name]} size #{node[:bcpc][:ceph][:vms_mem][:replicas]}"
+        not_if "ceph osd pool get #{node[:bcpc][:ceph][:vms_mem][:name]} size | grep #{node[:bcpc][:ceph][:vms_mem][:replicas]}"
+    end
+
+    bash "set-vms-mem-rados-pool-pgs" do
+        user "root"
+        optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:vms_mem][:replicas]*node[:bcpc][:ceph][:vms_mem][:portion]/100)
+        code "ceph osd pool set #{node[:bcpc][:ceph][:vms_mem][:name]} pg_num #{optimal}"
+        not_if "ceph osd pool get #{node[:bcpc][:ceph][:vms_mem][:name]} pg_num | grep #{optimal}"
     end
 end

@@ -102,11 +102,22 @@ end
 
 bash "create-glance-rados-pool" do
     user "root"
-    code <<-EOH
-        ceph osd pool create #{node[:bcpc][:glance_rbd_pool]} 1000
-        ceph osd pool set #{node[:bcpc][:glance_rbd_pool]} size 3
-    EOH
-    not_if "rados lspools | grep #{node[:bcpc][:glance_rbd_pool]}"
+    optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:images][:replicas]*node[:bcpc][:ceph][:images][:portion]/100)
+    code "ceph osd pool create #{node[:bcpc][:ceph][:images][:name]} #{optimal}"
+    not_if "rados lspools | grep #{node[:bcpc][:ceph][:images][:name]}"
+end
+
+bash "set-glance-rados-pool-replicas" do
+    user "root"
+    code "ceph osd pool set #{node[:bcpc][:ceph][:images][:name]} size #{node[:bcpc][:ceph][:images][:replicas]}"
+    not_if "ceph osd pool get #{node[:bcpc][:ceph][:images][:name]} size | grep #{node[:bcpc][:ceph][:images][:replicas]}"
+end
+
+bash "set-glance-rados-pool-pgs" do
+    user "root"
+    optimal = power_of_2(get_all_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:images][:replicas]*node[:bcpc][:ceph][:images][:portion]/100)
+    code "ceph osd pool set #{node[:bcpc][:ceph][:images][:name]} pg_num #{optimal}"
+    not_if "ceph osd pool get #{node[:bcpc][:ceph][:images][:name]} pg_num | grep #{optimal}"
 end
 
 cookbook_file "/tmp/cirros-0.3.0-x86_64-disk.img" do
