@@ -21,6 +21,8 @@ rabbit_durable_queues=True
 #qpid_username=admin
 #qpid_password=<%="#{get_config('rabbitmq-password')}"%>
 
+rpc_backend=nova.openstack.common.rpc.impl_kombu
+
 # Nova API settings
 auth_strategy=keystone
 api_paste_config=/etc/nova/api-paste.ini
@@ -28,34 +30,13 @@ s3_host=<%="#{node[:bcpc][:management][:vip]}"%>
 ec2_listen=<%="#{node[:bcpc][:management][:ip]}"%>
 ec2_host=<%="#{node[:bcpc][:management][:ip]}"%>
 osapi_compute_listen=<%="#{node[:bcpc][:management][:ip]}"%>
-metadata_listen=169.254.169.254
-metadata_host=169.254.169.254
+metadata_listen=<%="#{node[:bcpc][:management][:ip]}"%>
+metadata_host=<%="#{node[:bcpc][:management][:ip]}"%>
 dmz_cidr=169.254.169.254/32
 enabled_apis=ec2,osapi_compute,metadata
 
 # Nova Scheduler
 scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler
-
-# Nova Network settings
-network_manager=nova.network.manager.VlanManager
-public_interface=<%="#{node[:bcpc][:floating][:interface]}"%>
-vlan_interface=<%="#{node[:bcpc][:fixed][:vlan_interface]}"%>
-vlan_start=<%="#{node[:bcpc][:fixed][:vlan_start]}"%>
-multi_host=True
-fixed_range=<%="#{node[:bcpc][:fixed][:cidr]}"%>
-floating_range=<%="#{node[:bcpc][:floating][:cidr]}"%>
-network_size=<%="#{node[:bcpc][:fixed][:network_size]}"%>
-dhcpbridge_flagfile=/etc/nova/nova.conf
-dhcpbridge=/usr/bin/nova-dhcpbridge
-force_dhcp_release=True
-share_dhcp_address=True
-teardown_unused_network_gateway=True
-fixed_ip_disassociate_timeout=30
-send_arp_for_ha=True
-my_ip=<%="#{node[:bcpc][:management][:ip]}"%>
-routing_source_ip=<%="#{node[:bcpc][:floating][:ip]}"%>
-dhcp_domain=<%="#{node[:bcpc][:domain_name]}"%>
-default_availability_zone=<%="#{node[:bcpc][:region_name]}"%>
 
 # Nova Compute settings
 connection_type=libvirt
@@ -73,7 +54,7 @@ volume_api_class=nova.volume.cinder.API
 always_use_volumes=True
 
 # Nova VNC settings
-novnc_enabled=True
+vnc_enabled=True
 novncproxy_base_url=http://<%="#{node[:bcpc][:management][:ip]}"%>:6080/vnc_auto.html
 vncserver_proxyclient_address=127.0.0.1
 novncproxy_host=<%="#{node[:bcpc][:management][:ip]}"%>
@@ -91,12 +72,27 @@ cnt_vpn_clients=5
 # Misc other settings
 logdir=/var/log/nova
 state_path=/var/lib/nova
-lock_path=/var/lock/
+lock_path=/var/lib/nova
 rootwrap_config=/etc/nova/rootwrap.conf
 verbose=True
 debug=False
 ec2_private_dns_show_ip=True
 #default_log_levels="amqplib=DEBUG,sqlalchemy=DEBUG,boto=WARN,suds=INFO,eventlet.wsgi.server=WARN"
 #rpc_response_timeout=120
+
+# Quantum
+firewall_driver = <%="#{node[:bcpc][:quantum][:firewall_driver]}"%>
+compute_driver = <%="#{node[:bcpc][:quantum][:compute_driver]}"%>
+service_quantum_metadata_proxy = <%="#{node[:bcpc][:quantum][:metadata_proxy]}"%>
+linuxnet_interface_driver =
+libvirt_vif_driver = <%="#{node[:bcpc][:quantum][:libvirt_vif_driver]}"%>
+security_group_api = <%="#{node[:bcpc][:quantum][:security_group_api]}"%>
+quantum_url = http://<%="#{node[:bcpc][:management][:vip]}"%>:<%="#{node[:bcpc][:quantum][:bind_port]}"%>
+quantum_admin_tenant_name = <%="#{node[:bcpc][:admin_tenant]}"%>
+quantum_auth_strategy = <%="#{node[:bcpc][:quantum][:auth_strategy]}"%>
+quantum_admin_auth_url = http://<%="#{node[:bcpc][:management][:vip]}"%>:35357/v2.0
+quantum_admin_password = <%="#{get_config('keystone-admin-password')}"%>
+quantum_admin_username = <%="#{get_config('keystone-admin-user')}"%>
+network_api_class = <%="#{node[:bcpc][:quantum][:network_api_class]}"%>
 
 # Auto-generated per-node settings below

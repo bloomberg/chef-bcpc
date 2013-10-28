@@ -24,6 +24,7 @@ ruby_block "initialize-rabbitmq-config" do
         make_config('rabbitmq-user', "guest")
         make_config('rabbitmq-password', secure_password)
         make_config('rabbitmq-cookie', secure_password)
+        make_config('rabbitmq-port', "5672")
     end
 end
 

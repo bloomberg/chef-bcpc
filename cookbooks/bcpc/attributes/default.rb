@@ -23,7 +23,6 @@ default['bcpc']['ceph_disks'] = [ "sdb", "sdc", "sdd", "sde" ]
 default['bcpc']['management']['interface'] = "eth0"
 default['bcpc']['storage']['interface'] = "eth1"
 default['bcpc']['floating']['interface'] = "eth2"
-default['bcpc']['fixed']['vlan_interface'] = node[:bcpc][:floating][:interface]
 
 ###########################################
 #
@@ -42,12 +41,8 @@ default['bcpc']['storage']['gateway'] = "100.100.0.1"
 default['bcpc']['floating']['netmask'] = "255.255.255.0"
 default['bcpc']['floating']['cidr'] = "192.168.43.0/24"
 default['bcpc']['floating']['gateway'] = "192.168.43.2"
-default['bcpc']['floating']['available_subnet'] = "192.168.43.128/25"
-
-default['bcpc']['fixed']['cidr'] = "1.127.0.0/16"
-default['bcpc']['fixed']['vlan_start'] = "1000"
-default['bcpc']['fixed']['num_networks'] = "100"
-default['bcpc']['fixed']['network_size'] = "256"
+default['bcpc']['floating']['pool_start'] = "192.168.43.129"
+default['bcpc']['floating']['pool_end'] = "192.168.43.254"
 
 default['bcpc']['ntp_servers'] = [ "pool.ntp.org" ]
 default['bcpc']['dns_servers'] = [ "8.8.8.8", "8.8.4.4" ]
@@ -76,6 +71,7 @@ default['bcpc']['keystone_dbname'] = "keystone"
 default['bcpc']['graphite_dbname'] = "graphite"
 default['bcpc']['pdns_dbname'] = "pdns"
 default['bcpc']['zabbix_dbname'] = "zabbix"
+default['bcpc']['quantum_dbname'] = "quantum"
 
 default['bcpc']['cinder_rbd_pool'] = "volumes"
 default['bcpc']['glance_rbd_pool'] = "images"

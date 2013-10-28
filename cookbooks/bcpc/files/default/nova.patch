@@ -41,5 +41,4 @@ diff -ru nova/api/openstack/compute/contrib/extended_availability_zone.py nova-n
 -            self.mc.set(cache_key, az, AZ_CACHE_SECONDS)
 +            self.mc.set(cache_key.encode('UTF-8'), az, AZ_CACHE_SECONDS)
          return az
- 
-     def _extend_server(self, context, server, instance):
+

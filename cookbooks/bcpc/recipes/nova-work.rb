@@ -31,7 +31,7 @@ package "nova-compute-#{node[:bcpc][:virt_type]}" do
     action :upgrade
 end
 
-%w{nova-api nova-network nova-compute nova-novncproxy}.each do |pkg|
+%w{nova-api nova-compute nova-novncproxy}.each do |pkg|
     package pkg do
         action :upgrade
     end
@@ -52,7 +52,6 @@ bash "restart-all-nova-workers" do
     subscribes :run, resources("template[/etc/nova/api-paste.ini]"), :delayed
     notifies :restart, "service[nova-api]", :immediately
     notifies :restart, "service[nova-compute]", :immediately
-    notifies :restart, "service[nova-network]", :immediately
     notifies :restart, "service[nova-novncproxy]", :immediately
 end
 

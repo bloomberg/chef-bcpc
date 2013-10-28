@@ -23,7 +23,8 @@
         "netmask" : "255.255.255.0",
         "cidr" : "192.168.100.0/24",
         "gateway" : "192.168.100.1",
-        "available_subnet" : "192.168.100.128/25"
+        "pool_start" : "10.1.2.83",
+        "pool_end" : "10.1.2.89"
       },
       "bootstrap": {
         "interface" : "eth0",

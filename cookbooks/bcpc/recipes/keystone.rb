@@ -176,7 +176,6 @@ bash "keystone-service-catalog-swift" do
 end
 
 bash "keystone-service-catalog-quantum" do
-    action :nothing
     user "root"
     code <<-EOH
         . /root/keystonerc

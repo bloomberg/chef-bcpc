@@ -24,6 +24,7 @@
       "recipe[bcpc::logstash]",
       "recipe[bcpc::kibana]",
       "recipe[bcpc::zabbix-server]",
+      "recipe[bcpc::quantum-head]",
       "role[BCPC-Worknode]"
     ],
     "description": "A highly-available head node in a BCPC cluster",
