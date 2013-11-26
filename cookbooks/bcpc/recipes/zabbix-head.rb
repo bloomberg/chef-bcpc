@@ -144,6 +144,13 @@ end
 
 include_recipe "bcpc::zabbix-work"
 
+cookbook_file "/usr/local/bin/check_floats.py" do
+  source "check_floats.py"
+  owner node[:bcpc][:zabbix][:user]
+  group "root"
+  mode 00755  
+end
+
 template "/usr/local/etc/zabbix_agentd.conf.d/zabbix-openstack.conf" do
     source "zabbix_openstack.conf.erb"
     owner node[:bcpc][:zabbix][:user]
