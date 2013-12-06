@@ -73,6 +73,7 @@ ruby_block "powerdns-table-domains" do
                     primary key (id)
                 );
                 INSERT INTO domains_static (name, type) values ('#{node[:bcpc][:domain_name]}', 'NATIVE');
+                INSERT INTO domains_static (name, type) values ('#{node[:bcpc][:floating][:reverse_dns_zone]}', 'NATIVE');
                 CREATE UNIQUE INDEX dom_name_index ON domains_static(name);
             ]
             self.notifies :restart, "service[pdns]", :delayed
@@ -100,6 +101,10 @@ ruby_block "powerdns-table-records" do
                     INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','localhost root@#{node[:bcpc][:domain_name]} 1','SOA',300,NULL);
                     INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','#{node[:bcpc][:management][:vip]}','NS',300,NULL);
                     INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','#{node[:bcpc][:management][:vip]}','A',300,NULL);
+                    
+                    INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:floating][:reverse_dns_zone]}'),'#{node[:bcpc][:floating][:reverse_dns_zone]}', '#{node[:bcpc][:floating][:reverse_dns_zone]} root@#{node[:bcpc][:domain_name]} 1','SOA',300,NULL);
+                    INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:floating][:reverse_dns_zone]}'),'#{node[:bcpc][:floating][:reverse_dns_zone]}','#{node[:bcpc][:management][:vip]}','NS',300,NULL);
+                    
                     CREATE INDEX rec_name_index ON records_static(name);
                     CREATE INDEX nametype_index ON records_static(name,type);
                     CREATE INDEX domain_id ON records_static(domain_id);
@@ -133,6 +138,30 @@ ruby_block "powerdns-function-dns-name" do
     end
 end
 
+ruby_block "powerdns-function-ip4_to_ptr_name" do
+    block do
+        system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT name FROM mysql.proc WHERE name = \"ip4_to_ptr_name\" AND db = \"#{node[:bcpc][:pdns_dbname]}\";' \"#{node[:bcpc][:pdns_dbname]}\" | grep -q \"ip4_to_ptr_name\""
+        if not $?.success? then
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node[:bcpc][:pdns_dbname]} <<-EOH
+                delimiter //
+                CREATE FUNCTION ip4_to_ptr_name(ip4 VARCHAR(64) CHARACTER SET latin1) RETURNS VARCHAR(64)
+                COMMENT 'Returns the reversed IP with .in-addr.arpa appended, suitable for use in the name column of PTR records.'
+                DETERMINISTIC
+                BEGIN
+
+                return concat_ws( '.',  SUBSTRING_INDEX( SUBSTRING_INDEX(ip4, '.', 4), '.', -1),
+                                        SUBSTRING_INDEX( SUBSTRING_INDEX(ip4, '.', 3), '.', -1),
+                                        SUBSTRING_INDEX( SUBSTRING_INDEX(ip4, '.', 2), '.', -1),
+                                        SUBSTRING_INDEX( SUBSTRING_INDEX(ip4, '.', 1), '.', -1), 'in-addr.arpa');
+
+                END//
+            ]
+            self.notifies :restart, "service[pdns]", :delayed
+            self.resolve_notification_references
+        end
+    end
+end
+
 ruby_block "powerdns-table-domains-view" do
     block do
         system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = \"#{node[:bcpc][:pdns_dbname]}\" AND TABLE_NAME=\"domains\"' | grep -q \"domains\""
@@ -157,12 +186,12 @@ ruby_block "powerdns-table-domains-view" do
     end
 end
 
-ruby_block "powerdns-table-records-view" do
+ruby_block "powerdns-table-records_forward-view" do
     block do
-        system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = \"#{node[:bcpc][:pdns_dbname]}\" AND TABLE_NAME=\"records\"' | grep -q \"records\""
+        system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = \"#{node[:bcpc][:pdns_dbname]}\" AND TABLE_NAME=\"records_forward\"' | grep -q \"records_forward\""
         if not $?.success? then
             %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node[:bcpc][:pdns_dbname]} <<-EOH
-                CREATE OR REPLACE VIEW records AS
+                CREATE OR REPLACE VIEW records_forward AS
                     SELECT id,domain_id,name,type,content,ttl,prio,change_date FROM records_static UNION  
                     # assume we only have 500 or less static records
                     SELECT domains.id+500 AS id, domains.id AS domain_id, domains.name AS name, 'NS' AS type, '#{node[:bcpc][:management][:vip]}' AS content, 300 AS ttl, NULL AS prio, NULL AS change_date FROM domains WHERE id > (SELECT MAX(id) FROM domains_static) UNION
@@ -189,6 +218,51 @@ ruby_block "powerdns-table-records-view" do
             self.resolve_notification_references
         end
     end
+end
+
+ruby_block "powerdns-table-records_reverse-view" do
+    block do
+        system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = \"#{node[:bcpc][:pdns_dbname]}\" AND TABLE_NAME=\"records_reverse\"' | grep -q \"records_reverse\""
+        if not $?.success? then
+
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node[:bcpc][:pdns_dbname]} <<-EOH
+                create or replace view records_reverse as
+                select r.id * -1 as id, d.id as domain_id,
+                      ip4_to_ptr_name(r.content) as name,
+                      'PTR' as type, r.name as content, r.ttl, r.prio, r.change_date
+                from records_forward r, domains d
+                where r.type='A' 
+                  and d.name = '#{node[:bcpc][:floating][:reverse_dns_zone]}'
+                  and ip4_to_ptr_name(r.content) like '%.#{node[:bcpc][:floating][:reverse_dns_zone]}';
+
+            ]
+            self.notifies :restart, "service[pdns]", :delayed
+            self.resolve_notification_references
+
+        end
+    end
+end
+
+
+ruby_block "powerdns-table-records-view" do
+
+    block do
+        system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = \"#{node[:bcpc][:pdns_dbname]}\" AND TABLE_NAME=\"records\"' | grep -q \"records\""
+        if not $?.success? then
+
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node[:bcpc][:pdns_dbname]} <<-EOH
+              create or replace view records as
+                select id, domain_id, name, type, content, ttl, prio, change_date from records_forward
+                union all
+                select id, domain_id, name, type, content, ttl, prio, change_date from records_reverse;
+            ]
+
+            self.notifies :restart, "service[pdns]", :delayed
+            self.resolve_notification_references
+        end
+
+    end
+
 end
 
 get_all_nodes.each do |server|

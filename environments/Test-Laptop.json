@@ -27,7 +27,8 @@
         "netmask" : "255.255.255.0",
         "cidr" : "192.168.100.0/24",
         "gateway" : "192.168.100.3",
-        "available_subnet" : "192.168.100.128/25"
+        "available_subnet" : "192.168.100.128/25",
+        "reverse_dns_zone" : "100.168.192.in-addr.arpa"
       },
       "bootstrap": {
         "interface" : "eth0",
