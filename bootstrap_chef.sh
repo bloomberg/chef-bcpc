@@ -68,12 +68,16 @@ else
   $SSH_CMD "rsync $RSYNCEXTRA -avP --exclude vbox --exclude .chef /chef-bcpc-host/ /home/vagrant/chef-bcpc/"
 fi
 
+
+echo "Building bins"
+$SSH_CMD "cd $BCPC_DIR && sudo ./build_bins.sh"
 echo "Setting up chef server"
-$SSH_CMD "cd $BCPC_DIR && sudo ./setup_chef_server.sh"
+$SSH_CMD "cd $BCPC_DIR && sudo ./setup_chef_server.sh ${CHEF_ENVIRONMENT}"
 echo "Setting up chef cookbooks"
-$SSH_CMD "cd $BCPC_DIR && ./setup_chef_cookbooks.sh ${IP} ${SSH_USER}"
+$SSH_CMD "cd $BCPC_DIR && ./setup_chef_cookbooks.sh ${IP} ${SSH_USER} ${CHEF_ENVIRONMENT}"
+set -x
 echo "Setting up chef environment, roles, and uploading cookbooks"
-$SSH_CMD "cd $BCPC_DIR && knife environment from file environments/${CHEF_ENVIRONMENT}.json && knife role from file roles/*.json && knife cookbook upload -a -o cookbooks"
+$SSH_CMD "cd $BCPC_DIR && sudo knife environment from file environments/${CHEF_ENVIRONMENT}.json -u admin -k /etc/chef-server/admin.pem && sudo knife role from file roles/*.json -u admin -k /etc/chef-server/admin.pem && sudo knife cookbook upload -a -o cookbooks -u admin -k /etc/chef-server/admin.pem"
 echo "Enrolling local bootstrap node into chef"
 $SSH_CMD "cd $BCPC_DIR && ./setup_chef_bootstrap_node.sh ${IP} ${CHEF_ENVIRONMENT}"
 

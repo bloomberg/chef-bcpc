@@ -16,3 +16,11 @@ ff02::2 ip6-allrouters
 <% @servers.each do |server| -%>
 <%= "#{server['bcpc']['management']['ip']}   #{server['fqdn']} #{server['hostname']}.#{node['bcpc']['domain_name']} #{server['hostname']}" %>
 <% end -%>
+
+<% @servers.select{|s| not s.hostname.include? 'bootstrap' }.each do |server| -%>
+<%= "#{server['bcpc']['storage']['ip']}   #{storage_host(server.fqdn)} #{storage_host(server.hostname, server['bcpc']['domain_name'])} #{storage_host(server.hostname)}" %>
+<% end -%>
+
+<% @servers.select{|s| not s.hostname.include? 'bootstrap' }.each do |server| -%>
+<%= "#{server['bcpc']['floating']['ip']}   #{float_host(server.fqdn)} #{float_host(server.hostname, server['bcpc']['domain_name'])} #{float_host(server.hostname)}" %>
+<% end -%>

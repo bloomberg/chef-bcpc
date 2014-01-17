@@ -27,7 +27,7 @@ def init_config
 		puts "************ Creating data_bag \"configs\""
 		bag = Chef::DataBag.new
 		bag.name("configs")
-		bag.save
+		bag.create
 	end rescue nil
 	begin
 		$dbi = Chef::DataBagItem.load('configs', node.chef_environment)
@@ -65,8 +65,8 @@ end
 
 def get_all_nodes
 	results = search(:node, "role:BCPC* AND chef_environment:#{node.chef_environment}")
-	if results.any?{|x| x['hostname'] == node[:hostname]}
-		results.map!{|x| x['hostname'] == node[:hostname] ? node : x}
+	if results.any?{|x| x['hostname'] == node['hostname']}
+		results.map!{|x| x['hostname'] == node['hostname'] ? node : x}
 	else
 		results.push(node)
 	end
@@ -81,12 +81,6 @@ def get_ceph_osd_nodes
 		results.push(node)
 	end
 	return results
-end
-
-def get_head_nodes
-	results = search(:node, "role:BCPC-Headnode AND chef_environment:#{node.chef_environment}")
-	results.map!{ |x| x['hostname'] == node[:hostname] ? node : x }
-	return (results == []) ? [node] : results
 end
 
 def get_cached_head_node_names
@@ -104,6 +98,23 @@ def get_cached_head_node_names
     # assume first run   
   end
   return headnodes  
+end
+
+def get_head_nodes
+  results = search(:node, "role:BCPC-Headnode AND chef_environment:#{node.chef_environment}")
+  results.map!{ |x| x.hostname == node.hostname ? node : x }
+  return (results.empty?) ? [node] : results
+end
+
+def get_mysql_nodes
+  results = search(:node, "recipes:bcpc\\:\\:mysql AND chef_environment:#{node.chef_environment}")
+  results.map!{ |x| x.hostname == node.hostname ? node : x }
+  return (results.empty?) ? [node] : results
+end
+
+def get_binary_server_url
+  return("http://#{URI(Chef::Config['chef_server_url']).host}:8080") if node[:bcpc][:binary_server_url].nil?
+  return(node[:bcpc][:binary_server_url])
 end
 
 def power_of_2(number)
@@ -143,6 +154,14 @@ def ceph_keygen()
     key += "\x10\x00"
     key += ::OpenSSL::Random.random_bytes(16)
     Base64.encode64(key).strip
+end
+
+def float_host(*args)
+  "f-" + args.join('.')
+end
+
+def storage_host(*args)
+  "s-" + args.join('.')
 end
 
 # requires cidr in form '1.2.3.0/24', where 1.2.3.0 is a dotted quad ip4 address 

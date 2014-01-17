@@ -24,14 +24,14 @@ template "/var/lib/cobbler/kickstarts/bcpc_centos_host.preseed" do
     mode 00644
 end
 
-cookbook_file "/tmp/centos-6-initrd.img" do
-    source "bins/centos-6-initrd.img"
+remote_file "/tmp/centos-6-initrd.img" do
+    source "#{get_binary_server_url}/centos-6-initrd.img"
     owner "root"
     mode 00444
 end
 
-cookbook_file "/tmp/centos-6-vmlinuz" do
-    source "bins/centos-6-vmlinuz"
+remote_file "/tmp/centos-6-vmlinuz" do
+    source "#{get_binary_server_url}/centos-6-vmlinuz"
     owner "root"
     mode 00444
 end

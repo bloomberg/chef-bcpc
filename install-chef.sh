@@ -1,24 +1,19 @@
 #!/bin/bash
-
+set -e
 # if you dont have internet access from your cluster nodes, you will
 # not be able to "knife bootstrap" nodes to get them ready for
 # chef. Instead you need to install chef separately. Assuming the
-# necessary bits are on apt/apache mirror as per the mirror
-# instructions in bootstrap.md then the following will get chef
-# installed and allow you to proceed
+# necessary bits are hosted on your binary_server_url as setup by
+# build_bins.sh this will allow you to proceed
 
-# change the following IP address to match your bootstrap node
+BINARY_SERVER_HOST=${1:?"Need a Binary Server Host"}
+BINARY_SERVER_URL=${2:?"Need a Binary Server URL"}
+CHEF_SERVER_IP=${3:?"Need a Chef Server IP"}
+CHEF_SERVER_HOSTNAME=${4:?"Need a Chef Server hostname"}
 
-if dpkg -s opscode-keyring 2>/dev/null | grep -q Status.*installed; then
-  echo opscode-keyring is installed
-else 
-  apt-get update
-  apt-get --allow-unauthenticated -y install opscode-keyring
-  apt-get update
-fi
-
-if dpkg -s chef 2>/dev/null | grep -q Status.*installed; then
-  echo chef is installed
-else
-  DEBCONF_DB_FALLBACK=File{$(pwd)/debconf-chef.conf} DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install chef
-fi
+echo -e "${CHEF_SERVER_IP}\t$CHEF_SERVER_HOSTNAME" >> /etc/hosts
+grep -q $BINARY_SERVER_HOST /etc/apt/apt.conf || echo "Acquire::http::Proxy::$BINARY_SERVER_HOST 'DIRECT';" >> /etc/apt/apt.conf
+echo "deb $BINARY_SERVER_URL /" > /etc/apt/sources.list.d/bcpc.list
+wget --no-proxy -O - ${BINARY_SERVER_URL}/apt_key.pub | apt-key add -
+apt-get update
+apt-get install -y chef

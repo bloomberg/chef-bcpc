@@ -1,0 +1,26 @@
+<configuration>
+  <property>
+    <name>dfs.ha.automatic-failover.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>ha.zookeeper.quorum</name>
+    <value><%= @zk_hosts.map{ |s| float_host(s[:hostname]) + ":2181" }.join(",") %></value> 
+  </property>
+
+  <property>
+    <name>dfs.namenode.shared.edits.dir</name>
+    <value>qjournal://<%= @zk_hosts.map{ |s| float_host(s[:hostname]) + ":8485" }.join(";") %>/<%= node.chef_environment %></value>
+  </property>
+
+  <property>
+    <name>dfs.journalnode.edits.dir</name>
+    <value><%="/disk/#{@mounts[0]}/dfs/jn"%></value>
+  </property>
+
+  <property>
+    <name>dfs.ha.fencing.methods</name>
+    <value>shell(/bin/true)</value>
+  </property>
+</configuration>

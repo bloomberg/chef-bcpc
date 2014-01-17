@@ -43,25 +43,11 @@ bash "workaround-mysql-deps-problem" do
         VERSION=`apt-cache policy libmysqlclient18 | grep -B1 percona | head -1 | awk '{print $1}'`
         DEBIAN_FRONTEND=noninteractive apt-get -y install libmysqlclient18=$VERSION
     EOH
-    not_if "dpkg -l |grep libmysqlclient18"
+    not_if "dpkg -l libmysqlclient18 2>&1 >/dev/null"
 end
 
 package "percona-xtradb-cluster-server-5.5" do
-    action :upgrade
-end
-
-ruby_block "initial-mysql-config" do
-    block do
-        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT user from mysql.user where User=\"haproxy\"'" then
-            %x[ mysql -u root -e "UPDATE mysql.user SET password=PASSWORD('#{get_config('mysql-root-password')}') WHERE user='root'; FLUSH PRIVILEGES;"
-                mysql -u root -p#{get_config('mysql-root-password')} -e "UPDATE mysql.user SET host='%' WHERE user='root' and host='localhost'; FLUSH PRIVILEGES;"
-                mysql -u root -p#{get_config('mysql-root-password')} -e "GRANT USAGE ON *.* to #{get_config('mysql-galera-user')}@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';"
-                mysql -u root -p#{get_config('mysql-root-password')} -e "GRANT ALL PRIVILEGES on *.* TO #{get_config('mysql-galera-user')}@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';"
-                mysql -u root -p#{get_config('mysql-root-password')} -e "GRANT PROCESS ON *.* to '#{get_config('mysql-check-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-check-password')}';"
-                mysql -u root -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
-            ]
-        end
-    end
+    action :install
 end
 
 directory "/etc/mysql" do
@@ -73,13 +59,13 @@ end
 template "/etc/mysql/my.cnf" do
     source "my.cnf.erb"
     mode 00644
-    notifies :restart, "service[mysql]", :delayed
+    notifies :reload, "service[mysql]", :delayed
 end
 
 template "/etc/mysql/debian.cnf" do
     source "my-debian.cnf.erb"
     mode 00644
-    notifies :restart, "service[mysql]", :delayed
+    notifies :reload, "service[mysql]", :delayed
 end
 
 directory "/etc/mysql/conf.d" do
@@ -88,11 +74,16 @@ directory "/etc/mysql/conf.d" do
     mode 00755
 end
 
+bash "initialize-db" do
+    code "mysql_install_db --defaults-file=/etc/mysql/my.cnf"
+    user "mysql"
+    not_if { get_mysql_nodes.length >= 2 or Dir.entries("/var/lib/mysql/mysql/").length > 2 }
+end
+
 template "/etc/mysql/conf.d/wsrep.cnf" do
     source "wsrep.cnf.erb"
     mode 00644
-    notifies :restart, "service[mysql]", :immediately
-    results = get_head_nodes
+    results = get_mysql_nodes
     # If we are the first one, special case
     seed = ""
     if ((results.length == 1) && (results[0]['hostname'] == node[:hostname])) then
@@ -103,6 +94,7 @@ template "/etc/mysql/conf.d/wsrep.cnf" do
     variables( :seed => seed,
                :max_connections => [get_head_nodes.length*50+get_all_nodes.length*5, 200].max,
                :servers => results )
+    notifies :restart, "service[mysql]", :immediate
 end
 
 bash "remove-bare-gcomm" do
@@ -115,7 +107,18 @@ end
 
 service "mysql" do
     action [ :enable, :start ]
-    start_command "service mysql start || true"
+end
+
+user_set_up_sql = ["UPDATE mysql.user SET password=PASSWORD('#{get_config('mysql-root-password')}') WHERE user='root'; FLUSH PRIVILEGES;",
+                   "UPDATE mysql.user SET host='%' WHERE user='root' and host='localhost'; FLUSH PRIVILEGES;",
+                   "GRANT USAGE ON *.* to #{get_config('mysql-galera-user')}@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';",
+                   "GRANT ALL PRIVILEGES on *.* TO #{get_config('mysql-galera-user')}@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';",
+                   "GRANT PROCESS ON *.* to '#{get_config('mysql-check-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-check-password')}';",
+                   "FLUSH PRIVILEGES;"]
+
+bash "initial-mysql-config" do
+  code "mysql -u root -e \"#{user_set_up_sql.join(' ')}\""
+  only_if "mysql -u root -e 'SELECT COUNT(*) FROM mysql.user'"
 end
 
 package "xinetd" do
@@ -135,7 +138,7 @@ template "/etc/xinetd.d/mysqlchk" do
     owner "root"
     group "root"
     mode 00440
-    notifies :restart, "service[xinetd]", :immediately
+    notifies :reload, "service[xinetd]", :immediately
 end
 
 service "xinetd" do
@@ -144,17 +147,15 @@ end
 
 package "debconf-utils"
 
-ruby_block "phpmyadmin-debconf-setup" do
-    block do
-        if not system "debconf-get-selections | grep phpmyadmin >/dev/null 2>&1" then
-            puts %x[
-                echo 'phpmyadmin phpmyadmin/dbconfig-install boolean true' | debconf-set-selections
-                echo 'phpmyadmin phpmyadmin/mysql/admin-pass password #{get_config('mysql-root-password')}' | debconf-set-selections
-                echo 'phpmyadmin phpmyadmin/mysql/app-pass password #{get_config('mysql-phpmyadmin-password')}' | debconf-set-selections
-                echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2' | debconf-set-selections
-            ]
-        end
-    end
+bash "phpmyadmin-debconf-setup" do
+    code <<-EOH
+            set -e
+            echo 'phpmyadmin phpmyadmin/dbconfig-install boolean true' | debconf-set-selections
+            echo 'phpmyadmin phpmyadmin/mysql/admin-pass password #{get_config('mysql-root-password')}' | debconf-set-selections
+            echo 'phpmyadmin phpmyadmin/mysql/app-pass password #{get_config('mysql-phpmyadmin-password')}' | debconf-set-selections
+            echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2' | debconf-set-selections
+    EOH
+    not_if "debconf-get-selections | grep phpmyadmin >/dev/null 2>&1"
 end
 
 package "phpmyadmin" do
@@ -166,5 +167,5 @@ bash "phpmyadmin-config-setup" do
     code <<-EOH
         echo '$cfg["AllowArbitraryServer"] = TRUE;' >> /etc/phpmyadmin/config.inc.php
     EOH
-    not_if "cat /etc/phpmyadmin/config.inc.php | grep AllowArbitraryServer"
+    not_if "grep -q AllowArbitraryServer /etc/phpmyadmin/config.inc.php"
 end

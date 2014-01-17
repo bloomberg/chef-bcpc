@@ -68,9 +68,6 @@ deb-i386 http://ubuntu-cloud.archive.canonical.com/ubuntu precise-updates/havana
 deb http://ubuntu-cloud.archive.canonical.com/ubuntu precise-proposed/havana main
 deb-i386 http://ubuntu-cloud.archive.canonical.com/ubuntu precise-proposed/havana main
 
-deb http://apt.opscode.com/ precise-0.10 main
-deb-i386 http://apt.opscode.com/ precise-0.10 main
-
 deb http://www.rabbitmq.com/debian testing main
 deb-i386 http://www.rabbitmq.com/debian testing main
 
@@ -79,6 +76,10 @@ deb-i386 http://packages.treasure-data.com/precise precise contrib
 
 deb http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/ubuntu12 HDP-UTILS main
 deb http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x HDP main
+
+deb-amd64 http://archive.cloudera.com/cdh5/ubuntu/precise/amd64/cdh precise-cdh5 contrib 
+
+deb http://archive.cloudera.com/gplextras5/ubuntu/lucid/amd64/gplextras lucid-gplextras5 contrib
 
 clean http://us.archive.ubuntu.com/ubuntu
 clean http://ceph.com
@@ -91,3 +92,4 @@ clean http://apt.opscode.com
 clean http://www.rabbitmq.com/debian
 clean http://packages.treasure-data.com/precise
 clean http://public-repo-1.hortonworks.com
+clean http://archive.cloudera.com

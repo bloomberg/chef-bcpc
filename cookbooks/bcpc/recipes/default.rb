@@ -19,7 +19,16 @@
 
 require 'ipaddr'
 
-node.set['bcpc']['management']['ip'] = node['network']['interfaces'][node['bcpc']['management']['interface']]['addresses'].select {|k,v| v['family'] == "inet" and k != node['bcpc']['management']['vip'] }[0].first
+mgmt_cidr = IPAddr.new(node['bcpc']['management']['cidr'])
+
+ifs=node[:network][:interfaces].keys
+# create a hash of ipaddresses
+ips= ifs.map{|a|node[:network][:interfaces][a][:addresses]}.reduce({}, :merge)
+
+# select the first IP address which is on the management network
+node.set['bcpc']['management']['ip'] = ips.select {|ip,v| v['family'] == "inet" and
+                                                   ip != node['bcpc']['management']['vip'] and
+                                                   mgmt_cidr===ip}.first[0]
 
 mgmt_bitlen = (node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
 mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<mgmt_bitlen>>mgmt_bitlen
@@ -38,3 +47,29 @@ node.set['bcpc']['storage']['ip'] = ((IPAddr.new(node['bcpc']['storage']['cidr']
 node.set['bcpc']['floating']['ip'] = ((IPAddr.new(node['bcpc']['floating']['cidr'])>>(32-flot_bitlen)<<(32-flot_bitlen))|flot_hostaddr).to_s
 
 node.save rescue nil
+
+# ensure the Zookeeper Gem is available for use in later recipes
+# it seems chef_gem fails to use the embedded gem(1) binary so use gem_package
+# and a hack to use rubygems to find the current Ruby binary;
+# assume gem is in the same dir (valid for Chef 10, Chef 11 dpkg and Chef 11 Omnibus)
+require 'pathname'
+require 'rubygems'
+gem_path = Pathname.new(Gem.ruby).dirname.join("gem").to_s
+
+# build requirements for zookeeper
+%w{make patch gcc}.each do |pkg|
+  package pkg do
+    action :nothing
+  end.run_action(:install)
+end
+
+gem_package "zookeeper" do
+    gem_binary gem_path
+    options "--no-http-proxy --clear-sources --source #{get_binary_server_url}"
+    # workaround for CHEF-3912 is to include versions from build_bins.sh
+    version "1.4.7"
+    action :nothing
+end.run_action(:install)
+
+Gem.clear_paths
+require 'zookeeper'

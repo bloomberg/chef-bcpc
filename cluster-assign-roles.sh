@@ -1,6 +1,11 @@
 #!/bin/bash
 # Script to assign roles to cluster nodes based on a definition in cluster.txt :
 #
+# - The environment is needed to find the root password of the machines
+#   and to provide the environment in which to chef them
+#
+# - An install_type is needed; options are OpenStack or Hadoop
+#
 # - If no hostname is provided, all nodes will be attempted
 #
 # - if a nodename is provided, either by hostname or ip address, only
@@ -17,50 +22,121 @@
 #   useful for nodes that have been completed
 
 set -e
-if [[ -z "$1" ]]; then
-    echo "Usage : $0 environment (hostname)"
-    exit 1
+set -x
+
+if [[ -z "$2" ]]; then
+  printf "Usage : $0 environment install_type (hostname)\n" > /dev/stderr
+  exit 1
 fi
 
 ENVIRONMENT=$1
-EXACTHOST=$2
+INSTALL_TYPE=$2
+EXACTHOST=$3
 
-if [[ ! -f "environments/$ENVIRONMENT.json" ]]; then
-    echo "Error: Couldn't find '$ENVIRONMENT.json'. Did you forget to pass the environment as first param?"
-    exit 1
+shopt -s nocasematch
+if [[ ! "$INSTALL_TYPE" =~ (openstack|hadoop) ]]; then 
+  printf "Error: Need install type of OpenStack or Hadoop\n" > /dev/stderr
+  exit 1
+fi
+shopt -u nocasematch
+
+if [[ ! -f "environments/$ENVIRONMENT.json" ]]; then   
+  printf "Error: Couldn't find '$ENVIRONMENT.json'. Did you forget to pass the environment as first param?\n" > /dev/stderr
+  exit 1
 fi
 
+########################################################################
+# install_machines -  Install a set of machines
+# Argument: $1 - a string of role!IP!FQDN pairs separated by white space
+# Will install the machine with role $role
+function install_machines {
+  PASSWD=`knife data bag show configs $ENVIRONMENT | grep "cobbler-root-password:" | awk ' {print $2}'`
+  for h in $(sort <<< ${*// /\\n}); do
+    local regEx='(.*)!(.*)!.*'
+    [[ "$h" =~ $regEx ]]
+    local role="${BASH_REMATCH[1]}"
+    local ip="${BASH_REMATCH[2]}"
+    printf "About to bootstrap node ${role}...\n"
+    ./chefit.sh $ip $ENVIRONMENT
+    local SSHCMD="./nodessh.sh $ENVIRONMENT $ip"
+    sudo knife bootstrap -E $ENVIRONMENT -r "role[$role]" $ip -x ubuntu  -P $PASSWD -u admin -k /etc/chef-server/admin.pem --sudo <<< $PASSWD
+  done
+}
 
+# if you want to skip a machine, set its role to SKIP  
 while read HOST MACADDR IPADDR ILOIPADDR DOMAIN ROLE; do
-    if [[ -z "$EXACTHOST" || "$EXACTHOST" = "$HOST" || "$EXACTHOST" = "$IPADDR" || "$EXACTHOST" = "heads" && "$ROLE" = "head" || "$EXACTHOST" = "workers" && "$ROLE" = "work" ]]; then
-	if   [[ "$ROLE" = head ]]; then
-	    HEADS="$HEADS $IPADDR"
-	elif [[ "$ROLE" = work ]]; then
-	    WORKERS="$WORKERS $IPADDR"
-	fi	
-    fi
+  shopt -s nocasematch
+  if [[ -z "$EXACTHOST" || "$EXACTHOST" = "$HOST" || "$EXACTHOST" = "$IPADDR" || "$EXACTHOST" = "$ROLE" ]] && [[ ! "|$ROLE" =~ '|SKIP' ]]; then
+    hosts="$host ${ROLE}!${IPADDR}!${HOST}.$DOMAIN"
+  fi
+  shopt -u nocasematch
 done < cluster.txt
-echo "heads : $HEADS"
-echo "workers : $WORKERS"
 
-PASSWD=`knife data bag show configs $ENVIRONMENT | grep "cobbler-root-password:" | awk ' {print $2}'`
 
-for HEAD in $HEADS; do
-    MATCH=$HEAD
-    echo "About to bootstrap head node $HEAD..."
-    ./chefit.sh $HEAD $ENVIRONMENT
-    echo $PASSWD | sudo knife bootstrap -E $ENVIRONMENT -r 'role[BCPC-Headnode]' $HEAD -x ubuntu  -P $PASSWD --sudo
-    SSHCMD="./nodessh.sh $ENVIRONMENT $HEAD"
-    $SSHCMD "/home/ubuntu/finish-head.sh" sudo	
-done
-for WORKER in $WORKERS; do
-    MATCH=$WORKER
-    echo "About to bootstrap worker worker $WORKER..."
-    ./chefit.sh $WORKER $ENVIRONMENT
-    echo $PASSWD | sudo knife bootstrap -E $ENVIRONMENT -r 'role[BCPC-Worknode]' $WORKER -x ubuntu -P $PASSWD --sudo
-    SSHCMD="./nodessh.sh $ENVIRONMENT $WORKER"
-    $SSHCMD "/home/ubuntu/finish-worker.sh" sudo	
-done
-if [[ -z "$MATCH" ]]; then
-    echo "Warning: No nodes found"
+for h in $hosts; do
+  regEx='(.*)!(.*)!(.*)'
+  [[ "$h" =~ $regEx ]]
+  role="${BASH_REMATCH[1]}"
+  ip="${BASH_REMATCH[2]}"
+  fqdn="${BASH_REMATCH[3]}"
+  printf "%s\t-\t%s\n" $role $fqdn
+done | sort
+
+if [[ -z "$hosts" ]]; then
+  printf "Warning: No nodes found\n" > /dev/stderr
+  exit 0
 fi
+
+shopt -s nocasematch
+if [[ "$INSTALL_TYPE" = "OpenStack" ]]; then
+  shopt -u nocasematch
+  printf "Doing OpenStack style install...\n"
+  # Do head nodes first and group by type of head
+  printf "Installing heads...\n"
+  install_machines $(printf ${hosts// /\\n} | grep -i "head" | sort)
+  # Redo head nodes in reverse order to ensure they know about eachother
+  # (the last node already knows everyone in the universe of heads)
+  printf "Acquainting heads...\n"
+  install_machines $(printf ${hosts// /\\n} | grep -i "head" | sort | head -n -1 | tac)
+  # Do everything else next and group by type of node  
+  printf "Installing workers...\n"
+  install_machines $(printf ${hosts// /\\n} | grep -vi "head" | sort)
+elif [[ "$INSTALL_TYPE" = "Hadoop" ]]; then
+  shopt -u nocasematch
+  regEx='(.*)!(.*)!(.*)'
+  printf "Doing Hadoop style install...\n"
+  # to prevent needing to re-chef headnodes the Hadoop code base assumes
+  # all nodes and clients have been created and further that all roles
+  # have been assigned before any headnode Chefing begins
+  printf "Creating stubs for headnodes...\n"
+  for h in $(printf ${hosts// /\\n} | grep -i "head" | sort); do
+    [[ "$h" =~ $regEx ]]
+    role="${BASH_REMATCH[1]}"
+    ip="${BASH_REMATCH[2]}"
+    install_machines "Basic!$ip!NONE"
+  done
+
+  printf "Assigning roles for headnodes...\n"
+  for h in $(printf ${hosts// /\\n} | grep -i "head" | sort); do
+    [[ "$h" =~ $regEx ]]
+    role="${BASH_REMATCH[1]}"
+    ip="${BASH_REMATCH[2]}"
+    fqdn="${BASH_REMATCH[3]}"
+    knife node run_list add $fqdn "role[$role]"
+  done
+
+  # set the first node to admin for creating data bags 
+  [[ "$(printf ${hosts// /\\n} | grep -i "head" | sort | head -1)" =~ $regEx ]]
+  printf "/\"admin\": false\ns/false/true\nw\nq\n" | EDITOR=ed knife client edit "${BASH_REMATCH[3]}" || /bin/true
+
+  printf "Installing heads...\n"
+  install_machines $(printf ${hosts// /\\n} | grep -i "head" | sort)
+
+  # unset the first node being an admin to lessen security footprint
+  [[ "$(printf ${hosts// /\\n} | grep -i "head" | sort | head -1)" =~ $regEx ]]
+  printf "/\"admin\": true\ns/true/false\nw\nq\n" | EDITOR=ed knife client edit "${BASH_REMATCH[3]}"
+
+  printf "Installing workers...\n"
+  install_machines $(printf ${hosts// /\\n} | grep -vi "head" | sort)
+fi
+

@@ -190,6 +190,7 @@ cookbook_file "/tmp/nova.patch" do
     source "nova.patch"
     owner "root"
     mode 00644
+    not_if { File.exists?("/usr/lib/python2.7/dist-packages/nova/nova.patch") }
 end
 
 bash "patch-for-nova-bugs" do
@@ -199,7 +200,7 @@ bash "patch-for-nova-bugs" do
         patch -p1 < /tmp/nova.patch
         cp /tmp/nova.patch .
     EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova.patch"
+    not_if { File.exists?("/usr/lib/python2.7/dist-packages/nova/nova.patch") }
     notifies :restart, "service[nova-api]", :immediately
 end
 
@@ -207,6 +208,7 @@ cookbook_file "/tmp/grizzly-volumes.patch" do
     source "grizzly-volumes.patch"
     owner "root"
     mode 00644
+    not_if { File.exists?("/usr/lib/python2.7/dist-packages/nova/grizzly-volumes.patch") }
 end
 
 bash "patch-for-grizzly-volumes" do
@@ -216,7 +218,7 @@ bash "patch-for-grizzly-volumes" do
         patch -p2 < /tmp/grizzly-volumes.patch
         cp /tmp/grizzly-volumes.patch .
     EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/grizzly-volumes.patch"
+    not_if { File.exists?("/usr/lib/python2.7/dist-packages/nova/grizzly-volumes.patch") }
     notifies :restart, "service[nova-compute]", :delayed
 end
 

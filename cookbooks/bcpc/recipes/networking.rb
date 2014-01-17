@@ -222,4 +222,3 @@ bash "disable-noninteractive-pam-logging" do
     only_if "grep -e '^session\\s*required\\s*pam_unix.so' /etc/pam.d/common-session-noninteractive"
 end
 
-include_recipe "bcpc::apache2"

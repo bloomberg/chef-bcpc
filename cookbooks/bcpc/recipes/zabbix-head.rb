@@ -32,17 +32,16 @@ ruby_block "initialize-zabbix-config" do
     end
 end
 
-cookbook_file "/tmp/zabbix-server.tar.gz" do
-    source "bins/zabbix-server.tar.gz"
+remote_file "/tmp/zabbix-server.tar.gz" do
+    source "#{get_binary_server_url}/zabbix-server.tar.gz"
     owner "root"
     mode 00444
+    not_if { File.exists?("/usr/local/sbin/zabbix_server") }
 end
 
 bash "install-zabbix-server" do
-    code <<-EOH
-        tar zxf /tmp/zabbix-server.tar.gz -C /usr/local/
-    EOH
-    not_if "test -f /usr/local/sbin/zabbix_server"
+    code "tar zxf /tmp/zabbix-server.tar.gz -C /usr/local/ && rm /tmp/zabbix-server.tar.gz"
+    not_if { File.exists?("/usr/local/sbin/zabbix_server") }
 end
 
 user node[:bcpc][:zabbix][:user] do
@@ -203,16 +202,7 @@ end
   end
 end
 
-cookbook_file "/tmp/python-requests-aws_0.1.5_all.deb" do
-    source "bins/python-requests-aws_0.1.5_all.deb"
-    owner "root"
-    mode 00444
-end
-
-package "requests-aws" do
-    provider Chef::Provider::Package::Dpkg
-    source "/tmp/python-requests-aws_0.1.5_all.deb"
-    action :install
+package "python-requests-aws" do
 end
 
 template "/usr/local/bin/zabbix_bucket_stats" do

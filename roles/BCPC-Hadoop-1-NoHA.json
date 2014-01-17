@@ -1,0 +1,23 @@
+{
+  "name": "BCPC-Hadoop-1-NoHA",
+  "default_attributes": {
+  },
+  "json_class": "Chef::Role",
+  "run_list": [
+    "role[Basic]",
+    "role[BCPC-Hadoop-Head]",
+    "recipe[bcpc-hadoop::namenode_no_HA]",
+    "recipe[bcpc-hadoop::oozie]"
+  ],
+  "description": "Non-HA version of Hadoop 1 role in a BCPC Hadoop cluster",
+  "chef_type": "role",
+  "override_attributes": {
+    "bcpc": {
+      "hadoop": {
+        "hdfs": {
+          "HA": false
+        }
+      }
+    }
+  }
+}

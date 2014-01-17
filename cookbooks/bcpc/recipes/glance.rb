@@ -123,10 +123,11 @@ bash "set-glance-rados-pool-pgs" do
     not_if "((`ceph osd pool get #{node[:bcpc][:ceph][:images][:name]} pg_num | awk '{print $2}'` >= #{optimal}))"
 end
 
-cookbook_file "/tmp/cirros-0.3.0-x86_64-disk.img" do
-    source "bins/cirros-0.3.0-x86_64-disk.img"
+remote_file "/tmp/cirros-0.3.0-x86_64-disk.img" do
+    source "#{get_binary_server_url}/cirros-0.3.0-x86_64-disk.img"
     owner "root"
     mode 00444
+    only_if ". /root/adminrc; glance image-show 'Cirros 0.3.0 x86_64' 2>&1 | grep -e '^No image'"
 end
 
 package "qemu-utils" do

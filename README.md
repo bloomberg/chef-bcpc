@@ -23,7 +23,7 @@ Setup
 =====
 
 These recipes are currently intended for building a BCPC cloud on top of
-Ubuntu 12.04 servers using Chef 10. When setting this up in VMs, be sure to
+Ubuntu 12.04 servers using Chef 11. When setting this up in VMs, be sure to
 add a few dedicated disks (for ceph OSDs) aside from boot volume. In
 addition, it's expected that you have three separate NICs per machine, with
 the following as defaults (and recommendations for VM settings):
@@ -123,7 +123,7 @@ BCPC currently relies upon a number of open-source packages:
  - [389 Directory Server](http://directory.fedoraproject.org/)
  - [Apache HTTP Server](http://httpd.apache.org/)
  - [Ceph](http://ceph.com/)
- - [Chef](http://www.opscode.com/chef/)
+ - [Chef](http://www.getchef.com/chef/)
  - [Cobbler](http://www.cobblerd.org/)
  - [Diamond](https://github.com/BrightcoveOS/Diamond)
  - [ElasticSearch](http://www.elasticsearch.org/)

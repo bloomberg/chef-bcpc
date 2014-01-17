@@ -36,10 +36,20 @@
         "dhcp_subnet" : "10.0.100.0",
         "dhcp_range" : "10.0.100.14 10.0.100.250"
       },
-      "dns_servers" : [ "8.8.8.8", "8.8.4.4" ]
+      "dns_servers" : ["8.8.8.8", "8.8.4.4"],
+      "hadoop" : {
+        "min_node_count" : 2,
+        "distribution" : { 
+          "version" : "-cdh5",
+          "key" : "cloudera-archive-5.key"
+        }
+      },
+      "repos" : {
+        "cloudera" : "http://archive.cloudera.com/cdh5/ubuntu/precise/amd64/cdh"
+      }
     },
     "ntp": {
-      "servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ]
+       "servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ]
     },
     "chef_client": {
       "server_url": "http://10.0.100.3:4000",

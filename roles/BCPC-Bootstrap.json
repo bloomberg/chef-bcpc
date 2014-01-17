@@ -5,6 +5,7 @@
     "json_class": "Chef::Role",
     "run_list": [
       "role[Basic]",
+      "recipe[bcpc::bootstrap]",
       "recipe[bcpc::cobbler]",
       "recipe[bcpc::cobbler-centos]",
       "recipe[bcpc::ufw]"
