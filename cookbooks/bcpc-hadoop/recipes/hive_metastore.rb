@@ -20,7 +20,8 @@ ruby_block "hive-metastore-database-creation" do
         GRANT #{privs} ON metastore.* TO 'hive'@'localhost' IDENTIFIED BY '#{get_config('mysql-hive-password')}';
         FLUSH PRIVILEGES;
         USE metastore;
-        SOURCE /usr/lib/hive/scripts/metastore/upgrade/mysql/hive-schema-0.11.0-c5b1.mysql.sql;
+        #SOURCE /usr/lib/hive/scripts/metastore/upgrade/mysql/hive-schema-0.11.0-c5b1.mysql.sql;
+        SOURCE /usr/lib/hive/scripts/metastore/upgrade/mysql/hive-schema-0.11.0-c5.mysql.sql;
         EOF
       IO.popen("mysql -uroot -p#{get_config('mysql-root-password')}", "r+") do |db|
         db.write code

@@ -115,6 +115,7 @@ directory "/etc/network/interfaces.d" do
   action :create
 end
 
+if false
 bash "setup-interfaces-source" do
   user "root"
   code <<-EOH
@@ -150,11 +151,13 @@ template "/etc/network/interfaces.d/iface-#{node[:bcpc][:storage][:interface]}" 
     :metric => 300
   )
 end
+end
 
 # set up the DNS resolvers
 # we want the VIP which will be running powerdns to be first on the list
 # but the first entry in our master list is also the only one in pdns,
 # so make that the last entry to minimize double failures when upstream dies.
+if false
 resolvers=node[:bcpc][:dns_servers].dup
 resolvers.push resolvers.shift
 resolvers.unshift node[:bcpc][:management][:vip]
@@ -221,4 +224,4 @@ bash "disable-noninteractive-pam-logging" do
     code "sed --in-place 's/^\\(session\\s*required\\s*pam_unix.so\\)/#\\1/' /etc/pam.d/common-session-noninteractive"
     only_if "grep -e '^session\\s*required\\s*pam_unix.so' /etc/pam.d/common-session-noninteractive"
 end
-
+end
