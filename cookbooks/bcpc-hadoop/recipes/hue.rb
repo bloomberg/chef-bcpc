@@ -1,4 +1,4 @@
-include_recipe 'dpkg_autostart'
+#include_recipe 'dpkg_autostart'
 
 make_config('mysql-hue-password', secure_password)
 make_config('hue-session-key', secure_password)
@@ -26,9 +26,9 @@ end
    hue-sqoop
    hue-zookeeper
 }.each do |pkg|
-  dpkg_autostart pkg do
-    allow false
-  end
+  #dpkg_autostart pkg do
+  #  allow false
+  #end
   package pkg do
     action :upgrade
   end

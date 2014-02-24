@@ -11,9 +11,9 @@
       "management": {
         "vip" : "10.0.100.5",
         "interface" : "eth0",
-        "netmask" : "255.255.255.0",
-        "cidr" : "10.0.100.0/24",
-        "gateway" : "10.0.100.3"
+        "netmask" : "255.255.240.0",
+        "cidr" : "172.31.32.0/20",
+        "gateway" : "172.31.32.1"
       },
       "storage": {
         "interface" : "eth1",
@@ -23,7 +23,7 @@
       },
       "floating": {
         "vip" : "192.168.100.5",
-        "interface" : "eth2",
+        "interface" : "eth0",
         "netmask" : "255.255.255.0",
         "cidr" : "192.168.100.0/24",
         "gateway" : "192.168.100.3",
@@ -32,15 +32,20 @@
       "bootstrap": {
         "interface" : "eth0",
         "pxe_interface" : "eth1",
-        "server" : "10.0.100.3",
-        "dhcp_subnet" : "10.0.100.0",
-        "dhcp_range" : "10.0.100.14 10.0.100.250"
+        "server" : "172.31.42.87",
+        "dhcp_subnet" : "172.31.32.0",
+        "dhcp_range" : "172.31.42.87"
       },
-      "dns_servers" : ["8.8.8.8", "8.8.4.4"],
+      "dns_servers" : ["172.31.0.2"],
       "hadoop" : {
+        "min_node_count" : 2,
+        "disks" : ["xvdb"],
         "distribution" : { 
           "version" : "-cdh5",
           "key" : "cloudera-archive-5.key"
+        },
+        "hdfs" : {
+          "failed_volumes_tolerated" : 0
         }
       },
       "repos" : {

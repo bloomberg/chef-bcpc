@@ -1,9 +1,9 @@
-include_recipe 'dpkg_autostart'
+#include_recipe 'dpkg_autostart'
 
 %w{hadoop-hdfs-journalnode}.each do |pkg|
-  dpkg_autostart pkg do
-    allow false
-  end
+  #dpkg_autostart pkg do
+  #  allow false
+  #end
   package pkg do
     action :upgrade
   end
