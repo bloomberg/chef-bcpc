@@ -39,12 +39,12 @@
       "dns_servers" : ["8.8.8.8", "8.8.4.4"],
       "hadoop" : {
         "distribution" : { 
-          "version" : "-cdh5",
-          "key" : "cloudera-archive-5.key"
+          "version" : "HDP",
+          "key" : "hortonworks.key"
         }
       },
       "repos" : {
-        "cloudera" : "http://archive.cloudera.com/cdh5/ubuntu/precise/amd64/cdh"
+        "hortonworks" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x"
       }
     },
     "ntp": {

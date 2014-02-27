@@ -64,47 +64,37 @@ end
 
 case node["platform_family"]
   when "debian"
-    apt_repository "cloudera" do
-      uri node['bcpc']['repos']['cloudera']
-      distribution node['lsb']['codename'] + node[:bcpc][:hadoop][:distribution][:version]
-      components ["contrib"]
-      arch "amd64"
-      key node[:bcpc][:hadoop][:distribution][:key]
-    end
-    apt_repository "cloudera-lzo" do
-      uri node['bcpc']['repos']['cloudera-lzo']
-      distribution "lucid-gplextras5"
+    apt_repository "hortonworks" do
+      uri node['bcpc']['repos']['hortonworks']
+      node[:bcpc][:hadoop][:distribution][:version]
       components ["contrib"]
       arch "amd64"
       key node[:bcpc][:hadoop][:distribution][:key]
     end
 
-    %w{hadoop
-       hbase
-       hive
-       oozie
-       pig
-       zookeeper
-       impala
-       webhcat
-       hadoop-httpfs
-       hive-hcatalog
-       hue}.each do |w|
-    directory "/etc/#{w}/conf.#{node.chef_environment}" do
-      owner "root"
-      group "root"
-      mode 00755
-      action :create
-      recursive true
-    end
+    %w{
+      hadoop
+      hadoop-httpfs
+      zookeeper
+      hbase
+      hive
+      pig
+    }.each do |w|
+      directory "/etc/#{w}/conf.#{node.chef_environment}" do
+        owner "root"
+        group "root"
+        mode 00755
+        action :create
+        recursive true
+      end
 
-    bash "update-#{w}-conf-alternatives" do
-      code %Q{
-       update-alternatives --install /etc/#{w}/conf #{w}-conf /etc/#{w}/conf.#{node.chef_environment} 50
-       update-alternatives --set #{w}-conf /etc/#{w}/conf.#{node.chef_environment}
-      }
+      bash "update-#{w}-conf-alternatives" do
+        code %Q{
+         update-alternatives --install /etc/#{w}/conf #{w}-conf /etc/#{w}/conf.#{node.chef_environment} 50
+         update-alternatives --set #{w}-conf /etc/#{w}/conf.#{node.chef_environment}
+        }
+      end
     end
-  end
 
   when "rhel"
     ""
@@ -112,10 +102,6 @@ case node["platform_family"]
 end
 
 make_config('mysql-hive-password', secure_password)
-make_config('oozie-keystore-password', secure_password)
-make_config('mysql-hue-password', secure_password)
-make_config('hue-session-key', secure_password)
-make_config('mysql-oozie-password', secure_password)
 
 #
 #set up hadoop conf
@@ -221,52 +207,7 @@ end
 end
 
 #
-# Set up oozie configs
-#
-%w{
-  oozie-env.sh
-  oozie-site.xml
-  adminusers.txt
-  oozie-default.xml
-  oozie-log4j.properties
-  }.each do |t|
-  template "/etc/oozie/conf/#{t}" do
-    source "ooz_#{t}.erb"
-    mode 0644
-    variables(:mysql_hosts => get_mysql_nodes.map{ |m| m.hostname },
-              :zk_hosts => get_nodes_for("zookeeper_server"),
-              :hive_host => get_nodes_for("hive_metastore"))
-  end
-end
-link "/etc/oozie/conf.#{node.chef_environment}/hive-site.xml" do
-  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
-end
-link "/etc/oozie/conf.#{node.chef_environment}/core-site.xml" do
-  to "/etc/hadoop/conf.#{node.chef_environment}/core-site.xml"
-end
-link "/etc/oozie/conf.#{node.chef_environment}/yarn-site.xml" do
-  to "/etc/hadoop/conf.#{node.chef_environment}/yarn-site.xml"
-end
-
-#
-# Set up impala configs
-#
-
-link "/etc/impala/conf.#{node.chef_environment}/hive-site.xml" do
-  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
-end
-link "/etc/impala/conf.#{node.chef_environment}/core-site.xml" do
-  to "/etc/hadoop/conf.#{node.chef_environment}/core-site.xml"
-end
-link "/etc/impala/conf.#{node.chef_environment}/hdfs-site.xml" do
-  to "/etc/hadoop/conf.#{node.chef_environment}/hdfs-site.xml"
-end
-link "/etc/impala/conf.#{node.chef_environment}/hbase-site.xml" do
-  to "/etc/hbase/conf.#{node.chef_environment}/hbase-site.xml"
-end
-
-#
-# HTTPFS and Hue configs
+# HTTPFS configs
 #
 %w{
   httpfs-env.sh
@@ -280,32 +221,71 @@ end
   end
 end
 
-link "/etc/hive-hcatalog/conf.#{node.chef_environment}/hive-site.xml" do
-  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
-end
-
-#
-# HUE Configs
-#
-%w{
-  hue.ini
-  log4j.properties
-  log.conf}.each do |t|
-   template "/etc/hue/conf/#{t}" do
-     source "hue_#{t}.erb"
-     mode 0644
-     variables(:impala_hosts => get_nodes_for("datanode") ,
-               :zk_hosts => get_nodes_for("zookeeper_server"),
-               :rm_host  => get_nodes_for("resource_manager"),
-               :hive_host  => get_nodes_for("hive"),
-               :oozie_host  => get_nodes_for("oozie"),
-               :httpfs_host => get_nodes_for("httpfs"),
-               :hb_host  => get_nodes_for("hbase_master"))
-  end
-end
-
+# NOTE
 %w{openjdk-7-jdk zookeeper}.each do |pkg|
   package pkg do
     action :upgrade
   end
 end
+
+
+# ========================================================================== #
+# TODO:
+#   Not doing THESE FOR NOW!
+#   Need to do these soon!!
+# ========================================================================== #
+
+##
+## Set up oozie configs
+##
+#%w{
+#  oozie-env.sh
+#  oozie-site.xml
+#  adminusers.txt
+#  oozie-default.xml
+#  oozie-log4j.properties
+#  }.each do |t|
+#  template "/etc/oozie/conf/#{t}" do
+#    source "ooz_#{t}.erb"
+#    mode 0644
+#    variables(:mysql_hosts => get_mysql_nodes.map{ |m| m.hostname },
+#              :zk_hosts => get_nodes_for("zookeeper_server"),
+#              :hive_host => get_nodes_for("hive_metastore"))
+#  end
+#end
+#link "/etc/oozie/conf.#{node.chef_environment}/hive-site.xml" do
+#  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
+#end
+#link "/etc/oozie/conf.#{node.chef_environment}/core-site.xml" do
+#  to "/etc/hadoop/conf.#{node.chef_environment}/core-site.xml"
+#end
+#link "/etc/oozie/conf.#{node.chef_environment}/yarn-site.xml" do
+#  to "/etc/hadoop/conf.#{node.chef_environment}/yarn-site.xml"
+#end
+
+##
+## HUE Configs
+##
+#%w{
+#  hue.ini
+#  log4j.properties
+#  log.conf}.each do |t|
+#   template "/etc/hue/conf/#{t}" do
+#     source "hue_#{t}.erb"
+#     mode 0644
+#     variables(:impala_hosts => get_nodes_for("datanode") ,
+#               :zk_hosts => get_nodes_for("zookeeper_server"),
+#               :rm_host  => get_nodes_for("resource_manager"),
+#               :hive_host  => get_nodes_for("hive"),
+#               :oozie_host  => get_nodes_for("oozie"),
+#               :httpfs_host => get_nodes_for("httpfs"),
+#               :hb_host  => get_nodes_for("hbase_master"))
+#  end
+#end
+
+##
+## HCatalog Configs
+##
+#link "/etc/hive-hcatalog/conf.#{node.chef_environment}/hive-site.xml" do
+#  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
+#end
