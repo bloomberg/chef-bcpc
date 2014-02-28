@@ -75,8 +75,8 @@ case node["platform_family"]
     apt_repository "hortonworks" do
       uri node['bcpc']['repos']['hortonworks']
       distribution node[:bcpc][:hadoop][:distribution][:version]
-      components ["contrib"]
-      arch "amd64"
+      components ["main"]
+      #arch "amd64"
       key node[:bcpc][:hadoop][:distribution][:key]
     end
 
