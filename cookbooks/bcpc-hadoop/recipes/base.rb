@@ -1,5 +1,8 @@
-package "xfsprogs" do
-  action :install
+# Install java 7
+%w{openjdk-7-jdk}.each do |pkg|
+  package pkg do
+    action :upgrade
+  end
 end
 
 # set vm.swapiness to 0 (to lessen swapping)
@@ -25,6 +28,11 @@ case node["platform_family"]
     end
   else
     Chef::Log.warn "============ Unable to disable IPv6 for non-Debian systems"
+end
+
+# File system setup
+package "xfsprogs" do
+  action :install
 end
 
 directory "/disk" do
@@ -66,7 +74,7 @@ case node["platform_family"]
   when "debian"
     apt_repository "hortonworks" do
       uri node['bcpc']['repos']['hortonworks']
-      node[:bcpc][:hadoop][:distribution][:version]
+      distribution node[:bcpc][:hadoop][:distribution][:version]
       components ["contrib"]
       arch "amd64"
       key node[:bcpc][:hadoop][:distribution][:key]
@@ -74,7 +82,6 @@ case node["platform_family"]
 
     %w{
       hadoop
-      hadoop-httpfs
       zookeeper
       hbase
       hive
@@ -205,87 +212,3 @@ end
                :hive_host => get_nodes_for("hive_metastore"))
   end
 end
-
-#
-# HTTPFS configs
-#
-%w{
-  httpfs-env.sh
-  httpfs-log4j.properties
-  httpfs-signature.secret
-  httpfs-site.xml
-   }.each do |t|
-   template "/etc/hadoop-httpfs/conf/#{t}" do
-     source "#{t}.erb"
-     mode 0644
-  end
-end
-
-# NOTE
-%w{openjdk-7-jdk zookeeper}.each do |pkg|
-  package pkg do
-    action :upgrade
-  end
-end
-
-
-# ========================================================================== #
-# TODO:
-#   Not doing THESE FOR NOW!
-#   Need to do these soon!!
-# ========================================================================== #
-
-##
-## Set up oozie configs
-##
-#%w{
-#  oozie-env.sh
-#  oozie-site.xml
-#  adminusers.txt
-#  oozie-default.xml
-#  oozie-log4j.properties
-#  }.each do |t|
-#  template "/etc/oozie/conf/#{t}" do
-#    source "ooz_#{t}.erb"
-#    mode 0644
-#    variables(:mysql_hosts => get_mysql_nodes.map{ |m| m.hostname },
-#              :zk_hosts => get_nodes_for("zookeeper_server"),
-#              :hive_host => get_nodes_for("hive_metastore"))
-#  end
-#end
-#link "/etc/oozie/conf.#{node.chef_environment}/hive-site.xml" do
-#  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
-#end
-#link "/etc/oozie/conf.#{node.chef_environment}/core-site.xml" do
-#  to "/etc/hadoop/conf.#{node.chef_environment}/core-site.xml"
-#end
-#link "/etc/oozie/conf.#{node.chef_environment}/yarn-site.xml" do
-#  to "/etc/hadoop/conf.#{node.chef_environment}/yarn-site.xml"
-#end
-
-##
-## HUE Configs
-##
-#%w{
-#  hue.ini
-#  log4j.properties
-#  log.conf}.each do |t|
-#   template "/etc/hue/conf/#{t}" do
-#     source "hue_#{t}.erb"
-#     mode 0644
-#     variables(:impala_hosts => get_nodes_for("datanode") ,
-#               :zk_hosts => get_nodes_for("zookeeper_server"),
-#               :rm_host  => get_nodes_for("resource_manager"),
-#               :hive_host  => get_nodes_for("hive"),
-#               :oozie_host  => get_nodes_for("oozie"),
-#               :httpfs_host => get_nodes_for("httpfs"),
-#               :hb_host  => get_nodes_for("hbase_master"))
-#  end
-#end
-
-##
-## HCatalog Configs
-##
-#link "/etc/hive-hcatalog/conf.#{node.chef_environment}/hive-site.xml" do
-#  to "/etc/hive/conf.#{node.chef_environment}/hive-site.xml"
-#end
