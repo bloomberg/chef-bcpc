@@ -19,7 +19,16 @@
 
 require 'ipaddr'
 
-node.set['bcpc']['management']['ip'] = node['network']['interfaces'][node['bcpc']['management']['interface']]['addresses'].select {|k,v| v['family'] == "inet" and k != node['bcpc']['management']['vip'] }[0].first
+mgmt_cidr = IPAddr.new(node['bcpc']['management']['cidr'])
+
+ifs=node[:network][:interfaces].keys
+# create a hash of ipaddresses
+ips= ifs.map{|a|node[:network][:interfaces][a][:addresses]}.reduce({}, :merge)
+
+# select the first IP address which is on the management network
+node.set['bcpc']['management']['ip'] = ips.select {|ip,v| v['family'] == "inet" and
+                                                   ip != node['bcpc']['management']['vip'] and
+                                                   mgmt_cidr===ip}.first[0]
 
 mgmt_bitlen = (node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
 mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<mgmt_bitlen>>mgmt_bitlen
@@ -38,3 +47,12 @@ node.set['bcpc']['storage']['ip'] = ((IPAddr.new(node['bcpc']['storage']['cidr']
 node.set['bcpc']['floating']['ip'] = ((IPAddr.new(node['bcpc']['floating']['cidr'])>>(32-flot_bitlen)<<(32-flot_bitlen))|flot_hostaddr).to_s
 
 node.save rescue nil
+
+apt_repository 'bcpc' do
+  uri get_binary_server_url
+  components ['main']
+  distribution "0.5.0"
+  key "#{get_binary_server_url}/apt_key.asc"
+  arch "amd64"
+end
+

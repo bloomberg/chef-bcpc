@@ -29,16 +29,10 @@ ruby_block "initialize-graphite-config" do
 end
 
 %w{python-whisper_0.9.10_all.deb python-carbon_0.9.10_all.deb python-graphite-web_0.9.10_all.deb}.each do |pkg|
-    cookbook_file "/tmp/#{pkg}" do
-        source "bins/#{pkg}"
-        owner "root"
-        mode 00444
-    end
-
-    package "#{pkg}" do
-        provider Chef::Provider::Package::Dpkg
-        source "/tmp/#{pkg}"
+    # split package name on the first underscore to get the package name for dpkg to look-up
+    package "#{pkg.split('_',2)[0]}" do
         action :install
+        version "0.9.10"
     end
 end
 

@@ -106,6 +106,11 @@ def get_cached_head_node_names
   return headnodes  
 end
 
+def get_binary_server_url
+  return("http://#{URI(Chef::Config['chef_server_url']).host}:8080") if node[:bcpc][:binary_server_url].nil?
+  return(node[:bcpc][:binary_server_url])
+end
+
 def power_of_2(number)
 	result = 1
 	while (result < number) do result <<= 1 end

@@ -19,16 +19,15 @@
 
 include_recipe "bcpc::default"
 
-cookbook_file "/tmp/zabbix-agent.tar.gz" do
-    source "bins/zabbix-agent.tar.gz"
+remote_file "/tmp/zabbix-agent.tar.gz" do
+    source "#{get_binary_server_url}/zabbix-agent.tar.gz"
     owner "root"
     mode 00444
+    not_if { File.exists?("/usr/local/sbin/zabbix_agentd") }
 end
 
 bash "install-zabbix-agent" do
-    code <<-EOH
-        tar zxf /tmp/zabbix-agent.tar.gz -C /usr/local/
-    EOH
+    code "tar zxf /tmp/zabbix-agent.tar.gz -C /usr/local/ && rm /tmp/zabbix-agent.tar.gz"
     not_if "test -f /usr/local/sbin/zabbix_agentd"
 end
 

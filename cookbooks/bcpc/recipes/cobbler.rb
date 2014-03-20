@@ -60,10 +60,11 @@ template "/var/lib/cobbler/kickstarts/bcpc_ubuntu_host.preseed" do
     mode 00644
 end
 
-cookbook_file "/tmp/ubuntu-12.04-mini.iso" do
-    source "bins/ubuntu-12.04-mini.iso"
+remote_file "/tmp/ubuntu-12.04-mini.iso" do
+    source "#{get_binary_server_url}/ubuntu-12.04-mini.iso"
     owner "root"
     mode 00444
+    not_if "cobbler distro list | grep ubuntu-12.04-mini"
 end
 
 bash "import-ubuntu-distribution-cobbler" do

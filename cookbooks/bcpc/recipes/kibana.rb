@@ -20,10 +20,11 @@
 include_recipe "bcpc::default"
 include_recipe "bcpc::apache2"
 
-cookbook_file "/tmp/kibana3.tgz" do
-    source "bins/kibana3.tgz"
+remote_file "/tmp/kibana3.tgz" do
+    source "#{get_binary_server_url}/kibana3.tgz"
     owner "root"
     mode 00444
+    not_if { Dir.exists?("test -d /opt/kibana3") }
 end
 
 bash "install-kibana" do

@@ -19,14 +19,14 @@
 
 package "apache2"
 
-service "apache2" do
-    action [ :enable, :start ]
-end
-
 template "/etc/apache2/sites-available/default" do
     source "apache-mirror.erb"
     owner "root"
     group "root"
     mode 00644
     notifies :restart, "service[apache2]", :delayed
+end
+
+service "apache2" do
+    action [ :enable, :start ]
 end

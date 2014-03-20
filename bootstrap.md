@@ -498,7 +498,7 @@ You also need to build the installer bins for a number of external
 dependencies, and there's a script to help (tested on Ubuntu 12.04)
 
 ```
- $ ./cookbooks/bcpc/files/default/build_bins.sh
+ $ ./build_bins.sh
 ```
 
 If you're planning to run OpenStack on top of VirtualBox, be sure to build the base VirtualBox images first:

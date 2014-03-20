@@ -55,21 +55,23 @@ if [[ ! -f "environments/${CHEF_ENVIRONMENT}.json" ]]; then
     exit
 fi
 
-
 if [[ -z $VAGRANT ]]; then
   if [[ ! -f $KEYFILE ]]; then
     ssh-keygen -N "" -f $KEYFILE
   fi
   echo "Running rsync of non-Vagrant install"
   rsync  $RSYNCEXTRA -avP -e "ssh -i $KEYFILE" --exclude vbox --exclude $KEYFILE --exclude .chef . ${SSH_USER}@$IP:chef-bcpc 
-  rsync  $RSYNCEXTRA -avP -e "ssh -i $KEYFILE" vbox/ubuntu-12.04-mini.iso ${SSH_USER}@$IP:chef-bcpc/cookbooks/bcpc/files/default/bins
+  rsync  $RSYNCEXTRA -avP -e "ssh -i $KEYFILE" vbox/ubuntu-12.04-mini.iso ${SSH_USER}@$IP:chef-bcpc/bins
   $SSH_CMD "cd $BCPC_DIR && ./setup_ssh_keys.sh ${KEYFILE}.pub"
 else
   echo "Running rsync of Vagrant install"
   $SSH_CMD "rsync $RSYNCEXTRA -avP --exclude vbox --exclude .chef /chef-bcpc-host/ /home/vagrant/chef-bcpc/"
   echo "Rsync over the hypervisor mini ISO to avoid redownloading"
-  $SSH_CMD "rsync $RSYNCEXTRA -avP /chef-bcpc-host/vbox/ubuntu-12.04-mini.iso  /home/vagrant/chef-bcpc/cookbooks/bcpc/files/default/bins"
+  $SSH_CMD "rsync $RSYNCEXTRA -avP /chef-bcpc-host/vbox/ubuntu-12.04-mini.iso  /home/vagrant/chef-bcpc/bins"
 fi
+
+echo "Building bins"
+$SSH_CMD "cd $BCPC_DIR && sudo ./build_bins.sh"
 
 echo "Setting up chef server"
 $SSH_CMD "cd $BCPC_DIR && sudo ./setup_chef_server.sh"

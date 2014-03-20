@@ -46,6 +46,7 @@ bash "setup-allow-rules-ufw" do
       ufw allow 80/tcp
       ufw allow 4000/tcp
       ufw allow 4040/tcp
+      ufw allow 8080/tcp
       ufw allow in on #{node[:bcpc][:bootstrap][:pxe_interface]} from any port 68 to any port 67 proto udp
       ufw allow in on #{node[:bcpc][:bootstrap][:pxe_interface]} from any to #{node[:bcpc][:bootstrap][:server]} port tftp
       ufw --force enable
