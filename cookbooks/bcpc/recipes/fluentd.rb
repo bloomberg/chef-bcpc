@@ -37,7 +37,7 @@ bash "set-td-agent-user" do
     notifies :restart, "service[td-agent]", :delayed
 end
 
-%w{elasticsearch patron fluent-plugin-elasticsearch fluent-plugin-tail-multiline fluent-plugin-tail-ex fluent-plugin-record-reformer fluent-plugin-rewrite}.each do |pkg|
+%w{elasticsearch-api elasticsearch-transport elasticsearch patron fluent-plugin-elasticsearch fluent-plugin-tail-multiline fluent-plugin-tail-ex fluent-plugin-record-reformer fluent-plugin-rewrite}.each do |pkg|
     cookbook_file "/tmp/#{pkg}.gem" do
         source "bins/#{pkg}.gem"
         owner "root"

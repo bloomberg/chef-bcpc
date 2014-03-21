@@ -40,7 +40,7 @@ fi
 FILES="kibana3.tgz $FILES"
 
 # Grab dependencies for fluentd plugins
-for i in elasticsearch patron; do
+for i in elasticsearch-api elasticsearch-transport elasticsearch patron; do
     gem fetch ${i}
     mv ${i}-*.gem ${i}.gem
     FILES="${i}.gem $FILES"
