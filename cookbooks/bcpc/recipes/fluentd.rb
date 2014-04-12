@@ -37,15 +37,15 @@ bash "set-td-agent-user" do
     notifies :restart, "service[td-agent]", :delayed
 end
 
-%w{elasticsearch tail-multiline tail-ex record-reformer rewrite}.each do |pkg|
-    cookbook_file "/tmp/fluent-plugin-#{pkg}.gem" do
-        source "bins/fluent-plugin-#{pkg}.gem"
+%w{elasticsearch-api elasticsearch-transport elasticsearch patron fluent-plugin-elasticsearch fluent-plugin-tail-multiline fluent-plugin-tail-ex fluent-plugin-record-reformer fluent-plugin-rewrite}.each do |pkg|
+    cookbook_file "/tmp/#{pkg}.gem" do
+        source "bins/#{pkg}.gem"
         owner "root"
         mode 00444
     end
-    bash "install-fluent-plugin-#{pkg}" do
-        code "/usr/lib/fluent/ruby/bin/fluent-gem install --local --no-ri --no-rdoc /tmp/fluent-plugin-#{pkg}.gem"
-        not_if "/usr/lib/fluent/ruby/bin/fluent-gem list --local --no-versions | grep fluent-plugin-#{pkg}$"
+    bash "install-fluent-gem-#{pkg}" do
+        code "/usr/lib/fluent/ruby/bin/fluent-gem install --local --no-ri --no-rdoc /tmp/#{pkg}.gem"
+        not_if "/usr/lib/fluent/ruby/bin/fluent-gem list --local --no-versions | grep ^#{pkg}$"
     end
 end
 

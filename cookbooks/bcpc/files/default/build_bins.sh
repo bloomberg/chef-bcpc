@@ -53,21 +53,21 @@ fi
 FILES="kibana3.tgz $FILES"
 
 # any pegged gem versions
-REV_elasticsearch="0.2.0"
+#REV_elasticsearch="0.2.0"
 
 # Grab plugins for fluentd
-for i in elasticsearch tail-multiline tail-ex record-reformer rewrite; do
-    if [ ! -f fluent-plugin-${i}.gem ]; then
+for i in elasticsearch elasticsearch-api elasticsearch-transport patron fluent-plugin-elasticsearch fluent-plugin-tail-multiline fluent-plugin-tail-ex fluent-plugin-record-reformer fluent-plugin-rewrite; do
+    if [ ! -f ${i}.gem ]; then
         PEG=REV_${i}
         if [[ ! -z ${!PEG} ]]; then
             VERS="-v ${!PEG}"
         else
             VERS=""
         fi
-        gem fetch fluent-plugin-${i} ${VERS}
-        mv fluent-plugin-${i}-*.gem fluent-plugin-${i}.gem
+        gem fetch ${i} ${VERS}
+        mv ${i}-*.gem ${i}.gem
     fi
-    FILES="fluent-plugin-${i}.gem $FILES"
+    FILES="${i}.gem $FILES"
 done
 
 # Fetch the cirros image for testing
