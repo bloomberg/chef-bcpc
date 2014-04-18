@@ -104,7 +104,7 @@ ruby_block "powerdns-table-records" do
                         change_date INT DEFAULT NULL,
                         primary key(id)
                     );
-                    INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','localhost root@#{node[:bcpc][:domain_name]} 1','SOA',300,NULL);
+                    INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','#{node[:bcpc][:domain_name]} root@#{node[:bcpc][:domain_name]} 1','SOA',300,NULL);
                     INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','#{node[:bcpc][:management][:vip]}','NS',300,NULL);
                     INSERT INTO records_static (domain_id, name, content, type, ttl, prio) VALUES ((SELECT id FROM domains_static WHERE name='#{node[:bcpc][:domain_name]}'),'#{node[:bcpc][:domain_name]}','#{node[:bcpc][:management][:vip]}','A',300,NULL);
                     
