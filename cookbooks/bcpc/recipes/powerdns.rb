@@ -201,8 +201,6 @@ ruby_block "powerdns-table-records_forward-view" do
                     SELECT id,domain_id,name,type,content,ttl,prio,change_date FROM records_static UNION  
                     # assume we only have 500 or less static records
                     SELECT domains.id+500 AS id, domains.id AS domain_id, domains.name AS name, 'NS' AS type, '#{node[:bcpc][:management][:vip]}' AS content, 300 AS ttl, NULL AS prio, NULL AS change_date FROM domains WHERE id > (SELECT MAX(id) FROM domains_static) UNION
-                    # assume we only have 250 or less static domains
-                    SELECT domains.id+750 AS id, domains.id AS domain_id, domains.name AS name, 'SOA' AS type, 'localhost root@#{node[:bcpc][:domain_name]} 1' AS content, 300 AS ttl, NULL AS prio, NULL AS change_date FROM domains WHERE id > (SELECT MAX(id) FROM domains_static) UNION
                     # again, assume we only have 250 or less static domains
                     SELECT nova.instances.id+10000 AS id,
                         # query the domain ID from the domains view
