@@ -6,6 +6,7 @@
 
 [
   {kernel,   [{inet_dist_use_interface, {<%="#{node[:bcpc][:management][:ip].gsub('.',',')}"%>}}]},
+  {rabbit,   [{loopback_users, []}]},
   {rabbitmq, [{tcp_listeners, [{"<%="#{node[:bcpc][:management][:ip]}"%>", 5672}]}]},
   {rabbitmq_management, [{listener, [{port, 55672}, {ip, "<%="#{node[:bcpc][:management][:ip]}"%>"}]}, {redirect_old_port, false}]},
   {rabbit, [{loopback_users, []}]}

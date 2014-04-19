@@ -28,7 +28,7 @@ ruby_block "initialize-graphite-config" do
     end
 end
 
-%w{python-whisper_0.9.10_all.deb python-carbon_0.9.10_all.deb python-graphite-web_0.9.10_all.deb}.each do |pkg|
+%w{python-whisper_0.9.12_all.deb python-carbon_0.9.12_all.deb python-graphite-web_0.9.12_all.deb}.each do |pkg|
     cookbook_file "/tmp/#{pkg}" do
         source "bins/#{pkg}"
         owner "root"

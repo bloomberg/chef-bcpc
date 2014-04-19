@@ -46,7 +46,7 @@ bash "workaround-mysql-deps-problem" do
     not_if "dpkg -l |grep libmysqlclient18"
 end
 
-package "percona-xtradb-cluster-server-5.5" do
+package "percona-xtradb-cluster-server-5.6" do
     action :upgrade
 end
 

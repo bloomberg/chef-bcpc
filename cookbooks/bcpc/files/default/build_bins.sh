@@ -3,9 +3,10 @@
 set -x
 
 # Define the appropriate version of each binary to grab/build
-VER_KIBANA=d1495fbf6e9c20c707ecd4a77444e1d486a1e7d6
-VER_DIAMOND=d64cc5cbae8bee93ef444e6fa41b4456f89c6e12
-VER_ESPLUGIN=c3635657f4bb5eca0d50afa8545ceb5da8ca223a
+VER_KIBANA=2581d314f12f520638382d23ffc03977f481c1e4
+# newer versions of Diamond depend upon dh-python which isn't in precise/12.04
+VER_DIAMOND=f33aa2f75c6ea2dfbbc659766fe581e5bfe2476d
+VER_ESPLUGIN=9c032b7c628d8da7745fbb1939dcd2db52629943
 
 # we now define CURL previously in proxy_setup.sh (called from
 # setup_chef_server which calls this script. Default definition is
@@ -45,9 +46,9 @@ FILES="chef-client.deb chef-server.deb $FILES"
 # Build kibana3 installable bundle
 if [ ! -f kibana3.tgz ]; then
     git clone https://github.com/elasticsearch/kibana.git kibana3
-    cd kibana3
-    git archive --output ../kibana3.tgz --prefix kibana3/ $VER_KIBANA
-    cd ..
+    cd kibana3/src
+    git archive --output ../../kibana3.tgz --prefix kibana3/ $VER_KIBANA
+    cd ../..
     rm -rf kibana3
 fi
 FILES="kibana3.tgz $FILES"
@@ -110,10 +111,10 @@ fi
 FILES="diamond.deb $FILES"
 
 # Snag elasticsearch
-if [ ! -f elasticsearch-0.90.3.deb ]; then
-    $CURL -O -L https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.3.deb
+if [ ! -f elasticsearch-1.1.0.deb ]; then
+    $CURL -O -L https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb
 fi
-FILES="elasticsearch-0.90.3.deb $FILES"
+FILES="elasticsearch-1.1.0.deb $FILES"
 
 if [ ! -f elasticsearch-plugins.tgz ]; then
     git clone https://github.com/mobz/elasticsearch-head.git
@@ -131,26 +132,26 @@ fi
 FILES="pyrabbit-1.0.1.tar.gz $FILES"
 
 # Build graphite packages
-if [ ! -f python-carbon_0.9.10_all.deb ] || [ ! -f python-whisper_0.9.10_all.deb ] || [ ! -f python-graphite-web_0.9.10_all.deb ]; then
-    $CURL -L -O http://pypi.python.org/packages/source/c/carbon/carbon-0.9.10.tar.gz
-    $CURL -L -O http://pypi.python.org/packages/source/w/whisper/whisper-0.9.10.tar.gz
-    $CURL -L -O http://pypi.python.org/packages/source/g/graphite-web/graphite-web-0.9.10.tar.gz
-    tar zxf carbon-0.9.10.tar.gz
-    tar zxf whisper-0.9.10.tar.gz
-    tar zxf graphite-web-0.9.10.tar.gz
-    fpm --python-install-bin /opt/graphite/bin -s python -t deb carbon-0.9.10/setup.py
-    fpm --python-install-bin /opt/graphite/bin  -s python -t deb whisper-0.9.10/setup.py
-    fpm --python-install-lib /opt/graphite/webapp -s python -t deb graphite-web-0.9.10/setup.py
-    rm -rf carbon-0.9.10 carbon-0.9.10.tar.gz whisper-0.9.10 whisper-0.9.10.tar.gz graphite-web-0.9.10 graphite-web-0.9.10.tar.gz
+if [ ! -f python-carbon_0.9.12_all.deb ] || [ ! -f python-whisper_0.9.12_all.deb ] || [ ! -f python-graphite-web_0.9.12_all.deb ]; then
+    $CURL -L -O http://pypi.python.org/packages/source/c/carbon/carbon-0.9.12.tar.gz
+    $CURL -L -O http://pypi.python.org/packages/source/w/whisper/whisper-0.9.12.tar.gz
+    $CURL -L -O http://pypi.python.org/packages/source/g/graphite-web/graphite-web-0.9.12.tar.gz
+    tar zxf carbon-0.9.12.tar.gz
+    tar zxf whisper-0.9.12.tar.gz
+    tar zxf graphite-web-0.9.12.tar.gz
+    fpm --python-install-bin /opt/graphite/bin -s python -t deb carbon-0.9.12/setup.py
+    fpm --python-install-bin /opt/graphite/bin  -s python -t deb whisper-0.9.12/setup.py
+    fpm --python-install-lib /opt/graphite/webapp -s python -t deb graphite-web-0.9.12/setup.py
+    rm -rf carbon-0.9.12 carbon-0.9.12.tar.gz whisper-0.9.12 whisper-0.9.12.tar.gz graphite-web-0.9.12 graphite-web-0.9.12.tar.gz
 fi
-FILES="python-carbon_0.9.10_all.deb python-whisper_0.9.10_all.deb python-graphite-web_0.9.10_all.deb $FILES"
+FILES="python-carbon_0.9.12_all.deb python-whisper_0.9.12_all.deb python-graphite-web_0.9.12_all.deb $FILES"
 
 # Build the zabbix packages
 if [ ! -f zabbix-agent.tar.gz ] || [ ! -f zabbix-server.tar.gz ]; then
-    $CURL -L -O http://sourceforge.net/projects/zabbix/files/ZABBIX%20Latest%20Stable/2.0.7/zabbix-2.0.7.tar.gz
-    tar zxf zabbix-2.0.7.tar.gz
+    $CURL -L -O http://sourceforge.net/projects/zabbix/files/ZABBIX%20Latest%20Stable/2.2.2/zabbix-2.2.2.tar.gz
+    tar zxf zabbix-2.2.2.tar.gz
     rm -rf /tmp/zabbix-install && mkdir -p /tmp/zabbix-install
-    cd zabbix-2.0.7
+    cd zabbix-2.2.2
     ./configure --prefix=/tmp/zabbix-install --enable-agent --with-ldap
     make install
     tar zcf zabbix-agent.tar.gz -C /tmp/zabbix-install .
@@ -162,18 +163,20 @@ if [ ! -f zabbix-agent.tar.gz ] || [ ! -f zabbix-server.tar.gz ]; then
     tar zcf zabbix-server.tar.gz -C /tmp/zabbix-install .
     rm -rf /tmp/zabbix-install
     cd ..
-    cp zabbix-2.0.7/zabbix-agent.tar.gz .
-    cp zabbix-2.0.7/zabbix-server.tar.gz .
-    rm -rf zabbix-2.0.7 zabbix-2.0.7.tar.gz
+    cp zabbix-2.2.2/zabbix-agent.tar.gz .
+    cp zabbix-2.2.2/zabbix-server.tar.gz .
+    rm -rf zabbix-2.2.2 zabbix-2.2.2.tar.gz
 fi
 FILES="zabbix-agent.tar.gz zabbix-server.tar.gz $FILES"
 
 # Get some python libs 
-if [ ! -f python-requests-aws_0.1.5_all.deb ]; then 
+if [ ! -f python-requests-aws_0.1.5_all.deb ]; then
     $CURL -L -O http://pypi.python.org/packages/source/r/requests-aws/requests-aws-0.1.5.tar.gz
     tar zxf requests-aws-0.1.5.tar.gz
     fpm -s python -t deb requests-aws
+    rm -rf requests-aws-0.1.5 requests-aws-0.1.5.tar.gz
 fi
+FILES="python-requests-aws_0.1.5_all.deb $FILES"
 
 
 popd

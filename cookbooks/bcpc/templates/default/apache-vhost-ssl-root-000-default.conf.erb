@@ -9,5 +9,5 @@ ProxyPassReverse /rabbitmq/ http://<%="#{node[:bcpc][:management][:vip]}"%>:5567
 ProxyPass /haproxy http://<%="#{node[:bcpc][:management][:vip]}"%>:1936/
 ProxyPassReverse /haproxy http://<%="#{node[:bcpc][:management][:vip]}"%>:1936/
 
-Redirect permanent /phpmyadmin https://<%="#{node[:bcpc][:management][:vip]}"%>/phpmyadmin
-Redirect permanent /phpldapadmin https://<%="#{node[:bcpc][:management][:vip]}"%>/phpldapadmin
+Include /etc/phpmyadmin/apache.conf
+Include /etc/phpldapadmin/apache.conf
