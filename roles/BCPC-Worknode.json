@@ -5,14 +5,14 @@
     "json_class": "Chef::Role",
     "run_list": [
       "role[Basic]",
-      "recipe[bcpc::default]",
+      "recipe[bcpc]",
       "recipe[bcpc::networking]",
-      "recipe[bcpc::ntp]",
       "recipe[bcpc::ceph-work]",
+      "recipe[bcpc::ceph-rgw]",
       "recipe[bcpc::nova-work]",
       "recipe[bcpc::diamond]",
-      "recipe[bcpc::beaver]",
-      "recipe[bcpc::zabbix-agent]"
+      "recipe[bcpc::fluentd]",
+      "recipe[bcpc::zabbix-work]"
     ],
     "description": "A functional compute node in a BCPC cluster",
     "chef_type": "role",

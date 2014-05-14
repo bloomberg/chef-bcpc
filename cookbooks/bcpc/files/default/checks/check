@@ -1,0 +1,194 @@
+#!/usr/bin/env python
+
+import time
+import yaml
+import subprocess
+import time
+import uuid 
+import copy
+import stat
+import os
+
+
+default_config = { 
+   "timeout" : 120, }
+
+
+def run_test(stack_test, config):
+   """ Run test. At some point this will become threaded to allow
+   many tests to run //.
+   """
+   
+   
+   fname = os.path.join("/tmp", str(uuid.uuid1()))
+   mode = stat.S_IRUSR | stat.S_IWUSR  
+   with open(fname, "w", mode) as fout :
+       yaml.dump(config, fout)
+
+   start = time.time()
+   proc = subprocess.Popen([stack_test, fname],
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE
+                           )
+   result = {"message" : "",
+             "value" : "",
+             }
+   while proc.poll() is None:
+      time.sleep(0.1) # does this work for threads?
+      if time.time() - start > config["timeout"]:
+         try:
+            proc.terminate()
+            result["message"]= "Process timed out"
+            result["value"] = "ERROR"
+         except OSError as e:
+            # this probably means the process finished
+            # between the last poll and the terminate.
+            pass
+   stop = time.time()
+   result["rcode"] = proc.returncode
+   result["stdout"] = proc.stdout.read()
+   result["stderr"] = proc.stderr.read()
+   result["runtime"] = stop - start
+
+   if not result["rcode"]:
+      try:
+         rr = yaml.load(result["stdout"])
+         result["value"] = rr["result"]
+         result["message"] = rr["msg"]
+
+      except ValueError as ve:
+         result["value"] = "ERROR"
+         result["message"] = "Failed to parse stdout:" + ve.message
+   elif not result["value"]:
+      result["value"] = "ERROR"
+      result["message"] = "Test exited with code (%d)" % (result["rcode"])
+
+   os.remove(fname) # if function is throwing, prob want the yml to debug
+   return result
+
+
+class ClusterCheck(object):
+    def __init__(self, name, debug=False):
+        self.name = name 
+
+        self.config = copy.deepcopy(default_config)
+        config_paths = [ "/usr/local/etc/checks" ] 
+        if "BCPC_CHECK_CONF" in os.environ:
+            config_paths.append(os.environ["BCPC_CHECK_CONF"])        
+        for path in config_paths: 
+            for ff in  ["default" ,  name]:
+                d =  os.path.join(path, ff + ".yml")        
+                try:
+                    with open(d) as f:
+                        self.config.update(yaml.load(f))
+                except IOError:
+                    pass
+        bin_path = os.environ.get("BCPC_CHECK_BIN", "/usr/local/bin/checks")
+        bin_path = os.path.join(bin_path, name)
+        if not os.path.exists(bin_path):
+            raise Exception("No such check: %s " % bin_path )        
+        self.bin_path = bin_path
+        
+        if debug:
+           self.config["debug"] = True
+        
+    def _style_yaml(self, result):
+        import yaml
+        return yaml.dump(result)
+    
+    def _style_timeonly(self, result):
+        t = result.get("runtime", -1.0)
+        if result["state"] != "OKAY":
+            t = -1.0
+        return str(t)
+    
+    def run(self, style="yaml"):
+        r =  run_test(self.bin_path, self.config)
+        r["name"] = self.name
+        return r
+
+def report_timeonly(results):
+    for result in results:
+        t = result.get("runtime", -1.0)
+        if result["value"] != "OKAY":
+            t = -1.0
+        print str(t)
+
+def report_yaml(results):
+   if len(results)==1:
+      print yaml.dump(results[0])
+   else:
+      print yaml.dump(results)
+
+def report_raw(results):
+   for result in results:
+      print """name: %(name)s
+  rcode : %(rcode)d
+  time  : %(runtime).03f
+  msg   : %(message)s
+  stdout: %(stdout)s
+  stderr: %(stderr)s
+"""% result
+
+def report_json(results):
+   import json
+   if len(results)==1:
+      print json.dumps(results[0])
+   else:
+      print json.dumps(results)
+
+
+class bcolors:
+    OKAY = '\033[92m'
+    ERROR = '\033[93m'
+    FAIL = '\033[91m'
+    DEFAULT = '\033[93m'
+    ENDC = '\033[0m'
+
+    @classmethod
+    def state(cls, ss):
+       s = ss.upper()
+       if s in dir(bcolors):
+          return getattr(bcolors, s) + ss + bcolors.ENDC
+       else:
+          return bcolors.DEFAULT + ss + bcolors.ENDC
+
+def report_table(results):
+   from prettytable import PrettyTable
+   t = PrettyTable(["name", "state", "time", "msg"])
+   for result in results:
+      t.add_row([result["name"],
+#                 "%10s" % bcolors.state(result["value"]),
+                 result["value"],
+                 "%.03f" % result["runtime"],
+                 result["message"]])
+   print t   
+                
+   
+            
+if __name__ == '__main__':    
+    from optparse import OptionParser 
+    import sys
+    import os
+    parser = OptionParser(usage="%prog [options]", version="%prog 0.1")
+    parser.add_option("-f", "--format", dest="format", type="choice",
+                      choices=["table", "timeonly", "raw", "json"], default="raw",
+                      help="the report format")
+    parser.add_option("--debug", dest="debug", action="store_true",
+                      default=False,
+                      help="Allow expcetions")
+    (options, args) = parser.parse_args()
+
+    reporter = "report_%s" % options.format
+    if reporter not in globals():
+       raise Exception("Whoops! reporter %s not defined" % reporter)
+
+    if not args or "all" in args:
+       bin_path = os.environ.get("BCPC_CHECK_BIN", "/usr/local/bin/checks")
+       args = [f for f in os.listdir(bin_path) if f[0] not in [".", "#"]]
+
+    results = [ ClusterCheck(c, debug=options.debug).run() for c in args]
+    globals()[reporter](results)
+        
+
+

@@ -3,40 +3,46 @@
   "override_attributes": {
     "bcpc": {
       "virt_type" : "qemu",
-      "ceph_disks": [ "sdb", "sdc", "sdd", "sde" ],
+      "ceph": {
+        "hdd_disks" : [ "sdb", "sdc" ],
+        "ssd_disks" : [ "sdd", "sde" ]
+      },
       "domain_name" : "bcpc.example.com",
       "management": {
         "vip" : "10.0.100.5",
         "interface" : "eth0",
         "netmask" : "255.255.255.0",
         "cidr" : "10.0.100.0/24",
-        "gateway" : "10.0.100.1"
+        "gateway" : "10.0.100.3"
       },
       "storage": {
         "interface" : "eth1",
         "netmask" : "255.255.255.0",
         "cidr" : "172.16.100.0/24",
-        "gateway" : "172.16.100.1"
+        "gateway" : "172.16.100.3"
       },
       "floating": {
+        "vip" : "192.168.100.5",
         "interface" : "eth2",
         "netmask" : "255.255.255.0",
         "cidr" : "192.168.100.0/24",
-        "gateway" : "192.168.100.1",
+        "gateway" : "192.168.100.3",
         "available_subnet" : "192.168.100.128/25"
       },
       "bootstrap": {
         "interface" : "eth0",
         "pxe_interface" : "eth1",
-        "server" : "10.0.100.1",
+        "server" : "10.0.100.3",
         "dhcp_subnet" : "10.0.100.0",
-        "dhcp_range" : "10.0.100.10 10.0.100.250"
+        "dhcp_range" : "10.0.100.14 10.0.100.250"
       },
-      "ntp_servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ],
       "dns_servers" : [ "8.8.8.8", "8.8.4.4" ]
     },
+    "ntp": {
+      "servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ]
+    },
     "chef_client": {
-      "server_url": "http://10.0.100.1:4000",
+      "server_url": "http://10.0.100.3:4000",
       "cache_path": "/var/chef/cache",
       "backup_path": "/var/chef/backup",
       "validation_client_name": "chef-validator",

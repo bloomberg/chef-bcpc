@@ -1,0 +1,10 @@
+---
+cdir: <%= @node["bcpc"]["floating"]["cidr"] %>
+interface: <%= @node["bcpc"]["floating"]["cidr"] %>
+
+# overide the default testing user for this operation, 
+# compute_extension:floating_ips_bulk is an admin thing
+user: '<%="#{get_config('keystone-admin-user')}"%>'
+password: '<%="#{get_config('keystone-admin-password')}"%>'
+
+

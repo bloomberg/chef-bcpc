@@ -69,7 +69,7 @@ port = 2013
 timeout = 15
 
 # Batch size for metrics
-batch = 1
+batch = 512
 
 [[GraphitePickleHandler]]
 ### Options for GraphitePickleHandler
@@ -84,7 +84,7 @@ port = 2014
 timeout = 15
 
 # Batch size for pickled metrics
-batch = 256
+batch = 512
 
 [[MySQLHandler]]
 ### Options for MySQLHandler
@@ -161,7 +161,7 @@ batch = 100
 # path_suffix =
 
 # Default Poll Interval (seconds)
-interval = 60
+interval = 10
 
 [[KSMCollector]]
 enabled = True
@@ -189,7 +189,7 @@ enabled = True
 enabled = True
 
 [[SmartCollector]]
-enabled = True
+enabled = False
 <% end -%>
 
 <% if @servers.include?(node) -%>

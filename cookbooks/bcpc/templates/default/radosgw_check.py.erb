@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import boto
+import boto.s3.connection
+access_key = '<%="#{get_config('radosgw-admin-access-key')}"%>'
+secret_key = '<%="#{get_config('radosgw-admin-secret-key')}"%>'
+
+conn = boto.connect_s3(
+ aws_access_key_id = access_key,
+ aws_secret_access_key = secret_key,
+ host = '<%="#{node[:bcpc][:floating][:vip]}"%>',
+ port = <%="#{node[:bcpc][:ports][:haproxy][:radosgw]}"%>,
+ is_secure=False,
+ #debug = 10,
+ calling_format = boto.s3.connection.OrdinaryCallingFormat(),
+)
+
+for bucket in conn.get_all_buckets():
+ print "{name}\t{created}".format(name = bucket.name,
+                                  created = bucket.creation_date,
+                                 )
+
+bucket = conn.create_bucket('bcpc-test-bucket')
+
+for key in bucket.list():
+  print "{name}\t{size}\t{modified}".format(
+    name = key.name,
+    size = key.size,
+    modified = key.last_modified,
+  )
+
+key = bucket.new_key('hello.txt')
+key.set_contents_from_string('Hello World!')
+
+key = bucket.get_key('hello.txt')
+print key.get_contents_as_string()

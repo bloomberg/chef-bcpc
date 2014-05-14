@@ -1,0 +1,71 @@
+{
+    "name": "Env-Example",
+    "default_attributes": {
+    },
+    "json_class": "Chef::Role",
+    "description": "Example 'environment' file for use in littlechef",
+    "chef_type": "role",
+    "override_attributes": {
+        "bcpc": {
+            "country" : "US",
+            "state" : "NY",
+            "location" : "New York",
+            "organization" : "Bloomberg",
+            "domain_name" : "bcpc.example.com",
+            "admin_email" : "admin@localhost.com",
+            "virt_type" : "qemu",
+            "encrypt_data_bag" : true,
+            "management": {
+                "vip" : "10.0.100.5",
+                "interface" : "eth0",
+                "netmask" : "255.255.255.0",
+                "cidr" : "10.0.100.0/24",
+                "gateway" : "10.0.100.3"
+            },
+            "floating": {
+                "vip" : "192.168.100.5",
+                "interface" : "eth2",
+                "netmask" : "255.255.255.0",
+                "cidr" : "192.168.100.0/24",
+                "gateway" : "192.168.100.3",
+                "available_subnet" : "192.168.100.128/25"
+            },
+            "storage": {
+                "interface" : "eth1",
+                "netmask" : "255.255.255.0",
+                "cidr" : "172.16.100.0/24",
+                "gateway" : "172.16.100.3"
+            },
+            "bootstrap": {
+                "interface" : "eth0",
+                "pxe_interface" : "eth1",
+                "server" : "10.0.100.3",
+                "dhcp_subnet" : "10.0.100.0",
+                "dhcp_range" : "10.0.100.14 10.0.100.250"
+            },
+            "ceph": {
+                "hdd_disks" : [ "sdb", "sdc" ],
+                "ssd_disks" : [ "sdd", "sde" ]
+            },
+            "dns_servers" : [ "8.8.8.8", "8.8.4.4" ],
+            "repos": {
+                "ceph": "http://10.0.100.3/m/ceph.com/debian-dumpling",
+                "rabbitmq": "http://10.0.100.3/m/www.rabbitmq.com/debian",
+                "mysql": "http://10.0.100.3/m/repo.percona.com/apt",
+                "openstack": "http://10.0.100.3/m/ubuntu-cloud.archive.canonical.com/ubuntu",
+                "hwraid": "http://10.0.100.3/m/hwraid.le-vert.net/ubuntu",
+                "fluentd": "http://10.0.100.3/m/packages.treasure-data.com/precise",
+                "ceph-apache": "http://10.0.100.3/m/gitbuilder.ceph.com/apache2-deb-precise-x86_64-basic/ref/master",
+                "ceph-fcgi": "http://10.0.100.3/m/gitbuilder.ceph.com/libapache-mod-fastcgi-deb-precise-x86_64-basic/ref/master"
+            }
+        },
+        "ubuntu": {
+            "archive_url": "http://10.0.100.3/m/us.archive.ubuntu.com/ubuntu",
+            "security_url": "http://10.0.100.3/m/us.archive.ubuntu.com/ubuntu",
+            "include_source_packages": false
+        },
+        "ntp": {
+            "servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ]
+        }
+    }
+}

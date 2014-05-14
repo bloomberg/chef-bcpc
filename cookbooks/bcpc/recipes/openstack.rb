@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: openstack
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@
 
 include_recipe "bcpc::default"
 
+package "ubuntu-cloud-keyring" do
+    action :upgrade
+end
+
 apt_repository "openstack" do
     uri node['bcpc']['repos']['openstack']
     distribution "#{node['lsb']['codename']}-#{node['bcpc']['openstack_branch']}/#{node['bcpc']['openstack_release']}"
     components ["main"]
-    key "canonical-cloud.key"
 end
 
 %w{python-novaclient python-cinderclient python-glanceclient nova-common python-nova
@@ -31,4 +34,17 @@ end
         package pkg do
             action :upgrade
         end
+end
+
+template "/usr/local/bin/hup_openstack" do
+    source "hup_openstack.erb"
+    mode 0755
+    owner "root"
+    group "root"
+end
+
+directory "/opt/openstack" do
+    owner "root"
+    group "root"
+    mode 00755
 end

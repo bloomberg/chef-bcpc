@@ -43,7 +43,7 @@ query_cache_type=0
 # In some systems bind-address defaults to 127.0.0.1, and with mysqldump SST
 # it will have (most likely) disastrous consequences on donor node
 bind-address=<%="#{node[:bcpc][:management][:ip]}"%>
-
+max_connections=<%="#{@max_connections}"%>
 ##
 ## WSREP options
 ##
@@ -69,7 +69,7 @@ wsrep_node_address="<%="#{node[:bcpc][:management][:ip]}"%>:4567"
 wsrep_node_incoming_address="<%="#{node[:bcpc][:management][:ip]}"%>:4567"
 
 # How many threads will process writesets from other nodes
-wsrep_slave_threads=1
+wsrep_slave_threads=4
 
 # DBUG options for wsrep provider
 #wsrep_dbug_option
@@ -91,7 +91,7 @@ wsrep_debug=0
 wsrep_convert_LOCK_to_trx=0
 
 # how many times to retry deadlocked autocommits
-wsrep_retry_autocommit=1
+wsrep_retry_autocommit=3
 
 # change auto_increment_increment and auto_increment_offset automatically
 wsrep_auto_increment_control=1

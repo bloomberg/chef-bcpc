@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+
+import random
+import boto
+import boto.s3.connection
+import unittest
+import uuid
+import time
+
+from numpy.random.mtrand import RandomState
+import binascii
+ 
+from boto.s3.key import Key
+ 
+class TestRadosGateway(object):
+    def __init__(self, host, port, key, secret, is_secure):
+        self.conn = boto.connect_s3(
+            aws_access_key_id=key,
+            aws_secret_access_key=secret,
+            host=host,
+            debug=0,  # adjust to your liking
+            is_secure=is_secure, # False for HTTP, omit for HTTPS
+            port=port,  # Port 80 for HTTP, omit for HTTPS
+            calling_format=boto.s3.connection.OrdinaryCallingFormat())
+
+        self.bucket_name = "fill_test"
+
+    def test(self):
+
+        bucket = self.conn.create_bucket(self.bucket_name)
+        if not bucket:
+            return False, "Unable to create s3 bucket"
+ 
+        if self.bucket_name not in [ b.name for b in self.conn.get_all_buckets()] :
+            return False, "Unable to find bucket list" + str(self.conn.get_all_buckets())
+
+        rand = RandomState()
+        
+        lo = 1000000000000000
+        hi = 999999999999999999
+
+        k = Key(bucket)
+        
+        key_name = binascii.b2a_hex(rand.randint(lo, hi, 2).tostring())[:30] 
+        
+        k.key = key_name
+
+        k.set_contents_from_string('value')
+ 
+        contents = k.get_contents_as_string()
+
+        if contents != 'value':
+            return False, "Return bucket contents no equal to input"
+ 
+        if key_name not in [key.key for key in bucket.list()]:
+            return False, "Key not returned in list bucket contents"  + ",".join(bucket.list())
+          
+        
+        bucket.delete_key(key_name)
+
+        time.sleep(1) # eventually consistent !
+
+        return True, ""
+ 
+if __name__ == '__main__':
+    import yaml
+    import sys
+    config = yaml.load(open(sys.argv[1], "r"))
+    rc = {}
+    try:
+        result, msg = TestRadosGateway(config["storage_vip"],
+                                       config["storage_port"],
+                                       config["access_key"],
+                                       config["secret_key"],
+                                       config["use_ssl"]).test();
+        rc["msg"] = msg
+
+        if result:
+            rc["result"]= "OKAY"
+        else:
+            rc["result"] = "FAIL"
+            
+    except Exception as e:
+        if config.get("debug", False):
+            raise
+
+        rc["result"] = "ERROR"
+        rc["msg"] = str(e)
+
+    print yaml.dump(rc)
+ 

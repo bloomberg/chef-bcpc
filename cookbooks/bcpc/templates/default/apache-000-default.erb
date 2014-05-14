@@ -4,56 +4,20 @@
 #
 ################################################
 
-<VirtualHost *:80>
-        ServerAdmin webmaster@localhost
+<VirtualHost <%="#{node[:bcpc][:management][:ip]}"%>:80>
+    ServerAdmin webmaster@localhost
 
-        DocumentRoot /var/www
-        <Directory />
-                Options FollowSymLinks
-                AllowOverride None
-        </Directory>
-        <Directory /var/www/>
-                Options Indexes FollowSymLinks MultiViews
-                AllowOverride None
-                Order allow,deny
-                allow from all
-        </Directory>
+    Include vhost-root.d/*.conf
+</VirtualHost>
 
-        ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
-        <Directory "/usr/lib/cgi-bin">
-                AllowOverride None
-                Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
-                Order allow,deny
-                Allow from all
-        </Directory>
+<VirtualHost <%="#{node[:bcpc][:management][:ip]}"%>:443>
+    ServerAlias <%="#{node[:bcpc][:management][:vip]}"%>
+    ServerAlias <%="#{node[:bcpc][:management][:ip]}"%>
 
-        ErrorLog ${APACHE_LOG_DIR}/error.log
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
 
-        # Possible values include: debug, info, notice, warn, error, crit,
-        # alert, emerg.
-        LogLevel warn
-
-        CustomLog ${APACHE_LOG_DIR}/access.log combined
-
-    Alias /doc/ "/usr/share/doc/"
-    <Directory "/usr/share/doc/">
-        Options Indexes MultiViews FollowSymLinks
-        AllowOverride None
-        Order deny,allow
-        Deny from all
-        Allow from 127.0.0.0/255.0.0.0 ::1/128
-    </Directory>
-
-    ProxyPass /rabbitmq/ http://<%="#{node[:bcpc][:management][:vip]}"%>:55672/
-    ProxyPassReverse /rabbitmq/ http://<%="#{node[:bcpc][:management][:vip]}"%>:55672/
-    ProxyPass /elasticsearch/ http://<%="#{node[:bcpc][:management][:vip]}"%>:9200/
-    ProxyPassReverse /elasticsearch/ http://<%="#{node[:bcpc][:management][:vip]}"%>:9200/
-    ProxyPass /kibana/ http://<%="#{node[:bcpc][:management][:vip]}"%>:5601/
-    ProxyPassReverse /kibana/ http://<%="#{node[:bcpc][:management][:vip]}"%>:5601/
-    ProxyPass /haproxy/ http://<%="#{node[:bcpc][:management][:vip]}"%>:1936/
-    ProxyPassReverse /haproxy/ http://<%="#{node[:bcpc][:management][:vip]}"%>:1936/
-    ProxyPass /graphite/ http://<%="#{node[:bcpc][:management][:vip]}"%>:8888/
-    ProxyPassReverse /graphite/ http://<%="#{node[:bcpc][:management][:vip]}"%>:8888/
-
-    Redirect permanent /horizon https://<%="#{node[:bcpc][:management][:vip]}"%>/horizon
+    Include vhost-root.d/*.conf
+    Include vhost-ssl-root.d/*.conf
 </VirtualHost>

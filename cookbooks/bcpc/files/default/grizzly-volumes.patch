@@ -1,0 +1,447 @@
+diff -ru openstack-nova/nova/api/openstack/compute/servers.py nova/nova/api/openstack/compute/servers.py
+--- openstack-nova/nova/api/openstack/compute/servers.py	2013-08-24 08:45:44.000000000 -0400
++++ nova/nova/api/openstack/compute/servers.py	2013-08-24 08:43:37.000000000 -0400
+@@ -1346,20 +1346,21 @@
+         instance = self._get_server(context, req, id)
+ 
+         bdms = self.compute_api.get_instance_bdms(context, instance)
++        volume_backed = False
+ 
+         try:
+             if self.compute_api.is_volume_backed_instance(context, instance,
+                                                           bdms):
++                volume_backed = True
+                 img = instance['image_ref']
+                 src_image = self.compute_api.image_service.show(context, img)
+                 image_meta = dict(src_image)
+ 
+-                image = self.compute_api.snapshot_volume_backed(
+-                                                       context,
+-                                                       instance,
+-                                                       image_meta,
+-                                                       image_name,
+-                                                       extra_properties=props)
++                self.compute_api.snapshot_volume_backed(context,
++                                                        instance,
++                                                        image_meta,
++                                                        image_name,
++                                                        extra_properties=props)
+             else:
+                 image = self.compute_api.snapshot(context,
+                                                   instance,
+@@ -1371,15 +1372,19 @@
+         except exception.Invalid as err:
+             raise exc.HTTPBadRequest(explanation=str(err))
+ 
+-        # build location of newly-created image entity
+-        image_id = str(image['id'])
+-        image_ref = os.path.join(req.application_url,
+-                                 context.project_id,
+-                                 'images',
+-                                 image_id)
+-
+         resp = webob.Response(status_int=202)
+-        resp.headers['Location'] = image_ref
++        if not volume_backed:
++            # build location of newly-created image entity
++            image_id = str(image['id'])
++            image_ref = os.path.join(req.application_url,
++                                     context.project_id,
++                                     'images',
++                                     image_id)
++            resp.headers['Location'] = image_ref
++        else:
++            resp.headers['Location'] = os.path.join(req.application_url,
++                                                    context.project_id,
++                                                    'snapshots')
+         return resp
+ 
+     def _get_server_admin_password(self, server):
+diff -ru openstack-nova/nova/block_device.py nova/nova/block_device.py
+--- openstack-nova/nova/block_device.py	2013-08-24 08:45:44.000000000 -0400
++++ nova/nova/block_device.py	2013-08-24 08:43:37.000000000 -0400
+@@ -28,7 +28,6 @@
+                      'root': DEFAULT_ROOT_DEV_NAME,
+                      'swap': 'sda3'}
+ 
+-
+ def properties_root_device_name(properties):
+     """get root device name from image meta data.
+     If it isn't specified, return None.
+@@ -48,7 +47,7 @@
+     return root_device_name
+ 
+ 
+-_ephemeral = re.compile('^ephemeral(\d|[1-9]\d+)$')
++_ephemeral = re.compile('^ephemeral(\d|[0-9]\d+)$')
+ 
+ 
+ def is_ephemeral(device_name):
+@@ -166,3 +165,20 @@
+ 
+     LOG.debug(_("block_device_list %s"), block_device_list)
+     return strip_dev(mount_device) in block_device_list
++
++
++def next_dev_name(bus_hint, used_devs):
++    if bus_hint:
++        match = match_device(bus_hint)
++    if match:
++        prefix = strip_dev(match[0])
++    else:
++        prefix = 'vd'
++    plain_devs = [strip_dev(dev) for dev in used_devs]
++    letters_used = [dev[len(prefix):len(prefix)+1] \
++                        for dev in plain_devs if dev.startswith(prefix)]
++    for i in range(26):
++        char = chr(ord('a') + i)
++        if char not in letters_used:
++            return prefix + char
++
+diff -ru openstack-nova/nova/compute/api.py nova/nova/compute/api.py
+--- openstack-nova/nova/compute/api.py	2013-08-24 08:45:44.000000000 -0400
++++ nova/nova/compute/api.py	2013-08-24 08:43:37.000000000 -0400
+@@ -804,7 +804,30 @@
+                     instance_type, instance_uuid, mappings)
+ 
+         image_bdm = image_properties.get('block_device_mapping', [])
+-        for mapping in (image_bdm, block_device_mapping):
++
++        # convert what would be local files to extra mappings
++        # at the beginning of the list, so they can be overridden
++        # by block_device_mappings added by the user, as the would
++        # be by the libvirt driver normally
++        extra_mappings = []
++        disk_prefix = 'vd'
++        if instance_type['ephemeral_gb'] > 0:
++            extra_mappings.append(
++                dict(delete_on_termination=True,
++                     virtual_name='ephemeral0',
++                     snapshot_id=None,
++                     volume_id=None,
++                     volume_size=instance_type['ephemeral_gb'],
++                     device_name=disk_prefix + 'b'))
++        if instance_type['swap'] > 0:
++            extra_mappings.append(
++                dict(delete_on_termination=True,
++                     virtual_name='swap',
++                     snapshot_id=None,
++                     volume_id=None,
++                     volume_size=instance_type['swap'],
++                     device_name=disk_prefix + 'c'))
++        for mapping in (extra_mappings, image_bdm, block_device_mapping):
+             if not mapping:
+                 continue
+             self._update_block_device_mapping(context,
+@@ -1647,7 +1670,7 @@
+         # hence the zero size
+         image_meta['size'] = 0
+ 
+-        return self.image_service.create(context, image_meta, data='')
++        return None
+ 
+     def _get_minram_mindisk_params(self, context, instance):
+         try:
+diff -ru openstack-nova/nova/compute/manager.py nova/nova/compute/manager.py
+--- openstack-nova/nova/compute/manager.py	2013-08-24 08:45:44.000000000 -0400
++++ nova/nova/compute/manager.py	2013-08-24 08:43:37.000000000 -0400
+@@ -30,6 +30,7 @@
+ import base64
+ import contextlib
+ import functools
++import math
+ import socket
+ import sys
+ import time
+@@ -104,6 +105,9 @@
+                 default=False,
+                 help='Whether to start guests that were running before the '
+                      'host rebooted'),
++    cfg.BoolOpt('always_use_volumes',
++               default=False,
++               help='Whether to use volumes instead of local files for instances'),
+     ]
+ 
+ interval_opts = [
+@@ -148,6 +152,9 @@
+                default=0,
+                help="Automatically confirm resizes after N seconds. "
+                     "Set to 0 to disable."),
++    cfg.IntOpt('block_dev_setup_timeout',
++               default=0,
++               help='How long to wait for block device creation when building an instance'),
+ ]
+ 
+ running_deleted_opts = [
+@@ -178,6 +185,7 @@
+ CONF.import_opt('vnc_enabled', 'nova.vnc')
+ CONF.import_opt('enabled', 'nova.spice', group='spice')
+ CONF.import_opt('enable', 'nova.cells.opts', group='cells')
++CONF.import_opt('libvirt_disk_prefix', 'nova.virt.libvirt.driver')
+ 
+ LOG = logging.getLogger(__name__)
+ 
+@@ -713,20 +721,6 @@
+ 
+             if bdm['no_device']:
+                 continue
+-            if bdm['virtual_name']:
+-                virtual_name = bdm['virtual_name']
+-                device_name = bdm['device_name']
+-                assert block_device.is_swap_or_ephemeral(virtual_name)
+-                if virtual_name == 'swap':
+-                    swap = {'device_name': device_name,
+-                            'swap_size': bdm['volume_size']}
+-                elif block_device.is_ephemeral(virtual_name):
+-                    eph = {'num': block_device.ephemeral_num(virtual_name),
+-                           'virtual_name': virtual_name,
+-                           'device_name': device_name,
+-                           'size': bdm['volume_size']}
+-                    ephemerals.append(eph)
+-                continue
+ 
+             if ((bdm['snapshot_id'] is not None) and
+                 (bdm['volume_id'] is None)):
+@@ -853,6 +847,7 @@
+ 
+                     block_device_info = self._prep_block_device(
+                             context, instance, bdms)
++                    LOG.debug('block_device_info = %s', block_device_info)
+ 
+                     set_access_ip = (is_first_time and
+                                      not instance['access_ip_v4'] and
+@@ -1098,12 +1093,116 @@
+     def _prep_block_device(self, context, instance, bdms):
+         """Set up the block device for an instance with error logging."""
+         try:
++            LOG.debug('instance = %s', instance)
++            LOG.debug('bdms = %s', bdms)
++            if CONF.always_use_volumes and not bdms:
++                LOG.debug('creating bdms for local disks')
++                self._replace_local_disks_with_volumes(context,
++                                                       instance)
++                bdms = self.conductor_api.block_device_mapping_get_all_by_instance(context, instance)
+             return self._setup_block_device_mapping(context, instance, bdms)
+         except Exception:
+             with excutils.save_and_reraise_exception():
+                 LOG.exception(_('Instance failed block device setup'),
+                               instance=instance)
+ 
++    def _wait_for_status(self, context, timeout, prep_statuses, end_status,
++                         func, *args, **kwargs):
++        end = time.time() + timeout
++        while True:
++            result = func(*args, **kwargs)
++            if result['status'] not in prep_statuses or (timeout and
++                                                         time.time() > end):
++                break
++            greenthread.sleep(1)
++
++        if result['status'] in prep_statuses:
++            raise exception.TimedOut()
++        elif result['status'] != end_status:
++            expected = prep_statuses + [end_status]
++            raise exception.UnexpectedStatus(expected=expected,
++                                             actual=result['status'])
++        return result
++
++    def _sync_create_volume(self, context, size, name=None, description=None,
++                            image_id=None):
++        volume = self.volume_api.create(context, size, name, description,
++                                        image_id=image_id)
++        try:
++            return self._wait_for_status(context, CONF.block_dev_setup_timeout,
++                                         ['creating', 'downloading'],
++                                         'available',
++                                         self.volume_api.get,
++                                         context, volume['id'])
++        except exception.TimedOut:
++            msg = _('Failed to create volume %s from image %s')
++            LOG.debug(msg, volume['id'], image_id)
++            raise
++
++    def _replace_local_disks_with_volumes(self, context, instance):
++        LOG.debug('replacing local disks')
++        instance_type_id = instance['instance_type_id']
++        instance_type = self.conductor_api.instance_type_get(context,
++                                                             instance_type_id)
++        instance_uuid = instance['uuid']
++
++        image_ref = instance['image_ref']
++        used_devices = []
++        if image_ref:
++            (image_service, image_id) = glance.get_remote_image_service(
++                context, instance['image_ref'])
++            image = image_service.show(context, image_id)
++            # root device
++            size = instance_type['root_gb']
++            if not size:
++                size = int(math.ceil(float(image['size']) / 1024**3))
++            vol = self._sync_create_volume(context, size,
++                                           'auto-created root',
++                                           'root for ' + instance_uuid,
++                                           image_id=image['id'])
++            root_device = (CONF.libvirt_disk_prefix or 'vd') + 'a'
++            properties = dict(instance_uuid=instance_uuid,
++                              device_name=root_device,
++                              delete_on_termination=True,
++                              volume_id=vol['id'],
++                              volume_size=vol['size'])
++            self.conductor_api.block_device_mapping_create(context, properties)
++            used_devices.append(root_device)
++            LOG.debug('added volume %s for root', vol)
++
++        bdms = self.conductor_api.block_device_mapping_get_all_by_instance(
++            context, instance)
++        LOG.debug('len bdms = %s', len(bdms))
++
++        used_devices += [bdm['device_name'] for bdm in bdms if bdm['device_name']]
++        for mapping in bdms:
++            LOG.debug('mapping is %s', mapping)
++            # already a volume, or lack of device marker
++            if (mapping['volume_id'] or
++                mapping['snapshot_id'] or
++                mapping['no_device']):
++                continue
++
++            vname = mapping['virtual_name']
++            size = mapping['volume_size']
++            vol = self._sync_create_volume(context, size,
++                                           'auto-created ' + vname,
++                                           vname + ' for ' + instance_uuid)
++            hint = '/dev/' + (CONF.libvirt_disk_prefix or 'vd') + 'a'
++            if used_devices:
++                hint = used_devices[0]
++            device_name = mapping['device_name'] or \
++                block_device.next_dev_name(hint, used_devices)
++            used_devices.append(device_name)
++            properties = dict(instance_uuid=instance_uuid,
++                              device_name=device_name,
++                              delete_on_termination=True,
++                              virtual_name=vname,
++                              volume_id=vol['id'],
++                              volume_size=vol['size'])
++            self.conductor_api.block_device_mapping_update_or_create(context,
++                                                                     properties)
++
+     def _spawn(self, context, instance, image_meta, network_info,
+                block_device_info, injected_files, admin_password,
+                set_access_ip=False):
+diff -ru openstack-nova/nova/exception.py nova/nova/exception.py
+--- openstack-nova/nova/exception.py	2013-08-24 08:45:44.000000000 -0400
++++ nova/nova/exception.py	2013-08-24 08:43:37.000000000 -0400
+@@ -199,6 +199,12 @@
+     message = _("Connection to glance host %(host)s:%(port)s failed: "
+         "%(reason)s")
+ 
++class TimedOut(NovaException):
++    message = _("Operation timed out.")
++
++class UnexpectedStatus(NovaException):
++    message = _("unexpected status: expecting one of %(expected)s but "
++                "the actual status is %(actual)s")
+ 
+ class NotAuthorized(NovaException):
+     message = _("Not authorized.")
+diff -ru openstack-nova/nova/virt/libvirt/driver.py nova/nova/virt/libvirt/driver.py
+--- openstack-nova/nova/virt/libvirt/driver.py	2013-08-24 08:45:45.000000000 -0400
++++ nova/nova/virt/libvirt/driver.py	2013-08-24 08:43:37.000000000 -0400
+@@ -1800,62 +1800,6 @@
+             if size == 0 or suffix == '.rescue':
+                 size = None
+ 
+-            image('disk').cache(fetch_func=libvirt_utils.fetch_image,
+-                                context=context,
+-                                filename=root_fname,
+-                                size=size,
+-                                image_id=disk_images['image_id'],
+-                                user_id=instance['user_id'],
+-                                project_id=instance['project_id'])
+-
+-        # Lookup the filesystem type if required
+-        os_type_with_default = instance['os_type']
+-        if not os_type_with_default:
+-            os_type_with_default = 'default'
+-
+-        ephemeral_gb = instance['ephemeral_gb']
+-        if 'disk.local' in disk_mapping:
+-            fn = functools.partial(self._create_ephemeral,
+-                                   fs_label='ephemeral0',
+-                                   os_type=instance["os_type"])
+-            fname = "ephemeral_%s_%s" % (ephemeral_gb, os_type_with_default)
+-            size = ephemeral_gb * 1024 * 1024 * 1024
+-            image('disk.local').cache(fetch_func=fn,
+-                                      filename=fname,
+-                                      size=size,
+-                                      ephemeral_size=ephemeral_gb)
+-
+-        for eph in driver.block_device_info_get_ephemerals(block_device_info):
+-            fn = functools.partial(self._create_ephemeral,
+-                                   fs_label='ephemeral%d' % eph['num'],
+-                                   os_type=instance["os_type"])
+-            size = eph['size'] * 1024 * 1024 * 1024
+-            fname = "ephemeral_%s_%s" % (eph['size'], os_type_with_default)
+-            image(blockinfo.get_eph_disk(eph)).cache(
+-                fetch_func=fn,
+-                filename=fname,
+-                size=size,
+-                ephemeral_size=eph['size'])
+-
+-        if 'disk.swap' in disk_mapping:
+-            mapping = disk_mapping['disk.swap']
+-            swap_mb = 0
+-
+-            swap = driver.block_device_info_get_swap(block_device_info)
+-            if driver.swap_is_usable(swap):
+-                swap_mb = swap['swap_size']
+-            elif (inst_type['swap'] > 0 and
+-                  not block_device.volume_in_mapping(
+-                    mapping['dev'], block_device_info)):
+-                swap_mb = inst_type['swap']
+-
+-            if swap_mb > 0:
+-                size = swap_mb * 1024 * 1024
+-                image('disk.swap').cache(fetch_func=self._create_swap,
+-                                         filename="swap_%s" % swap_mb,
+-                                         size=size,
+-                                         swap_mb=swap_mb)
+-
+         # Config drive
+         if configdrive.required_by(instance):
+             LOG.info(_('Using config drive'), instance=instance)
+@@ -2060,35 +2004,6 @@
+                                                         inst_type)
+                     devices.append(diskos)
+ 
+-                if 'disk.local' in disk_mapping:
+-                    disklocal = self.get_guest_disk_config(instance,
+-                                                           'disk.local',
+-                                                           disk_mapping,
+-                                                           inst_type)
+-                    devices.append(disklocal)
+-                    self.virtapi.instance_update(
+-                        nova_context.get_admin_context(), instance['uuid'],
+-                        {'default_ephemeral_device':
+-                             '/dev/' + disklocal.target_dev})
+-
+-                for eph in driver.block_device_info_get_ephemerals(
+-                    block_device_info):
+-                    diskeph = self.get_guest_disk_config(
+-                        instance,
+-                        blockinfo.get_eph_disk(eph),
+-                        disk_mapping, inst_type)
+-                    devices.append(diskeph)
+-
+-                if 'disk.swap' in disk_mapping:
+-                    diskswap = self.get_guest_disk_config(instance,
+-                                                          'disk.swap',
+-                                                          disk_mapping,
+-                                                          inst_type)
+-                    devices.append(diskswap)
+-                    self.virtapi.instance_update(
+-                        nova_context.get_admin_context(), instance['uuid'],
+-                        {'default_swap_device': '/dev/' + diskswap.target_dev})
+-
+                 for vol in block_device_mapping:
+                     connection_info = vol['connection_info']
+                     info = disk_mapping[vol['mount_device']]

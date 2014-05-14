@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: keepalived
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ include_recipe "bcpc::default"
 
 ruby_block "initialize-keepalived-config" do
     block do
-        make_config('keepalived-router-id', "#{(rand * 1000).to_i%256}")
+        make_config('keepalived-router-id', "#{(rand * 1000).to_i%254/2*2+1}")
         make_config('keepalived-password', secure_password)
     end
 end
@@ -33,19 +33,19 @@ end
 template "/etc/keepalived/keepalived.conf" do
     source "keepalived.conf.erb"
     mode 00644
+    notifies :restart, "service[keepalived]", :delayed
     notifies :restart, "service[keepalived]", :immediately
+end
+
+%w{if_vip if_not_vip vip_change}.each do |script|
+    template "/usr/local/bin/#{script}" do
+        source "keepalived-#{script}.erb"
+        mode 0755
+        owner "root"
+        group "root"
+    end
 end
 
 service "keepalived" do
     action [ :enable, :start ]
-end
-
-bash "enable-nonlocal-bind" do
-    user "root"
-    code <<-EOH
-        echo "1" > /proc/sys/net/ipv4/ip_nonlocal_bind
-        sed --in-place '/^net.ipv4.ip_nonlocal_bind/d' /etc/sysctl.conf
-        echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
-    EOH
-    not_if "grep -e '^net.ipv4.ip_nonlocal_bind=1' /etc/sysctl.conf"
 end

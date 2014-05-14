@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: ceph-common
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::networking"
+if platform?("debian", "ubuntu")
+  include_recipe "bcpc::networking"
+end
 
-apt_repository "ceph" do
-    uri node['bcpc']['repos']['ceph']
-    distribution node['lsb']['codename']
-    components ["main"]
-    key "ceph-release.key"
+case node['platform']
+when "centos","redhat","fedora","suse"
+  include_recipe "bcpc::ceph-yum"
+when "debian","ubuntu"
+  include_recipe "bcpc::ceph-apt"
 end
 
 %w{ceph python-ceph}.each do |pkg|
@@ -35,7 +37,7 @@ end
 ruby_block "initialize-ceph-common-config" do
     block do
         make_config('ceph-fs-uuid', %x[uuidgen -r].strip)
-        make_config('ceph-mon-key', %x[ceph-authtool /dev/null --name=mon. --gen-key -p].strip)
+        make_config('ceph-mon-key', ceph_keygen)
     end
 end
 

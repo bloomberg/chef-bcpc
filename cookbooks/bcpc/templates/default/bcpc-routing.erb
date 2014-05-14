@@ -28,6 +28,12 @@ ip route add <%=@node["bcpc"]["management"]["cidr"]%> \
          scope link src <%=@node["bcpc"]["management"]["ip"]%> \
          table mgmt
 
+# Enable VMs to get to the VIP via the float interface
+ip rule del pref 9000
+ip rule del pref 9001
+ip rule add from <%=@node["bcpc"]["fixed"]["cidr"]%> to <%=@node["bcpc"]["management"]["vip"]%> pref 9000 table main
+ip rule add from <%=@node["bcpc"]["management"]["vip"]%> to <%=@node["bcpc"]["fixed"]["cidr"]%> pref 9001 table main
+
 # Activate this routing table for management traffic
 ip rule del pref 10000
 ip rule del pref 10001

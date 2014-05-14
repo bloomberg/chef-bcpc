@@ -120,25 +120,26 @@ BCPC Services
 
 BCPC currently relies upon a number of open-source packages:
 
+ - [389 Directory Server](http://directory.fedoraproject.org/)
  - [Apache HTTP Server](http://httpd.apache.org/)
- - [Beaver](https://github.com/josegonzalez/beaver)
  - [Ceph](http://ceph.com/)
  - [Chef](http://www.opscode.com/chef/)
  - [Cobbler](http://www.cobblerd.org/)
  - [Diamond](https://github.com/BrightcoveOS/Diamond)
  - [ElasticSearch](http://www.elasticsearch.org/)
  - [Etherboot](http://etherboot.org/)
+ - [Fluentd](http://fluentd.org/)
  - [Graphite](http://graphite.readthedocs.org/en/latest/)
  - [HAProxy](http://haproxy.1wt.eu/)
  - [Keepalived](http://www.keepalived.org/)
  - [Kibana](http://kibana.org/)
- - [Logstash](http://logstash.net/)
  - [OpenStack](http://www.openstack.org/)
  - [Percona XtraDB Cluster](http://www.percona.com/software/percona-xtradb-cluster)
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)
  - [Ubuntu](http://www.ubuntu.com/)
  - [Vagrant](http://www.vagrantup.com/) - Verified with version 1.2.2
- - [VirtualBox](https://www.virtualbox.org/) - Verified with version 4.2.12
+ - [VirtualBox](https://www.virtualbox.org/) - >= 4.3.x supported
+ - [Zabbix](http://www.zabbix.com/)
 
 Thanks to all of these communities for producing this software!

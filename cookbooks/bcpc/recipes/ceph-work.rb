@@ -1,8 +1,8 @@
 #
 # Cookbook Name:: bcpc
-# Recipe:: ceph-osd
+# Recipe:: ceph-work
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,13 +19,6 @@
 
 include_recipe "bcpc::ceph-common"
 
-node['bcpc']['ceph_disks'].each do |disk|
-    execute "ceph-disk-prepare-#{disk}" do
-        command "ceph-disk-prepare /dev/#{disk}"
-        not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
-    end
-end
-
 bash "write-client-admin-key" do
     code <<-EOH
         ADMIN_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.admin`
@@ -39,13 +32,32 @@ end
 
 bash "write-bootstrap-osd-key" do
     code <<-EOH
-        BOOTSTRAP_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.bootstrap-osd mon 'allow command osd create ...; allow command osd crush set ...; allow command auth add * osd allow\\ * mon allow\\ rwx; allow command mon getmap'`
+        BOOTSTRAP_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.bootstrap-osd mon 'allow profile bootstrap-osd'`
         ceph-authtool "/var/lib/ceph/bootstrap-osd/ceph.keyring" \
             --create-keyring \
             --name=client.bootstrap-osd \
             --add-key="$BOOTSTRAP_KEY"
     EOH
     not_if "test -f /var/lib/ceph/bootstrap-osd/ceph.keyring"
+end
+
+%w{ssd hdd}.each do |type|
+    node['bcpc']['ceph']["#{type}_disks"].each do |disk|
+        execute "ceph-disk-prepare-#{type}-#{disk}" do
+            rack_guess = node[:hostname].match /.*-r(\d+)[a-d]?n\d+$/
+            rack_name = (rack_guess.nil?) ? "rack" : "rack-#{rack_guess[1].to_i}"
+            command <<-EOH
+                ceph-disk-prepare /dev/#{disk}
+                ceph-disk-activate /dev/#{disk}
+                sleep 2
+                INFO=`df -k | grep /dev/#{disk} | awk '{print $2,$6}' | sed -e 's/\\/var\\/lib\\/ceph\\/osd\\/ceph-//'`
+                OSD=${INFO#* }
+                WEIGHT=`echo "scale=4; ${INFO% *}/1000000000.0" | bc -q`
+                ceph osd crush set $OSD $WEIGHT root=#{type} rack=#{rack_name}-#{type} host=#{node[:hostname]}-#{type}
+            EOH
+            not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
+        end
+    end
 end
 
 execute "trigger-osd-startup" do
@@ -69,7 +81,7 @@ end
 
 execute "cephfs-in-fstab" do
     command <<-EOH
-        echo "-- /mnt fuse.ceph-fuse rw,nosuid,nodev,noexec,noatime 0 2" >> /etc/fstab
+        echo "-- /mnt fuse.ceph-fuse rw,nosuid,nodev,noexec,noatime,noauto 0 2" >> /etc/fstab
     EOH
     not_if "cat /etc/fstab | grep ceph-fuse"
 end

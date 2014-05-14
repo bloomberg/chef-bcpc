@@ -1,0 +1,8 @@
+Host bcpc-vm1
+Hostname 10.0.100.11
+
+Host bcpc-vm2
+Hostname 10.0.100.12
+
+Host bcpc-vm3
+Hostname 10.0.100.13

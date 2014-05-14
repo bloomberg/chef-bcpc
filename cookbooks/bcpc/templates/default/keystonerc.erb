@@ -4,5 +4,6 @@
 #
 ################################################
 
-export SERVICE_ENDPOINT="http://<%="#{node[:bcpc][:management][:ip]}"%>:35357/v2.0/"
+export SERVICE_ENDPOINT="https://<%="#{node[:bcpc][:management][:vip]}"%>:35357/v2.0/"
 export SERVICE_TOKEN=<%="#{get_config('keystone-admin-token')}"%>
+export OS_CACERT=/etc/ssl/certs/ssl-bcpc.pem

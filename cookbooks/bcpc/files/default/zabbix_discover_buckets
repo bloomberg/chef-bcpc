@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+import subprocess
+import json
+
+proc = subprocess.Popen(["radosgw-admin", "bucket", "list"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                )
+
+
+stdout, stderr = proc.communicate()
+
+rc= proc.wait()
+
+if rc or stderr:
+    sys.exit(1)
+bucket_list = json.loads(stdout)
+
+
+output = {"data" : [] }
+
+for bucket in bucket_list:
+    proc = subprocess.Popen(["radosgw-admin", "bucket", "stats", "--bucket=%s" % bucket],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                            )
+
+    stdout, stderr = proc.communicate()
+    
+    rc= proc.wait()
+    if rc or stderr:
+        continue
+    bucket_stats = json.loads(stdout)
+    ll = { "{#BKTNAME}" : bucket,
+           "{#BKTID}" : bucket_stats["id"],
+           }
+    output["data"].append(ll)
+
+print json.dumps(output)

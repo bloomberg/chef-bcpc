@@ -60,7 +60,7 @@ MAX_UPDATES_PER_SECOND = 500
 # database files to all get created and thus longer until the data becomes usable.
 # Setting this value high (like "inf" for infinity) will cause graphite to create
 # the files quickly but at the risk of slowing I/O down considerably for a while.
-MAX_CREATES_PER_MINUTE = 50
+MAX_CREATES_PER_MINUTE = inf
 
 LINE_RECEIVER_INTERFACE = <%="#{node[:bcpc][:management][:ip]}"%>
 LINE_RECEIVER_PORT = 2003

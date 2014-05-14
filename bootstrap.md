@@ -23,13 +23,50 @@ Finally, if you do not wish to use our scripts (we won't be offended), please
 refer to the [manual instructions](#manual-setup-notes) at the end of this
 document.
 
+About hypervisor hosts
+======================
+
+chef-bcpc has been successfully tested on Ubuntu 12.04, Mac OS X
+10.7.5 and Windows 7. On Windows, in addition to VirtualBox you need a
+working bash interpreter and rsync available in your PATH. More
+information about using chef-bcpc on Windows is provided in [Using
+Windows as your
+Hypervisor](https://github.com/bloomberg/chef-bcpc/blob/master/windows.md)
+
+About proxies
+=============
+
+BCPC can be brought up behind a proxy. An example is given in
+proxy_setup.sh in the chef-bcpc directory. To actually use a proxy
+uncomment and edit the example lines. The example uses a proxy on the
+hypervisor (for example your workstation or laptop) just to keep the
+explanation self-contained and simple. The hypervisor is always IP
+address 10.0.100.2 from the point of view of the VMs. Your proxy may
+well be elsewhere on your network. If you use the hostname, instead of
+the IP address of a proxy, you may need to adjust the DNS settings in
+./environments/Test-Laptop.json - the default is to use Google's free
+DNS servers 8.8.8.8 and 8.8.4.4 but those nameservers will not resolve
+a hostname within a private network.
+
+The default proxy setup does not configure a proxy, but it still must
+define 'CURL' which is used in the subsequent scripts. The default is
+CURL=curl.
+
+If you do configure a proxy at the start of the process, there are a
+couple of additional manual steps later in the process. Proxy support
+in BCPC is, currently, even more of a work-in-progress than the rest
+of the project.
+
+Note also that the proxy settings are only known to work with the 
+non-Vagrant method of bringing up the VMs. 
+
 Kicking off the bootstrap process
 =================================
 
 To start off, create the VirtualBox images:
 
 ```
-$ ./vbox_create.sh
+$ ./vbox_create.sh [chef-environment]
 ```
 
 This will create four VMs:
@@ -37,6 +74,12 @@ This will create four VMs:
 - bcpc-vm1
 - bcpc-vm2
 - bcpc-vm3
+
+The ``[chef-environment]`` variable is optional and will default to
+``Test-Laptop`` if unspecfied. This is useful if you need to create the
+bootstrap node with non-default settings such as a a local APT mirror
+(``node[:bcpc][:bootstrap][:mirror]``) or a local internet proxy
+(``node[:bcpc][:bootstrap][:proxy]``).
 
 If you have vagrant installed, the ``vbox_create.sh`` script will automatically
 begin the provisioning of the bcpc-bootstrap node.  This may take 30-45 minutes
@@ -77,15 +120,17 @@ You can log in to your bcpc-bootstrap node from the hypervisor via:
 $ vagrant ssh
 ```
 
-After the automatic provisioning is complete, this is a good time to take a
-snapshot of your bootstrap node:
+After the automatic Vagrant provisioning is complete, this is a good time to
+take a snapshot of your bootstrap node:
 
 ```
 $ VBoxManage snapshot bcpc-bootstrap take initial-install
 ```
 
-Please continue to
-[Registering VMs for PXE boot](#registering-vms-for-pxe-boot).
+Please note that the 3 bcpc-vm nodes are enrolled in cobbler on the bootstrap
+node at the end of ``vbox_create.sh``.
+
+Please continue to [Imaging BCPC Nodes](#imaging-bcpc-nodes).
 
 bcpc-bootstrap creation without Vagrant
 =======================================
@@ -102,6 +147,7 @@ Manual install notes:
 
 - select eth0 as network interface for DHCP (vbox_create.sh sets it up as NAT)
 - bcpc-bootstrap as hostname
+- If using a proxy, enter it when prompted, else leave blank
 - ubuntu/ubuntu as default user/password
 - install OpenSSH server
 - install grub to MBR
@@ -122,17 +168,17 @@ add the following to the end
 # Static interfaces
 auto eth1
 iface eth1 inet static
-  address 10.0.100.1
+  address 10.0.100.3
   netmask 255.255.255.0
 
 auto eth2
 iface eth2 inet static
-  address 172.16.100.1
+  address 172.16.100.3
   netmask 255.255.255.0
 
 auto eth3
 iface eth3 inet static
-  address 192.168.100.1
+  address 192.168.100.3
   netmask 255.255.255.0
 ```
 
@@ -151,36 +197,35 @@ $ VBoxManage snapshot bcpc-bootstrap take initial-install
 Provisioning chef-server without Vagrant
 ----------------------------------------
 
-Once you can SSH in to the bcpc-bootstrap node (ssh ubuntu@10.0.100.1 if
+I *think* you have to fix up the preseed file
+(cookbooks/bcpc/templates/default/cobbler.bcpc_ubuntu_host.preseed.erb)
+here if using a proxy (for now explained in diff format) :
+```
+ d-i     mirror/country string manual
+ d-i     mirror/http/hostname string <%= @node[:bcpc][:bootstrap][:mirror] %>
+ d-i     mirror/http/directory string /ubuntu
+-d-i     mirror/http/proxy string
+ d-i     apt-setup/security_host <%= @node[:bcpc][:bootstrap][:mirror] %>
+ d-i     apt-setup/security_path string /ubuntu
+ <% end %>
+ 
++d-i     mirror/http/proxy string http://10.0.100.2:3128
++
+ d-i     debian-installer/allow_unauthenticated  string false
+ d-i     pkgsel/upgrade  select safe-upgrade
+ d-i     pkgsel/language-packs   multiselect
+```
+
+Once you can SSH in to the bcpc-bootstrap node (ssh ubuntu@10.0.100.3 if
 following instructions above), you can then run the bootstrap_chef.sh script
 from the hypervisor running VirtualBox:
 
 ```
-$ ./bootstrap_chef.sh 10.0.100.1
+$ ./bootstrap_chef.sh ubuntu 10.0.100.3
 ```
 
-- Chef server URL: http://10.0.100.1:4000
-- Chef password: chef (must not be blank or chef-solr will not start)
-- You can leave chef-server-webui pw blank (will default to admin/p@ssw0rd1)
-
-This will bring up the chef-server on http://10.0.100.1:4040.
-
-Initial knife questions without Vagrant
----------------------------------------
-
-You will be asked to set up your knife setup on the bcpc-bootstrap node.
-The path to the chef repository must be . (period) to work.
-
-```
-Where should I put the config file? [/home/ubuntu/.chef/knife.rb] .chef/knife.rb
-Please enter the chef server URL: [http://bcpc-bootstrap:4000] http://10.0.100.1:4000
-Please enter a clientname for the new client: [ubuntu] 
-Please enter the existing admin clientname: [chef-webui] 
-Please enter the location of the existing admin client's private key: [/etc/chef/webui.pem] 
-Please enter the validation clientname: [chef-validator] 
-Please enter the location of the validation key: [/etc/chef/validation.pem] 
-Please enter the path to a chef repository (or leave blank): .
-```
+This will bring up the chef-server on http://10.0.100.3:4040.
+The Web UI will be at http://10.0.100.3:4000 with defaults admin/p@ssw0rd1
 
 At this point, your bcpc-bootstrap node should be appropriately provisioned.
 
@@ -190,12 +235,16 @@ This is a good time to take a snapshot of your bootstrap node:
 $ VBoxManage snapshot bcpc-bootstrap take chef-server-provisioned
 ```
 
+If you see Host key verification failed when testing the ssh connection, you 
+have probably recreated the VMs but not updated the SSH key. If this is the 
+case you need to manually remove the old key - remove the entry for 
+10.0.100.3 from ~/.ssh/known_hosts
+
 Registering VMs for PXE boot
 ============================
 
-Once you have provisioned the local Chef server (via Vagrant or
-bootstrap_chef.sh), you will need to register the bcpc-vm1, bcpc-vm2, and
-bcpc-vm3 VMs before they can boot. 
+Once you have provisioned the local Chef server, you will need to register the
+bcpc-vm1, bcpc-vm2, and bcpc-vm3 VMs before they can boot. 
 
 When using vagrant you can register the remaining VMs like this :
 
@@ -204,19 +253,36 @@ $ ./enroll_cobbler.sh
 ```
 
 whereas for the non-Vagrant case you'll have to provide the IP address
-of the bootstrap node:
+of the bootstrap node (we are using 10.0.100.3 in this example) :
 
 ```
-$ ./enroll_cobbler.sh 10.0.100.1
+$ ./enroll_cobbler.sh 10.0.100.3
 ```
 
-If you have other VMs to register:
+If you have other VMs to register, you need to do it on the bootstrap node :
 
 ```
-cobbler system add --name=bcpc-vm10 --hostname=bcpc-vm10 --profile=bcpc_host --ip-address=10.0.100.20 --mac=AA:BB:CC:DD:EE:FF
+$ ssh ubuntu@10.0.100.3
+$ sudo cobbler system add --name=bcpc-vm10 --hostname=bcpc-vm10 --profile=bcpc_host --ip-address=10.0.100.20 --mac=AA:BB:CC:DD:EE:FF
+$ sudo cobbler sync
 ```
 
-You can boot up the other VMs now, for example :
+Note that if you need to redo these registrations of manual nodes,
+you'll need to first remove them before re-adding, so
+
+```
+$ ssh ubuntu@10.0.100.3
+$ sudo cobbler system remove --name=bcpc-vm1
+$ ... modified add command ...
+$ sudo cobbler sync
+```
+
+Imaging BCPC Nodes
+==================
+
+Once the BCPC bootstrap VM is created and the node VMs are registered in
+Cobbler (done automatically with Vagrant-based ``vbox_create.sh`` invocations),
+you can boot up the other VMs now, for example :
 
 ```
 $ VBoxManage startvm bcpc-vm1
@@ -224,6 +290,15 @@ $ VBoxManage startvm bcpc-vm2
 $ VBoxManage startvm bcpc-vm3
 ```
 
+This should kick off the PXE boot installation of the nodes.  If this
+doesn't work, please check that the systems are accessible in cobbler:
+
+```
+root@bcpc-bootstrap:~# cobbler system list
+   bcpc-vm1
+   bcpc-vm2
+   bcpc-vm3
+```
 
 User account on VM
 ==================
@@ -244,6 +319,13 @@ Linux bcpc-vm1 3.2.0-41-generic #66-Ubuntu SMP Thu Apr 25 03:27:11 UTC 2013 x86_
 Assigning roles to VM
 =====================
 
+If using a proxy, the bcpc-vm VMs will need some initial configuration
+for wget before they can be 'knife bootstrap'ed. To do this, setup a
+.wgetrc in the ubuntu home dir on each bcpc-vm to look like this
+(using the example of a proxy on the hypervisor) :
+
+http_proxy = http://10.0.100.2:3128/
+
 At this point, from the bootstrap node you can then run:
 ```
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Headnode]' 10.0.100.11 -x ubuntu --sudo
@@ -251,12 +333,12 @@ ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ sudo knife bootstrap -E Test-Laptop -r 'role[BCPC-Worknode]' 10.0.100.13 -x ubuntu --sudo
 ```
 
-Also, after the first run, make the bootstrap node VM an administrator, or you will get the error:
+Also, after the first run, make the BCPC-Headnode an administrator, or you will get the error:
 '''
 [...]error: Net::HTTPServerException: 403 "Forbidden"
 '''
 To make a host an administrator, one can access the Chef web UI via
-http://10.0.100.1:4040 and follow:
+http://10.0.100.3:4040 and follow:
 Clients -> &lt;Host> -> Edit -> Admin (toggle true) -> Save Client
 where &lt;Host> is something like bcpc-vm1.local.lan, then re-run the
 bootstrap command. 
@@ -267,7 +349,7 @@ through. Also note that this will change your password in the
 data bag.
 
 If you get a "Tampered with cookie 500" error clear out your cookies
-from your browser for 10.0.100.1
+from your browser for 10.0.100.3
 
 Boostrapping these nodes will take quite a long time - as much as an
 hour or more. You can monitor progress by logging into the VMs and
@@ -308,6 +390,14 @@ If you do a lot of installations or are on an isolated network, you may wish to
 utilize a private mirror.  Currently, this will require about 100GB of local
 storage.
 
+If you're using a proxy, then create ~ubuntu/.wgetrc something like this:
+
+```
+http_proxy = http://proxy.example.com:80
+```
+
+and then do this :
+
 ```
 ubuntu@bcpc-bootstrap:~$ knife node run_list add \`hostname -f\` 'recipe[bcpc::apache-mirror]'
 ubuntu@bcpc-bootstrap:~$ knife node run_list add \`hostname -f\` 'recipe[bcpc::apt-mirror]'
@@ -324,33 +414,39 @@ diff --git a/environments/Test-Laptop.json b/environments/Test-Laptop.json
 index d844783..9a9e53a 100644
 --- a/environments/Test-Laptop.json
 +++ b/environments/Test-Laptop.json
-@@ -28,12 +28,25 @@
+@@ -28,12 +28,27 @@
          "interface" : "eth0",
          "pxe_interface" : "eth1",
-         "server" : "10.0.100.1",
-+        "mirror" : "10.0.100.1",
+         "server" : "10.0.100.3",
++        "mirror" : "10.0.100.3",
          "dhcp_subnet" : "10.0.100.0",
          "dhcp_range" : "10.0.100.10 10.0.100.250"
        },
 +      "repos": {
-+        "ceph": "http://10.0.100.1/ceph-bobtail",
-+        "rabbitmq": "http://10.0.100.1/rabbitmq",
-+        "mysql": "http://10.0.100.1/percona",
-+        "openstack": "http://10.0.100.1/ubuntu-cloud",
-+        "hwraid": "http://10.0.100.1/hwraid"
++        "ceph": "http://10.0.100.3/ceph-dumpling",
++        "ceph-extras": "http://10.0.100.3/ceph-extras",
++        "rabbitmq": "http://10.0.100.3/rabbitmq",
++        "mysql": "http://10.0.100.3/percona",
++        "openstack": "http://10.0.100.3/ubuntu-cloud",
++        "hwraid": "http://10.0.100.3/hwraid",
++        "fluentd": "http://10.0.100.3/fluentd"
 +      },
        "ntp_servers" : [ "0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org", "3.pool.ntp.org" ],
        "dns_servers" : [ "8.8.8.8", "8.8.4.4" ]
      },
 +    "ubuntu": {
-+      "archive_url": "http://10.0.100.1/ubuntu",
-+      "security_url": "http://10.0.100.1/ubuntu",
++      "archive_url": "http://10.0.100.3/ubuntu",
++      "security_url": "http://10.0.100.3/ubuntu",
 +      "include_source_packages": false
 +    },
      "chef_client": {
-       "server_url": "http://10.0.100.1:4000",
+       "server_url": "http://10.0.100.3:4000",
        "cache_path": "/var/chef/cache",
 ```
+
+When you change or add an environment file like this, you only need to rerun the 'knife environment' 
+command and then chef-client once again. Scripting this adjustment is TODO. Rerunning the entire bootstrap_chef.sh 
+script at this stage is not recommended.
 
 Manual setup notes
 ==================

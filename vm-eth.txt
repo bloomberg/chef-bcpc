@@ -1,0 +1,15 @@
+# Static interfaces
+auto eth1
+iface eth1 inet static
+  address 10.0.100.3
+  netmask 255.255.255.0
+
+auto eth2
+iface eth2 inet static
+  address 172.16.100.3
+  netmask 255.255.255.0
+
+auto eth3
+iface eth3 inet static
+  address 192.168.100.3
+  netmask 255.255.255.0

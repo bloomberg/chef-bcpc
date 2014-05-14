@@ -1,0 +1,23 @@
+{
+    "name": "BCPC-Worknode-RH",
+    "default_attributes": {
+    },
+    "json_class": "Chef::Role",
+    "run_list": [
+      "recipe[chef-client::delete_validation]",
+      "recipe[chef-client::config]",
+      "recipe[bcpc::default]",
+      "recipe[ntp::default]",
+      "recipe[yum::epel]",
+      "recipe[bcpc-centos::iptables]",
+      "recipe[bcpc-centos::selinux]",
+      "recipe[bcpc-centos::packagekit]",
+      "recipe[bcpc-centos::networking]",
+      "recipe[bcpc::ceph-common]",
+      "recipe[bcpc::ceph-work]"
+    ],
+    "description": "A functional compute node in a BCPC cluster (RH-variant)",
+    "chef_type": "role",
+    "override_attributes": {
+    }
+}

@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: glance
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,10 +38,8 @@ end
     end
 end
 
-bash "restart-glance" do
-    action :nothing
-    notifies :restart, "service[glance-api]", :immediately
-    notifies :restart, "service[glance-registry]", :immediately
+service "glance-api" do
+    restart_command "(service glance-api stop || true) && service glance-api start && sleep 5"
 end
 
 template "/etc/glance/glance-api.conf" do
@@ -49,15 +47,8 @@ template "/etc/glance/glance-api.conf" do
     owner "glance"
     group "glance"
     mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
-end
-
-template "/etc/glance/glance-api-paste.ini" do
-    source "glance-api-paste.ini.erb"
-    owner "glance"
-    group "glance"
-    mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
+    notifies :restart, "service[glance-api]", :delayed
+    notifies :restart, "service[glance-registry]", :delayed
 end
 
 template "/etc/glance/glance-registry.conf" do
@@ -65,15 +56,8 @@ template "/etc/glance/glance-registry.conf" do
     owner "glance"
     group "glance"
     mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
-end
-
-template "/etc/glance/glance-registry-paste.ini" do
-    source "glance-registry-paste.ini.erb"
-    owner "glance"
-    group "glance"
-    mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
+    notifies :restart, "service[glance-api]", :delayed
+    notifies :restart, "service[glance-registry]", :delayed
 end
 
 template "/etc/glance/glance-scrubber.conf" do
@@ -81,7 +65,8 @@ template "/etc/glance/glance-scrubber.conf" do
     owner "glance"
     group "glance"
     mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
+    notifies :restart, "service[glance-api]", :delayed
+    notifies :restart, "service[glance-registry]", :delayed
 end
 
 template "/etc/glance/glance-cache.conf" do
@@ -89,7 +74,8 @@ template "/etc/glance/glance-cache.conf" do
     owner "glance"
     group "glance"
     mode 00600
-    notifies :run, "bash[restart-glance]", :delayed
+    notifies :restart, "service[glance-api]", :immediately
+    notifies :restart, "service[glance-registry]", :immediately
 end
 
 ruby_block "glance-database-creation" do
@@ -110,14 +96,49 @@ bash "glance-database-sync" do
     action :nothing
     user "root"
     code "glance-manage db_sync"
-    notifies :run, "bash[restart-glance]", :immediately
+    notifies :restart, "service[glance-api]", :immediately
+    notifies :restart, "service[glance-registry]", :immediately
 end
 
 bash "create-glance-rados-pool" do
     user "root"
+    optimal = power_of_2(get_ceph_osd_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:images][:replicas]*node[:bcpc][:ceph][:images][:portion]/100)
     code <<-EOH
-        ceph osd pool create #{node[:bcpc][:glance_rbd_pool]} 1000
-        ceph osd pool set #{node[:bcpc][:glance_rbd_pool]} size 3
+        ceph osd pool create #{node[:bcpc][:ceph][:images][:name]} #{optimal}
+        ceph osd pool set #{node[:bcpc][:ceph][:images][:name]} crush_ruleset #{(node[:bcpc][:ceph][:images][:type]=="ssd")?3:4}
     EOH
-    not_if "rados lspools | grep #{node[:bcpc][:glance_rbd_pool]}"
+    not_if "rados lspools | grep #{node[:bcpc][:ceph][:images][:name]}"
+end
+
+bash "set-glance-rados-pool-replicas" do
+    user "root"
+    code "ceph osd pool set #{node[:bcpc][:ceph][:images][:name]} size #{node[:bcpc][:ceph][:images][:replicas]}"
+    not_if "ceph osd pool get #{node[:bcpc][:ceph][:images][:name]} size | grep #{node[:bcpc][:ceph][:images][:replicas]}"
+end
+
+bash "set-glance-rados-pool-pgs" do
+    user "root"
+    optimal = power_of_2(get_ceph_osd_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:images][:replicas]*node[:bcpc][:ceph][:images][:portion]/100)
+    code "ceph osd pool set #{node[:bcpc][:ceph][:images][:name]} pg_num #{optimal}"
+    not_if "((`ceph osd pool get #{node[:bcpc][:ceph][:images][:name]} pg_num | awk '{print $2}'` >= #{optimal}))"
+end
+
+cookbook_file "/tmp/cirros-0.3.2-x86_64-disk.img" do
+    source "bins/cirros-0.3.2-x86_64-disk.img"
+    owner "root"
+    mode 00444
+end
+
+package "qemu-utils" do
+    action :upgrade
+end
+
+bash "glance-cirros-image" do
+    user "root"
+    code <<-EOH
+        . /root/adminrc
+        qemu-img convert -f qcow2 -O raw /tmp/cirros-0.3.2-x86_64-disk.img /tmp/cirros-0.3.2-x86_64-disk.raw
+        glance image-create --name='Cirros 0.3.2 x86_64' --is-public=True --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.2-x86_64-disk.raw
+    EOH
+    only_if ". /root/adminrc; glance image-show 'Cirros 0.3.2 x86_64' 2>&1 | grep -e '^No image'"
 end

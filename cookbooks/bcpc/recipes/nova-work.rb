@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: nova-head
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,17 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::nova-common"
+include_recipe "bcpc::openstack"
 include_recipe "bcpc::ceph-work"
 
 ruby_block "initialize-nova-work-config" do
     block do
-        make_config('ssh-nova-private-key', %x[printf 'y\n' | ssh-keygen -t rsa -N '' -q -f /dev/stdout | sed -e '1,1d' -e 's/.*-----BEGIN/-----BEGIN/'])
-        make_config('ssh-nova-public-key', %x[echo "#{get_config('ssh-nova-private-key')}" | ssh-keygen -y -f /dev/stdin])
+        require 'openssl'
+        require 'net/ssh'
+        key = OpenSSL::PKey::RSA.new 2048;
+        pubkey = "#{key.ssh_type} #{[ key.to_blob ].pack('m0')}"
+        make_config('ssh-nova-private-key', key.to_pem)
+        make_config('ssh-nova-public-key', pubkey)
     end
 end
 
@@ -40,20 +44,47 @@ end
     end
 end
 
+service "nova-api" do
+    restart_command "(service nova-api stop || true) && service nova-api start && sleep 5"
+end
+
 %w{novnc pm-utils memcached python-memcache sysfsutils}.each do |pkg|
     package pkg do
         action :upgrade
     end
 end
 
-bash "restart-all-nova-workers" do
-    action :nothing
-    subscribes :run, resources("template[/etc/nova/nova.conf]"), :delayed
-    subscribes :run, resources("template[/etc/nova/api-paste.ini]"), :delayed
-    notifies :restart, "service[nova-api]", :immediately
-    notifies :restart, "service[nova-compute]", :immediately
-    notifies :restart, "service[nova-network]", :immediately
-    notifies :restart, "service[nova-novncproxy]", :immediately
+template "/etc/nova/nova.conf" do
+    source "nova.conf.erb"
+    owner "nova"
+    group "nova"
+    mode 00600
+    notifies :restart, "service[nova-api]", :delayed
+    notifies :restart, "service[nova-compute]", :delayed
+    notifies :restart, "service[nova-network]", :delayed
+    notifies :restart, "service[nova-novncproxy]", :delayed
+end
+
+template "/etc/nova/api-paste.ini" do
+    source "nova.api-paste.ini.erb"
+    owner "nova"
+    group "nova"
+    mode 00600
+    notifies :restart, "service[nova-api]", :delayed
+    notifies :restart, "service[nova-compute]", :delayed
+    notifies :restart, "service[nova-network]", :delayed
+    notifies :restart, "service[nova-novncproxy]", :delayed
+end
+
+template "/etc/nova/policy.json" do
+    source "policy.json.erb"
+    owner "nova"
+    group "nova"
+    mode 00600
+    notifies :restart, "service[nova-api]", :delayed
+    notifies :restart, "service[nova-compute]", :delayed
+    notifies :restart, "service[nova-network]", :delayed
+    notifies :restart, "service[nova-novncproxy]", :delayed
 end
 
 directory "/var/lib/nova/.ssh" do
@@ -155,18 +186,38 @@ bash "libvirt-device-acls" do
     notifies :restart, "service[libvirt-bin]", :delayed
 end
 
-cookbook_file "/tmp/folsom-volumes.patch" do
-    source "folsom-volumes.patch"
+cookbook_file "/tmp/nova.patch" do
+    source "nova.patch"
     owner "root"
     mode 00644
 end
 
-bash "patch-for-folsom-volumes" do
+bash "patch-for-nova-bugs" do
     user "root"
     code <<-EOH
         cd /usr/lib/python2.7/dist-packages/nova
-        patch -p2 < /tmp/folsom-volumes.patch
-        cp /tmp/folsom-volumes.patch .
+        patch -p1 < /tmp/nova.patch
+        cp /tmp/nova.patch .
     EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/folsom-volumes.patch"
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova.patch"
+    notifies :restart, "service[nova-api]", :immediately
 end
+
+cookbook_file "/tmp/grizzly-volumes.patch" do
+    source "grizzly-volumes.patch"
+    owner "root"
+    mode 00644
+end
+
+bash "patch-for-grizzly-volumes" do
+    user "root"
+    code <<-EOH
+        cd /usr/lib/python2.7/dist-packages/nova
+        patch -p2 < /tmp/grizzly-volumes.patch
+        cp /tmp/grizzly-volumes.patch .
+    EOH
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/grizzly-volumes.patch"
+    notifies :restart, "service[nova-compute]", :delayed
+end
+
+include_recipe "bcpc::cobalt"

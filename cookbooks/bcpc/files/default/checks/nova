@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+
+
+import socket
+import time
+import novaclient
+from novaclient.v1_1 import client
+
+
+
+class TestNovaCompute(object):
+  def __init__(self, config):
+    self.config = config 
+    self.client  = client.Client(config["user"], config["password"], 
+                                 config["tenant"], config["auth_url"], 
+                                 service_type="compute", insecure=True)
+    
+
+    self.instance_name = "test2-" + socket.gethostname()
+    if "timeout" not in self.config:
+          self.config["timeout" ] = 60.0 
+
+  def _wait_for_statechange(self, server, target):
+        start = time.time()
+        while time.time() - start < self.config["timeout"] :
+              server.get() 
+              if str(server.status) == target:
+                    return True
+              time.sleep(2)
+        return False
+
+  
+  def _delete_server(self, server):
+    """Nassty hack, current stack requires >1 delete"""
+    start = time.time()
+    while time.time() - start < self.config["timeout"] :      
+      try:
+        server.delete()
+        time.sleep(2)
+      except novaclient.exceptions.NotFound:
+        # it took
+        return 
+    raise Exception("unable to delete server")  
+
+  def run(self):
+    #
+    # clean up last (failed?) test    
+    #
+    for server in self.client.servers.list():
+          if server.name == self.instance_name:
+            self._delete_server(server)
+                
+  
+    image_name = self.config.get("image_name", "Cirros 0.3.0 x86_64")
+    images = [ i for i in self.client.images.list() if i.name == image_name ] 
+    if len(images)!=1:
+          raise Exception("Found %d images called %s"  %(len(images), image_name))
+
+    flavor_name =  self.config.get("flavor", "m1.small")
+    flavors = [ f for f in self.client.flavors.list() if f.name ==  flavor_name] 
+
+    if len(flavors)!=1:
+          raise Exception("Found %d flavors called %s"  %(len(flavors), flavor_name))
+
+
+    #
+    # Make the server
+    #
+    server = self.client.servers.create(self.instance_name,
+                                        images[0],
+                                        flavors[0],
+                                        )
+          
+    if not self._wait_for_statechange(server, "ACTIVE"):
+          return False, "unable to create and instance"
+    
+    time.sleep(120)
+
+    #
+    # Kill the server
+    #
+    self._delete_server(server)
+    
+    
+    return True, ""
+if __name__ == '__main__':
+    import yaml
+    import sys
+    config = yaml.load(open(sys.argv[1], "r"))
+    rc = {}
+    try:
+        result, msg = TestNovaCompute(config).run();
+        rc["msg"] = msg
+
+        if result:
+            rc["result"]= "OKAY"
+        else:
+            rc["result"] = "FAIL"
+            
+    except Exception as e:
+        rc["result"] = "ERROR"
+        rc["msg"]  = "%s : %s" %(str(type(e)), e.message)
+
+    print yaml.dump(rc)

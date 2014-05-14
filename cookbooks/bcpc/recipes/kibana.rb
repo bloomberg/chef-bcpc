@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: kibana
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,54 +18,39 @@
 #
 
 include_recipe "bcpc::default"
+include_recipe "bcpc::apache2"
 
-package "rubygems" do
-    action :upgrade
-end
-
-cookbook_file "/tmp/kibana.tgz" do
-    source "bins/kibana.tgz"
+cookbook_file "/tmp/kibana3.tgz" do
+    source "bins/kibana3.tgz"
     owner "root"
     mode 00444
 end
 
-user node[:bcpc][:kibana][:user] do
-    shell "/bin/false"
-    home "/var/log"
-    gid node[:bcpc][:kibana][:group]
-    system true
-end
-
 bash "install-kibana" do
     code <<-EOH
-        tar zxf /tmp/kibana.tgz -C /opt/
+        tar zxf /tmp/kibana3.tgz -C /opt/
     EOH
-    not_if "test -d /opt/kibana"
+    not_if "test -d /opt/kibana3"
 end
 
-directory "/var/log/kibana" do
-    user node[:bcpc][:kibana][:user]
-    group node[:bcpc][:kibana][:group]
-    mode 00755
-end
-
-template "/etc/init/kibana.conf" do
-    source "upstart-kibana.conf.erb"
-    user node[:bcpc][:kibana][:user]
-    group node[:bcpc][:kibana][:group]
+template "/opt/kibana3/config.js" do
+    source "kibana-config.js.erb"
+    user "root"
+    group "root"
     mode 00644
-    notifies :restart, "service[kibana]", :delayed
 end
 
-template "/opt/kibana/KibanaConfig.rb" do
-    source "kibana.rb.erb"
-    user node[:bcpc][:kibana][:user]
-    group node[:bcpc][:kibana][:group]
+template "/etc/apache2/sites-available/kibana-web" do
+    source "apache-kibana-web.conf.erb"
+    owner "root"
+    group "root"
     mode 00644
-    notifies :restart, "service[kibana]", :delayed
+    notifies :restart, "service[apache2]", :delayed
 end
 
-service "kibana" do
-    provider Chef::Provider::Service::Upstart
-    action [ :enable, :start ]
+bash "apache-enable-kibana-web" do
+    user "root"
+    code "a2ensite kibana-web"
+    not_if "test -r /etc/apache2/sites-enabled/kibana-web"
+    notifies :restart, "service[apache2]", :delayed
 end

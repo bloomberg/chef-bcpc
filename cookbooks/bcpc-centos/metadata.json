@@ -1,0 +1,31 @@
+{
+  "groupings": {
+  },
+  "maintainer_email": "clongo3@bloomberg.net",
+  "platforms": {
+  },
+  "replacing": {
+  },
+  "conflicting": {
+  },
+  "name": "bcpc-centos",
+  "suggestions": {
+  },
+  "attributes": {
+  },
+  "recipes": {
+  },
+  "providing": {
+  },
+  "maintainer": "Bloomberg, L.P.",
+  "license": "Apache License 2.0",
+  "description": "Installs/Configures CentOS hosts for use in Hadoop clusters",
+  "recommendations": {
+  },
+  "version": "0.3.0",
+  "long_description": "bcpc-centos Cookbook\n===============\n\nChef recipes for preparing CentOS nodes for BCPC.  In particular as nodes in a Hadoop cluster using Hortonwork's HDP distribution.\n",
+  "dependencies": {
+    "bcpc": ">= 0.4.0",
+    "yum": ">= 2.3.0"
+  }
+}

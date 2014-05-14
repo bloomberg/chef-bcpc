@@ -15,16 +15,26 @@
         <Directory /var/www/>
                 Options Indexes FollowSymLinks MultiViews
                 AllowOverride None
-                Order allow,deny
-                allow from all
+                <IfVersion < 2.3>
+                        Order allow,deny
+                        allow from all
+                </IfVersion>
+                <IfVersion > 2.3>
+                        Require all granted
+                </IfVersion>
         </Directory>
 
         ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
         <Directory "/usr/lib/cgi-bin">
                 AllowOverride None
                 Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
-                Order allow,deny
-                Allow from all
+                <IfVersion < 2.3>
+                        Order allow,deny
+                        allow from all
+                </IfVersion>
+                <IfVersion > 2.3>
+                        Require all granted
+                </IfVersion>
         </Directory>
 
         ErrorLog ${APACHE_LOG_DIR}/error.log
@@ -38,16 +48,25 @@
     <Directory /var/spool/apt-mirror/mirror/>
         Options Indexes FollowSymLinks MultiViews
         AllowOverride None
-        Order allow,deny
-        allow from all
+        <IfVersion < 2.3>
+                Order allow,deny
+                allow from all
+        </IfVersion>
+        <IfVersion > 2.3>
+                Require all granted
+        </IfVersion>
     </Directory>
     Alias /chef /var/spool/apt-mirror/mirror/apt.opscode.com
-    Alias /ceph /var/spool/apt-mirror/mirror/ceph.com/debian
-    Alias /ceph-bobtail /var/spool/apt-mirror/mirror/ceph.com/debian-bobtail
-    Alias /ceph-cuttlefish /var/spool/apt-mirror/mirror/ceph.com/debian-cuttlefish
+    Alias /ceph-dumpling /var/spool/apt-mirror/mirror/ceph.com/debian-dumpling
+    Alias /ceph-extras /var/spool/apt-mirror/mirror/ceph.com/packages/ceph-extras/debian
+    Alias /fluentd /var/spool/apt-mirror/mirror/packages.treasure-data.com/precise
     Alias /hwraid /var/spool/apt-mirror/mirror/hwraid.le-vert.net/ubuntu
     Alias /percona /var/spool/apt-mirror/mirror/repo.percona.com/apt
     Alias /ubuntu-cloud /var/spool/apt-mirror/mirror/ubuntu-cloud.archive.canonical.com/ubuntu
     Alias /rabbitmq /var/spool/apt-mirror/mirror/www.rabbitmq.com/debian
     Alias /ubuntu /var/spool/apt-mirror/mirror/us.archive.ubuntu.com/ubuntu
+    Alias /ceph-apache /var/spool/apt-mirror/mirror/gitbuilder.ceph.com/apache2-deb-precise-x86_64-basic/ref/master
+    Alias /ceph-fcgi /var/spool/apt-mirror/mirror/gitbuilder.ceph.com/libapache-mod-fastcgi-deb-precise-x86_64-basic/ref/master
+    Alias /hdp /var/spool/apt-mirror/mirror/public-repo-1.hortonworks.com/HDP/ubuntu12/2.x
+    Alias /hdp-utils /var/spool/apt-mirror/mirror/public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/ubuntu12
 </VirtualHost>

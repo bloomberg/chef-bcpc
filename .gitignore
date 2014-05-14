@@ -1,7 +1,13 @@
 .rake_test_cache
 .chef/
+id_rsa
+secret_file
 cookbooks/apt/
 cookbooks/chef-client/
 cookbooks/cron/
+cookbooks/ntp/
 cookbooks/ubuntu/
-
+cookbooks/yum/
+environments/*
+.*.sw*
+*~

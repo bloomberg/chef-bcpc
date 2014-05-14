@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: horizon
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 
 include_recipe "bcpc::mysql"
 include_recipe "bcpc::openstack"
+include_recipe "bcpc::apache2"
+include_recipe "bcpc::cobalt"
 
 ruby_block "initialize-horizon-config" do
     block do
@@ -31,27 +33,30 @@ package "openstack-dashboard" do
     action :upgrade
 end
 
-bash "set-apache-bind-address" do
-    code <<-EOH
-        sed -i "s/\\\(^[\\\t ]*Listen[\\\t ]*\\\)80[\\\t ]*$/\\\\1#{node[:bcpc][:management][:ip]}:80/g" /etc/apache2/ports.conf
-        sed -i "s/\\\(^[\\\t ]*Listen[\\\t ]*\\\)443[\\\t ]*$/\\\\1#{node[:bcpc][:management][:ip]}:443/g" /etc/apache2/ports.conf
-    EOH
-    not_if "grep #{node[:bcpc][:management][:ip]} /etc/apache2/ports.conf"
+if not node["bcpc"]["vms_key"].nil?
+    package "cobalt-horizon" do
+        action :upgrade
+        options "-o APT::Install-Recommends=0 -o Dpkg::Options::='--force-confnew'"
+    end
 end
 
-service "apache2" do
-    action [ :enable, :start ]
+package "openstack-dashboard-ubuntu-theme" do
+    action :remove
 end
 
-template "/etc/apache2/sites-enabled/000-default" do
-    source "apache-000-default.erb"
+file "/etc/apache2/conf.d/openstack-dashboard.conf" do
+    action :delete
+end
+
+template "/etc/apache2/vhost-ssl-root.d/openstack-dashboard.conf" do
+    source "apache-vhost-ssl-root-openstack-dashboard.conf.erb"
     owner "root"
     group "root"
     mode 00644
     notifies :restart, "service[apache2]", :delayed
 end
 
-template "/etc/apache2/conf.d/openstack-dashboard.conf" do
+template "/etc/apache2/sites-available/openstack-dashboard" do
     source "apache-openstack-dashboard.conf.erb"
     owner "root"
     group "root"
@@ -59,15 +64,11 @@ template "/etc/apache2/conf.d/openstack-dashboard.conf" do
     notifies :restart, "service[apache2]", :delayed
 end
 
-%w{proxy_http ssl}.each do |mod|
-    bash "apache-enable-#{mod}" do
-        user "root"
-        code <<-EOH
-            a2enmod #{mod}
-        EOH
-        not_if "test -r /etc/apache2/mods-enabled/#{mod}.load"
-        notifies :restart, "service[apache2]", :delayed
-    end
+bash "apache-enable-openstack-dashboard" do
+    user "root"
+    code "a2ensite openstack-dashboard"
+    not_if "test -r /etc/apache2/sites-enabled/openstack-dashboard"
+    notifies :restart, "service[apache2]", :delayed
 end
 
 template "/etc/openstack-dashboard/local_settings.py" do

@@ -8,12 +8,14 @@
 
 # MySQL Connection
 sql_connection=mysql://<%="#{get_config('mysql-nova-user')}"%>:<%="#{get_config('mysql-nova-password')}"%>@<%="#{node[:bcpc][:management][:vip]}"%>/<%="#{node['bcpc']['nova_dbname']}"%>
+sql_idle_timeout=3600
 
 # Rabbit message queue settings
 rabbit_host=<%="#{node[:bcpc][:management][:vip]}"%>
 rabbit_password=<%="#{get_config('rabbitmq-password')}"%>
 rabbit_ha_queues=False
 rabbit_durable_queues=True
+
 # If using qpid...
 #rpc_backend=nova.openstack.common.rpc.impl_qpid
 #qpid_hostname=<%="#{node[:bcpc][:management][:vip]}"%>
@@ -31,9 +33,13 @@ metadata_listen=169.254.169.254
 metadata_host=169.254.169.254
 dmz_cidr=169.254.169.254/32
 enabled_apis=ec2,osapi_compute,metadata
+<% if not node[:bcpc][:vms_key].nil? %>
+osapi_compute_extension=nova.api.openstack.compute.contrib.standard_extensions
+osapi_compute_extension=cobalt.nova.osapi.cobalt_extension.Cobalt_extension
+<% end %>
 
 # Nova Scheduler
-scheduler_driver=nova.scheduler.simple.SimpleScheduler
+scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler
 
 # Nova Network settings
 network_manager=nova.network.manager.VlanManager
@@ -44,20 +50,26 @@ multi_host=True
 fixed_range=<%="#{node[:bcpc][:fixed][:cidr]}"%>
 floating_range=<%="#{node[:bcpc][:floating][:cidr]}"%>
 network_size=<%="#{node[:bcpc][:fixed][:network_size]}"%>
+flat_network_dns=<%="#{node[:bcpc][:management][:vip]}"%>
 dhcpbridge_flagfile=/etc/nova/nova.conf
 dhcpbridge=/usr/bin/nova-dhcpbridge
 force_dhcp_release=True
-fixed_ip_disassociate_timeout=180
+share_dhcp_address=True
+teardown_unused_network_gateway=True
+fixed_ip_disassociate_timeout=30
+dhcp_lease_time=<%="#{node[:bcpc][:fixed][:dhcp_lease_time]}"%>
 send_arp_for_ha=True
 my_ip=<%="#{node[:bcpc][:management][:ip]}"%>
 routing_source_ip=<%="#{node[:bcpc][:floating][:ip]}"%>
+dhcp_domain=<%="#{node[:bcpc][:domain_name]}"%>
+default_availability_zone=<%="#{node[:bcpc][:region_name]}"%>
 
 # Nova Compute settings
 connection_type=libvirt
 libvirt_type=<%="#{node[:bcpc][:virt_type]}"%>
 libvirt_use_virtio_for_bridges=True
 use_cow_images=True
-snapshot_image_format=qcow2
+#snapshot_image_format=qcow2
 #start_guests_on_host_boot=True
 #resume_guests_state_on_host_boot=True
 
@@ -88,7 +100,7 @@ logdir=/var/log/nova
 state_path=/var/lib/nova
 lock_path=/var/lock/
 rootwrap_config=/etc/nova/rootwrap.conf
-verbose=True
+verbose=False
 debug=False
 ec2_private_dns_show_ip=True
 #default_log_levels="amqplib=DEBUG,sqlalchemy=DEBUG,boto=WARN,suds=INFO,eventlet.wsgi.server=WARN"

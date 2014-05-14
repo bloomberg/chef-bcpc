@@ -14,5 +14,5 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
 <% @servers.each do |server| -%>
-<%= "#{server['bcpc']['management']['ip']}   #{server.fqdn} #{server.hostname}" %>
+<%= "#{server['bcpc']['management']['ip']}   #{server['fqdn']} #{server['hostname']}.#{node['bcpc']['domain_name']} #{server['hostname']}" %>
 <% end -%>

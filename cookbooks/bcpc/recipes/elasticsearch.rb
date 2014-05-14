@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: elasticsearch
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ package "openjdk-7-jre-headless" do
     action :upgrade
 end
 
-cookbook_file "/tmp/elasticsearch-0.20.2.deb" do
-    source "bins/elasticsearch-0.20.2.deb"
+cookbook_file "/tmp/elasticsearch-1.1.1.deb" do
+    source "bins/elasticsearch-1.1.1.deb"
     owner "root"
     mode 00444
 end
 
 package "elasticsearch" do
     provider Chef::Provider::Package::Dpkg
-    source "/tmp/elasticsearch-0.20.2.deb"
+    source "/tmp/elasticsearch-1.1.1.deb"
     action :install
 end
 

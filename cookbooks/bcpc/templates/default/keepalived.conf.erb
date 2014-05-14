@@ -5,37 +5,65 @@
 ################################################
 
 global_defs {
-  router_id controller-<%= "#{node[:bcpc][:node_number]}" %>
+  router_id <%="#{node[:hostname]}"%>
 }
 
 vrrp_script chk_haproxy {
   script "killall -0 haproxy"
-  interval 2
+  interval 1
 }
 
 vrrp_script chk_ceph {
-  script "ceph --admin-daemon=/var/run/ceph/ceph-mon.<%="#{node.hostname}"%>.asok mon_status | grep state | grep -e 'leader\|peon'"
+  script "/usr/local/bin/if_not_quorum false"
   interval 5
-  fall 10
+  fall 3
   rise 1
 }
 
-vrrp_instance <%= "BCPC_#{node[:bcpc][:region_name]}" %> {
+vrrp_sync_group VG1_<%="#{node[:bcpc][:region_name]}"%> {
+  group {
+    VI1_<%="#{node[:bcpc][:region_name]}"%>
+    VI2_<%="#{node[:bcpc][:region_name]}"%>
+  }
+}
+
+vrrp_instance VI1_<%="#{node[:bcpc][:region_name]}"%> {
   virtual_router_id <%="#{get_config('keepalived-router-id')}"%>
 
   # for electing MASTER, highest priority wins.
-  priority  100
+  priority  <%= "#{255-node[:bcpc][:node_number].to_i}" %>
   state     BACKUP
   nopreempt
 
   interface <%= "#{node[:bcpc][:management][:interface]}" %>
 
   virtual_ipaddress {
-    <%= "#{node[:bcpc][:management][:vip]}" %>
+    <%="#{node[:bcpc][:management][:vip]}/#{(node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i}"%>
   }
   track_script {
     chk_haproxy
     chk_ceph
+  }
+  authentication {
+    auth_type PASS
+    auth_pass <%="#{get_config('keepalived-password')}"%>
+  }
+  notify_backup "/usr/local/bin/vip_change"
+  notify_fault "/usr/local/bin/vip_change"
+}
+
+vrrp_instance VI2_<%="#{node[:bcpc][:region_name]}"%> {
+  virtual_router_id <%="#{get_config('keepalived-router-id').to_i+1}"%>
+
+  # for electing MASTER, highest priority wins.
+  priority  <%= "#{255-node[:bcpc][:node_number].to_i}" %>
+  state     BACKUP
+  nopreempt
+
+  interface <%= "#{node[:bcpc][:floating][:interface]}" %>
+
+  virtual_ipaddress {
+    <%="#{node[:bcpc][:floating][:vip]}/#{(node['bcpc']['floating']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i}"%>
   }
   authentication {
     auth_type PASS

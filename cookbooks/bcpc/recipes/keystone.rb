@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: keystone
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 include_recipe "bcpc::mysql"
 include_recipe "bcpc::openstack"
+include_recipe "bcpc::apache2"
 
 ruby_block "initialize-keystone-config" do
     block do
@@ -27,6 +28,12 @@ ruby_block "initialize-keystone-config" do
         make_config('keystone-admin-token', secure_password)
         make_config('keystone-admin-user', "admin")
         make_config('keystone-admin-password', secure_password)
+        if get_config('keystone-pki-certificate').nil? then
+            temp = %x[openssl req -new -x509 -passout pass:temp_passwd -newkey rsa:2048 -out /dev/stdout -keyout /dev/stdout -days 1095 -subj "/C=#{node['bcpc']['country']}/ST=#{node['bcpc']['state']}/L=#{node['bcpc']['location']}/O=#{node['bcpc']['organization']}/OU=#{node['bcpc']['region_name']}/CN=keystone.#{node['bcpc']['domain_name']}/emailAddress=#{node['bcpc']['admin_email']}"]
+            make_config('keystone-pki-private-key', %x[echo "#{temp}" | openssl rsa -passin pass:temp_passwd -out /dev/stdout])
+            make_config('keystone-pki-certificate', %x[echo "#{temp}" | openssl x509])
+        end
+
     end
 end
 
@@ -39,7 +46,23 @@ template "/etc/keystone/keystone.conf" do
     owner "keystone"
     group "keystone"
     mode 00600
-    notifies :restart, "service[keystone]", :delayed
+    notifies :restart, "service[apache2]", :delayed
+end
+
+template "/etc/keystone/cert.pem" do
+    source "keystone-cert.pem.erb"
+    owner "keystone"
+    group "keystone"
+    mode 00644
+    notifies :restart, "service[apache2]", :delayed
+end
+
+template "/etc/keystone/key.pem" do
+    source "keystone-key.pem.erb"
+    owner "keystone"
+    group "keystone"
+    mode 00600
+    notifies :restart, "service[apache2]", :delayed
 end
 
 template "/root/adminrc" do
@@ -56,8 +79,37 @@ template "/root/keystonerc" do
     mode 00600
 end
 
+%w{main admin}.each do |api|
+    template "/opt/openstack/keystone-#{api}.cgi" do
+        source "wsgi-keystone.erb"
+        owner "root"
+        group "root"
+        mode 00755
+        variables(:name => api)
+    end
+end
+
+template "/etc/apache2/sites-available/keystone" do
+    source "apache-keystone.conf.erb"
+    owner "root"
+    group "root"
+    mode 00644
+    notifies :restart, "service[apache2]", :delayed
+end
+
+bash "apache-enable-keystone" do
+    user "root"
+    code "a2ensite keystone"
+    not_if "test -r /etc/apache2/sites-enabled/keystone"
+    notifies :restart, "service[apache2]", :immediately
+end
+
 service "keystone" do
-    action [ :enable, :start ]
+    action [ :disable, :stop ]
+end
+
+service "apache2" do
+    restart_command "service apache2 stop && service apache2 start && sleep 5"
 end
 
 ruby_block "keystone-database-creation" do
@@ -78,21 +130,20 @@ bash "keystone-database-sync" do
     action :nothing
     user "root"
     code "keystone-manage db_sync"
-    notifies :restart, "service[keystone]", :immediately
+    notifies :restart, "service[apache2]", :immediately
 end
 
 bash "keystone-service-catalog-keystone" do
     user "root"
     code <<-EOH
-        sleep 5
         . /root/keystonerc
         export KEYSTONE_ID=`keystone service-create --name=keystone --type=identity --description="Identity Service" | grep " id " | awk '{print $4}'`
         keystone endpoint-create --region #{node[:bcpc][:region_name]} --service_id $KEYSTONE_ID \
-            --publicurl   "http://#{node[:bcpc][:management][:vip]}:5000/v2.0" \
-            --adminurl    "http://#{node[:bcpc][:management][:vip]}:35357/v2.0" \
-            --internalurl "http://#{node[:bcpc][:management][:vip]}:5000/v2.0"
+            --publicurl   "https://#{node[:bcpc][:management][:vip]}:5000/v2.0" \
+            --adminurl    "https://#{node[:bcpc][:management][:vip]}:35357/v2.0" \
+            --internalurl "https://#{node[:bcpc][:management][:vip]}:5000/v2.0"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep keystone"
+    only_if ". /root/keystonerc; keystone service-get keystone 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-glance" do
@@ -105,7 +156,7 @@ bash "keystone-service-catalog-glance" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:9292/v1" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:9292/v1"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep glance"
+    only_if ". /root/keystonerc; keystone service-get glance 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-nova" do
@@ -118,7 +169,7 @@ bash "keystone-service-catalog-nova" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8774/v1.1/\\\$(tenant_id)s" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8774/v1.1/\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep nova"
+    only_if ". /root/keystonerc; keystone service-get nova 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-cinder" do
@@ -131,7 +182,7 @@ bash "keystone-service-catalog-cinder" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8776/v1/\\\$(tenant_id)s" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8776/v1/\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep cinder"
+    only_if ". /root/keystonerc; keystone service-get cinder 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-ec2" do
@@ -144,7 +195,7 @@ bash "keystone-service-catalog-ec2" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8773/services/Admin" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8773/services/Cloud"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep ec2"
+    only_if ". /root/keystonerc; keystone service-get ec2 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-s3" do
@@ -158,7 +209,7 @@ bash "keystone-service-catalog-s3" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8080/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8080/"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep s3"
+    only_if ". /root/keystonerc; keystone service-get s3 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-swift" do
@@ -172,7 +223,7 @@ bash "keystone-service-catalog-swift" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:8080/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:8080/v1/AUTH_\\\$(tenant_id)s"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep swift"
+    only_if ". /root/keystonerc; keystone service-get swift 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-service-catalog-quantum" do
@@ -186,7 +237,7 @@ bash "keystone-service-catalog-quantum" do
             --adminurl    "http://#{node[:bcpc][:management][:vip]}:9696/" \
             --internalurl "http://#{node[:bcpc][:management][:vip]}:9696/"
     EOH
-    not_if ". /root/keystonerc; keystone service-list | grep quantum"
+    only_if ". /root/keystonerc; keystone service-get quantum 2>&1 | grep -e '^No service'"
 end
 
 bash "keystone-create-users-tenants" do
@@ -215,5 +266,22 @@ bash "keystone-create-users-tenants" do
         # keystone user-role-add --user_id $KEYSTONE_SWIFT_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
         # keystone user-role-add --user_id $KEYSTONE_QUANTUM_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
     EOH
-    not_if ". /root/keystonerc; . /root/adminrc; keystone user-list | grep $OS_USERNAME"
+    only_if ". /root/keystonerc; . /root/adminrc; keystone user-get $OS_USERNAME 2>&1 | grep -e '^No user'"
+end
+
+
+ruby_block "initialize-keystone-test-config" do
+    block do
+        make_config('keystone-test-user', "tester")
+        make_config('keystone-test-password', secure_password)
+    end
+end
+
+bash "keystone-create-test-tenants" do
+  code <<-EOH
+        . /root/adminrc
+        export KEYSTONE_ADMIN_TENANT_ID=`keystone tenant-get "#{node['bcpc']['admin_tenant']}" | grep " id " | awk '{print $4}'`
+        keystone user-create --name #{get_config('keystone-test-user')} --tenant-id $KEYSTONE_ADMIN_TENANT_ID --pass  #{get_config('keystone-test-password')} --enabled true
+  EOH
+  only_if ". /root/keystonerc; . /root/adminrc; keystone user-get #{get_config('keystone-test-user')} 2>&1 | grep -e '^No user'"
 end

@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+"""Checks the nova and ip addr agree on the floating ips that should be assigned
+to this host. 
+
+"""
+
+import os
+import sys
+import netaddr
+import subprocess 
+
+from novaclient.v1_1 import client
+
+def get_nova_floats(username, password, tenant, auth_url):
+   """Query nova for the locally hosted floats. Results a *set*
+   of ips. 
+   """
+   nova = client.Client(username, password, tenant, auth_url, insecure=True)
+   return set( [ str(a.address) for a in nova.floating_ips_bulk.list(os.uname()[1]) ] )
+            
+def get_iptables_floats(cidr, interface):
+   """Parse ip addr, returns a *set* of all ips on interface"""
+   ipn = netaddr.IPNetwork(cidr)
+   sp = subprocess.Popen(["ip", "addr", "show", interface], stdout=subprocess.PIPE)
+   sp.wait()
+   sou , ser  = sp.communicate()
+
+   ips = []
+   for line in sou.split("\n"):
+      line = line.strip()
+      if line.startswith("inet"):
+         ip = line.split(" ")[1]
+         ip, bm = ip.split("/")
+         if bm=="32" and netaddr.IPAddress(ip) in ipn:
+            ips.append(ip)
+            
+   return set(ips)
+      
+
+if __name__ == '__main__':
+   
+   import yaml
+   import sys
+   config = yaml.load(open(sys.argv[1], "r"))
+
+   rc = { "result": "OKAY",
+          "msg" : "" }
+
+   try:
+      assigned_floating_ips = get_nova_floats(config["user"],
+                                              config["password"],
+                                              config["tenant"],
+                                              config["auth_url"])
+      bound_floating_ips = get_iptables_floats(config["cidr"], config["interface"])   
+      problem_ips = bound_floating_ips.difference(assigned_floating_ips)
+      if problem_ips:
+         rc["result"] = "ERROR"
+         rc["msg"]=  "BAD IPS : %s " % (", ".join(problem_ips))
+
+   except Exception as e:
+      rc["result"] = "ERROR"
+      rc["msg"]  = "%s : %s" %(str(type(e)), str(e.message))
+
+
+   print yaml.dump(rc)
+

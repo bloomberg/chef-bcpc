@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>2.0</version>
-    <date>2013-05-06T03:18:21Z</date>
+    <date>2014-01-09T15:45:46Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -16,20 +16,27 @@
                     <name>Templates</name>
                 </group>
             </groups>
-            <applications/>
+            <applications>
+                <application>
+                    <name>Ceph</name>
+                </application>
+                <application>
+                    <name>RGW</name>
+                </application>
+            </applications>
             <items>
                 <item>
-                    <name>Memory check: Beaver</name>
+                    <name>Ceph Health</name>
                     <type>7</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>proc.mem[python,,,beaver]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <key>ceph.health</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
-                    <value_type>3</value_type>
+                    <value_type>4</value_type>
                     <allowed_hosts/>
                     <units/>
                     <delta>0</delta>
@@ -52,7 +59,85 @@
                     <inventory_link>0</inventory_link>
                     <applications>
                         <application>
-                            <name>Performance</name>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>IP Route: MGMT</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[ip route show table mgmt]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>1</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Network interfaces</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>IP Route: Storage</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[ip route show table storage]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>1</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Check the ip routes for the storage network are up</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Network interfaces</name>
                         </application>
                     </applications>
                     <valuemap/>
@@ -64,9 +149,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[ceph-osd,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -103,9 +188,48 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,,,diamond]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Memory check: Fluentd</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>proc.mem[ruby,,,td-agent]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -142,9 +266,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -181,9 +305,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-compute]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -220,9 +344,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-network]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -259,9 +383,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-novncproxy]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -292,54 +416,15 @@
                     <valuemap/>
                 </item>
                 <item>
-                    <name>Process check: Beaver</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>proc.num[python,,,beaver]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Processes</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
                     <name>Process check: Ceph OSD</name>
                     <type>7</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[ceph-osd,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -376,9 +461,48 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,,,diamond]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Processes</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Process check: Fluentd</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>proc.num[ruby,,,td-agent]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -415,9 +539,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -454,9 +578,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-compute]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -493,9 +617,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-network]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -532,9 +656,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-novncproxy]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -571,9 +695,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[ntpd,ntp]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -610,9 +734,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[sshd,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -642,6 +766,162 @@
                     </applications>
                     <valuemap/>
                 </item>
+                <item>
+                    <name>RGW: admin access /m</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.rgw.admin</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>RGW</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>RGW: Errors</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>log[/var/log/apache2/rgw_error.log]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>2</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>RGW</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>RGW: HAProxy Pings / m</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.rgw.haproxy</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Number of HAProxy pings per min</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>RGW</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>RGW: HTTP 500 Errors / m</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.rgw.http500</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>RGW</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
             </items>
             <discovery_rules/>
             <macros/>
@@ -660,8 +940,486 @@
                     <name>Templates</name>
                 </group>
             </groups>
-            <applications/>
+            <applications>
+                <application>
+                    <name>Functional Checks</name>
+                </application>
+                <application>
+                    <name>MySQL</name>
+                </application>
+                <application>
+                    <name>VIP</name>
+                </application>
+            </applications>
             <items>
+                <item>
+                    <name>Ceph PG Count: Active</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[active]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph PG Count: Active+Clean</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[active+clean]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph PG Count: Active+Degraded</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[active+degraded]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph PG Count: Active+Remapped</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[active+remapped]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph PG Count: Down</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[down]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph PG Count: Inactive</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.pg_count[inactive]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph Total Objects</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.total.objects</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph Total Percent</name>
+                    <type>15</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.total.percent</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params>100*last(&quot;ceph.total.usage&quot;)/last(&quot;ceph.total.space&quot;)</params>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph Total Space</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>1</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.total.space</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>B</units>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1024</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Total space</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Ceph Total Usage</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>1</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.total.usage</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>B</units>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1024</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Total Usage by ceph</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Ceph</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Functional Test: Nova</name>
+                    <type>2</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>check.nova</key>
+                    <delay>0</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Functional Checks</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>Functional Test: Rados Gateway</name>
+                    <type>2</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>check.rgw</key>
+                    <delay>0</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>0</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>Functional Checks</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
                 <item>
                     <name>Memory check: Apache</name>
                     <type>7</type>
@@ -669,9 +1427,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[apache2,www-data]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -708,9 +1466,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,,,carbon-cache]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -747,9 +1505,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,,,carbon-relay]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -786,9 +1544,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[ceph-mds,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -825,9 +1583,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[ceph-mon,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -864,9 +1622,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,cinder,,cinder-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -903,9 +1661,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,cinder,,cinder-scheduler]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -942,9 +1700,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,cinder,,cinder-volume]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -981,9 +1739,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[java,,,ElasticSearch]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1020,9 +1778,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,glance,,glance-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1059,9 +1817,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,glance,,glance-registry]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1097,10 +1855,10 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>proc.mem[python,keystone,,keystone-all]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <key>proc.mem[,keystone,,]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1137,48 +1895,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[ruby,kibana,,kibana]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Memory check: Logstash</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>proc.mem[java,logstash,,logstash]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1215,9 +1934,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[mysqld,mysql,max]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1254,9 +1973,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-cert]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1293,9 +2012,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-conductor]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1332,9 +2051,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-consoleauth]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1371,9 +2090,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[python,nova,,nova-scheduler]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1410,9 +2129,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[pdns_server-instance,pdns]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1449,9 +2168,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.mem[beam,rabbitmq,max,rabbitmq]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1482,15 +2201,288 @@
                     <valuemap/>
                 </item>
                 <item>
+                    <name>MySQL Aborted Clients</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Aborted_clients]</key>
+                    <delay>120</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>2</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>The number of new aborted clients since the last update</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL Aborted Connections</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Aborted_connects]</key>
+                    <delay>120</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>2</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>The number of new aborted connections since the last update</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL Data In</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Bytes_received]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>B</units>
+                    <delta>1</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL Data Out</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Bytes_sent]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units>B</units>
+                    <delta>1</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL New Connections</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Connections]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>1</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>The number of new connection attempts, sucessful or not.</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL Ping</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.ping</key>
+                    <delay>120</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>Return 1 if the database is up</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>MySQL Query Rate</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>mysql.status[Questions]</key>
+                    <delay>120</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>1</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description>The query rate</description>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>MySQL</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
                     <name>Process check: Apache</name>
                     <type>7</type>
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[apache2,www-data]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1527,9 +2519,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,,,carbon-cache]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1566,9 +2558,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,,,carbon-relay]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1605,9 +2597,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[ceph-mds,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1644,9 +2636,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[ceph-mon,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1683,9 +2675,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,cinder,,cinder-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1722,9 +2714,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,cinder,,cinder-scheduler]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1761,9 +2753,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,cinder,,cinder-volume]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1800,9 +2792,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[java,,,ElasticSearch]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1839,9 +2831,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,glance,,glance-api]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1878,9 +2870,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,glance,,glance-registry]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1917,9 +2909,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[haproxy,haproxy]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1956,9 +2948,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[keepalived,root]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -1994,10 +2986,10 @@
                     <snmp_community/>
                     <multiplier>0</multiplier>
                     <snmp_oid/>
-                    <key>proc.num[python,keystone,,keystone-all]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <key>proc.num[,keystone,,]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2034,48 +3026,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[ruby,kibana,,kibana]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Processes</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Process check: Logstash</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>proc.num[java,logstash,,logstash]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2112,9 +3065,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[mysqld,mysql]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2151,9 +3104,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-cert]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2190,9 +3143,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-conductor]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2229,9 +3182,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-consoleauth]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2268,9 +3221,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[python,nova,,nova-scheduler]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2307,9 +3260,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[pdns_server-instance,pdns]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2346,9 +3299,9 @@
                     <multiplier>0</multiplier>
                     <snmp_oid/>
                     <key>proc.num[beam,rabbitmq,all,rabbitmq]</key>
-                    <delay>30</delay>
-                    <history>90</history>
-                    <trends>365</trends>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
                     <status>0</status>
                     <value_type>3</value_type>
                     <allowed_hosts/>
@@ -2378,8 +3331,351 @@
                     </applications>
                     <valuemap/>
                 </item>
+                <item>
+                    <name>RGW: Number buckets</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>ceph.rgw.nbuckets</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>3</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>RGW</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
+                <item>
+                    <name>VIP Hostname</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <multiplier>0</multiplier>
+                    <snmp_oid/>
+                    <key>system.run[whohasthevip]</key>
+                    <delay>90</delay>
+                    <history>3</history>
+                    <trends>30</trends>
+                    <status>0</status>
+                    <value_type>1</value_type>
+                    <allowed_hosts/>
+                    <units/>
+                    <delta>0</delta>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <formula>1</formula>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <data_type>0</data_type>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <description/>
+                    <inventory_link>0</inventory_link>
+                    <applications>
+                        <application>
+                            <name>VIP</name>
+                        </application>
+                    </applications>
+                    <valuemap/>
+                </item>
             </items>
-            <discovery_rules/>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>RGW Bucket Discovery</name>
+                    <type>7</type>
+                    <snmp_community/>
+                    <snmp_oid/>
+                    <key>ceph.rgw.bucket.discovery</key>
+                    <delay>90</delay>
+                    <status>0</status>
+                    <allowed_hosts/>
+                    <snmpv3_securityname/>
+                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                    <snmpv3_authpassphrase/>
+                    <snmpv3_privpassphrase/>
+                    <delay_flex/>
+                    <params/>
+                    <ipmi_sensor/>
+                    <authtype>0</authtype>
+                    <username/>
+                    <password/>
+                    <publickey/>
+                    <privatekey/>
+                    <port/>
+                    <filter>:</filter>
+                    <lifetime>2</lifetime>
+                    <description>Creates RGW bucket monitoring tools</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Bucket DELETE ops/s {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.usage[{#BKTNAME},delete_obj,ops]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <delta>1</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>The number of DELETE operations on {#BKTNAME} per sec</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Bucket GET B/s {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.usage[{#BKTNAME},put_obj,bytes_sent]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units>B</units>
+                            <delta>1</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>Data download rate</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Bucket GET ops/s {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.usage[{#BKTNAME},get_obj,ops]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <delta>1</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>The number of GET operations on {#BKTNAME} per sec</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Bucket Objects {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.objects[{#BKTNAME}]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <delta>0</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>Number of objects stored in the bucket</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Bucket PUT ops/s {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.usage[{#BKTNAME},put_obj,ops]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units/>
+                            <delta>1</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description>The number of put operations on {#BKTNAME} per sec</description>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Bucket Size {#BKTNAME}</name>
+                            <type>7</type>
+                            <snmp_community/>
+                            <multiplier>0</multiplier>
+                            <snmp_oid/>
+                            <key>ceph.rgw.bucket.size[{#BKTNAME}]</key>
+                            <delay>90</delay>
+                            <history>3</history>
+                            <trends>30</trends>
+                            <status>0</status>
+                            <value_type>3</value_type>
+                            <allowed_hosts/>
+                            <units>B</units>
+                            <delta>0</delta>
+                            <snmpv3_securityname/>
+                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
+                            <snmpv3_authpassphrase/>
+                            <snmpv3_privpassphrase/>
+                            <formula>1</formula>
+                            <delay_flex/>
+                            <params/>
+                            <ipmi_sensor/>
+                            <data_type>0</data_type>
+                            <authtype>0</authtype>
+                            <username/>
+                            <password/>
+                            <publickey/>
+                            <privatekey/>
+                            <port/>
+                            <description/>
+                            <inventory_link>0</inventory_link>
+                            <applications>
+                                <application>
+                                    <name>RGW</name>
+                                </application>
+                            </applications>
+                            <valuemap/>
+                        </item_prototype>
+                    </item_prototypes>
+                    <trigger_prototypes/>
+                    <graph_prototypes/>
+                </discovery_rule>
+            </discovery_rules>
             <macros/>
             <templates>
                 <template>
@@ -2389,1740 +3685,21 @@
                     <name>Template App Zabbix Server</name>
                 </template>
             </templates>
-            <screens/>
-        </template>
-        <template>
-            <template>Template OS Linux-active</template>
-            <name>Template OS Linux-active</name>
-            <groups>
-                <group>
-                    <name>Templates</name>
-                </group>
-            </groups>
-            <applications>
-                <application>
-                    <name>CPU</name>
-                </application>
-                <application>
-                    <name>Filesystems</name>
-                </application>
-                <application>
-                    <name>General</name>
-                </application>
-                <application>
-                    <name>Memory</name>
-                </application>
-                <application>
-                    <name>Network interfaces</name>
-                </application>
-                <application>
-                    <name>OS</name>
-                </application>
-                <application>
-                    <name>Performance</name>
-                </application>
-                <application>
-                    <name>Processes</name>
-                </application>
-                <application>
-                    <name>Security</name>
-                </application>
-            </applications>
-            <items>
-                <item>
-                    <name>Available memory</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>vm.memory.size[available]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>B</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Available memory is defined as free+cached+buffers memory.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Memory</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Checksum of $1</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>vfs.file.cksum[/etc/passwd]</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Security</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Context switches per second</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.switches</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>sps</units>
-                    <delta>1</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,idle]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The time the CPU has spent doing nothing.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,softirq]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The amount of time the CPU has been servicing software interrupts.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,user]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The time the CPU has spent running users' processes that are not niced.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,steal]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The amount of CPU 'stolen' from this virtual machine by the hypervisor for other tasks (such as running another virtual machine).</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,system]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The time the CPU has spent running the kernel and its processes.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,nice]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The time the CPU has spent running users' proccess that have been niced.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,iowait]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Amount of time the CPU has been waiting for I/O to complete.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>CPU $2 time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.util[,interrupt]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The amount of time the CPU has been servicing hardware interrupts.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Free swap space</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.swap.size[,free]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>B</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>0</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Memory</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Free swap space in %</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.swap.size[,pfree]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units>%</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Memory</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Host boot time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.boottime</key>
-                    <delay>600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>unixtime</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>General</name>
-                        </application>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Host local time</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.localtime</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>unixtime</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>General</name>
-                        </application>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Host name</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.hostname</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>1</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>System host name.</description>
-                    <inventory_link>3</inventory_link>
-                    <applications>
-                        <application>
-                            <name>General</name>
-                        </application>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Interrupts per second</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.intr</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>ips</units>
-                    <delta>1</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Maximum number of opened files</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>kernel.maxfiles</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>It could be increased by using sysctrl utility or modifying file /etc/sysctl.conf.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Maximum number of processes</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>kernel.maxproc</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>It could be increased by using sysctrl utility or modifying file /etc/sysctl.conf.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Number of logged in users</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.users.num</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Number of users who are currently logged in.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                        <application>
-                            <name>Security</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Number of processes</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>proc.num[]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Total number of processes in any state.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Processes</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Number of running processes</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>proc.num[,,run]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>Number of processes in running state.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Processes</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Processor load (1 min average per core)</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.load[percpu,avg1]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The processor load is calculates as system CPU load divided by number of CPU cores.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Processor load (5 min average per core)</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.load[percpu,avg5]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The processor load is calculates as system CPU load divided by number of CPU cores.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Processor load (15 min average per core)</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.cpu.load[percpu,avg15]</key>
-                    <delay>60</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>0</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The processor load is calculates as system CPU load divided by number of CPU cores.</description>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>CPU</name>
-                        </application>
-                        <application>
-                            <name>Performance</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>System information</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.uname</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>1</value_type>
-                    <allowed_hosts/>
-                    <units/>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description>The information as normally returned by 'uname -a'.</description>
-                    <inventory_link>5</inventory_link>
-                    <applications>
-                        <application>
-                            <name>General</name>
-                        </application>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>System uptime</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.uptime</key>
-                    <delay>600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>uptime</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>General</name>
-                        </application>
-                        <application>
-                            <name>OS</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Total memory</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>vm.memory.size[total]</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>B</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>0</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Memory</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-                <item>
-                    <name>Total swap space</name>
-                    <type>7</type>
-                    <snmp_community/>
-                    <multiplier>0</multiplier>
-                    <snmp_oid/>
-                    <key>system.swap.size[,total]</key>
-                    <delay>3600</delay>
-                    <history>7</history>
-                    <trends>365</trends>
-                    <status>0</status>
-                    <value_type>3</value_type>
-                    <allowed_hosts/>
-                    <units>B</units>
-                    <delta>0</delta>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <formula>1</formula>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <data_type>0</data_type>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <description/>
-                    <inventory_link>0</inventory_link>
-                    <applications>
-                        <application>
-                            <name>Memory</name>
-                        </application>
-                    </applications>
-                    <valuemap/>
-                </item>
-            </items>
-            <discovery_rules>
-                <discovery_rule>
-                    <name>Mounted filesystem discovery</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <snmp_oid/>
-                    <key>vfs.fs.discovery</key>
-                    <delay>3600</delay>
-                    <status>0</status>
-                    <allowed_hosts/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <filter>{#FSTYPE}:@File systems for discovery</filter>
-                    <lifetime>30</lifetime>
-                    <description>Discovery of file systems of different types as defined in global regular expression &quot;File systems for discovery&quot;.</description>
-                    <item_prototypes>
-                        <item_prototype>
-                            <name>Free disk space on $1</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>0</multiplier>
-                            <snmp_oid/>
-                            <key>vfs.fs.size[{#FSNAME},free]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>3</value_type>
-                            <allowed_hosts/>
-                            <units>B</units>
-                            <delta>0</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>1</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Filesystems</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Free disk space on $1 (percentage)</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>0</multiplier>
-                            <snmp_oid/>
-                            <key>vfs.fs.size[{#FSNAME},pfree]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>0</value_type>
-                            <allowed_hosts/>
-                            <units>%</units>
-                            <delta>0</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>1</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Filesystems</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Free inodes on $1 (percentage)</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>0</multiplier>
-                            <snmp_oid/>
-                            <key>vfs.fs.inode[{#FSNAME},pfree]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>0</value_type>
-                            <allowed_hosts/>
-                            <units>%</units>
-                            <delta>0</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>1</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Filesystems</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Total disk space on $1</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>0</multiplier>
-                            <snmp_oid/>
-                            <key>vfs.fs.size[{#FSNAME},total]</key>
-                            <delay>3600</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>3</value_type>
-                            <allowed_hosts/>
-                            <units>B</units>
-                            <delta>0</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>1</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Filesystems</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Used disk space on $1</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>0</multiplier>
-                            <snmp_oid/>
-                            <key>vfs.fs.size[{#FSNAME},used]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>3</value_type>
-                            <allowed_hosts/>
-                            <units>B</units>
-                            <delta>0</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>1</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Filesystems</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                    </item_prototypes>
-                    <trigger_prototypes>
-                        <trigger_prototype>
-                            <expression>{Template OS Linux-active:vfs.fs.size[{#FSNAME},pfree].last(0)}&lt;20</expression>
-                            <name>Free disk space is less than 20% on volume {#FSNAME}</name>
-                            <url/>
-                            <status>0</status>
-                            <priority>2</priority>
-                            <description/>
-                            <type>0</type>
-                        </trigger_prototype>
-                        <trigger_prototype>
-                            <expression>{Template OS Linux-active:vfs.fs.inode[{#FSNAME},pfree].last(0)}&lt;20</expression>
-                            <name>Free inodes is less than 20% on volume {#FSNAME}</name>
-                            <url/>
-                            <status>0</status>
-                            <priority>2</priority>
-                            <description/>
-                            <type>0</type>
-                        </trigger_prototype>
-                    </trigger_prototypes>
-                    <graph_prototypes>
-                        <graph_prototype>
-                            <name>Disk space usage {#FSNAME}</name>
-                            <width>600</width>
-                            <height>340</height>
-                            <yaxismin>0.0000</yaxismin>
-                            <yaxismax>0.0000</yaxismax>
-                            <show_work_period>0</show_work_period>
-                            <show_triggers>0</show_triggers>
-                            <type>2</type>
-                            <show_legend>1</show_legend>
-                            <show_3d>1</show_3d>
-                            <percent_left>0.0000</percent_left>
-                            <percent_right>0.0000</percent_right>
-                            <ymin_type_1>0</ymin_type_1>
-                            <ymax_type_1>0</ymax_type_1>
-                            <ymin_item_1>0</ymin_item_1>
-                            <ymax_item_1>0</ymax_item_1>
-                            <graph_items>
-                                <graph_item>
-                                    <sortorder>0</sortorder>
-                                    <drawtype>0</drawtype>
-                                    <color>C80000</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>2</type>
-                                    <item>
-                                        <host>Template OS Linux-active</host>
-                                        <key>vfs.fs.size[{#FSNAME},total]</key>
-                                    </item>
-                                </graph_item>
-                                <graph_item>
-                                    <sortorder>1</sortorder>
-                                    <drawtype>0</drawtype>
-                                    <color>00C800</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>0</type>
-                                    <item>
-                                        <host>Template OS Linux-active</host>
-                                        <key>vfs.fs.size[{#FSNAME},free]</key>
-                                    </item>
-                                </graph_item>
-                            </graph_items>
-                        </graph_prototype>
-                    </graph_prototypes>
-                </discovery_rule>
-                <discovery_rule>
-                    <name>Network interface discovery</name>
-                    <type>0</type>
-                    <snmp_community/>
-                    <snmp_oid/>
-                    <key>net.if.discovery</key>
-                    <delay>3600</delay>
-                    <status>0</status>
-                    <allowed_hosts/>
-                    <snmpv3_securityname/>
-                    <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                    <snmpv3_authpassphrase/>
-                    <snmpv3_privpassphrase/>
-                    <delay_flex/>
-                    <params/>
-                    <ipmi_sensor/>
-                    <authtype>0</authtype>
-                    <username/>
-                    <password/>
-                    <publickey/>
-                    <privatekey/>
-                    <port/>
-                    <filter>{#IFNAME}:@Network interfaces for discovery</filter>
-                    <lifetime>30</lifetime>
-                    <description>Discovery of network interfaces as defined in global regular expression &quot;Network interfaces for discovery&quot;.</description>
-                    <item_prototypes>
-                        <item_prototype>
-                            <name>Incoming network traffic on $1</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>1</multiplier>
-                            <snmp_oid/>
-                            <key>net.if.in[{#IFNAME}]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>3</value_type>
-                            <allowed_hosts/>
-                            <units>bps</units>
-                            <delta>1</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>8</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Network interfaces</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Outgoing network traffic on $1</name>
-                            <type>0</type>
-                            <snmp_community/>
-                            <multiplier>1</multiplier>
-                            <snmp_oid/>
-                            <key>net.if.out[{#IFNAME}]</key>
-                            <delay>60</delay>
-                            <history>7</history>
-                            <trends>365</trends>
-                            <status>0</status>
-                            <value_type>3</value_type>
-                            <allowed_hosts/>
-                            <units>bps</units>
-                            <delta>1</delta>
-                            <snmpv3_securityname/>
-                            <snmpv3_securitylevel>0</snmpv3_securitylevel>
-                            <snmpv3_authpassphrase/>
-                            <snmpv3_privpassphrase/>
-                            <formula>8</formula>
-                            <delay_flex/>
-                            <params/>
-                            <ipmi_sensor/>
-                            <data_type>0</data_type>
-                            <authtype>0</authtype>
-                            <username/>
-                            <password/>
-                            <publickey/>
-                            <privatekey/>
-                            <port/>
-                            <description/>
-                            <inventory_link>0</inventory_link>
-                            <applications>
-                                <application>
-                                    <name>Network interfaces</name>
-                                </application>
-                            </applications>
-                            <valuemap/>
-                        </item_prototype>
-                    </item_prototypes>
-                    <trigger_prototypes/>
-                    <graph_prototypes>
-                        <graph_prototype>
-                            <name>Network traffic on {#IFNAME}</name>
-                            <width>900</width>
-                            <height>200</height>
-                            <yaxismin>0.0000</yaxismin>
-                            <yaxismax>100.0000</yaxismax>
-                            <show_work_period>1</show_work_period>
-                            <show_triggers>1</show_triggers>
-                            <type>0</type>
-                            <show_legend>1</show_legend>
-                            <show_3d>0</show_3d>
-                            <percent_left>0.0000</percent_left>
-                            <percent_right>0.0000</percent_right>
-                            <ymin_type_1>1</ymin_type_1>
-                            <ymax_type_1>0</ymax_type_1>
-                            <ymin_item_1>0</ymin_item_1>
-                            <ymax_item_1>0</ymax_item_1>
-                            <graph_items>
-                                <graph_item>
-                                    <sortorder>0</sortorder>
-                                    <drawtype>5</drawtype>
-                                    <color>00AA00</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>0</type>
-                                    <item>
-                                        <host>Template OS Linux-active</host>
-                                        <key>net.if.in[{#IFNAME}]</key>
-                                    </item>
-                                </graph_item>
-                                <graph_item>
-                                    <sortorder>1</sortorder>
-                                    <drawtype>5</drawtype>
-                                    <color>3333FF</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>0</type>
-                                    <item>
-                                        <host>Template OS Linux-active</host>
-                                        <key>net.if.out[{#IFNAME}]</key>
-                                    </item>
-                                </graph_item>
-                            </graph_items>
-                        </graph_prototype>
-                    </graph_prototypes>
-                </discovery_rule>
-            </discovery_rules>
-            <macros/>
-            <templates>
-                <template>
-                    <name>Template App Zabbix Agent</name>
-                </template>
-            </templates>
             <screens>
                 <screen>
-                    <name>System performance</name>
+                    <name>Ceph</name>
                     <hsize>2</hsize>
-                    <vsize>2</vsize>
+                    <vsize>5</vsize>
                     <screen_items>
                         <screen_item>
-                            <resourcetype>0</resourcetype>
-                            <width>500</width>
-                            <height>120</height>
-                            <x>0</x>
-                            <y>0</y>
-                            <colspan>1</colspan>
-                            <rowspan>1</rowspan>
-                            <elements>0</elements>
-                            <valign>1</valign>
-                            <halign>0</halign>
-                            <style>0</style>
-                            <url/>
-                            <dynamic>0</dynamic>
-                            <sort_triggers>0</sort_triggers>
-                            <resource>
-                                <name>CPU load</name>
-                                <host>Template OS Linux-active</host>
-                            </resource>
-                        </screen_item>
-                        <screen_item>
-                            <resourcetype>0</resourcetype>
+                            <resourcetype>3</resourcetype>
                             <width>500</width>
                             <height>100</height>
                             <x>0</x>
-                            <y>1</y>
-                            <colspan>1</colspan>
-                            <rowspan>1</rowspan>
-                            <elements>0</elements>
-                            <valign>1</valign>
-                            <halign>0</halign>
-                            <style>0</style>
-                            <url/>
-                            <dynamic>0</dynamic>
-                            <sort_triggers>0</sort_triggers>
-                            <resource>
-                                <name>CPU utilization</name>
-                                <host>Template OS Linux-active</host>
-                            </resource>
-                        </screen_item>
-                        <screen_item>
-                            <resourcetype>1</resourcetype>
-                            <width>500</width>
-                            <height>148</height>
-                            <x>1</x>
                             <y>0</y>
                             <colspan>1</colspan>
                             <rowspan>1</rowspan>
-                            <elements>0</elements>
+                            <elements>25</elements>
                             <valign>1</valign>
                             <halign>0</halign>
                             <style>0</style>
@@ -4130,28 +3707,8 @@
                             <dynamic>0</dynamic>
                             <sort_triggers>0</sort_triggers>
                             <resource>
-                                <key>proc.num[,,run]</key>
-                                <host>Template OS Linux-active</host>
-                            </resource>
-                        </screen_item>
-                        <screen_item>
-                            <resourcetype>1</resourcetype>
-                            <width>500</width>
-                            <height>184</height>
-                            <x>1</x>
-                            <y>1</y>
-                            <colspan>1</colspan>
-                            <rowspan>1</rowspan>
-                            <elements>0</elements>
-                            <valign>1</valign>
-                            <halign>0</halign>
-                            <style>0</style>
-                            <url/>
-                            <dynamic>0</dynamic>
-                            <sort_triggers>0</sort_triggers>
-                            <resource>
-                                <key>vm.memory.size[available]</key>
-                                <host>Template OS Linux-active</host>
+                                <key>ceph.health</key>
+                                <host>BCPC-Headnode</host>
                             </resource>
                         </screen_item>
                     </screen_items>
@@ -4161,8 +3718,8 @@
     </templates>
     <triggers>
         <trigger>
-            <expression>{Template OS Linux-active:vfs.file.cksum[/etc/passwd].diff(0)}&gt;0</expression>
-            <name>/etc/passwd has been changed on {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:mysql.status[Aborted_clients].last(0)}&gt;50</expression>
+            <name>Aborted MySQL Clients</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
@@ -4171,58 +3728,188 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:kernel.maxfiles.last(0)}&lt;1024</expression>
-            <name>Configured max number of opened files is too low on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>1</priority>
-            <description/>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Linux-active:kernel.maxproc.last(0)}&lt;256</expression>
-            <name>Configured max number of processes is too low on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>1</priority>
-            <description/>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Linux-active:system.cpu.util[,iowait].last(0)}&gt;20</expression>
-            <name>Disk I/O is overloaded on {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:mysql.status[Aborted_connects].last(0)}&gt;50</expression>
+            <name>Aborted MySQL Connections</name>
             <url/>
             <status>0</status>
             <priority>2</priority>
-            <description>OS spends significant time waiting for I/O (input/output) operations. It could be indicator of performance issues with storage system.</description>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Linux-active:system.uname.diff(0)}&gt;0</expression>
-            <name>Host information was changed on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>1</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:system.hostname.diff(0)}&gt;0</expression>
-            <name>Hostname was changed on {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:ceph.pg_count[active].change(0)}&lt;0</expression>
+            <name>Ceph: Drop in number of active PGs</name>
             <url/>
             <status>0</status>
-            <priority>1</priority>
+            <priority>4</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:vm.memory.size[available].last(0)}&lt;20M</expression>
-            <name>Lack of available memory on server {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:ceph.total.percent.last(0)}&gt;80</expression>
+            <name>Ceph Full</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description>Ceph File system in getting full</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:ceph.health.str(HEALTH_ERROR,#1)}=1</expression>
+            <name>Ceph Health Error</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description>Ceph Reporting health issues</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:ceph.health.str(HEALTH_WARN,#1)}=1</expression>
+            <name>Ceph Health Warn</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description>Ceph Reporting health issues</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:check.nova.last(#1)}&lt;0 | {BCPC-Headnode:check.nova.nodata(5400)}=1</expression>
+            <name>Functional Check Error: nova</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description>Unable to create/destroy new VMs</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:check.rgw.last(#1)}&lt;0 | {BCPC-Headnode:check.rgw.nodata(5400)}=1</expression>
+            <name>Functional Check Error: RGW</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description>Unable to create/destroy new keys in RGW</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:system.run[ip route show table mgmt].str(default)}=0</expression>
+            <name>IP Route Check for MGMT failed on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:system.run[ip route show table storage].str(scope)}=0</expression>
+            <name>IP Route Check for STORAGE failed on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:mysql.ping.last(0)}#1</expression>
+            <name>MySQL is not pingable from {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:ceph.rgw.haproxy.avg(300)}&lt;10</expression>
+            <name>RGW: HAProxy no longer pingging</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description>HAPRoxy pings Rados Gateway every few sec. If this stops it probably means that HAProxy has dropped the host.</description>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,cinder,,cinder-api].last(0)}#1</expression>
+            <name>Service: Cinder API</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,cinder,,cinder-scheduler].last(0)}#1</expression>
+            <name>Service: Cinder Scheduler</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,cinder,,cinder-volume].last(0)}=0</expression>
+            <name>Service: Cinder Volume</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,glance,,glance-api].last(0)}#2</expression>
+            <name>Service: Glance-API</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,glance,,glance-registry].last(0)}#2</expression>
+            <name>Service: Glance Registry</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[,keystone,,].last(0)}=0</expression>
+            <name>Service: Keystone</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[haproxy,haproxy].last(0)}#1</expression>
+            <name>Service HAProxy down on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:proc.num[python,nova,,nova-api].last(0)}#4</expression>
+            <name>Service Nova API down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
             <priority>3</priority>
@@ -4231,51 +3918,81 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:system.swap.size[,pfree].last(0)}&lt;50</expression>
-            <name>Lack of free swap space on {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:proc.num[python,nova,,nova-cert].last(0)}#1</expression>
+            <name>Service Nova Cert down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>2</priority>
-            <description>It probably means that the systems requires more physical memory.</description>
-            <type>0</type>
-            <dependencies/>
-        </trigger>
-        <trigger>
-            <expression>{Template OS Linux-active:system.cpu.load[percpu,avg1].last(0)}&gt;5</expression>
-            <name>Processor load is too high on {HOST.NAME}</name>
-            <url/>
-            <status>0</status>
-            <priority>2</priority>
+            <priority>4</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:proc.num[].last(0)}&gt;300</expression>
-            <name>Too many processes on {HOST.NAME}</name>
+            <expression>{BCBC-Worknode:proc.num[python,nova,,nova-compute].last(0)}#1</expression>
+            <name>Service Nova Compute down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>2</priority>
+            <priority>3</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:proc.num[,,run].last(0)}&gt;30</expression>
-            <name>Too many processes running on {HOST.NAME}</name>
+            <expression>{BCPC-Headnode:proc.num[python,nova,,nova-conductor].last(0)}#1</expression>
+            <name>Service Nova Conductor down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>2</priority>
+            <priority>4</priority>
             <description/>
             <type>0</type>
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{Template OS Linux-active:system.uptime.change(0)}&lt;0</expression>
-            <name>{HOST.NAME} has just been restarted</name>
+            <expression>{BCPC-Headnode:proc.num[python,nova,,nova-consoleauth].last(0)}#1</expression>
+            <name>Service Nova ConsoleAuth down on {HOST.NAME}</name>
             <url/>
             <status>0</status>
-            <priority>1</priority>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCBC-Worknode:proc.num[python,nova,,nova-network].last(0)}#1</expression>
+            <name>Service Nova Network down on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>3</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,nova,,nova-novncproxy].last(0)}#1</expression>
+            <name>Service Nova NoVNCProxy down on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:proc.num[python,nova,,nova-scheduler].last(0)}#1</expression>
+            <name>Service Nova Scheduler down on {HOST.NAME}</name>
+            <url/>
+            <status>0</status>
+            <priority>4</priority>
+            <description/>
+            <type>0</type>
+            <dependencies/>
+        </trigger>
+        <trigger>
+            <expression>{BCPC-Headnode:system.run[whohasthevip].diff(0)}=1</expression>
+            <name>VIP has changed host</name>
+            <url/>
+            <status>0</status>
+            <priority>2</priority>
             <description/>
             <type>0</type>
             <dependencies/>
@@ -4283,7 +4000,7 @@
     </triggers>
     <graphs>
         <graph>
-            <name>CPU jumps</name>
+            <name>MySQL IO</name>
             <width>900</width>
             <height>200</height>
             <yaxismin>0.0000</yaxismin>
@@ -4301,243 +4018,27 @@
             <ymax_item_1>0</ymax_item_1>
             <graph_items>
                 <graph_item>
-                    <sortorder>1</sortorder>
-                    <drawtype>0</drawtype>
-                    <color>009900</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.switches</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>2</sortorder>
-                    <drawtype>0</drawtype>
-                    <color>000099</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.intr</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>CPU load</name>
-            <width>900</width>
-            <height>200</height>
-            <yaxismin>0.0000</yaxismin>
-            <yaxismax>100.0000</yaxismax>
-            <show_work_period>1</show_work_period>
-            <show_triggers>1</show_triggers>
-            <type>0</type>
-            <show_legend>1</show_legend>
-            <show_3d>0</show_3d>
-            <percent_left>0.0000</percent_left>
-            <percent_right>0.0000</percent_right>
-            <ymin_type_1>1</ymin_type_1>
-            <ymax_type_1>0</ymax_type_1>
-            <ymin_item_1>0</ymin_item_1>
-            <ymax_item_1>0</ymax_item_1>
-            <graph_items>
-                <graph_item>
                     <sortorder>0</sortorder>
                     <drawtype>0</drawtype>
-                    <color>009900</color>
+                    <color>00C800</color>
                     <yaxisside>0</yaxisside>
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.load[percpu,avg1]</key>
+                        <host>BCPC-Headnode</host>
+                        <key>mysql.status[Bytes_received]</key>
                     </item>
                 </graph_item>
                 <graph_item>
                     <sortorder>1</sortorder>
                     <drawtype>0</drawtype>
-                    <color>000099</color>
+                    <color>0000C8</color>
                     <yaxisside>0</yaxisside>
                     <calc_fnc>2</calc_fnc>
                     <type>0</type>
                     <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.load[percpu,avg5]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>2</sortorder>
-                    <drawtype>0</drawtype>
-                    <color>990000</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.load[percpu,avg15]</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>CPU utilization</name>
-            <width>900</width>
-            <height>200</height>
-            <yaxismin>0.0000</yaxismin>
-            <yaxismax>100.0000</yaxismax>
-            <show_work_period>1</show_work_period>
-            <show_triggers>0</show_triggers>
-            <type>1</type>
-            <show_legend>1</show_legend>
-            <show_3d>0</show_3d>
-            <percent_left>0.0000</percent_left>
-            <percent_right>0.0000</percent_right>
-            <ymin_type_1>1</ymin_type_1>
-            <ymax_type_1>1</ymax_type_1>
-            <ymin_item_1>0</ymin_item_1>
-            <ymax_item_1>0</ymax_item_1>
-            <graph_items>
-                <graph_item>
-                    <sortorder>1</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>FF5555</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,steal]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>2</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>55FF55</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,softirq]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>3</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>009999</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,interrupt]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>4</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>990099</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,nice]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>5</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>999900</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,iowait]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>6</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>990000</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,system]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>7</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>000099</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,user]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>8</sortorder>
-                    <drawtype>1</drawtype>
-                    <color>009900</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.cpu.util[,idle]</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>Swap usage</name>
-            <width>600</width>
-            <height>340</height>
-            <yaxismin>0.0000</yaxismin>
-            <yaxismax>0.0000</yaxismax>
-            <show_work_period>0</show_work_period>
-            <show_triggers>0</show_triggers>
-            <type>2</type>
-            <show_legend>1</show_legend>
-            <show_3d>1</show_3d>
-            <percent_left>0.0000</percent_left>
-            <percent_right>0.0000</percent_right>
-            <ymin_type_1>0</ymin_type_1>
-            <ymax_type_1>0</ymax_type_1>
-            <ymin_item_1>0</ymin_item_1>
-            <ymax_item_1>0</ymax_item_1>
-            <graph_items>
-                <graph_item>
-                    <sortorder>0</sortorder>
-                    <drawtype>0</drawtype>
-                    <color>AA0000</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>2</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.swap.size[,total]</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>1</sortorder>
-                    <drawtype>0</drawtype>
-                    <color>00AA00</color>
-                    <yaxisside>0</yaxisside>
-                    <calc_fnc>2</calc_fnc>
-                    <type>0</type>
-                    <item>
-                        <host>Template OS Linux-active</host>
-                        <key>system.swap.size[,free]</key>
+                        <host>BCPC-Headnode</host>
+                        <key>mysql.status[Bytes_sent]</key>
                     </item>
                 </graph_item>
             </graph_items>

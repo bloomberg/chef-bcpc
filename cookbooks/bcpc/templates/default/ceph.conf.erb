@@ -11,9 +11,11 @@
     cluster network = <%= @node["bcpc"]["storage"]["cidr"] %>
     keyring = /etc/ceph/$cluster.$name.keyring
     mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
+    rgw socket path = /var/lib/ceph/radosgw/rgw_fcgi.sock
 
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring
+    debug paxos = 0/5
 
 [mds]
     keyring = /var/lib/ceph/mds/$cluster-$id/keyring
@@ -24,3 +26,11 @@
     filestore_xattr_use_omap = true
     osd_fs_type = xfs
     osd_fs_mount_options_xfs = noexec,nodev,noatime,nodiratime,barrier=0,discard
+    osd_crush_update_on_start = false
+
+[client.radosgw.gateway]
+    keyring = /var/lib/ceph/radosgw/$cluster-$id/keyring
+    log file = /var/log/ceph/radosgw.log
+    rgw enable ops log = true
+    rgw enable usage log = true
+

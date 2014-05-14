@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: nova-head
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,19 @@
 #
 
 include_recipe "bcpc::mysql"
-include_recipe "bcpc::nova-common"
+include_recipe "bcpc::openstack"
+
+ruby_block "initialize-nova-config" do
+    block do
+        make_config('mysql-nova-user', "nova")
+        make_config('mysql-nova-password', secure_password)
+        make_config('glance-cloudpipe-uuid', %x[uuidgen -r].strip)
+    end
+end
 
 package "python-memcache"
 
-%w{nova-scheduler nova-cert nova-consoleauth}.each do |pkg|
+%w{nova-scheduler nova-cert nova-consoleauth nova-conductor}.each do |pkg|
     package pkg do
         action :upgrade
     end
@@ -31,13 +39,26 @@ package "python-memcache"
     end
 end
 
-bash "restart-nova-scheduler-cert" do
-    action :nothing
-    subscribes :run, resources("template[/etc/nova/nova.conf]"), :delayed
-    subscribes :run, resources("template[/etc/nova/api-paste.ini]"), :delayed
-    notifies :restart, "service[nova-scheduler]", :immediately
-    notifies :restart, "service[nova-cert]", :immediately
-    notifies :restart, "service[nova-consoleauth]", :immediately
+template "/etc/nova/nova.conf" do
+    source "nova.conf.erb"
+    owner "nova"
+    group "nova"
+    mode 00600
+    notifies :restart, "service[nova-scheduler]", :delayed
+    notifies :restart, "service[nova-cert]", :delayed
+    notifies :restart, "service[nova-consoleauth]", :delayed
+    notifies :restart, "service[nova-conductor]", :delayed
+end
+
+template "/etc/nova/api-paste.ini" do
+    source "nova.api-paste.ini.erb"
+    owner "nova"
+    group "nova"
+    mode 00600
+    notifies :restart, "service[nova-scheduler]", :delayed
+    notifies :restart, "service[nova-cert]", :delayed
+    notifies :restart, "service[nova-consoleauth]", :delayed
+    notifies :restart, "service[nova-conductor]", :delayed
 end
 
 ruby_block "nova-database-creation" do
@@ -58,12 +79,15 @@ bash "nova-database-sync" do
     action :nothing
     user "root"
     code "nova-manage db sync"
-    notifies :run, "bash[restart-nova-scheduler-cert]", :immediately
+    notifies :restart, "service[nova-scheduler]", :immediately
+    notifies :restart, "service[nova-cert]", :immediately
+    notifies :restart, "service[nova-consoleauth]", :immediately
+    notifies :restart, "service[nova-conductor]", :immediately
 end
 
 ruby_block "reap-dead-servers-from-nova" do
     block do
-        all_hosts = get_all_nodes.collect{|x| x.hostname}
+        all_hosts = get_all_nodes.collect{|x| x['hostname']}
         nova_hosts = %x[nova-manage service list | awk '{print $2}' | grep -ve "^Host$" | uniq].split
         nova_hosts.each do |host|
             if not all_hosts.include?(host)

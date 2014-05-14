@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: cinder
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,11 +38,8 @@ end
     end
 end
 
-bash "restart-cinder" do
-    action :nothing
-    notifies :restart, "service[cinder-api]", :immediately
-    notifies :restart, "service[cinder-volume]", :immediately
-    notifies :restart, "service[cinder-scheduler]", :immediately
+service "cinder-api" do
+    restart_command "(service cinder-api stop || true) && service cinder-api start && sleep 5"
 end
 
 template "/etc/cinder/cinder.conf" do
@@ -50,7 +47,9 @@ template "/etc/cinder/cinder.conf" do
     owner "cinder"
     group "cinder"
     mode 00600
-    notifies :run, "bash[restart-cinder]", :delayed
+    notifies :restart, "service[cinder-api]", :delayed
+    notifies :restart, "service[cinder-volume]", :delayed
+    notifies :restart, "service[cinder-scheduler]", :delayed
 end
 
 template "/etc/cinder/api-paste.ini" do
@@ -58,7 +57,9 @@ template "/etc/cinder/api-paste.ini" do
     owner "cinder"
     group "cinder"
     mode 00600
-    notifies :run, "bash[restart-cinder]", :delayed
+    notifies :restart, "service[cinder-api]", :delayed
+    notifies :restart, "service[cinder-volume]", :delayed
+    notifies :restart, "service[cinder-scheduler]", :delayed
 end
 
 ruby_block "cinder-database-creation" do
@@ -79,16 +80,44 @@ bash "cinder-database-sync" do
     action :nothing
     user "root"
     code "cinder-manage db sync"
-    notifies :run, "bash[restart-cinder]", :immediately
+    notifies :restart, "service[cinder-api]", :immediately
+    notifies :restart, "service[cinder-volume]", :immediately
+    notifies :restart, "service[cinder-scheduler]", :immediately
 end
 
-bash "create-cinder-rados-pool" do
-    user "root"
-    code <<-EOH
-        ceph osd pool create #{node[:bcpc][:cinder_rbd_pool]} 1000
-        ceph osd pool set #{node[:bcpc][:cinder_rbd_pool]} size 3
-    EOH
-    not_if "rados lspools | grep #{node[:bcpc][:cinder_rbd_pool]}"
+node[:bcpc][:ceph][:enabled_pools].each do |type|
+    bash "create-cinder-rados-pool-#{type}" do
+        user "root"
+        optimal = power_of_2(get_ceph_osd_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:volumes][:replicas]*node[:bcpc][:ceph][:volumes][:portion]/100/node[:bcpc][:ceph][:enabled_pools].length)
+        code <<-EOH
+            ceph osd pool create #{node[:bcpc][:ceph][:volumes][:name]}-#{type} #{optimal}
+            ceph osd pool set #{node[:bcpc][:ceph][:volumes][:name]}-#{type} crush_ruleset #{(type=="ssd")?3:4}
+        EOH
+        not_if "rados lspools | grep #{node[:bcpc][:ceph][:volumes][:name]}-#{type}"
+    end
+
+    bash "set-cinder-rados-pool-replicas-#{type}" do
+        user "root"
+        code "ceph osd pool set #{node[:bcpc][:ceph][:volumes][:name]}-#{type} size #{node[:bcpc][:ceph][:volumes][:replicas]}"
+        not_if "ceph osd pool get #{node[:bcpc][:ceph][:volumes][:name]}-#{type} size | grep #{node[:bcpc][:ceph][:volumes][:replicas]}"
+    end
+
+    bash "set-cinder-rados-pool-pgs-#{type}" do
+        user "root"
+        optimal = power_of_2(get_ceph_osd_nodes.length*node[:bcpc][:ceph][:pgs_per_node]/node[:bcpc][:ceph][:volumes][:replicas]*node[:bcpc][:ceph][:volumes][:portion]/100/node[:bcpc][:ceph][:enabled_pools].length)
+        code "ceph osd pool set #{node[:bcpc][:ceph][:volumes][:name]}-#{type} pg_num #{optimal}"
+        not_if "((`ceph osd pool get #{node[:bcpc][:ceph][:volumes][:name]}-#{type} pg_num | awk '{print $2}'` >= #{optimal}))"
+    end
+
+    bash "cinder-make-type-#{type}" do
+        user "root"
+        code <<-EOH
+            . /root/adminrc
+            cinder type-create #{type.upcase}
+            cinder type-key #{type.upcase} set volume_backend_name=#{type.upcase}
+        EOH
+        not_if ". /root/adminrc; cinder type-list | grep #{type.upcase}"
+    end
 end
 
 service "tgt" do

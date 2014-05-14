@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: ufw
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ bash "setup-allow-rules-ufw" do
     code <<-EOH
       ufw allow 22/tcp
       ufw allow 80/tcp
+      ufw allow 443/tcp
       ufw allow 4000/tcp
       ufw allow 4040/tcp
       ufw allow in on #{node[:bcpc][:bootstrap][:pxe_interface]} from any port 68 to any port 67 proto udp

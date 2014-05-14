@@ -1,0 +1,8 @@
+---
+
+tenant: <%=@node['bcpc']['admin_tenant']%>
+user: '<%="#{get_config('keystone-test-user')}"%>'
+password: '<%="#{get_config('keystone-test-password')}"%>'
+auth_url: https://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
+storage_vip:  <%="#{node[:bcpc][:floating][:vip]}"%>
+storage_port: <%="#{node[:bcpc][:ports][:haproxy][:radosgw]}" %>

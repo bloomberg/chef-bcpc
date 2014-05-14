@@ -1,0 +1,23 @@
+{
+    "ipaddress": "10.0.100.11",
+    "bcpc": {
+        "node_number": "11",
+        "management": {
+            "ip" : "10.0.100.11"
+        },
+        "storage": {
+            "ip" : "172.16.100.11"
+        },
+        "floating": {
+            "ip" : "192.168.100.11"
+        }
+    },
+    "platform": "ubuntu",
+    "platform_family": "debian",
+    "platform_version": "12.04",
+    "chef_environment" : "Env-Example",
+    "run_list": [
+    	"role[Env-Example]",
+    	"role[BCPC-Headnode]"
+    ]
+}

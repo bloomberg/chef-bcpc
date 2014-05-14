@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: cobbler
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ package "whois"
 
 ruby_block "initialize-cobbler-config" do
     block do
-        # don't do anything with this for now
-        #make_config('cobbler-user-password', secure_password)
+        make_config('cobbler-web-user', "cobbler")
+        make_config('cobbler-web-password', secure_password)
+        make_config('cobbler-web-password-digest', %x[ printf "#{get_config('cobbler-web-user')}:Cobbler:#{get_config('cobbler-web-password')}" | md5sum | awk '{print $1}' ] )
         make_config('cobbler-root-password', secure_password)
         make_config('cobbler-root-password-salted', %x[ printf "#{get_config('cobbler-root-password')}" | mkpasswd -s -m sha-512 ] )
     end
@@ -41,10 +42,14 @@ template "/etc/cobbler/settings" do
     notifies :restart, "service[cobbler]", :delayed
 end
 
+template "/etc/cobbler/users.digest" do
+    source "cobbler.users.digest.erb"
+    mode 00600
+end
+
 template "/etc/cobbler/dhcp.template" do
     source "cobbler.dhcp.template.erb"
     mode 00644
-    # TODO - calculate subnet from node[:bcpc][:management][:cidr]
     variables( :range => node[:bcpc][:bootstrap][:dhcp_range],
                :subnet => node[:bcpc][:bootstrap][:dhcp_subnet] )
     notifies :restart, "service[cobbler]", :delayed
@@ -64,7 +69,7 @@ end
 bash "import-ubuntu-distribution-cobbler" do
     user "root"
     code <<-EOH
-        mount -o loop /tmp/ubuntu-12.04-mini.iso /mnt
+        mount -o loop -o ro /tmp/ubuntu-12.04-mini.iso /mnt
         cobbler import --name=ubuntu-12.04-mini --path=/mnt --breed=ubuntu --os-version=precise --arch=x86_64
         umount /mnt
         cobbler sync

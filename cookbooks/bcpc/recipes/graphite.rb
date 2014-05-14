@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: graphite
 #
-# Copyright 2013, Bloomberg L.P.
+# Copyright 2013, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 include_recipe "bcpc::default"
 include_recipe "bcpc::ceph-head"
+include_recipe "bcpc::apache2"
 
 ruby_block "initialize-graphite-config" do
     block do
@@ -27,7 +28,7 @@ ruby_block "initialize-graphite-config" do
     end
 end
 
-%w{python-whisper_0.9.10_all.deb python-carbon_0.9.10_all.deb python-graphite-web_0.9.10_all.deb}.each do |pkg|
+%w{python-whisper_0.9.12_all.deb python-carbon_0.9.12_all.deb python-graphite-web_0.9.12_all.deb}.each do |pkg|
     cookbook_file "/tmp/#{pkg}" do
         source "bins/#{pkg}"
         owner "root"
@@ -41,10 +42,10 @@ end
     end
 end
 
-%w{apache2 python-pip python-cairo python-django python-django-tagging python-ldap python-twisted python-memcache libapache2-mod-wsgi libapache2-mod-python}.each do |pkg|
-        package pkg do
-            action :upgrade
-        end
+%w{python-pip python-cairo python-django python-django-tagging python-ldap python-twisted python-memcache}.each do |pkg|
+    package pkg do
+        action :upgrade
+    end
 end
 
 template "/opt/graphite/conf/carbon.conf" do
@@ -83,11 +84,7 @@ template "/opt/graphite/conf/relay-rules.conf" do
     notifies :restart, "service[carbon-relay]", :delayed
 end
 
-service "apache2" do
-    action [ :enable, :start ]
-end
-
-template "/etc/apache2/conf.d/graphite-web.conf" do
+template "/etc/apache2/sites-available/graphite-web" do
     source "apache-graphite-web.conf.erb"
     owner "root"
     group "root"
@@ -95,15 +92,11 @@ template "/etc/apache2/conf.d/graphite-web.conf" do
     notifies :restart, "service[apache2]", :delayed
 end
 
-%w{wsgi python}.each do |mod|
-    bash "apache-enable-#{mod}" do
-        user "root"
-        code <<-EOH
-            a2enmod #{mod}
-        EOH
-        not_if "test -r /etc/apache2/mods-enabled/#{mod}.load"
-        notifies :restart, "service[apache2]", :delayed
-    end
+bash "apache-enable-graphite-web" do
+    user "root"
+    code "a2ensite graphite-web"
+    not_if "test -r /etc/apache2/sites-enabled/graphite-web"
+    notifies :restart, "service[apache2]", :delayed
 end
 
 template "/opt/graphite/conf/graphite.wsgi" do
@@ -124,9 +117,7 @@ end
 
 execute "graphite-storage-ownership" do
     user "root"
-    command <<-EOH
-        chown -R www-data:www-data /opt/graphite/storage
-    EOH
+    command "chown -R www-data:www-data /opt/graphite/storage"
     not_if "ls -ald /opt/graphite/storage | awk '{print $3}' | grep www-data"
 end
 
@@ -154,17 +145,16 @@ bash "graphite-database-sync" do
     notifies :restart, "service[apache2]", :immediately
 end
 
-%w{carbon-cache carbon-relay}.each do |pkg|
-    template "/etc/init.d/#{pkg}" do
-        source "init.d-#{pkg}.erb"
+%w{cache relay}.each do |pkg|
+    template "/etc/init.d/carbon-#{pkg}" do
+        source "init.d-carbon.erb"
         owner "root"
         group "root"
         mode 00755
-        notifies :restart, "service[#{pkg}]", :delayed
+        notifies :restart, "service[carbon-#{pkg}]", :delayed
+        variables( :daemon => "#{pkg}" )
     end
-    service pkg do
-        supports :restart => true
-        restart_command "service #{pkg} stop && sleep 2 && service #{pkg} start"
+    service "carbon-#{pkg}" do
         action [ :enable, :start ]
     end
 end

@@ -8,9 +8,10 @@
 # XXX: The following is a work-around to allow any cinder process
 #      to serve any volume (since they're RBD backed)
 host = bcpc
+storage_availability_zone=<%="#{node[:bcpc][:region_name]}"%>
 rootwrap_config = /etc/cinder/rootwrap.conf
 api_paste_confg = /etc/cinder/api-paste.ini
-verbose = True
+verbose = False
 debug = False
 auth_strategy = keystone
 state_path = /var/lib/cinder
@@ -21,6 +22,7 @@ osapi_volume_listen=<%="#{node[:bcpc][:management][:ip]}"%>
 
 # MySQL Connection
 sql_connection=mysql://<%="#{get_config('mysql-cinder-user')}"%>:<%="#{get_config('mysql-cinder-password')}"%>@<%="#{node[:bcpc][:management][:vip]}"%>/<%="#{node['bcpc']['cinder_dbname']}"%>
+sql_idle_timeout=3600
 
 # Rabbit message queue settings
 rabbit_host=<%="#{node[:bcpc][:management][:vip]}"%>
@@ -34,12 +36,19 @@ rabbit_durable_queues=True
 #qpid_username=admin
 #qpid_password=<%="#{get_config('rabbitmq-password')}"%>
 
-# Volume driver settings for RBD
-volume_driver=cinder.volume.driver.RBDDriver
-rbd_user=admin
-rbd_pool=<%="#{node['bcpc']['cinder_rbd_pool']}"%>
-rbd_secret_uuid=<%="#{get_config('libvirt-secret-uuid')}"%>
-
 # Other service endpoints
 glance_host=<%="#{node[:bcpc][:management][:vip]}"%>
 glance_api_servers=<%="#{node[:bcpc][:management][:vip]}"%>:9292
+glance_api_version=2
+
+# Volume driver settings for RBD
+enabled_backends=<%="#{node[:bcpc][:ceph][:enabled_pools].map {|type| type.upcase}.join(",")}"%>
+
+<% node[:bcpc][:ceph][:enabled_pools].each do |type| -%>
+[<%="#{type.upcase}"%>]
+volume_driver=cinder.volume.drivers.rbd.RBDDriver
+volume_backend_name=<%="#{type.upcase}"%>
+rbd_user=admin
+rbd_pool=<%="#{node[:bcpc][:ceph][:volumes][:name]}-#{type}"%>
+rbd_secret_uuid=<%="#{get_config('libvirt-secret-uuid')}"%>
+<% end -%>
