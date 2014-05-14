@@ -26,6 +26,11 @@ ruby_block "setup-other-hosts" do
         othernodes.push host
       end
     end
+    # if there are no other nodes, then I am the first. If so, ensure
+    # the tests will still pass by referencing myself
+    if othernodes.empty? then
+      othernodes.push node
+    end
   end
 end
 
