@@ -7,7 +7,6 @@
       "role[Basic]",
       "recipe[bcpc]",
       "recipe[bcpc::networking]",
-      "recipe[bcpc::networking-test]",
       "recipe[bcpc::ceph-work]",
       "recipe[bcpc::ceph-rgw]",
       "recipe[bcpc::nova-work]",

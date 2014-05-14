@@ -8,7 +8,6 @@
       "recipe[bcpc]",
       "recipe[bcpc::check_cluster]",
       "recipe[bcpc::networking]",
-      "recipe[bcpc::networking-test]",
       "recipe[bcpc::ceph-head]",
       "recipe[bcpc::mysql]",
       "recipe[bcpc::rabbitmq]",
