@@ -5,7 +5,8 @@ set -x
 # Define the appropriate version of each binary to grab/build
 VER_KIBANA=2581d314f12f520638382d23ffc03977f481c1e4
 # newer versions of Diamond depend upon dh-python which isn't in precise/12.04
-VER_DIAMOND=f33aa2f75c6ea2dfbbc659766fe581e5bfe2476d
+# Update to newest version of Diamond for 14.04 and add dh-python as dependency
+VER_DIAMOND=caff2fef7f930cdf22de5daf2e8f7c270a4c5711
 VER_ESPLUGIN=9c032b7c628d8da7745fbb1939dcd2db52629943
 
 if [[ -f ./proxy_setup.sh ]]; then
@@ -26,7 +27,7 @@ mkdir -p $DIR/bins
 pushd $DIR/bins/
 
 # Install tools needed for packaging
-apt-get -y install git ruby ruby-dev make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
+apt-get -y install git ruby ruby-dev make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb dh-python libmysqlclient-dev libldap2-dev
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
