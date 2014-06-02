@@ -79,7 +79,7 @@ if [ ! -f cirros-0.3.2-x86_64-disk.img ]; then
 fi
 FILES="cirros-0.3.2-x86_64-disk.img $FILES"
 
-# Grab the Ubuntu 12.04 installer image
+# Grab the Ubuntu 14.04 installer image
 if [ ! -f ubuntu-14.04-mini.iso ]; then
     # Download this ISO to get the latest kernel/X LTS stack installer
     #$CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/raring-netboot/mini.iso
