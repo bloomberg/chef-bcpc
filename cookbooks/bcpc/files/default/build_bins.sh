@@ -26,7 +26,7 @@ mkdir -p $DIR/bins
 pushd $DIR/bins/
 
 # Install tools needed for packaging
-apt-get -y install git ruby make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
+apt-get -y install git ruby ruby-dev make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
