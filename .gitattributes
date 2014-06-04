@@ -1,0 +1,6 @@
+# detect text files automatically for normalization
+* text=auto
+
+# force LF line endings on checkout
+*.sh        eol=lf
+preseed.cfg eol=lf
