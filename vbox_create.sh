@@ -120,23 +120,6 @@ function download_VM_files {
       fi
   fi
 
-  BOX='precise-server-cloudimg-amd64-vagrant-disk1.box'
-
-  # Can we create the bootstrap VM via Vagrant
-  if hash vagrant 2> /dev/null ; then
-    echo "Vagrant detected - downloading Vagrant box for bcpc-bootstrap VM"
-    if [[ ! -f $BOX ]]; then
-	if [[ -f $CACHEDIR/$BOX ]]; then
-	    cp $CACHEDIR/$BOX .
-	else
-	    $CURL -o precise-server-cloudimg-amd64-vagrant-disk1.box http://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-amd64-vagrant-disk1.box
-	fi
-	if [[ -d $CACHEDIR && ! -f $CACHEDIR/$BOX ]]; then
-	    cp $BOX $CACHEDIR
-	fi
-    fi
-  fi
-
   popd
 }
 
