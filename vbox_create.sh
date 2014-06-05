@@ -30,8 +30,11 @@ CLUSTER_VM_MEM=2560
 CLUSTER_VM_CPUs=2
 CLUSTER_VM_DRIVE_SIZE=20480
 
-VBOX_DIR="`dirname ${BASH_SOURCE[0]}`/vbox"
-P=`python -c "import os.path; print os.path.abspath(\"${VBOX_DIR}/\")"`
+readonly DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
+readonly CMD="$(basename "$0")"
+
+VBOX_DIR="$DIR/vbox"
+P="$VBOX_DIR"
 
 ######################################################
 # Function to download files necessary for VM stand-up
