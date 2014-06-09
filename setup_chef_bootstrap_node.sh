@@ -10,13 +10,7 @@ if [[ $# -ne 2 ]]; then
 fi
 
 # Assume we are running in the chef-bcpc directory
-
-# Are we running under Vagrant?  If so, jump through some extra hoops.
-if [[ -d /home/vagrant ]]; then
-  knife bootstrap -E $2 $1 -i /chef-bcpc-host/vbox/insecure_private_key -x vagrant --sudo
-else
-  knife bootstrap -E $2 $1 -x ubuntu --sudo
-fi
+knife bootstrap -E $2 $1 -x ubuntu -P ubuntu --sudo
 
 admin_val=`knife client show $(hostname -f) | grep ^admin: | sed "s/admin:[^a-z]*//"`
 if [[ "$admin_val" != "true" ]]; then

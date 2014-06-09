@@ -11,3 +11,9 @@ cookbooks/yum/
 environments/*
 .*.sw*
 *~
+
+# BCPC cache directory
+.cache/
+
+# virtualenv (python)
+.venv/

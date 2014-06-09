@@ -1,55 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Parameters:
-# $1 is the vagrant install mode or user name to SSH as (see "Usage:" below)
-# $2 is the IP address of the bootstrap node
-# $3 is the optional knife recipe name, default "Test-Laptop"
+set -ex
 
-source ./virtualbox_env.sh
+readonly DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
+readonly PROGNAME="$(basename "$0")"
 
-if [[ $OSTYPE == msys || $OSTYPE == cygwin ]]; then
-  # try to fix permission mismatch between windows and real unix
-  RSYNCEXTRA="--perms --chmod=a=rwx,Da+x"
+usage () {
+    cat <<- EOF
+usage: $PROGNAME ssh_config ip_address chef_environment
+
+Bootstrap the bcpc-bootstrap node as defined in the 'ssh_config' file with
+the given 'chef_environment'.  Note that the name to be used must be
+'bcpc-bootstrap'.
+
+Examples:
+    $PROGNAME .cache/dev/ssh_config Test-Laptop
+EOF
+}
+
+# check parameters
+if [[ "$#" -ne 3 ]]; then
+  usage
+  exit 1
 fi
 
-set -e
+readonly SSH_CONFIG="$1"
+readonly IP="$2"
+readonly CHEF_ENVIRONMENT="$3"
 
-if [[ $# -gt 1 ]]; then
-  KEYFILE="bootstrap_chef.id_rsa"
-  IP="$2"
-  BCPC_DIR="chef-bcpc"
-  VAGRANT=""
-  # override the ssh-user and keyfile if using Vagrant
-  if [[ $1 == "--vagrant-local" ]]; then
-    echo "Running on the local Vagrant VM"
-    VAGRANT="true"
-    BCPC_DIR="~vagrant/chef-bcpc"
-    SSH_USER="$USER"
-    SSH_CMD="bash -c"
-  elif [[ $1 == "--vagrant-remote" ]]; then
-    echo "SSHing to the Vagrant VM"
-    VAGRANT="true"
-    BCPC_DIR="~vagrant/chef-bcpc"
-    SSH_USER="vagrant"
-    SSH_CMD="vagrant ssh -c"
-  else
-    SSH_USER="$1"
-    SSH_CMD="ssh -t -i $KEYFILE ${SSH_USER}@${IP}" 
-    echo "SSHing to the non-Vagrant machine ${IP} as ${SSH_USER}"
-  fi
-  if [[ $# -ge 3 ]]; then
-      CHEF_ENVIRONMENT="$3"
-  else
-      CHEF_ENVIRONMENT="Test-Laptop"
-  fi
-  echo "Chef environment: ${CHEF_ENVIRONMENT}"
-else
-  echo "Usage: `basename $0` --vagrant-local|--vagrant-remote|<user name> IP-Address [chef environment]" >> /dev/stderr
-  exit
+if [[ -z "$SSH_CONFIG" ]]; then
+  echo "$SSH_CONFIG does not exist."
+  exit 1
 fi
 
-DIR=`dirname $0`
-pushd $DIR
+readonly BCPC_DIR="chef-bcpc"
 
 # protect against rsyncing to the wrong bootstrap node
 if [[ ! -f "environments/${CHEF_ENVIRONMENT}.json" ]]; then
@@ -57,28 +41,14 @@ if [[ ! -f "environments/${CHEF_ENVIRONMENT}.json" ]]; then
     exit
 fi
 
+SSH_CMD="ssh -F $SSH_CONFIG"
+RSYNC_CMD() {
+  rsync $RSYNCEXTRA -avP -e "$SSH_CMD" --exclude .cache --exclude images "$@"
+}
+RSYNC_CMD --exclude .chef . bcpc-bootstrap:chef-bcpc
+RSYNC_CMD .cache/downloads/ubuntu-12.04-mini.iso bcpc-bootstrap:chef-bcpc/cookbooks/bcpc/files/default/bins
 
-if [[ -z $VAGRANT ]]; then
-  if [[ ! -f $KEYFILE ]]; then
-    ssh-keygen -N "" -f $KEYFILE
-  fi
-  echo "Running rsync of non-Vagrant install"
-  rsync  $RSYNCEXTRA -avP -e "ssh -i $KEYFILE" --exclude vbox --exclude $KEYFILE --exclude .chef . ${SSH_USER}@$IP:chef-bcpc 
-  rsync  $RSYNCEXTRA -avP -e "ssh -i $KEYFILE" vbox/ubuntu-12.04-mini.iso ${SSH_USER}@$IP:chef-bcpc/cookbooks/bcpc/files/default/bins
-  $SSH_CMD "cd $BCPC_DIR && ./setup_ssh_keys.sh ${KEYFILE}.pub"
-else
-  echo "Running rsync of Vagrant install"
-  $SSH_CMD "rsync $RSYNCEXTRA -avP --exclude vbox --exclude .chef /chef-bcpc-host/ /home/vagrant/chef-bcpc/"
-  echo "Rsync over the hypervisor mini ISO to avoid redownloading"
-  $SSH_CMD "rsync $RSYNCEXTRA -avP /chef-bcpc-host/vbox/ubuntu-12.04-mini.iso  /home/vagrant/chef-bcpc/cookbooks/bcpc/files/default/bins"
-fi
-
-echo "Updating server"
-$SSH_CMD "cd $BCPC_DIR && sudo apt-get -y update && sudo apt-get -y dist-upgrade"
-if [[ -z `$VBM snapshot bcpc-bootstrap list | grep dist-upgrade` ]]; then
-  echo "Taking snapshot"
-  $VBM snapshot bcpc-bootstrap take dist-upgrade-complete
-fi
+SSH_CMD="$SSH_CMD -t bcpc-bootstrap"
 echo "Building binaries"
 $SSH_CMD "cd $BCPC_DIR && sudo ./cookbooks/bcpc/files/default/build_bins.sh"
 echo "Setting up chef server"
@@ -89,5 +59,3 @@ echo "Setting up chef environment, roles, and uploading cookbooks"
 $SSH_CMD "cd $BCPC_DIR && knife environment from file environments/${CHEF_ENVIRONMENT}.json && knife role from file roles/*.json && knife cookbook upload -a -o cookbooks"
 echo "Enrolling local bootstrap node into chef"
 $SSH_CMD "cd $BCPC_DIR && ./setup_chef_bootstrap_node.sh ${IP} ${CHEF_ENVIRONMENT}"
-
-popd
