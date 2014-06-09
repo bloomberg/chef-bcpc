@@ -45,9 +45,15 @@
   ],
   "provisioners": [
     {
+      "destination": "id_rsa.pub",
+      "source": "files/id_rsa.pub",
+      "type": "file"
+    },
+    {
       "execute_command": "echo 'ubuntu' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
         "scripts/common/sshd.sh",
+        "scripts/common/authorized_keys.sh",
         "scripts/common/networking.sh",
         "scripts/common/sudoers.sh",
         "scripts/common/guest_additions.sh",

@@ -13,7 +13,10 @@ apt-get -y purge popularity-contest
 apt-get -y autoremove
 apt-get -y clean
 
+# remove file provisioned files
+rm id_rsa.pub
+
 # remove Packer uploaded files
-rm -f VBoxGuestAdditions-*.iso
+rm VBoxGuestAdditions-*.iso
 rm .vbox_version
 
