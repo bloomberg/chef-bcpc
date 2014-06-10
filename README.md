@@ -40,10 +40,6 @@ Cluster Bootstrap
 Please refer to the [BCPC Bootstrap Guide](https://github.com/bloomberg/chef-bcpc/blob/master/bootstrap.md)
 for more information about getting a BCPC cluster bootstrapped.
 
-There are provided scripts which set up a Chef and Cobbler server via
-[Vagrant](http://www.vagrantup.com/) or on bare metal that permit imaging of
-the cluster via PXE.
-
 Once the Chef server is set up, you can bootstrap any number of nodes to get
 them registered with the chef server for your environment - see the next
 section for enrolling the nodes.
@@ -138,7 +134,6 @@ BCPC currently relies upon a number of open-source packages:
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)
  - [Ubuntu](http://www.ubuntu.com/)
- - [Vagrant](http://www.vagrantup.com/) - Verified with version 1.2.2
  - [VirtualBox](https://www.virtualbox.org/) - >= 4.3.x supported
  - [Zabbix](http://www.zabbix.com/)
 

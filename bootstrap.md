@@ -1,23 +1,25 @@
 BCPC Cluster Bootstrap Overview
 ===============================
 
-This repository contains a set of scripts that is useful to bootstrap a BCPC
-cluster with a Cobbler, Chef, DHCP, and gateway server.  Once the
-bcpc-bootstrap node is created, all of the other nodes (such as bcpc-vm1,
-bcpc-vm2, bcpc-vm3, etc.) can be PXE-booted with a valid image and then
-chef-ified with minimal effort.
+To install a BCPC cluster, a bootstrap node is required that has network
+connectivity to the remaining woker nodes.  Once the bootstrap node is
+available and has the [Chef](http://www.getchef.com/chef/) server installed,
+Chef can provision the bootstrap node with the the
+[Cobbler](http://www.cobblerd.org/) and a DHCP server.  Cobbler and the DHCP
+server are used to PXE boot the remaining worker nodes with a valid image.
+Once properly imaged, the worker nodes can be managed by the Chef Server.
 
-If you have Vagrant and VirtualBox installed, you can use our included
-Vagrantfile and an Ubuntu 12.04 box file to provision a bootstrap node that is
-able to act as the provisioning server with minimal interaction.
+If you have VirtualBox installed, you can use our included scripts to create
+and provision a bootstrap node.  This bootstrap node is able to act as the
+provisioning serer with minimal interaction.
 
-If you do not wish to use Vagrant or have a bare metal installation and wish to
-do a manual install of the bootstrap node, you can use our bootstrap_chef.sh
-scripts to bring a bare Ubuntu 12.04 image up as a provisioning server.
+If you have a bare metal installation and a bootstrape node readily available,
+you can use `bootstrap_chef.sh` to bring a bare Ubuntu 12.04 image up as a
+provisioning serer.
 
-Once the bootstrap node is provisioned, then you can PXE-boot the other virtual
-machines and enroll them in the cluster as head and worker nodes as you deem
-appropriate.
+Once the bootstrap node is provisioned, the remaining worker nodes may be
+brought up to be PXE-booted and managed by Chef to be either a head or worker
+node - whatever you deem appropriate.
 
 Finally, if you do not wish to use our scripts (we won't be offended), please
 refer to the [manual instructions](#manual-setup-notes) at the end of this
@@ -26,18 +28,23 @@ document.
 About hypervisor hosts
 ======================
 
-chef-bcpc has been successfully tested on Ubuntu 12.04, Mac OS X
-10.7.5 and Windows 7. On Windows, in addition to VirtualBox you need a
-working bash interpreter and rsync available in your PATH. More
-information about using chef-bcpc on Windows is provided in [Using
-Windows as your
-Hypervisor](https://github.com/bloomberg/chef-bcpc/blob/master/windows.md)
+BCPC has been successfully tested on the following hosts:
+
+* Mac OS X 10.9.3
+* Ubuntu 12.04 (Precise)
+
+Currently, the scripts are undergoing a fair amount of churn.  Windows 7
+support has been temporarily suspended until some work is done to properly
+support Windows in a platform agnostic way.  In addition to VirtualBox you need
+a working bash interpreter and rsync available in your PATH. More information
+about using chef-bcpc on Windows is provided in [Using Windows as your
+Hypervisor](https://github.com/bloomberg/chef-bcpc/blob/master/windows.md).
 
 About proxies
 =============
 
 BCPC can be brought up behind a proxy. An example is given in
-proxy_setup.sh in the chef-bcpc directory. To actually use a proxy
+`proxy_setup.sh` in the chef-bcpc directory. To actually use a proxy
 uncomment and edit the example lines. The example uses a proxy on the
 hypervisor (for example your workstation or laptop) just to keep the
 explanation self-contained and simple. The hypervisor is always IP
@@ -57,15 +64,20 @@ couple of additional manual steps later in the process. Proxy support
 in BCPC is, currently, even more of a work-in-progress than the rest
 of the project.
 
-Note also that the proxy settings are only known to work with the 
-non-Vagrant method of bringing up the VMs. 
+The initial bootstrap node image
+================================
+
+The bcpc-bootstrap VM node needs to start with an initial image.  BCPC uses
+[Packer](http://packer.io) for building boxes to be used by VirtualBox.  You
+will need `packer` available in your system PATH and details regarindg BCPC
+usagse of packer may be found [here](images/README.md).
 
 Kicking off the bootstrap process
 =================================
 
-To start off, create the VirtualBox images:
+To start off, create the VirtualBox VMs:
 
-```
+```bash
 $ ./vbox_create.sh [chef-environment]
 ```
 
@@ -75,19 +87,11 @@ This will create four VMs:
 - bcpc-vm2
 - bcpc-vm3
 
-The ``[chef-environment]`` variable is optional and will default to
-``Test-Laptop`` if unspecfied. This is useful if you need to create the
-bootstrap node with non-default settings such as a a local APT mirror
-(``node[:bcpc][:bootstrap][:mirror]``) or a local internet proxy
-(``node[:bcpc][:bootstrap][:proxy]``).
-
-If you have vagrant installed, the ``vbox_create.sh`` script will automatically
-begin the provisioning of the bcpc-bootstrap node.  This may take 30-45 minutes
-to complete successfully.  See below for [notes around the Vagrant
-installation](#bcpc-bootstrap-creation-with-vagrant).  Otherwise, you can
-provision the bcpc-bootstrap node through included shell scripts - see below
-for
-[installation notes without Vagrant](#bcpc-bootstrap-creation-without-vagrant).
+The `[chef-environment]` variable is optional and will default to `Test-Laptop`
+if unspecfied. This is useful if you need to create the bootstrap node with
+non-default settings such as a a local APT mirror
+(`node[:bcpc][:bootstrap][:mirror]`) or a local internet proxy
+(`node[:bcpc][:bootstrap][:proxy]`).
 
 Once the bcpc-bootstrap node is available, the bcpc-vm images will be able to
 be configured and boot via PXE.  Once the initial bootstrap process is complete
@@ -100,102 +104,11 @@ it is recommended that you keep one CPU per VM.  You may also find that 2GB is
 not enough for a BCPC-Headnode and wish to tweak the amount of RAM given to
 any head node VM.
 
-bcpc-bootstrap creation with Vagrant
-====================================
+Provisioning the bootstrap node
+-------------------------------
 
-If vagrant is locally installed, we utilize the
-[vagrant box images from Canonical](http://cloud-images.ubuntu.com/vagrant/)
-to provision the bcpc-bootstrap node.
-
-If you have a [local repository mirror](#setting-up-a-private-repos-mirror),
-you can alter the Vagrantfile to use it when provisioning:
-
-```
-$local_mirror = "10.0.100.4"
-```
-
-You can log in to your bcpc-bootstrap node from the hypervisor via:
-
-```
-$ vagrant ssh
-```
-
-After the automatic Vagrant provisioning is complete, this is a good time to
-take a snapshot of your bootstrap node:
-
-```
-$ VBoxManage snapshot bcpc-bootstrap take initial-install
-```
-
-Please note that the 3 bcpc-vm nodes are enrolled in cobbler on the bootstrap
-node at the end of ``vbox_create.sh``.
-
-Please continue to [Imaging BCPC Nodes](#imaging-bcpc-nodes).
-
-bcpc-bootstrap creation without Vagrant
-=======================================
-
-If you do not have Vagrant installed, the ``vbox_create.sh`` script will create
-the appropriate VMs.  You will then need to bring up the bcpc-bootstrap VM -
-which has a virtual CD attached to kick off the Ubuntu install:
-
-```
-$ VBoxManage startvm bcpc-bootstrap
-```
-
-Manual install notes:
-
-- select eth0 as network interface for DHCP (vbox_create.sh sets it up as NAT)
-- bcpc-bootstrap as hostname
-- If using a proxy, enter it when prompted, else leave blank
-- ubuntu/ubuntu as default user/password
-- install OpenSSH server
-- install grub to MBR
-
-Login to new VM.
-
-If using NAT, port 22 inbound may be blocked; so, set up the other interfaces
-on the hostonlyif ifaces (eth1-3).  Edit /etc/network/interfaces on
-bcpc-bootstrap (for example using pico) :
-
-```
-$ sudo pico /etc/network/interfaces
-```
-
-add the following to the end
-
-```
-# Static interfaces
-auto eth1
-iface eth1 inet static
-  address 10.0.100.3
-  netmask 255.255.255.0
-
-auto eth2
-iface eth2 inet static
-  address 172.16.100.3
-  netmask 255.255.255.0
-
-auto eth3
-iface eth3 inet static
-  address 192.168.100.3
-  netmask 255.255.255.0
-```
-
-After changing the interfaces file:
-
-```
-$ sudo service networking restart
-```
-
-This is a good time to take a snapshot of your bootstrap node:
-
-```
-$ VBoxManage snapshot bcpc-bootstrap take initial-install
-```
-
-Provisioning chef-server without Vagrant
-----------------------------------------
+By running `vbox_create.sh`, you should already have a running and provisioned
+bcpc-bootstrap node.  If you would like to use an apt-mirror and/or proxy,
 
 I *think* you have to fix up the preseed file
 (cookbooks/bcpc/templates/default/cobbler.bcpc_ubuntu_host.preseed.erb)
@@ -208,7 +121,7 @@ here if using a proxy (for now explained in diff format) :
  d-i     apt-setup/security_host <%= @node[:bcpc][:bootstrap][:mirror] %>
  d-i     apt-setup/security_path string /ubuntu
  <% end %>
- 
+
 +d-i     mirror/http/proxy string http://10.0.100.2:3128
 +
  d-i     debian-installer/allow_unauthenticated  string false
@@ -216,18 +129,6 @@ here if using a proxy (for now explained in diff format) :
  d-i     pkgsel/language-packs   multiselect
 ```
 
-Once you can SSH in to the bcpc-bootstrap node (ssh ubuntu@10.0.100.3 if
-following instructions above), you can then run the bootstrap_chef.sh script
-from the hypervisor running VirtualBox:
-
-```
-$ ./bootstrap_chef.sh ubuntu 10.0.100.3
-```
-
-This will bring up the chef-server on http://10.0.100.3:4040.
-The Web UI will be at http://10.0.100.3:4000 with defaults admin/p@ssw0rd1
-
-At this point, your bcpc-bootstrap node should be appropriately provisioned.
 
 This is a good time to take a snapshot of your bootstrap node:
 
@@ -235,34 +136,22 @@ This is a good time to take a snapshot of your bootstrap node:
 $ VBoxManage snapshot bcpc-bootstrap take chef-server-provisioned
 ```
 
-If you see Host key verification failed when testing the ssh connection, you 
-have probably recreated the VMs but not updated the SSH key. If this is the 
-case you need to manually remove the old key - remove the entry for 
-10.0.100.3 from ~/.ssh/known_hosts
-
 Registering VMs for PXE boot
 ============================
 
 Once you have provisioned the local Chef server, you will need to register the
-bcpc-vm1, bcpc-vm2, and bcpc-vm3 VMs before they can boot. 
+bcpc-vm1, bcpc-vm2, and bcpc-vm3 VMs before they can boot.
 
-When using vagrant you can register the remaining VMs like this :
+You can register the remaining VMs like this :
 
-```
-$ ./enroll_cobbler.sh
-```
-
-whereas for the non-Vagrant case you'll have to provide the IP address
-of the bootstrap node (we are using 10.0.100.3 in this example) :
-
-```
-$ ./enroll_cobbler.sh 10.0.100.3
+```bash
+$ ./enroll_cobbler.sh .cache/dev/ssh_config
 ```
 
 If you have other VMs to register, you need to do it on the bootstrap node :
 
-```
-$ ssh ubuntu@10.0.100.3
+```bash
+$ ssh -F .cache/dev/ssh_config bcpc-bootstrap
 $ sudo cobbler system add --name=bcpc-vm10 --hostname=bcpc-vm10 --profile=bcpc_host --ip-address=10.0.100.20 --mac=AA:BB:CC:DD:EE:FF
 $ sudo cobbler sync
 ```
@@ -270,10 +159,10 @@ $ sudo cobbler sync
 Note that if you need to redo these registrations of manual nodes,
 you'll need to first remove them before re-adding, so
 
-```
-$ ssh ubuntu@10.0.100.3
+```bash
+$ ssh -F .cache/dev/ssh_config bcpc-bootstrap
 $ sudo cobbler system remove --name=bcpc-vm1
-$ ... modified add command ...
+$ #... modified add command ...
 $ sudo cobbler sync
 ```
 
@@ -281,8 +170,7 @@ Imaging BCPC Nodes
 ==================
 
 Once the BCPC bootstrap VM is created and the node VMs are registered in
-Cobbler (done automatically with Vagrant-based ``vbox_create.sh`` invocations),
-you can boot up the other VMs now, for example :
+Cobbler, you can boot up the other VMs now, for example :
 
 ```
 $ VBoxManage startvm bcpc-vm1
@@ -451,8 +339,8 @@ script at this stage is not recommended.
 Manual setup notes
 ==================
 
-This records notes if you do not wish to use Vagrant or our included shell
-scripts to provision the bootstrap nodes.
+This records notes if you do not wish to use our included shell scripts to
+provision the bootstrap nodes.
 
 Step 1 - One-time setup
 ----------------------

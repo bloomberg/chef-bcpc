@@ -17,7 +17,6 @@ in your path. At a minimum this includes:
 - python
 - curl
 - rsync
-- (optional) Vagrant
 
 An easy enough way to put this all together is to install cygwin for
 the basic unix command-line tools, Python for Windows and MSYS-GIT for
