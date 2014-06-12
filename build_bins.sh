@@ -63,7 +63,7 @@ FILES="kafka_2.9.2-0.8.1.tgz $FILES"
 
 # Fetch Java Tar
 if ! [[ -f jdk-7u51-linux-x64.tar.gz ]]; then
-  wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u51-b13/jdk-7u51-linux-x64.tar.gz   
+  $CURL -O -L -C - -b "oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u51-b13/jdk-7u51-linux-x64.tar.gz   
 fi
 FILES="jdk-7u51-linux-x64.tar.gz $FILES"
 
