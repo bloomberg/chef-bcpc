@@ -5,7 +5,7 @@ o = Ohai::System.new
 o.all_plugins
 
 name "BCPC-Kafka-Server"
-description "Kafka Role for PNY1 BCPC Machines"
+description "Role to setup Kafka Server"
 override_attributes "java" => {
     "jdk_version" => "7",
     "accept_license_agreement" => true,
