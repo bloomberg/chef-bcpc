@@ -51,6 +51,23 @@ if [ ! -f kibana3.tgz ]; then
 fi
 FILES="kibana3.tgz $FILES"
 
+# Fetch Kafka Tar
+mkdir -p kafka/0.8.1/
+
+if ! [[ -f kafka/0.8.1/kafka_2.9.2-0.8.1.tgz ]]; then
+  cd kafka/0.8.1/ 
+  $CURL -O -L https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.2-0.8.1.tgz
+  cd ../../
+fi
+FILES="kafka_2.9.2-0.8.1.tgz $FILES"
+
+# Fetch Java Tar
+if ! [[ -f jdk-7u51-linux-x64.tar.gz ]]; then
+  wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u51-b13/jdk-7u51-linux-x64.tar.gz   
+fi
+FILES="jdk-7u51-linux-x64.tar.gz $FILES"
+
+
 # Grab plugins for fluentd
 for i in elasticsearch elasticsearch-api elasticsearch-transport patron fluent-plugin-elasticsearch fluent-plugin-tail-multiline fluent-plugin-tail-ex fluent-plugin-record-reformer fluent-plugin-rewrite; do
   if ! [[ -f gems/${i}.gem ]]; then
@@ -247,8 +264,8 @@ chmod -R 755 .
 # "/usr/bin/pip install: error: no such option: --no-use-wheel"
 if ! hash dir2pi; then
   /usr/bin/pip install pip2pi || /bin/true
-  /usr/local/bin/pip install setuptools --no-use-wheel --upgrade
-  /usr/local/bin/pip install pip2pi 
+	/usr/local/bin/pip install setuptools --no-use-wheel --upgrade
+	/usr/local/bin/pip install pip2pi
 fi
 
 dir2pi python
