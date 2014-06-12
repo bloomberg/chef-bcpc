@@ -64,3 +64,5 @@ for cookbook in apt python build-essential ubuntu cron "chef-client 3.0.6" ntp y
   fi
 done
 [[ -d dpkg_autostart ]] || git clone https://github.com/hw-cookbooks/dpkg_autostart.git
+[[ -d kafka ]] || git clone https://github.com/mthssdrbrg/kafka-cookbook.git kafka
+[[ -d java ]] || git clone https://github.com/socrata-cookbooks/java.git java
