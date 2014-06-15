@@ -27,3 +27,8 @@ package 'sshpass'  # GitHub #112 -- required for nodessh.sh
 package "powernap" do
     action :remove
 end
+
+bash "perform-upgrade" do
+    user "root"
+    code "DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=\"--force-confdef\" -o Dpkg::Options::=\"--force-confold\" upgrade"
+end
