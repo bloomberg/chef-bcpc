@@ -58,7 +58,8 @@
         "scripts/common/sudoers.sh",
         "scripts/common/guest_additions.sh",
         "scripts/bootstrap/interfaces.sh",
-        "scripts/common/cleanup.sh"
+        "scripts/common/cleanup.sh",
+        "scripts/common/minimize.sh"
       ],
       "type": "shell"
     }
