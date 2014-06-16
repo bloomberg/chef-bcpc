@@ -32,13 +32,15 @@
         ["modifyvm", "{{.Name}}", "--memory", "1536"],
         ["modifyvm", "{{.Name}}", "--cpus", "1"],
         ["modifyvm", "{{.Name}}", "--rtcuseutc", "on"],
+        ["modifyvm", "{{.Name}}", "--mouse", "usbtablet"],
         ["modifyvm", "{{.Name}}", "--vram", "16"],
         ["modifyvm", "{{.Name}}", "--nic2", "intnet"],
         ["modifyvm", "{{.Name}}", "--nic3", "intnet"],
         ["modifyvm", "{{.Name}}", "--nic4", "intnet"],
         ["modifyvm", "{{.Name}}", "--intnet2", "bcpc-management"],
         ["modifyvm", "{{.Name}}", "--intnet3", "bcpc-storage"],
-        ["modifyvm", "{{.Name}}", "--intnet4", "bcpc-float"]
+        ["modifyvm", "{{.Name}}", "--intnet4", "bcpc-float"],
+        ["modifyvm", "{{.Name}}", "--usb", "on"]
       ],
       "vm_name": "packer-{{user `hostname`}}_ubuntu-12.04-amd64"
     }
