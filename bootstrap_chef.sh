@@ -77,7 +77,7 @@ echo "Setting up chef cookbooks"
 $SSH_CMD "cd $BCPC_DIR && ./setup_chef_cookbooks.sh ${IP} ${SSH_USER} ${CHEF_ENVIRONMENT}"
 set -x
 echo "Setting up chef environment, roles, and uploading cookbooks"
-$SSH_CMD "cd $BCPC_DIR && sudo knife environment from file environments/${CHEF_ENVIRONMENT}.json -u admin -k /etc/chef-server/admin.pem && sudo knife role from file roles/*.json -u admin -k /etc/chef-server/admin.pem && sudo knife cookbook upload -a -o cookbooks -u admin -k /etc/chef-server/admin.pem"
+$SSH_CMD "cd $BCPC_DIR && sudo knife environment from file environments/${CHEF_ENVIRONMENT}.json -u admin -k /etc/chef-server/admin.pem && sudo knife role from file roles/*.json -u admin -k /etc/chef-server/admin.pem && sudo knife role from file roles/*.rb -u admin -k /etc/chef-server/admin.pem && sudo knife cookbook upload -a -o cookbooks -u admin -k /etc/chef-server/admin.pem"
 echo "Enrolling local bootstrap node into chef"
 $SSH_CMD "cd $BCPC_DIR && ./setup_chef_bootstrap_node.sh ${IP} ${CHEF_ENVIRONMENT}"
 
