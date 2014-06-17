@@ -212,8 +212,8 @@ fi
 FILES="zabbix-agent.tar.gz zabbix-server.tar.gz $FILES"
 
 # Gather the Chef packages and provide a dpkg repo
-opscode_urls="https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.8.0-1.ubuntu.12.04_amd64.deb
-https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.0.8-1.ubuntu.12.04_amd64.deb"
+opscode_urls="https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.12.8-2_amd64.deb
+https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.1.1-1_amd64.deb"
 for url in $opscode_urls; do
   if ! [[ -f $(basename $url) ]]; then
     $CURL -L -O $url
