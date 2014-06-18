@@ -44,7 +44,7 @@ function install_machines {
       printf "Running chef for node $fqdn in $ENVIRONMENT run_list ${run_list}...\n"
       local SSHCMD="./nodessh.sh $ENVIRONMENT $ip"
       sudo knife node run_list set $fqdn "$run_list" $KNIFE_ADMIN
-      $SSHCMD "chef-client" sudo
+      $SSHCMD "chef-client -o '$run_list'" sudo
     else
       printf "About to bootstrap node $fqdn in $ENVIRONMENT run_list ${run_list}...\n"
       ./chefit.sh $ip $ENVIRONMENT

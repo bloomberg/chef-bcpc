@@ -26,17 +26,27 @@ make_config('mysql-galera-password', secure_password)
 make_config('mysql-check-user', "check")
 make_config('mysql-check-password', secure_password)
 
-bash "workaround-mysql-deps-problem" do
-  user "root"
-  code <<-EOH
-    VERSION=`apt-cache policy libmysqlclient18 |grep -v ubuntu | grep -A1 \.precise | head -1 | awk '{print $1}'`
-    DEBIAN_FRONTEND=noninteractive apt-get -y install libmysqlclient18=$VERSION
-  EOH
-  not_if "dpkg -l libmysqlclient18 2>&1 >/dev/null"
+apt_repository "percona" do
+  uri node['bcpc']['repos']['mysql']
+  distribution node['lsb']['codename']
+  components ["main"]
+  key "percona-release.key"
 end
 
-package "percona-xtradb-cluster-server-5.5" do
-    action :install
+package "percona-xtradb-cluster-server" do
+    action :upgrade
+end
+
+bash "initial-mysql-config" do
+  code <<-EOH
+        mysql -u root -e "GRANT USAGE ON *.* to '#{get_config('mysql-galera-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';
+                          GRANT ALL PRIVILEGES on *.* TO '#{get_config('mysql-galera-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';
+                          GRANT PROCESS ON *.* to '#{get_config('mysql-check-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-check-password')}';
+                          UPDATE mysql.user SET password=PASSWORD('#{get_config('mysql-root-password')}') WHERE user='root'; FLUSH PRIVILEGES;
+                          UPDATE mysql.user SET host='%' WHERE user='root' and host='localhost';
+                          FLUSH PRIVILEGES;"
+        EOH
+  only_if "mysql -u root -e 'SELECT COUNT(*) FROM mysql.user'"
 end
 
 directory "/etc/mysql" do
@@ -61,12 +71,6 @@ directory "/etc/mysql/conf.d" do
   owner "root"
   group "root"
   mode 00755
-end
-
-bash "initialize-db" do
-  code "mysql_install_db --defaults-file=/etc/mysql/my.cnf"
-  user "mysql"
-  not_if { get_mysql_nodes.length >= 2 or Dir.entries("/var/lib/mysql/mysql/").length > 2 }
 end
 
 template "/etc/mysql/conf.d/wsrep.cnf" do
@@ -97,18 +101,6 @@ end
 service "mysql" do
   supports :status => true, :restart => true, :reload => false
   action [ :enable, :start ]
-end
-
-bash "initial-mysql-config" do
-  code <<-EOH
-        mysql -u root -e "GRANT USAGE ON *.* to '#{get_config('mysql-galera-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';
-                          GRANT ALL PRIVILEGES on *.* TO '#{get_config('mysql-galera-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';
-                          GRANT PROCESS ON *.* to '#{get_config('mysql-check-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-check-password')}';
-                          UPDATE mysql.user SET password=PASSWORD('#{get_config('mysql-root-password')}') WHERE user='root'; FLUSH PRIVILEGES;
-                          UPDATE mysql.user SET host='%' WHERE user='root' and host='localhost';
-                          FLUSH PRIVILEGES;"
-        EOH
-  only_if "mysql -u root -e 'SELECT COUNT(*) FROM mysql.user'"
 end
 
 ruby_block "Check MySQL Quorum Status" do
@@ -157,30 +149,4 @@ end
 service "xinetd" do
   supports :status => true, :restart => true, :reload => true
   action [ :enable, :start ]
-end
-
-package "debconf-utils"
-
-bash "phpmyadmin-debconf-setup" do
-  make_config('mysql-phpmyadmin-password', secure_password)
-  code <<-EOH
-    set -e
-    echo 'phpmyadmin phpmyadmin/dbconfig-install boolean true' | debconf-set-selections
-    echo 'phpmyadmin phpmyadmin/mysql/admin-pass password #{get_config('mysql-root-password')}' | debconf-set-selections
-    echo 'phpmyadmin phpmyadmin/mysql/app-pass password #{get_config('mysql-phpmyadmin-password')}' | debconf-set-selections
-    echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2' | debconf-set-selections
-  EOH
-  not_if "debconf-get-selections | grep phpmyadmin >/dev/null 2>&1"
-end
-
-package "phpmyadmin" do
-  action :upgrade
-end
-
-bash "phpmyadmin-config-setup" do
-  user "root"
-  code <<-EOH
-    echo '$cfg["AllowArbitraryServer"] = TRUE;' >> /etc/phpmyadmin/config.inc.php
-  EOH
-  not_if "grep -q AllowArbitraryServer /etc/phpmyadmin/config.inc.php"
 end

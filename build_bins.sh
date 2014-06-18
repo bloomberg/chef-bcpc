@@ -116,14 +116,6 @@ if ! [[ -f centos-6-vmlinuz ]]; then
 fi
 FILES="centos-6-vmlinuz $FILES"
 
-# Mirror Percona 5.5.34-25.9 packages
-for url in http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/libmysqlclient18_5.5.34-25.9-607.precise_amd64.deb http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/percona-xtradb-cluster-5.5-dbg_5.5.34-25.9-607.precise_amd64.deb http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/percona-xtradb-cluster-client-5.5_5.5.34-25.9-607.precise_amd64.deb http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/percona-xtradb-cluster-galera-2.x_158.precise_amd64.deb http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/percona-xtradb-cluster-server-5.5_5.5.34-25.9-607.precise_amd64.deb http://www.percona.com/redir/downloads/XtraBackup/XtraBackup-2.1.9/deb/precise/x86_64/percona-xtrabackup_2.1.9-744-1.precise_amd64.deb http://www.percona.com/redir/downloads/Percona-XtraDB-Cluster/5.5.34-25.9/deb/precise/x86_64/percona-xtradb-cluster-common-5.5_5.5.34-25.9-607.precise_all.deb; do
-  if ! [[ -f "$url" ]]; then
-    $CURL -O -L $url
-  fi
-done
-     
-
 # Make the diamond package
 if ! [[ -f diamond.deb ]]; then
   git clone https://github.com/BrightcoveOS/Diamond.git

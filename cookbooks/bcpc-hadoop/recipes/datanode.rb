@@ -23,7 +23,7 @@ end
 
 bash "verify-container-executor" do
   code "/usr/lib/hadoop-yarn/bin/container-executor --checksetup"
-  user "yarn"
+  group "yarn"
   action :nothing
   only_if { File.exists?("/usr/lib/hadoop-yarn/bin/container-executor") }
 end

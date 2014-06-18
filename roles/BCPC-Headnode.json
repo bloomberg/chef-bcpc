@@ -11,6 +11,7 @@
       "recipe[bcpc::apache2]",
       "recipe[bcpc::ceph-head]",
       "recipe[bcpc::mysql]",
+      "recipe[bcpc::phpmyadmin]",
       "recipe[bcpc::rabbitmq]",
       "recipe[bcpc::389ds]",
       "recipe[bcpc::haproxy]",

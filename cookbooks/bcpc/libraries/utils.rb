@@ -70,8 +70,9 @@ def get_config!(key)
 	return value
 end
 
+# Get all nodes for this Chef environment
 def get_all_nodes
-	results = search(:node, "role:BCPC* AND chef_environment:#{node.chef_environment}")
+	results = search(:node, "chef_environment:#{node.chef_environment}")
 	if results.any?{|x| x['hostname'] == node['hostname']}
 		results.map!{|x| x['hostname'] == node['hostname'] ? node : x}
 	else
