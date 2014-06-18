@@ -1,0 +1,28 @@
+{
+  "name": "BCPC-Kafka-Server",
+  "default_attributes": {
+  },
+  "json_class": "Chef::Role",
+  "run_list": [
+    "role[Basic]",
+    "recipe[bcpc]",
+    "recipe[bcpc::networking]",
+    "recipe[bcpc-hadoop::disks]",
+    "recipe[java::oracle]", 
+    "recipe[kafka-bcpc]", 
+    "recipe[kafka-bcpc::setattr]",
+    "recipe[kafka]"
+  ],
+  "description": "Role to setup Kafka Server",
+  "chef_type": "role",
+  "override_attributes": {
+    "kafka": {
+      "version": "0.8.1",
+      "scala_version": "2.9.2",
+      "checksum": "",
+      "md5_checksum": "",
+      "log_dir": "/disk/0"
+    }  
+  }
+}
+

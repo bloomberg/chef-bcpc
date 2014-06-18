@@ -1,0 +1,26 @@
+{
+  "name": "BCPC-Kafka-Zookeeper",
+  "default_attributes": {
+  },
+  "json_class": "Chef::Role",
+  "run_list": [
+    "role[Basic]",
+    "recipe[bcpc]",
+    "recipe[bcpc::networking]",
+    "recipe[bcpc-hadoop::disks]",
+    "recipe[java::oracle]", 
+    "recipe[kafka-bcpc]", 
+    "recipe[kafka-bcpc::zookeeper]", 
+    "recipe[kafka-bcpc::setattr]",
+    "recipe[kafka::zookeeper]"
+  ],
+  "description": "Zookeeper Role for Kafka Machines",
+  "chef_type": "role",
+  "override_attributes": {
+    "zookeeper": {
+      "data_dir": "/disk/1",
+      "max_client_connections": 50
+    }  
+  }
+}
+
