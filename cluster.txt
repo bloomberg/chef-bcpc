@@ -1,3 +1,3 @@
 bcpc-vm1 08:00:27:56:A2:28 10.0.100.11 - bcpc.example.com role[BCPC-Hadoop-Head-Namenode-NoHA],role[BCPC-Hadoop-Head-HBase]
-bcpc-vm2 08:00:27:E5:3A:00 10.0.100.12 - bcpc.example.com role[BCPC-Hadoop-Head-Namenode-Standby],role[BCPC-Hadoop-Head-Hive],role[BCPC-Hadoop-Head-MapReduce]
+bcpc-vm2 08:00:27:E5:3A:00 10.0.100.12 - bcpc.example.com role[BCPC-Hadoop-Head-Namenode-Standby],role[BCPC-Hadoop-Head-MapReduce],role[BCPC-Hadoop-Head-Hive]
 bcpc-vm3 08:00:27:AD:1D:EA 10.0.100.13 - bcpc.example.com role[BCPC-Hadoop-Worker]
