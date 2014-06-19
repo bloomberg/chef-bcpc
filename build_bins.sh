@@ -41,6 +41,12 @@ if [[ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]]; then
   gem install fpm --no-ri --no-rdoc
 fi
 
+# Download jmxtrans zip file
+if ! [[ -f jmxtrans-20120525-210643-4e956b1144.zip ]]; then
+  $CURL -O -L -k https://github.com/downloads/jmxtrans/jmxtrans/jmxtrans-20120525-210643-4e956b1144.zip
+fi
+FILES="jmxtrans-20120525-210643-4e956b1144.zip $FILES"
+
 # Build kibana3 installable bundle
 if [ ! -f kibana3.tgz ]; then
   git clone https://github.com/elasticsearch/kibana.git kibana3
