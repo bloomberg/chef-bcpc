@@ -8,9 +8,9 @@
     "recipe[bcpc]",
     "recipe[bcpc::networking]",
     "recipe[bcpc-hadoop::disks]",
-    "recipe[java::oracle]", 
     "recipe[kafka-bcpc]", 
     "recipe[kafka-bcpc::setattr]",
+    "recipe[java::oracle]", 
     "recipe[kafka]"
   ],
   "description": "Role to setup Kafka Server",
@@ -22,6 +22,10 @@
       "checksum": "",
       "md5_checksum": "",
       "log_dir": "/disk/0"
+    }, 
+    "zookeeper": {
+      "data_dir": "/disk/1",
+      "max_client_connections": 50
     }  
   }
 }
