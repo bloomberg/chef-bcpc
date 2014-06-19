@@ -131,10 +131,6 @@ please run the following on each head node before running ``chef-client``:
 
 #### 20130817
 
-Due to a change in Vagrant 1.2.5+, the default bootstrap node cannot have its
-IP end in .1 (ie, 10.0.100.1).  In the current Vagrant scripts, the automated
-bootstrap node will be 10.0.100.3.  (The host machine stays at 10.0.100.2.)
-
 The default Ceph version has been upgraded from Cuttlefish (0.61) to Dumpling
 (0.67).
 

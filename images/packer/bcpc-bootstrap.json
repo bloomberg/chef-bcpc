@@ -1,0 +1,72 @@
+{
+  "builders": [
+    {
+      "boot_command": [
+        "<esc><wait>",
+        "install",
+        " auto=true",
+        " hostname={{user `hostname`}}",
+        " initrd=initrd.gz",
+        " interface=auto",
+        " url=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu-12.04/preseed.cfg",
+        " -- <wait>",
+        "<enter>"
+      ],
+      "boot_wait": "5s",
+      "disk_size": 20480,
+      "format": "ova",
+      "guest_additions_path": "VBoxGuestAdditions-{{ .Version }}.iso",
+      "guest_os_type": "Ubuntu_64",
+      "hard_drive_interface": "sata",
+      "http_directory": "http",
+      "iso_checksum": "edae2868defdcb235aaa1de8c31e64442013269598e4d7504aa1b794e73ddfe5",
+      "iso_checksum_type": "sha256",
+      "iso_url": "http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/netboot/mini.iso",
+      "output_directory": "../build/virtualbox/bcpc-bootstrap",
+      "shutdown_command": "echo 'ubuntu' | sudo -S shutdown -P now",
+      "ssh_username": "ubuntu",
+      "ssh_password": "ubuntu",
+      "ssh_wait_timeout": "30m",
+      "type": "virtualbox-iso",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "1536"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"],
+        ["modifyvm", "{{.Name}}", "--rtcuseutc", "on"],
+        ["modifyvm", "{{.Name}}", "--mouse", "usbtablet"],
+        ["modifyvm", "{{.Name}}", "--vram", "16"],
+        ["modifyvm", "{{.Name}}", "--nic2", "intnet"],
+        ["modifyvm", "{{.Name}}", "--nic3", "intnet"],
+        ["modifyvm", "{{.Name}}", "--nic4", "intnet"],
+        ["modifyvm", "{{.Name}}", "--intnet2", "bcpc-management"],
+        ["modifyvm", "{{.Name}}", "--intnet3", "bcpc-storage"],
+        ["modifyvm", "{{.Name}}", "--intnet4", "bcpc-float"],
+        ["modifyvm", "{{.Name}}", "--usb", "on"]
+      ],
+      "vm_name": "packer-{{user `hostname`}}_ubuntu-12.04-amd64"
+    }
+  ],
+  "provisioners": [
+    {
+      "destination": "id_rsa.pub",
+      "source": "files/id_rsa.pub",
+      "type": "file"
+    },
+    {
+      "execute_command": "echo 'ubuntu' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "scripts/common/sshd.sh",
+        "scripts/common/authorized_keys.sh",
+        "scripts/common/networking.sh",
+        "scripts/common/sudoers.sh",
+        "scripts/common/guest_additions.sh",
+        "scripts/bootstrap/interfaces.sh",
+        "scripts/common/cleanup.sh",
+        "scripts/common/minimize.sh"
+      ],
+      "type": "shell"
+    }
+  ],
+  "variables": {
+    "hostname": "bcpc-bootstrap"
+  }
+}
