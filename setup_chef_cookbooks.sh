@@ -64,3 +64,4 @@ for cookbook in apt python build-essential ubuntu cron "chef-client 3.0.6" ntp y
   fi
 done
 [[ -d dpkg_autostart ]] || git clone https://github.com/hw-cookbooks/dpkg_autostart.git
+[[ -d jmxtrans ]] || git clone https://github.com/bijugs/chef-jmxtrans.git jmxtrans
