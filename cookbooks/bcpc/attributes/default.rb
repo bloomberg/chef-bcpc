@@ -20,6 +20,7 @@ default['bcpc']['domain_name'] = "bcpc.example.com"
 default['bcpc']['vms_key'] = nil
 
 default['bcpc']['encrypt_data_bag'] = false
+default['bcpc']['apt_upgrade'] = false
 
 ###########################################
 #
