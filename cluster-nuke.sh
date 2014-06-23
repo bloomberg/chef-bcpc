@@ -69,6 +69,7 @@ done
 
 echo "reload knife data..."
 knife role from file roles/*.json
+knife role from file roles/*.rb
 knife cookbook upload -a -o cookbooks
 knife environment from file "environments/${ENVIRONMENT}.json"
 
