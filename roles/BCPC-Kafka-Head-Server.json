@@ -11,7 +11,8 @@
     "recipe[kafka-bcpc]", 
     "recipe[kafka-bcpc::setattr]",
     "recipe[java::oracle]", 
-    "recipe[kafka]"
+    "recipe[kafka]",
+    "recipe[kafka-bcpc::kafka]"
   ],
   "description": "Role to setup Kafka Server",
   "chef_type": "role",
