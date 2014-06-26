@@ -15,7 +15,6 @@ ruby_block "kafkaup" do
   i = 0
   block do
     @brokerpath="/brokers/ids/#{node[:kafka][:broker_id]}"
-    #@zk_host = "#{node[:kafka][:zookeeper][:connect][0]}:2181"
     @zk_host = node[:kafka][:zookeeper][:connect].map{|zkh| "#{zkh}:2181"}.join(",")
     Chef::Log.info("Zookeeper hosts are #{@zk_host}")
     while !znode_exists?(@brokerpath, @zk_host)
