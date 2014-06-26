@@ -17,17 +17,18 @@ ruby_block "kafkaup" do
     @brokerpath="/brokers/ids/#{node[:kafka][:broker_id]}"
     @zk_host = "#{node[:kafka][:zookeeper][:connect][0]}:2181"
     while !znode_exists?(@brokerpath, @zk_host)
-      if !znode_exists?(@brokerpath, @zk_host) and i < 10
+      kafka_in_zk = znode_exists?(@brokerpath, @zk_host)
+      if !kafka_in_zk and i < 10
         sleep(0.5)
         i += 1
-        puts "Kafka server having znode #{@brokerpath} is down."
-      elsif !znode_exists?(@brokerpath, @zk_host) and i > 9
+        Chef::Log.info("Kafka server having znode #{@brokerpath} is down.")
+      elsif !kafka_in_zk and i > 9
         Chef::Application.fatal! "Kafka is reported down for more than 5 seconds"
       else
-        puts "Broker #{@brokerid} existance : #{znode_exists?(@brokerpath, @zk_host)}"
+        Chef::Log.info("Broker #{@brokerpath} existance : #{znode_exists?(@brokerpath, @zk_host)}")
       end
     end
-    puts "Kafka is up and running."
+    Chef::Log.info("Kafka is up and running.")
   end
   action :nothing
 end
