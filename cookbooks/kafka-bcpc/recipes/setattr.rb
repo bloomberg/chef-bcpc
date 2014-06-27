@@ -10,7 +10,7 @@ log "Java x86_64 URL is #{node['java']['jdk']['7']['x86_64']['url']}"
 log "Java i586 URL   is #{node['java']['jdk']['7']['i586']['url']}"
 
 # Override Kafka related node attributes
-@zk_hosts = get_nodes_for("zookeeper","kafka").map!{|x| x.bcpc.management.ip}
+@zk_hosts = get_zk_nodes.map!{|x| x.bcpc.management.ip}
 log "ZK Hosts are : #{@zk_hosts}"
 
 node.override[:kafka][:zookeeper][:connect] = @zk_hosts
