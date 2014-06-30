@@ -5,13 +5,16 @@
   "json_class": "Chef::Role",
   "run_list": [
     "role[Basic]",
-    "recipe[bcpc]",
+    "recipe[bcpc::default]",
     "recipe[bcpc::networking]",
     "recipe[bcpc-hadoop::disks]",
-    "recipe[kafka-bcpc]", 
+    "recipe[bcpc-hadoop::default]",
+    "recipe[kafka-bcpc::default]", 
     "recipe[kafka-bcpc::setattr]",
     "recipe[java::oracle]", 
-    "recipe[kafka]"
+    "recipe[kafka::default]",
+    "recipe[kafka::topic]",
+    "recipe[kafka-bcpc::kafka]"
   ],
   "description": "Role to setup Kafka Server",
   "chef_type": "role",
