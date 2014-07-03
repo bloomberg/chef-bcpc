@@ -5,30 +5,30 @@
   "json_class": "Chef::Role",
   "run_list": [
     "role[Basic]",
-    "recipe[bcpc]",
+    "recipe[bcpc::default]",
     "recipe[bcpc::networking]",
     "recipe[bcpc-hadoop::disks]",
-    "recipe[kafka-bcpc]", 
+    "recipe[bcpc-hadoop::default]",
+    "recipe[kafka-bcpc::default]", 
     "recipe[kafka-bcpc::setattr]",
     "recipe[java::oracle]", 
-    "recipe[kafka]"
+    "recipe[kafka::default]",
+    "recipe[kafka-bcpc::kafka]"
   ],
   "description": "Role to setup Kafka Server",
   "chef_type": "role",
   "default_attributes" : {
     "jmxtrans":  {
-      "servers":  [
-                 {
-                    "name": "",
-                    "port": "9999",
-                    "type": "kafka"
-                  }
-        ]
-      }
+      "servers": [{
+        "name": "",
+        "port": "9999",
+        "type": "kafka"
+      }]
+    }
   },
   "override_attributes": {
     "kafka": {
-      "version": "0.8.1",
+      "version": "0.8.1.1",
       "scala_version": "2.9.2",
       "checksum": "",
       "md5_checksum": "",
