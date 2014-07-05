@@ -43,12 +43,6 @@ template "/usr/local/bin/hup_openstack" do
     variables(:servers => get_head_nodes)
 end
 
-directory "/opt/openstack" do
-    owner "root"
-    group "root"
-    mode 00755
-end
-
 %w{heat ceilometer}.each do |client|
     cookbook_file "/tmp/#{client}client.patch" do
         source "#{client}client.patch"

@@ -159,3 +159,5 @@ default['bcpc']['ports']['apache']['radosgw'] = 8080
 default['bcpc']['ports']['apache']['radosgw_https'] = 8443
 default['bcpc']['ports']['haproxy']['radosgw'] = 80
 default['bcpc']['ports']['haproxy']['radosgw_https'] = 443
+
+default['bcpc']['protocol']['keystone'] = "http"

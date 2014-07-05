@@ -12,15 +12,15 @@ admin_token = <%=get_config('keystone-admin-token')%>
 bind_host = <%=@node["bcpc"]["management"]["ip"]%>
 
 # The port number which the public service listens on
-public_port = 5001
+public_port = 5000
 
 # The port number which the public admin listens on
-admin_port = 35358
+admin_port = 35357
 
 # The base endpoint URLs for keystone that are advertised to clients
 # (NOTE: this does NOT affect how keystone listens for connections)
-public_endpoint = https://<%=@node["bcpc"]["management"]["vip"]%>:5000/
-admin_endpoint = https://<%=@node["bcpc"]["management"]["vip"]%>:35357/
+public_endpoint = <%=node['bcpc']['protocol']['keystone']%>://<%=@node["bcpc"]["management"]["vip"]%>:5000/
+admin_endpoint = <%=node['bcpc']['protocol']['keystone']%>://<%=@node["bcpc"]["management"]["vip"]%>:35357/
 
 # The port number which the OpenStack Compute service listens on
 # compute_port = 8774
