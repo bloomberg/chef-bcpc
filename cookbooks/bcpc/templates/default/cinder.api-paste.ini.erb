@@ -16,15 +16,18 @@ use = call:cinder.api:root_app_factory
 
 [composite:openstack_volume_api_v1]
 use = call:cinder.api.middleware.auth:pipeline_factory
-noauth = faultwrap sizelimit noauth apiv1
-keystone = faultwrap sizelimit authtoken keystonecontext apiv1
-keystone_nolimit = faultwrap sizelimit authtoken keystonecontext apiv1
+noauth = request_id faultwrap sizelimit noauth apiv1
+keystone = request_id faultwrap sizelimit authtoken keystonecontext apiv1
+keystone_nolimit = request_id faultwrap sizelimit authtoken keystonecontext apiv1
 
 [composite:openstack_volume_api_v2]
 use = call:cinder.api.middleware.auth:pipeline_factory
-noauth = faultwrap sizelimit noauth apiv2
-keystone = faultwrap sizelimit authtoken keystonecontext apiv2
-keystone_nolimit = faultwrap sizelimit authtoken keystonecontext apiv2
+noauth = request_id faultwrap sizelimit noauth apiv2
+keystone = request_id faultwrap sizelimit authtoken keystonecontext apiv2
+keystone_nolimit = request_id faultwrap sizelimit authtoken keystonecontext apiv2
+
+[filter:request_id]
+paste.filter_factory = cinder.openstack.common.middleware.request_id:RequestIdMiddleware.factory
 
 [filter:faultwrap]
 paste.filter_factory = cinder.api.middleware.fault:FaultWrapper.factory
@@ -56,12 +59,12 @@ paste.filter_factory = cinder.api.middleware.auth:CinderKeystoneContext.factory
 
 [filter:authtoken]
 paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
-service_protocol = https
+service_protocol = <%=node['bcpc']['protocol']['keystone']%>
 service_host = <%=node['bcpc']['management']['vip']%>
 service_port = 5000
 auth_host = <%=node['bcpc']['management']['vip']%>
 auth_port = 35357
-auth_protocol = https
+auth_protocol = <%=node['bcpc']['protocol']['keystone']%>
 admin_tenant_name = <%=node['bcpc']['admin_tenant']%>
 admin_user = <%=get_config('keystone-admin-user')%>
 admin_password = <%=get_config('keystone-admin-password')%>
