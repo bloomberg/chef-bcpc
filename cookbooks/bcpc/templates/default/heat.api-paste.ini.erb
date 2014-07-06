@@ -6,7 +6,7 @@
 
 # heat-api pipeline
 [pipeline:heat-api]
-pipeline = faultwrap versionnegotiation authtoken context apiv1app
+pipeline = faultwrap ssl versionnegotiation authurl authtoken context apiv1app
 
 # heat-api pipeline for standalone heat
 # ie. uses alternative auth backend that authenticates users against keystone
@@ -17,7 +17,7 @@ pipeline = faultwrap versionnegotiation authtoken context apiv1app
 #   flavor = standalone
 #
 [pipeline:heat-api-standalone]
-pipeline = faultwrap versionnegotiation authpassword context apiv1app
+pipeline = faultwrap ssl versionnegotiation authurl authpassword context apiv1app
 
 # heat-api pipeline for custom cloud backends
 # i.e. in heat.conf:
@@ -79,16 +79,24 @@ paste.filter_factory = heat.common.context:ContextMiddleware_filter_factory
 [filter:ec2authtoken]
 paste.filter_factory = heat.api.aws.ec2token:EC2Token_filter_factory
 
+[filter:ssl]
+paste.filter_factory = heat.common.wsgi:filter_factory
+heat.filter_factory = heat.api.openstack:sslmiddleware_filter
+
+# Middleware to set auth_url header appropriately
+[filter:authurl]
+paste.filter_factory = heat.common.auth_url:filter_factory
+
 # Auth middleware that validates token against keystone
 [filter:authtoken]
-paste.filter_factory = heat.common.auth_token:filter_factory
-service_protocol = https
+paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+service_protocol = <%=node['bcpc']['protocol']['keystone']%>
 service_host = <%=node['bcpc']['management']['vip']%>
 service_port = 5000
 auth_uri = https://<%=node['bcpc']['management']['vip']%>:35357
 auth_host = <%=node['bcpc']['management']['vip']%>
 auth_port = 35357
-auth_protocol = https
+auth_protocol = <%=node['bcpc']['protocol']['keystone']%>
 admin_tenant_name = <%=node['bcpc']['admin_tenant']%>
 admin_user = <%=get_config('keystone-admin-user')%>
 admin_password = <%=get_config('keystone-admin-password')%>
