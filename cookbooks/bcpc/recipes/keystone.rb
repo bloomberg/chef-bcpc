@@ -36,11 +36,8 @@ ruby_block "initialize-keystone-config" do
     end
 end
 
-# Ensure we've upgraded to the cloud-archive version of a few deps before keystone
-%w{python-flask python-requests python-six keystone}.each do |pkg|
-    package pkg do
-        action :upgrade
-    end
+package "keystone" do
+    action :upgrade
 end
 
 template "/etc/keystone/keystone.conf" do
