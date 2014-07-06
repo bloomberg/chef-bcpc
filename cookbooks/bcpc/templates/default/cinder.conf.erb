@@ -19,6 +19,7 @@ logdir=/var/log/cinder
 
 # Bind to mgt IP only
 osapi_volume_listen=<%=node['bcpc']['management']['ip']%>
+osapi_volume_workers=1
 
 # MySQL Connection
 sql_connection=mysql://<%=get_config('mysql-cinder-user')%>:<%=get_config('mysql-cinder-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['cinder_dbname']%>
