@@ -153,4 +153,17 @@ bash "libvirt-device-acls" do
     notifies :restart, "service[libvirt-bin]", :delayed
 end
 
+if node['bcpc']['virt_type'] == "kvm" then
+    %w{amd intel}.each do |arch|
+        bash "enable-kvm-#{arch}" do
+            user "root"
+            code <<-EOH
+                modprobe kvm_#{arch}
+                echo 'kvm_#{arch}' >> /etc/modules
+            EOH
+            not_if "grep -e '^kvm_#{arch}' /etc/modules"
+        end
+    end
+end
+
 include_recipe "bcpc::cobalt"
