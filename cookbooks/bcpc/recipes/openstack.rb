@@ -42,21 +42,3 @@ template "/usr/local/bin/hup_openstack" do
     group "root"
     variables(:servers => get_head_nodes)
 end
-
-%w{heat ceilometer}.each do |client|
-    cookbook_file "/tmp/#{client}client.patch" do
-        source "#{client}client.patch"
-        owner "root"
-        mode 00644
-    end
-
-    bash "patch-for-#{client}client-bugs" do
-        user "root"
-        code <<-EOH
-            cd /usr/lib/python2.7/dist-packages/#{client}client
-            patch -p0 < /tmp/#{client}client.patch
-            cp /tmp/#{client}client.patch .
-        EOH
-        not_if "test -f /usr/lib/python2.7/dist-packages/#{client}client/#{client}client.patch"
-    end
-end
