@@ -46,6 +46,22 @@ end
     end
 end
 
+cookbook_file "/tmp/nova-libvirt.patch" do
+    source "nova-libvirt.patch"
+    owner "root"
+    mode 00644
+end
+
+bash "patch-for-nova-libvirt-bugs" do
+    user "root"
+    code <<-EOH
+        cd /usr/lib/python2.7/dist-packages/nova
+        patch -p2 < /tmp/nova-libvirt.patch
+        cp /tmp/nova-libvirt.patch .
+    EOH
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova-libvirt.patch"
+end
+
 directory "/var/lib/nova/.ssh" do
     owner "nova"
     group "nova"

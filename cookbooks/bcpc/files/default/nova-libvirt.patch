@@ -1,0 +1,1334 @@
+diff --ru a/nova/virt/libvirt/config.py b/nova/virt/libvirt/config.py
+--- a/nova/virt/libvirt/config.py	2014-06-05 17:33:15.000000000 -0400
++++ b/nova/virt/libvirt/config.py	2014-07-06 17:37:58.782511018 -0400
+@@ -311,6 +311,9 @@
+         return cpu
+ 
+     def add_feature(self, feat):
++        for feature in self.features:
++            if feat.name == feature.name:
++                return
+         self.features.append(feat)
+ 
+ 
+diff --git a/nova/compute/manager.py b/nova/compute/manager.py
+index fc887d7..744c051 100644
+--- a/nova/compute/manager.py
++++ b/nova/compute/manager.py
+@@ -4534,6 +4534,39 @@ class ComputeManager(manager.Manager):
+                                    self._rollback_live_migration,
+                                    block_migration, migrate_data)
+ 
++    def _live_migration_cleanup_flags(self, block_migration, migrate_data):
++        '''Determine whether disks or intance path need to be cleaned up after
++        live migration (at source on success, at destination on rollback)
++
++        Block migration needs empty image at destination host before migration
++        starts, so if any failure occurs, any empty images has to be deleted.
++
++        Also Volume backed live migration w/o shared storage needs to delete
++        newly created instance-xxx dir on the destination as a part of its
++        rollback process
++
++        :param block_migration: if true, it was a block migration
++        :param migrate_data: implementation specific data
++        :returns: (bool, bool) -- do_cleanup, destroy_disks
++        '''
++        # NOTE(angdraug): block migration wouldn't have been allowed if either
++        #                 block storage or instance path were shared
++        is_shared_block_storage = not block_migration
++        is_shared_instance_path = not block_migration
++        if migrate_data:
++            is_shared_block_storage = migrate_data.get(
++                    'is_shared_block_storage', is_shared_block_storage)
++            is_shared_instance_path = migrate_data.get(
++                    'is_shared_instance_path', is_shared_instance_path)
++
++        # No instance booting at source host, but instance dir
++        # must be deleted for preparing next block migration
++        # must be deleted for preparing next live migration w/o shared storage
++        do_cleanup = block_migration or not is_shared_instance_path
++        destroy_disks = not is_shared_block_storage
++
++        return (do_cleanup, destroy_disks)
++
+     @wrap_exception()
+     @wrap_instance_fault
+     def _post_live_migration(self, ctxt, instance,
+@@ -4599,16 +4632,15 @@ class ComputeManager(manager.Manager):
+         self.compute_rpcapi.post_live_migration_at_destination(ctxt,
+                 instance, block_migration, dest)
+ 
+-        # No instance booting at source host, but instance dir
+-        # must be deleted for preparing next block migration
+-        # must be deleted for preparing next live migration w/o shared storage
+-        is_shared_storage = True
+-        if migrate_data:
+-            is_shared_storage = migrate_data.get('is_shared_storage', True)
+-        if block_migration or not is_shared_storage:
+-            self.driver.cleanup(ctxt, instance, network_info)
++        do_cleanup, destroy_disks = self._live_migration_cleanup_flags(
++                block_migration, migrate_data)
++
++        if do_cleanup:
++            self.driver.cleanup(ctxt, instance, network_info,
++                                destroy_disks=destroy_disks,
++                                migrate_data=migrate_data)
+         else:
+-            # self.driver.destroy() usually performs  vif unplugging
++            # self.driver.cleanup() usually performs  vif unplugging
+             # but we must do it explicitly here when block_migration
+             # is false, as the network devices at the source must be
+             # torn down
+@@ -4731,27 +4763,22 @@ class ComputeManager(manager.Manager):
+         self._notify_about_instance_usage(context, instance,
+                                           "live_migration._rollback.start")
+ 
+-        # Block migration needs empty image at destination host
+-        # before migration starts, so if any failure occurs,
+-        # any empty images has to be deleted.
+-        # Also Volume backed live migration w/o shared storage needs to delete
+-        # newly created instance-xxx dir on the destination as a part of its
+-        # rollback process
+-        is_volume_backed = False
+-        is_shared_storage = True
+-        if migrate_data:
+-            is_volume_backed = migrate_data.get('is_volume_backed', False)
+-            is_shared_storage = migrate_data.get('is_shared_storage', True)
+-        if block_migration or (is_volume_backed and not is_shared_storage):
+-            self.compute_rpcapi.rollback_live_migration_at_destination(context,
+-                    instance, dest)
++        do_cleanup, destroy_disks = self._live_migration_cleanup_flags(
++                block_migration, migrate_data)
++
++        if do_cleanup:
++            self.compute_rpcapi.rollback_live_migration_at_destination(
++                    context, instance, dest, destroy_disks=destroy_disks,
++                    migrate_data=migrate_data)
+ 
+         self._notify_about_instance_usage(context, instance,
+                                           "live_migration._rollback.end")
+ 
+     @wrap_exception()
+     @wrap_instance_fault
+-    def rollback_live_migration_at_destination(self, context, instance):
++    def rollback_live_migration_at_destination(self, context, instance,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         """Cleaning up image directory that is created pre_live_migration.
+ 
+         :param context: security context
+@@ -4770,8 +4797,9 @@ class ComputeManager(manager.Manager):
+         #             from remote volumes if necessary
+         block_device_info = self._get_instance_volume_block_device_info(
+                             context, instance)
+-        self.driver.rollback_live_migration_at_destination(context, instance,
+-                        network_info, block_device_info)
++        self.driver.rollback_live_migration_at_destination(
++                        context, instance, network_info, block_device_info,
++                        destroy_disks=destroy_disks, migrate_data=migrate_data)
+         self._notify_about_instance_usage(
+                         context, instance, "live_migration.rollback.dest.end",
+                         network_info=network_info)
+diff --git a/nova/compute/rpcapi.py b/nova/compute/rpcapi.py
+index a1adfbf..27d257e 100644
+--- a/nova/compute/rpcapi.py
++++ b/nova/compute/rpcapi.py
+@@ -734,13 +734,22 @@ class ComputeAPI(object):
+                    instance=instance, migration=migration,
+                    reservations=reservations)
+ 
+-    def rollback_live_migration_at_destination(self, ctxt, instance, host):
+-        # NOTE(russellb) Havana compat
+-        version = self._get_compat_version('3.0', '2.0')
+-        instance_p = jsonutils.to_primitive(instance)
++    def rollback_live_migration_at_destination(self, ctxt, instance, host,
++                                               destroy_disks=True,
++                                               migrate_data=None):
++        msg_kwargs = {'instance': instance}
++        if self.client.can_send_version('3.23'):
++            version = '3.23'
++            msg_kwargs.update(destroy_disks=destroy_disks,
++                              migrate_data=migrate_data)
++        else:
++            # NOTE(russellb) Havana compat
++            version = self._get_compat_version('3.0', '2.0')
++        instance = jsonutils.to_primitive(instance)
++
+         cctxt = self.client.prepare(server=host, version=version)
+         cctxt.cast(ctxt, 'rollback_live_migration_at_destination',
+-                   instance=instance_p)
++                   **msg_kwargs)
+ 
+     def run_instance(self, ctxt, instance, host, request_spec,
+                      filter_properties, requested_networks,
+diff --git a/nova/virt/driver.py b/nova/virt/driver.py
+index a36c10b..1ccd200 100644
+--- a/nova/virt/driver.py
++++ b/nova/virt/driver.py
+@@ -297,7 +297,7 @@ class ComputeDriver(object):
+         raise NotImplementedError()
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Destroy the specified instance from the Hypervisor.
+ 
+         If the instance is not found (for example if networking failed), this
+@@ -311,11 +311,12 @@ class ComputeDriver(object):
+         :param block_device_info: Information about block devices that should
+                                   be detached from the instance.
+         :param destroy_disks: Indicates if disks should be destroyed
++        :param migrate_data: implementation specific params
+         """
+         raise NotImplementedError()
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Cleanup the instance resources .
+ 
+         Instance should have been destroyed from the Hypervisor before calling
+@@ -328,7 +329,7 @@ class ComputeDriver(object):
+         :param block_device_info: Information about block devices that should
+                                   be detached from the instance.
+         :param destroy_disks: Indicates if disks should be destroyed
+-
++        :param migrate_data: implementation specific params
+         """
+         raise NotImplementedError()
+ 
+@@ -657,13 +658,18 @@ class ComputeDriver(object):
+ 
+     def rollback_live_migration_at_destination(self, ctxt, instance_ref,
+                                                network_info,
+-                                               block_device_info):
++                                               block_device_info,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         """Clean up destination node after a failed live migration.
+ 
+         :param ctxt: security context
+         :param instance_ref: instance object that was being migrated
+         :param network_info: instance network information
+         :param block_device_info: instance block device information
++        :param destroy_disks:
++            if true, destroy disks at destination during cleanup
++        :param migrate_data: implementation specific params
+ 
+         """
+         raise NotImplementedError()
+diff --git a/nova/virt/fake.py b/nova/virt/fake.py
+index ea175cb..0f869ee 100644
+--- a/nova/virt/fake.py
++++ b/nova/virt/fake.py
+@@ -204,7 +204,7 @@ class FakeDriver(driver.ComputeDriver):
+         pass
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         key = instance['name']
+         if key in self.instances:
+             del self.instances[key]
+@@ -214,7 +214,7 @@ class FakeDriver(driver.ComputeDriver):
+                          'inst': self.instances}, instance=instance)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         pass
+ 
+     def attach_volume(self, context, connection_info, instance, mountpoint,
+diff --git a/nova/virt/imagehandler/__init__.py b/nova/virt/imagehandler/__init__.py
+deleted file mode 100644
+index 54310a0..0000000
+--- a/nova/virt/imagehandler/__init__.py
++++ /dev/null
+@@ -1,176 +0,0 @@
+-# Copyright 2014 IBM Corp.
+-# All Rights Reserved.
+-#
+-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+-#    not use this file except in compliance with the License. You may obtain
+-#    a copy of the License at
+-#
+-#         http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#    Unless required by applicable law or agreed to in writing, software
+-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+-#    License for the specific language governing permissions and limitations
+-#    under the License.
+-
+-"""
+-Handling of VM disk images by handler.
+-"""
+-
+-import urlparse
+-
+-from oslo.config import cfg
+-import stevedore
+-
+-from nova import exception
+-from nova.image import glance
+-from nova.openstack.common.gettextutils import _
+-from nova.openstack.common import log as logging
+-
+-LOG = logging.getLogger(__name__)
+-
+-image_opts = [
+-    cfg.ListOpt('image_handlers',
+-                default=['download'],
+-                help='Specifies which image handler extension names to use '
+-                     'for handling images. The first extension in the list '
+-                     'which can handle the image with a suitable location '
+-                     'will be used.'),
+-]
+-
+-CONF = cfg.CONF
+-CONF.register_opts(image_opts)
+-
+-_IMAGE_HANDLERS = []
+-_IMAGE_HANDLERS_ASSO = {}
+-
+-
+-def _image_handler_asso(handler, path, location, image_meta):
+-    _IMAGE_HANDLERS_ASSO[path] = (handler, location, image_meta)
+-
+-
+-def _image_handler_disasso(handler, path):
+-    _IMAGE_HANDLERS_ASSO.pop(path, None)
+-
+-
+-def _match_locations(locations, schemes):
+-    matched = []
+-    if locations and (schemes is not None):
+-        for loc in locations:
+-            # Note(zhiyan): location = {'url': 'string',
+-            #                           'metadata': {...}}
+-            if len(schemes) == 0:
+-                # Note(zhiyan): handler has not scheme limitation.
+-                matched.append(loc)
+-            elif urlparse.urlparse(loc['url']).scheme in schemes:
+-                matched.append(loc)
+-    return matched
+-
+-
+-def load_image_handlers(driver):
+-    """Loading construct user configured image handlers.
+-
+-    Handler objects will be cached to keep handler instance as singleton
+-    since this structure need support follow sub-class development,
+-    developer could implement particular sub-class in relevant hypervisor
+-    layer with more advanced functions.
+-    The handler's __init__() need do some re-preparing work if it needed,
+-    for example when nova-compute service restart or host reboot,
+-    CinderImageHandler will need to re-prepare iscsi/fc link for volumes
+-    those already be cached on compute host as template image previously.
+-    """
+-    global _IMAGE_HANDLERS, _IMAGE_HANDLERS_ASSO
+-    if _IMAGE_HANDLERS:
+-        _IMAGE_HANDLERS = []
+-        _IMAGE_HANDLERS_ASSO = {}
+-    # for de-duplicate. using ordereddict lib to support both py26 and py27?
+-    processed_handler_names = []
+-    ex = stevedore.extension.ExtensionManager('nova.virt.image.handlers')
+-    for name in CONF.image_handlers:
+-        if not name:
+-            continue
+-        name = name.strip()
+-        if name in processed_handler_names:
+-            LOG.warn(_("Duplicated handler extension name in 'image_handlers' "
+-                       "option: %s, skip."), name)
+-            continue
+-        elif name not in ex.names():
+-            LOG.warn(_("Invalid handler extension name in 'image_handlers' "
+-                       "option: %s, skip."), name)
+-            continue
+-        processed_handler_names.append(name)
+-        try:
+-            mgr = stevedore.driver.DriverManager(
+-                namespace='nova.virt.image.handlers',
+-                name=name,
+-                invoke_on_load=True,
+-                invoke_kwds={"driver": driver,
+-                             "associate_fn": _image_handler_asso,
+-                             "disassociate_fn": _image_handler_disasso})
+-            _IMAGE_HANDLERS.append(mgr.driver)
+-        except Exception as err:
+-            LOG.warn(_("Failed to import image handler extension "
+-                       "%(name)s: %(err)s"), {'name': name, 'err': err})
+-
+-
+-def handle_image(context=None, image_id=None,
+-                 user_id=None, project_id=None,
+-                 target_path=None):
+-    """Handle image using available handles.
+-
+-    This generator will return each available handler on each time.
+-    :param context: Request context
+-    :param image_id: The opaque image identifier
+-    :param user_id: Request user id
+-    :param project_id: Request project id
+-    :param target_path: Where the image data to write
+-    :raises NoImageHandlerAvailable: if no any image handler specified in
+-        the configuration is available for this request.
+-    """
+-
+-    handled = False
+-
+-    if target_path is not None:
+-        target_path = target_path.strip()
+-
+-    # Check if target image has been handled before,
+-    # we can using previous handler process it again directly.
+-    if target_path and _IMAGE_HANDLERS_ASSO:
+-        ret = _IMAGE_HANDLERS_ASSO.get(target_path)
+-        if ret:
+-            (image_handler, location, image_meta) = ret
+-            yield image_handler, location, image_meta
+-            handled = image_handler.last_ops_handled()
+-
+-    image_meta = None
+-
+-    if not handled and _IMAGE_HANDLERS:
+-        if context and image_id:
+-            (image_service, _image_id) = glance.get_remote_image_service(
+-                                                            context, image_id)
+-            image_meta = image_service.show(context, image_id)
+-            # Note(zhiyan): Glance maybe can not receive image
+-            # location property since Glance disabled it by default.
+-            img_locs = image_service.get_locations(context, image_id)
+-            for image_handler in _IMAGE_HANDLERS:
+-                matched_locs = _match_locations(img_locs,
+-                                                image_handler.get_schemes())
+-                for loc in matched_locs:
+-                    yield image_handler, loc, image_meta
+-                    handled = image_handler.last_ops_handled()
+-                    if handled:
+-                        return
+-
+-        if not handled:
+-            # Note(zhiyan): using location-independent handler do it.
+-            for image_handler in _IMAGE_HANDLERS:
+-                if len(image_handler.get_schemes()) == 0:
+-                    yield image_handler, None, image_meta
+-                    handled = image_handler.last_ops_handled()
+-                    if handled:
+-                        return
+-
+-    if not handled:
+-        LOG.error(_("Can not handle image: %(image_id)s %(target_path)s"),
+-                  {'image_id': image_id, 'target_path': target_path})
+-        raise exception.NoImageHandlerAvailable(image_id=image_id)
+diff --git a/nova/virt/images.py b/nova/virt/images.py
+index 6b23944..c82ccb2 100644
+--- a/nova/virt/images.py
++++ b/nova/virt/images.py
+@@ -72,7 +72,33 @@ def fetch(context, image_href, path, _user_id, _project_id, max_size=0):
+         image_service.download(context, image_id, dst_path=path)
+ 
+ 
+-def fetch_to_raw(context, image_href, path, user_id, project_id, max_size=0):
++def direct_fetch(context, image_href, backend):
++    """Allow an image backend to fetch directly from the glance backend.
++
++    :backend: the image backend, which must have a direct_fetch method
++              accepting a list of image locations. This method should raise
++              exceptions.ImageUnacceptable if the image cannot be downloaded
++              directly.
++    """
++    # TODO(jdurgin): improve auth handling as noted in fetch()
++    image_service, image_id = glance.get_remote_image_service(context,
++                                                              image_href)
++    locations = image_service._get_locations(context, image_id)
++    image_meta = image_service.show(context, image_id)
++
++    LOG.debug(_('Image locations are: %(locs)s') % {'locs': locations})
++    backend.direct_fetch(image_id, image_meta, locations)
++
++
++def fetch_to_raw(context, image_href, path, user_id, project_id, max_size=0,
++                 backend=None):
++    if backend:
++        try:
++            direct_fetch(context, image_href, backend)
++            return
++        except exception.ImageUnacceptable:
++            LOG.debug(_('could not fetch directly, falling back to download'))
++
+     path_tmp = "%s.part" % path
+     fetch(context, image_href, path_tmp, user_id, project_id,
+           max_size=max_size)
+diff --git a/nova/virt/libvirt/driver.py b/nova/virt/libvirt/driver.py
+index df367dd..8b12e7b 100644
+--- a/nova/virt/libvirt/driver.py
++++ b/nova/virt/libvirt/driver.py
+@@ -100,6 +100,7 @@ from nova.virt.libvirt import config as vconfig
+ from nova.virt.libvirt import firewall as libvirt_firewall
+ from nova.virt.libvirt import imagebackend
+ from nova.virt.libvirt import imagecache
++from nova.virt.libvirt import rbd_utils
+ from nova.virt.libvirt import utils as libvirt_utils
+ from nova.virt import netutils
+ from nova.virt import watchdog_actions
+@@ -954,10 +955,10 @@ class LibvirtDriver(driver.ComputeDriver):
+             self._destroy(instance)
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         self._destroy(instance)
+         self.cleanup(context, instance, network_info, block_device_info,
+-                     destroy_disks)
++                     destroy_disks, migrate_data)
+ 
+     def _undefine_domain(self, instance):
+         try:
+@@ -991,7 +992,7 @@ class LibvirtDriver(driver.ComputeDriver):
+                               {'errcode': errcode, 'e': e}, instance=instance)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         self._undefine_domain(instance)
+         self.unplug_vifs(instance, network_info, ignore_errors=True)
+         retry = True
+@@ -1066,26 +1067,26 @@ class LibvirtDriver(driver.ComputeDriver):
+                                  {'vol_id': vol.get('volume_id'), 'exc': exc},
+                                  instance=instance)
+ 
+-        if destroy_disks:
++        if destroy_disks or (
++                migrate_data and migrate_data.get('is_shared_block_storage',
++                                                  False)):
+             self._delete_instance_files(instance)
+ 
++        if destroy_disks:
+             self._cleanup_lvm(instance)
+             #NOTE(haomai): destroy volumes if needed
+             if CONF.libvirt.images_type == 'rbd':
+                 self._cleanup_rbd(instance)
+ 
+-    def _cleanup_rbd(self, instance):
+-        pool = CONF.libvirt.images_rbd_pool
+-        volumes = libvirt_utils.list_rbd_volumes(pool)
+-        pattern = instance['uuid']
+-
+-        def belongs_to_instance(disk):
+-            return disk.startswith(pattern)
+-
+-        volumes = filter(belongs_to_instance, volumes)
++    @staticmethod
++    def _get_rbd_driver():
++        return rbd_utils.RBDDriver(
++                pool=CONF.libvirt.images_rbd_pool,
++                ceph_conf=CONF.libvirt.images_rbd_ceph_conf,
++                rbd_user=CONF.libvirt.rbd_user)
+ 
+-        if volumes:
+-            libvirt_utils.remove_rbd_volumes(pool, *volumes)
++    def _cleanup_rbd(self, instance):
++        LibvirtDriver._get_rbd_driver().cleanup_volumes(instance)
+ 
+     def _cleanup_lvm(self, instance):
+         """Delete all LVM disks for given instance object."""
+@@ -2618,13 +2619,15 @@ class LibvirtDriver(driver.ComputeDriver):
+             if size == 0 or suffix == '.rescue':
+                 size = None
+ 
+-            image('disk').cache(fetch_func=libvirt_utils.fetch_image,
+-                                context=context,
+-                                filename=root_fname,
+-                                size=size,
+-                                image_id=disk_images['image_id'],
+-                                user_id=instance['user_id'],
+-                                project_id=instance['project_id'])
++            backend = image('disk')
++            backend.cache(fetch_func=libvirt_utils.fetch_image,
++                          context=context,
++                          filename=root_fname,
++                          size=size,
++                          backend=backend,
++                          image_id=disk_images['image_id'],
++                          user_id=instance['user_id'],
++                          project_id=instance['project_id'])
+ 
+         # Lookup the filesystem type if required
+         os_type_with_default = disk.get_fs_type_for_os_type(
+@@ -3800,6 +3803,8 @@ class LibvirtDriver(driver.ComputeDriver):
+         if CONF.libvirt.images_type == 'lvm':
+             info = libvirt_utils.get_volume_group_info(
+                                  CONF.libvirt.images_volume_group)
++        elif CONF.libvirt.images_type == 'rbd':
++            info = LibvirtDriver._get_rbd_driver().get_pool_info()
+         else:
+             info = libvirt_utils.get_fs_info(CONF.instances_path)
+ 
+@@ -4208,6 +4213,7 @@ class LibvirtDriver(driver.ComputeDriver):
+         filename = self._create_shared_storage_test_file()
+ 
+         return {"filename": filename,
++                "image_type": CONF.libvirt.images_type,
+                 "block_migration": block_migration,
+                 "disk_over_commit": disk_over_commit,
+                 "disk_available_mb": disk_available_mb}
+@@ -4236,16 +4242,15 @@ class LibvirtDriver(driver.ComputeDriver):
+         # Checking shared storage connectivity
+         # if block migration, instances_paths should not be on shared storage.
+         source = CONF.host
+-        filename = dest_check_data["filename"]
+-        block_migration = dest_check_data["block_migration"]
+-        is_volume_backed = dest_check_data.get('is_volume_backed', False)
+-        has_local_disks = bool(
+-                jsonutils.loads(self.get_instance_disk_info(instance['name'])))
+ 
+-        shared = self._check_shared_storage_test_file(filename)
++        dest_check_data.update({'is_shared_block_storage':
++                self._is_shared_block_storage(instance, dest_check_data)})
++        dest_check_data.update({'is_shared_instance_path':
++                self._is_shared_instance_path(dest_check_data)})
+ 
+-        if block_migration:
+-            if shared:
++        if dest_check_data['block_migration']:
++            if (dest_check_data['is_shared_block_storage'] or
++                    dest_check_data['is_shared_instance_path']):
+                 reason = _("Block migration can not be used "
+                            "with shared storage.")
+                 raise exception.InvalidLocalStorage(reason=reason, path=source)
+@@ -4253,11 +4258,11 @@ class LibvirtDriver(driver.ComputeDriver):
+                                     dest_check_data['disk_available_mb'],
+                                     dest_check_data['disk_over_commit'])
+ 
+-        elif not shared and (not is_volume_backed or has_local_disks):
++        elif not (dest_check_data['is_shared_block_storage'] or
++                  dest_check_data['is_shared_instance_path']):
+             reason = _("Live migration can not be used "
+                        "without shared storage.")
+             raise exception.InvalidSharedStorage(reason=reason, path=source)
+-        dest_check_data.update({"is_shared_storage": shared})
+ 
+         # NOTE(mikal): include the instance directory name here because it
+         # doesn't yet exist on the destination but we want to force that
+@@ -4268,6 +4273,32 @@ class LibvirtDriver(driver.ComputeDriver):
+ 
+         return dest_check_data
+ 
++    def _is_shared_block_storage(self, instance, dest_check_data):
++        '''Check if all block storage of an instance can be shared
++        between source and destination of a live migration.
++
++        Returns true if the instance is volume backed and has no local disks,
++        or if the image backend is the same on source and destination and the
++        backend shares block storage between compute nodes.
++        '''
++        if (CONF.libvirt.images_type == dest_check_data.get('image_type') and
++                self.image_backend.backend().is_shared_block_storage()):
++            return True
++
++        if (dest_check_data.get('is_volume_backed') and
++                not bool(jsonutils.loads(
++                    self.get_instance_disk_info(instance['name'])))):
++            return True
++
++        return False
++
++    def _is_shared_instance_path(self, dest_check_data):
++        '''Check if instance path is shared between source and
++        destination of a live migration.
++        '''
++        return self._check_shared_storage_test_file(
++                    dest_check_data["filename"])
++
+     def _assert_dest_node_has_enough_disk(self, context, instance,
+                                              available_mb, disk_over_commit):
+         """Checks if destination has enough disk for block migration."""
+@@ -4514,31 +4545,37 @@ class LibvirtDriver(driver.ComputeDriver):
+ 
+     def rollback_live_migration_at_destination(self, context, instance,
+                                                network_info,
+-                                               block_device_info):
++                                               block_device_info,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         """Clean up destination node after a failed live migration."""
+-        self.destroy(context, instance, network_info, block_device_info)
++        self.destroy(context, instance, network_info, block_device_info,
++                     destroy_disks, migrate_data)
+ 
+     def pre_live_migration(self, context, instance, block_device_info,
+                            network_info, disk_info, migrate_data=None):
+         """Preparation live migration."""
+         # Steps for volume backed instance live migration w/o shared storage.
+-        is_shared_storage = True
+-        is_volume_backed = False
++        is_shared_block_storage = True
++        is_shared_instance_path = True
+         is_block_migration = True
+         instance_relative_path = None
+         if migrate_data:
+-            is_shared_storage = migrate_data.get('is_shared_storage', True)
+-            is_volume_backed = migrate_data.get('is_volume_backed', False)
++            is_shared_block_storage = migrate_data.get(
++                    'is_shared_block_storage', True)
++            is_shared_instance_path = migrate_data.get(
++                    'is_shared_instance_path', True)
+             is_block_migration = migrate_data.get('block_migration', True)
+             instance_relative_path = migrate_data.get('instance_relative_path')
+ 
+-        if not is_shared_storage:
++        if not (is_shared_instance_path and is_shared_block_storage):
+             # NOTE(mikal): block migration of instances using config drive is
+             # not supported because of a bug in libvirt (read only devices
+             # are not copied by libvirt). See bug/1246201
+             if configdrive.required_by(instance):
+                 raise exception.NoBlockMigrationForConfigDriveInLibVirt()
+ 
++        if not is_shared_instance_path:
+             # NOTE(mikal): this doesn't use libvirt_utils.get_instance_path
+             # because we are ensuring that the same instance directory name
+             # is used as was at the source
+@@ -4552,11 +4589,16 @@ class LibvirtDriver(driver.ComputeDriver):
+                 raise exception.DestinationDiskExists(path=instance_dir)
+             os.mkdir(instance_dir)
+ 
++        if not is_shared_block_storage:
+             # Ensure images and backing files are present.
+             self._create_images_and_backing(context, instance, instance_dir,
+                                             disk_info)
+ 
+-        if is_volume_backed and not (is_block_migration or is_shared_storage):
++        if not (is_block_migration or is_shared_instance_path):
++            # NOTE(angdraug): when block storage is shared between source and
++            # destination and instance path isn't (e.g. volume backed or rbd
++            # backed instance), instance path on destination has to be prepared
++
+             # Touch the console.log file, required by libvirt.
+             console_file = self._get_console_log_path(instance)
+             libvirt_utils.file_open(console_file, 'a').close()
+diff --git a/nova/virt/libvirt/imagebackend.py b/nova/virt/libvirt/imagebackend.py
+index 6511496..016c98c 100644
+--- a/nova/virt/libvirt/imagebackend.py
++++ b/nova/virt/libvirt/imagebackend.py
+@@ -32,17 +32,9 @@ from nova import utils
+ from nova.virt.disk import api as disk
+ from nova.virt import images
+ from nova.virt.libvirt import config as vconfig
++from nova.virt.libvirt import rbd_utils
+ from nova.virt.libvirt import utils as libvirt_utils
+ 
+-
+-try:
+-    import rados
+-    import rbd
+-except ImportError:
+-    rados = None
+-    rbd = None
+-
+-
+ __imagebackend_opts = [
+     cfg.StrOpt('images_type',
+                default='default',
+@@ -85,6 +77,8 @@ CONF = cfg.CONF
+ CONF.register_opts(__imagebackend_opts, 'libvirt')
+ CONF.import_opt('image_cache_subdirectory_name', 'nova.virt.imagecache')
+ CONF.import_opt('preallocate_images', 'nova.virt.driver')
++CONF.import_opt('rbd_user', 'nova.virt.libvirt.volume', group='libvirt')
++CONF.import_opt('rbd_secret_uuid', 'nova.virt.libvirt.volume', group='libvirt')
+ 
+ LOG = logging.getLogger(__name__)
+ 
+@@ -212,8 +206,7 @@ class Image(object):
+                                            'path': self.path})
+         return can_fallocate
+ 
+-    @staticmethod
+-    def verify_base_size(base, size, base_size=0):
++    def verify_base_size(self, base, size, base_size=0):
+         """Check that the base image is not larger than size.
+            Since images can't be generally shrunk, enforce this
+            constraint taking account of virtual image size.
+@@ -232,7 +225,7 @@ class Image(object):
+             return
+ 
+         if size and not base_size:
+-            base_size = disk.get_disk_size(base)
++            base_size = self.get_disk_size(base)
+ 
+         if size < base_size:
+             msg = _('%(base)s virtual size %(base_size)s '
+@@ -242,6 +235,9 @@ class Image(object):
+                               'size': size})
+             raise exception.FlavorDiskTooSmall()
+ 
++    def get_disk_size(self, name):
++        disk.get_disk_size(name)
++
+     def snapshot_extract(self, target, out_format):
+         raise NotImplementedError()
+ 
+@@ -304,6 +300,20 @@ class Image(object):
+             raise exception.DiskInfoReadWriteFail(reason=unicode(e))
+         return driver_format
+ 
++    @staticmethod
++    def is_shared_block_storage():
++        '''Return True if the backend puts images on a shared block storage
++        '''
++        return False
++
++    def direct_fetch(self, image_id, image_meta, image_locations):
++        """Create an image from a direct image location.
++
++        :raises: exception.ImageUnacceptable if it cannot be fetched directly
++        """
++        reason = _('direct_fetch() is not implemented')
++        raise exception.ImageUnacceptable(image_id=image_id, reason=reason)
++
+ 
+ class Raw(Image):
+     def __init__(self, instance=None, disk_name=None, path=None):
+@@ -491,51 +501,6 @@ class Lvm(Image):
+                              run_as_root=True)
+ 
+ 
+-class RBDVolumeProxy(object):
+-    """Context manager for dealing with an existing rbd volume.
+-
+-    This handles connecting to rados and opening an ioctx automatically, and
+-    otherwise acts like a librbd Image object.
+-
+-    The underlying librados client and ioctx can be accessed as the attributes
+-    'client' and 'ioctx'.
+-    """
+-    def __init__(self, driver, name, pool=None):
+-        client, ioctx = driver._connect_to_rados(pool)
+-        try:
+-            self.volume = driver.rbd.Image(ioctx, str(name), snapshot=None)
+-        except driver.rbd.Error:
+-            LOG.exception(_("error opening rbd image %s"), name)
+-            driver._disconnect_from_rados(client, ioctx)
+-            raise
+-        self.driver = driver
+-        self.client = client
+-        self.ioctx = ioctx
+-
+-    def __enter__(self):
+-        return self
+-
+-    def __exit__(self, type_, value, traceback):
+-        try:
+-            self.volume.close()
+-        finally:
+-            self.driver._disconnect_from_rados(self.client, self.ioctx)
+-
+-    def __getattr__(self, attrib):
+-        return getattr(self.volume, attrib)
+-
+-
+-def ascii_str(s):
+-    """Convert a string to ascii, or return None if the input is None.
+-
+-    This is useful when a parameter is None by default, or a string. LibRBD
+-    only accepts ascii, hence the need for conversion.
+-    """
+-    if s is None:
+-        return s
+-    return str(s)
+-
+-
+ class Rbd(Image):
+     def __init__(self, instance=None, disk_name=None, path=None, **kwargs):
+         super(Rbd, self).__init__("block", "rbd", is_block_dev=True)
+@@ -552,10 +517,15 @@ class Rbd(Image):
+                                  ' images_rbd_pool'
+                                  ' flag to use rbd images.'))
+         self.pool = CONF.libvirt.images_rbd_pool
+-        self.ceph_conf = ascii_str(CONF.libvirt.images_rbd_ceph_conf)
+-        self.rbd_user = ascii_str(CONF.libvirt.rbd_user)
+-        self.rbd = kwargs.get('rbd', rbd)
+-        self.rados = kwargs.get('rados', rados)
++        self.rbd_user = CONF.libvirt.rbd_user
++        self.ceph_conf = CONF.libvirt.images_rbd_ceph_conf
++
++        self.driver = rbd_utils.RBDDriver(
++            pool=self.pool,
++            ceph_conf=self.ceph_conf,
++            rbd_user=self.rbd_user,
++            rbd_lib=kwargs.get('rbd'),
++            rados_lib=kwargs.get('rados'))
+ 
+         self.path = 'rbd:%s/%s' % (self.pool, self.rbd_name)
+         if self.rbd_user:
+@@ -563,52 +533,6 @@ class Rbd(Image):
+         if self.ceph_conf:
+             self.path += ':conf=' + self.ceph_conf
+ 
+-    def _connect_to_rados(self, pool=None):
+-        client = self.rados.Rados(rados_id=self.rbd_user,
+-                                  conffile=self.ceph_conf)
+-        try:
+-            client.connect()
+-            pool_to_open = str(pool or self.pool)
+-            ioctx = client.open_ioctx(pool_to_open)
+-            return client, ioctx
+-        except self.rados.Error:
+-            # shutdown cannot raise an exception
+-            client.shutdown()
+-            raise
+-
+-    def _disconnect_from_rados(self, client, ioctx):
+-        # closing an ioctx cannot raise an exception
+-        ioctx.close()
+-        client.shutdown()
+-
+-    def _supports_layering(self):
+-        return hasattr(self.rbd, 'RBD_FEATURE_LAYERING')
+-
+-    def _ceph_args(self):
+-        args = []
+-        if self.rbd_user:
+-            args.extend(['--id', self.rbd_user])
+-        if self.ceph_conf:
+-            args.extend(['--conf', self.ceph_conf])
+-        return args
+-
+-    def _get_mon_addrs(self):
+-        args = ['ceph', 'mon', 'dump', '--format=json'] + self._ceph_args()
+-        out, _ = utils.execute(*args)
+-        lines = out.split('\n')
+-        if lines[0].startswith('dumped monmap epoch'):
+-            lines = lines[1:]
+-        monmap = jsonutils.loads('\n'.join(lines))
+-        addrs = [mon['addr'] for mon in monmap['mons']]
+-        hosts = []
+-        ports = []
+-        for addr in addrs:
+-            host_port = addr[:addr.rindex('/')]
+-            host, port = host_port.rsplit(':', 1)
+-            hosts.append(host.strip('[]'))
+-            ports.append(port)
+-        return hosts, ports
+-
+     def libvirt_info(self, disk_bus, disk_dev, device_type, cache_mode,
+             extra_specs, hypervisor_version):
+         """Get `LibvirtConfigGuestDisk` filled for this image.
+@@ -621,8 +545,8 @@ class Rbd(Image):
+         """
+         info = vconfig.LibvirtConfigGuestDisk()
+ 
+-        hosts, ports = self._get_mon_addrs()
+-        info.device_type = device_type
++        hosts, ports = self.driver.get_mon_addrs()
++        info.source_device = device_type
+         info.driver_format = 'raw'
+         info.driver_cache = cache_mode
+         info.target_bus = disk_bus
+@@ -647,44 +571,61 @@ class Rbd(Image):
+         return False
+ 
+     def check_image_exists(self):
+-        rbd_volumes = libvirt_utils.list_rbd_volumes(self.pool)
+-        for vol in rbd_volumes:
+-            if vol.startswith(self.rbd_name):
+-                return True
++        return self.driver.exists(self.rbd_name)
+ 
+-        return False
+-
+-    def _resize(self, volume_name, size):
+-        size = int(size) * units.Ki
++    def get_disk_size(self, name):
++        """Returns the size of the virtual disk in bytes.
+ 
+-        with RBDVolumeProxy(self, volume_name) as vol:
+-            vol.resize(size)
++        The name argument is ignored since this backend already knows
++        its name, and callers may pass a non-existent local file path.
++        """
++        return self.driver.size(self.rbd_name)
+ 
+     def create_image(self, prepare_template, base, size, *args, **kwargs):
+-        if self.rbd is None:
+-            raise RuntimeError(_('rbd python libraries not found'))
+ 
+-        if not os.path.exists(base):
++        if not self.check_image_exists():
+             prepare_template(target=base, max_size=size, *args, **kwargs)
+         else:
+             self.verify_base_size(base, size)
+ 
+-        # keep using the command line import instead of librbd since it
+-        # detects zeroes to preserve sparseness in the image
+-        args = ['--pool', self.pool, base, self.rbd_name]
+-        if self._supports_layering():
+-            args += ['--new-format']
+-        args += self._ceph_args()
+-        libvirt_utils.import_rbd_image(*args)
+-
+-        base_size = disk.get_disk_size(base)
++        # prepare_template() may have cloned the image into a new rbd
++        # image already instead of downloading it locally
++        if not self.check_image_exists():
++            # keep using the command line import instead of librbd since it
++            # detects zeroes to preserve sparseness in the image
++            args = ['--pool', self.pool, base, self.rbd_name]
++            if self.driver.supports_layering():
++                args += ['--new-format']
++                args += self.driver.ceph_args()
++                utils.execute('rbd', 'import', *args)
+ 
+-        if size and size > base_size:
+-            self._resize(self.rbd_name, size)
++        if size and size > self.get_disk_size(self.rbd_name):
++            self.driver.resize(self.rbd_name, size)
+ 
+     def snapshot_extract(self, target, out_format):
+         images.convert_image(self.path, target, out_format)
+ 
++    @staticmethod
++    def is_shared_block_storage():
++        return True
++
++    def direct_fetch(self, image_id, image_meta, image_locations):
++        if self.check_image_exists():
++            return
++        if image_meta.get('disk_format') not in ['raw', 'iso']:
++            reason = _('Image is not raw format')
++            raise exception.ImageUnacceptable(image_id=image_id, reason=reason)
++        if not self.driver.supports_layering():
++            reason = _('installed version of librbd does not support cloning')
++            raise exception.ImageUnacceptable(image_id=image_id, reason=reason)
++
++        for location in image_locations:
++            if self.driver.is_cloneable(location, image_meta):
++                return self.driver.clone(location, self.rbd_name)
++
++        reason = _('No image locations are accessible')
++        raise exception.ImageUnacceptable(image_id=image_id, reason=reason)
++
+ 
+ class Backend(object):
+     def __init__(self, use_cow):
+diff --git a/nova/virt/libvirt/rbd_utils.py b/nova/virt/libvirt/rbd_utils.py
+new file mode 100644
+index 0000000..30f7dd4
+--- /dev/null
++++ b/nova/virt/libvirt/rbd_utils.py
+@@ -0,0 +1,249 @@
++# Copyright 2012 Grid Dynamics
++#    Licensed under the Apache License, Version 2.0 (the "License"); you may
++#    not use this file except in compliance with the License. You may obtain
++#    a copy of the License at
++#
++#         http://www.apache.org/licenses/LICENSE-2.0
++#
++#    Unless required by applicable law or agreed to in writing, software
++#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++#    License for the specific language governing permissions and limitations
++#    under the License.
++
++import urllib
++
++try:
++    import rados
++    import rbd
++except ImportError:
++    rados = None
++    rbd = None
++
++from nova import exception
++from nova.openstack.common import excutils
++from nova.openstack.common.gettextutils import _
++from nova.openstack.common import jsonutils
++from nova.openstack.common import log as logging
++from nova.openstack.common import units
++from nova import utils
++
++LOG = logging.getLogger(__name__)
++
++
++class RBDVolumeProxy(object):
++    """Context manager for dealing with an existing rbd volume.
++
++    This handles connecting to rados and opening an ioctx automatically, and
++    otherwise acts like a librbd Image object.
++
++    The underlying librados client and ioctx can be accessed as the attributes
++    'client' and 'ioctx'.
++    """
++    def __init__(self, driver, name, pool=None, snapshot=None,
++                 read_only=False):
++        client, ioctx = driver._connect_to_rados(pool)
++        try:
++            snap_name = snapshot.encode('utf8') if snapshot else None
++            self.volume = driver.rbd.Image(ioctx, name.encode('utf8'),
++                                           snapshot=snap_name,
++                                           read_only=read_only)
++        except driver.rbd.ImageNotFound:
++            with excutils.save_and_reraise_exception():
++                LOG.debug("rbd image %s does not exist", name)
++                driver._disconnect_from_rados(client, ioctx)
++        except driver.rbd.Error:
++            with excutils.save_and_reraise_exception():
++                LOG.exception(_("error opening rbd image %s"), name)
++                driver._disconnect_from_rados(client, ioctx)
++
++        self.driver = driver
++        self.client = client
++        self.ioctx = ioctx
++
++    def __enter__(self):
++        return self
++
++    def __exit__(self, type_, value, traceback):
++        try:
++            self.volume.close()
++        finally:
++            self.driver._disconnect_from_rados(self.client, self.ioctx)
++
++    def __getattr__(self, attrib):
++        return getattr(self.volume, attrib)
++
++
++class RADOSClient(object):
++    """Context manager to simplify error handling for connecting to ceph."""
++    def __init__(self, driver, pool=None):
++        self.driver = driver
++        self.cluster, self.ioctx = driver._connect_to_rados(pool)
++
++    def __enter__(self):
++        return self
++
++    def __exit__(self, type_, value, traceback):
++        self.driver._disconnect_from_rados(self.cluster, self.ioctx)
++
++
++class RBDDriver(object):
++
++    def __init__(self, pool, ceph_conf, rbd_user,
++                 rbd_lib=None, rados_lib=None):
++        self.pool = pool.encode('utf8')
++        # NOTE(angdraug): rados.Rados fails to connect if ceph_conf is None:
++        # https://github.com/ceph/ceph/pull/1787
++        self.ceph_conf = ceph_conf.encode('utf8') if ceph_conf else ''
++        self.rbd_user = rbd_user.encode('utf8') if rbd_user else None
++        self.rbd = rbd_lib or rbd
++        self.rados = rados_lib or rados
++        if self.rbd is None:
++            raise RuntimeError(_('rbd python libraries not found'))
++
++    def _connect_to_rados(self, pool=None):
++        client = self.rados.Rados(rados_id=self.rbd_user,
++                                  conffile=self.ceph_conf)
++        try:
++            client.connect()
++            pool_to_open = pool or self.pool
++            ioctx = client.open_ioctx(pool_to_open.encode('utf-8'))
++            return client, ioctx
++        except self.rados.Error:
++            # shutdown cannot raise an exception
++            client.shutdown()
++            raise
++
++    def _disconnect_from_rados(self, client, ioctx):
++        # closing an ioctx cannot raise an exception
++        ioctx.close()
++        client.shutdown()
++
++    def supports_layering(self):
++        return hasattr(self.rbd, 'RBD_FEATURE_LAYERING')
++
++    def ceph_args(self):
++        args = []
++        if self.rbd_user:
++            args.extend(['--id', self.rbd_user])
++        if self.ceph_conf:
++            args.extend(['--conf', self.ceph_conf])
++        return args
++
++    def get_mon_addrs(self):
++        args = ['ceph', 'mon', 'dump', '--format=json'] + self.ceph_args()
++        out, _ = utils.execute(*args)
++        lines = out.split('\n')
++        if lines[0].startswith('dumped monmap epoch'):
++            lines = lines[1:]
++        monmap = jsonutils.loads('\n'.join(lines))
++        addrs = [mon['addr'] for mon in monmap['mons']]
++        hosts = []
++        ports = []
++        for addr in addrs:
++            host_port = addr[:addr.rindex('/')]
++            host, port = host_port.rsplit(':', 1)
++            hosts.append(host.strip('[]'))
++            ports.append(port)
++        return hosts, ports
++
++    def parse_url(self, url):
++        prefix = 'rbd://'
++        if not url.startswith(prefix):
++            reason = _('Not stored in rbd')
++            raise exception.ImageUnacceptable(image_id=url, reason=reason)
++        pieces = map(urllib.unquote, url[len(prefix):].split('/'))
++        if '' in pieces:
++            reason = _('Blank components')
++            raise exception.ImageUnacceptable(image_id=url, reason=reason)
++        if len(pieces) != 4:
++            reason = _('Not an rbd snapshot')
++            raise exception.ImageUnacceptable(image_id=url, reason=reason)
++        return pieces
++
++    def _get_fsid(self):
++        with RADOSClient(self) as client:
++            return client.cluster.get_fsid()
++
++    def is_cloneable(self, image_location, image_meta):
++        url = image_location['url']
++        try:
++            fsid, pool, image, snapshot = self.parse_url(url)
++        except exception.ImageUnacceptable as e:
++            LOG.debug(_('not cloneable: %s'), e)
++            return False
++
++        if self._get_fsid() != fsid:
++            reason = _('%s is in a different ceph cluster') % url
++            LOG.debug(reason)
++            return False
++
++        if image_meta['disk_format'] != 'raw':
++            reason = _("rbd image clone requires image format to be "
++                       "'raw' but image {0} is '{1}'").format(
++                           url, image_meta['disk_format'])
++            LOG.debug(reason)
++            return False
++
++        # check that we can read the image
++        try:
++            return self.exists(image, pool=pool, snapshot=snapshot)
++        except self.rbd.Error as e:
++            LOG.debug(_('Unable to open image %(loc)s: %(err)s') %
++                      dict(loc=url, err=e))
++            return False
++
++    def clone(self, image_location, dest_name):
++        _fsid, pool, image, snapshot = self.parse_url(
++                image_location['url'])
++        LOG.debug(_('cloning %(pool)s/%(img)s@%(snap)s') %
++                  dict(pool=pool, img=image, snap=snapshot))
++        with RADOSClient(self, str(pool)) as src_client:
++            with RADOSClient(self) as dest_client:
++                self.rbd.RBD().clone(src_client.ioctx,
++                                     image.encode('utf-8'),
++                                     snapshot.encode('utf-8'),
++                                     dest_client.ioctx,
++                                     dest_name,
++                                     features=self.rbd.RBD_FEATURE_LAYERING)
++
++    def size(self, name):
++        with RBDVolumeProxy(self, name) as vol:
++            return vol.size()
++
++    def resize(self, name, size_bytes):
++        LOG.debug('resizing rbd image %s to %d', name, size_bytes)
++        with RBDVolumeProxy(self, name) as vol:
++            vol.resize(size_bytes)
++
++    def exists(self, name, pool=None, snapshot=None):
++        try:
++            with RBDVolumeProxy(self, name,
++                                pool=pool,
++                                snapshot=snapshot,
++                                read_only=True):
++                return True
++        except self.rbd.ImageNotFound:
++            return False
++
++    def cleanup_volumes(self, instance):
++        with RADOSClient(self, self.pool) as client:
++
++            def belongs_to_instance(disk):
++                return disk.startswith(instance['uuid'])
++
++            volumes = self.rbd.RBD().list(client.ioctx)
++            for volume in filter(belongs_to_instance, volumes):
++                try:
++                    self.rbd.RBD().remove(client.ioctx, volume)
++                except (rbd.ImageNotFound, rbd.ImageHasSnapshots):
++                    LOG.warn(_('rbd remove %(volume)s in pool %(pool)s '
++                               'failed'),
++                             {'volume': volume, 'pool': self.pool})
++
++    def get_pool_info(self):
++        with RADOSClient(self) as client:
++            stats = client.cluster.get_cluster_stats()
++            return {'total': stats['kb'] * units.Ki,
++                    'free':  stats['kb_avail'] * units.Ki,
++                    'used':  stats['kb_used'] * units.Ki}
+diff --git a/nova/virt/libvirt/utils.py b/nova/virt/libvirt/utils.py
+index ddfad72..53dd411 100644
+--- a/nova/virt/libvirt/utils.py
++++ b/nova/virt/libvirt/utils.py
+@@ -251,46 +251,6 @@ def create_lvm_image(vg, lv, size, sparse=False):
+     execute(*cmd, run_as_root=True, attempts=3)
+ 
+ 
+-def import_rbd_image(*args):
+-    execute('rbd', 'import', *args)
+-
+-
+-def _run_rbd(*args, **kwargs):
+-    total = list(args)
+-
+-    if CONF.libvirt.rbd_user:
+-        total.extend(['--id', str(CONF.libvirt.rbd_user)])
+-    if CONF.libvirt.images_rbd_ceph_conf:
+-        total.extend(['--conf', str(CONF.libvirt.images_rbd_ceph_conf)])
+-
+-    return utils.execute(*total, **kwargs)
+-
+-
+-def list_rbd_volumes(pool):
+-    """List volumes names for given ceph pool.
+-
+-    :param pool: ceph pool name
+-    """
+-    try:
+-        out, err = _run_rbd('rbd', '-p', pool, 'ls')
+-    except processutils.ProcessExecutionError:
+-        # No problem when no volume in rbd pool
+-        return []
+-
+-    return [line.strip() for line in out.splitlines()]
+-
+-
+-def remove_rbd_volumes(pool, *names):
+-    """Remove one or more rbd volume."""
+-    for name in names:
+-        rbd_remove = ['rbd', '-p', pool, 'rm', name]
+-        try:
+-            _run_rbd(*rbd_remove, attempts=3, run_as_root=True)
+-        except processutils.ProcessExecutionError:
+-            LOG.warn(_("rbd remove %(name)s in pool %(pool)s failed"),
+-                     {'name': name, 'pool': pool})
+-
+-
+ def get_volume_group_info(vg):
+     """Return free/used/total space info for a volume group in bytes
+ 
+@@ -647,10 +607,11 @@ def get_fs_info(path):
+             'used': used}
+ 
+ 
+-def fetch_image(context, target, image_id, user_id, project_id, max_size=0):
++def fetch_image(context, target, image_id, user_id, project_id, max_size=0,
++                backend=None):
+     """Grab image."""
+     images.fetch_to_raw(context, image_id, target, user_id, project_id,
+-                        max_size=max_size)
++                        max_size=max_size, backend=backend)
+ 
+ 
+ def get_instance_path(instance, forceold=False, relative=False):
