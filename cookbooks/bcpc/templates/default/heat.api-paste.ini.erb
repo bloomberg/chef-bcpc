@@ -90,10 +90,7 @@ paste.filter_factory = heat.common.auth_url:filter_factory
 # Auth middleware that validates token against keystone
 [filter:authtoken]
 paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
-service_protocol = <%=node['bcpc']['protocol']['keystone']%>
-service_host = <%=node['bcpc']['management']['vip']%>
-service_port = 5000
-auth_uri = https://<%=node['bcpc']['management']['vip']%>:35357
+auth_uri = <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0/
 auth_host = <%=node['bcpc']['management']['vip']%>
 auth_port = 35357
 auth_protocol = <%=node['bcpc']['protocol']['keystone']%>

@@ -178,12 +178,14 @@ connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-g
 #db_max_retries = 20
 
 [keystone_authtoken]
+auth_uri = <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0/
 auth_host = <%=node['bcpc']['management']['vip']%>
 auth_port = 35357
 auth_protocol = <%=node['bcpc']['protocol']['keystone']%>
 admin_tenant_name = <%=node['bcpc']['admin_tenant']%>
 admin_user = <%=get_config('keystone-admin-user')%>
 admin_password = <%=get_config('keystone-admin-password')%>
+admin_token = <%=get_config('keystone-admin-token')%>
 
 [paste_deploy]
 # Name of the paste configuration file that defines the available pipelines
