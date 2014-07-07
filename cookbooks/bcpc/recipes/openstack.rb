@@ -46,10 +46,12 @@ end
     end
 end
 
-template "/usr/local/bin/hup_openstack" do
-    source "hup_openstack.erb"
-    mode 0755
-    owner "root"
-    group "root"
-    variables(:servers => get_head_nodes)
+%w{hup_openstack logwatch}.each do |script|
+    template "/usr/local/bin/#{script}" do
+        source "#{script}.erb"
+        mode 0755
+        owner "root"
+        group "root"
+        variables(:servers => get_head_nodes)
+    end
 end
