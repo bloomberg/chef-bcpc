@@ -5,10 +5,10 @@
   "json_class": "Chef::Role",
   "run_list": [
     "role[Basic]",
-    "recipe[bcpc]",
+    "recipe[bcpc::default]",
     "recipe[bcpc::networking]",
     "recipe[bcpc-hadoop::disks]",
-    "recipe[kafka-bcpc]", 
+    "recipe[kafka-bcpc::default]", 
     "recipe[kafka-bcpc::setattr]",
     "recipe[kafka-bcpc::zookeeper]", 
     "recipe[java::oracle]", 
@@ -18,7 +18,7 @@
   "chef_type": "role",
   "override_attributes": {
     "kafka": {
-      "version": "0.8.1",
+      "version": "0.8.1.1",
       "scala_version": "2.9.2",
       "checksum": "",
       "md5_checksum": "",
