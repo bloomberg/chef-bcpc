@@ -6,17 +6,20 @@
 
 [DEFAULT]
 # Show more verbose log output (sets INFO log level output)
-verbose = False
+#verbose = False
 
 # Show debugging output in logs (sets DEBUG log level output)
-debug = False
+#debug = False
 
-# Log to this file. Make sure you do not set the same log
-# file for both the API and registry servers!
+# Log to this file. Make sure you do not set the same log file for both the API
+# and registry servers!
+#
+# If `log_file` is omitted and `use_syslog` is false, then log messages are
+# sent to stdout as a fallback.
 log_file = /var/log/glance/scrubber.log
 
 # Send logs to syslog (/dev/log) instead of to file specified by `log_file`
-use_syslog = False
+#use_syslog = False
 
 # Should we run our own loop or rely on cron/scheduler to run us
 daemon = False
@@ -41,7 +44,7 @@ registry_host = <%=node['bcpc']['management']['vip']%>
 registry_port = 9191
 
 # Auth settings if using Keystone
-auth_url = https://<%=node['bcpc']['management']['vip']%>:5000/v2.0/
+auth_url = <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0/
 admin_tenant_name = <%=node['bcpc']['admin_tenant']%>
 admin_user = <%=get_config('keystone-admin-user')%>
 admin_password = <%=get_config('keystone-admin-password')%>

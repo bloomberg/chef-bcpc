@@ -7,7 +7,7 @@ default['bcpc']['country'] = "US"
 default['bcpc']['state'] = "NY"
 default['bcpc']['location'] = "New York"
 default['bcpc']['organization'] = "Bloomberg"
-default['bcpc']['openstack_release'] = "havana"
+default['bcpc']['openstack_release'] = "icehouse"
 # Can be "updates" or "proposed"
 default['bcpc']['openstack_branch'] = "proposed"
 # Should be kvm (or qemu if testing in VMs)
@@ -159,3 +159,5 @@ default['bcpc']['ports']['apache']['radosgw'] = 8080
 default['bcpc']['ports']['apache']['radosgw_https'] = 8443
 default['bcpc']['ports']['haproxy']['radosgw'] = 80
 default['bcpc']['ports']['haproxy']['radosgw_https'] = 443
+
+default['bcpc']['protocol']['keystone'] = "http"

@@ -47,9 +47,3 @@ bash "nova-fixed-add" do
     EOH
     only_if ". /root/adminrc; nova-manage network list | grep \"No networks found\""
 end
-
-cookbook_file "/root/logwatch.sh" do
-    source "logwatch.sh"
-    owner "root"
-    mode 00755
-end

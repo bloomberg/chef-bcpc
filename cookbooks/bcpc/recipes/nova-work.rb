@@ -40,27 +40,26 @@ service "nova-api" do
     restart_command "service nova-api restart; sleep 5"
 end
 
-cookbook_file "/tmp/havana-ephemeral-rbd.patch" do
-    source "havana-ephemeral-rbd.patch"
-    owner "root"
-    mode 00644
-end
-
-bash "patch-for-havana-ephemeral-rbd" do
-    user "root"
-    code <<-EOH
-        cd /usr/lib/python2.7/dist-packages/nova
-        patch -p2 < /tmp/havana-ephemeral-rbd.patch
-        cp /tmp/havana-ephemeral-rbd.patch .
-    EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/havana-ephemeral-rbd.patch"
-    notifies :restart, "service[nova-compute]", :delayed
-end
-
 %w{novnc pm-utils memcached sysfsutils}.each do |pkg|
     package pkg do
         action :upgrade
     end
+end
+
+cookbook_file "/tmp/nova-libvirt.patch" do
+    source "nova-libvirt.patch"
+    owner "root"
+    mode 00644
+end
+
+bash "patch-for-nova-libvirt-bugs" do
+    user "root"
+    code <<-EOH
+        cd /usr/lib/python2.7/dist-packages/nova
+        patch -p2 < /tmp/nova-libvirt.patch
+        cp /tmp/nova-libvirt.patch .
+    EOH
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova-libvirt.patch"
 end
 
 directory "/var/lib/nova/.ssh" do
@@ -168,6 +167,19 @@ bash "libvirt-device-acls" do
     EOH
     not_if "grep -e '^cgroup_device_acl' /etc/libvirt/qemu.conf"
     notifies :restart, "service[libvirt-bin]", :delayed
+end
+
+if node['bcpc']['virt_type'] == "kvm" then
+    %w{amd intel}.each do |arch|
+        bash "enable-kvm-#{arch}" do
+            user "root"
+            code <<-EOH
+                modprobe kvm_#{arch}
+                echo 'kvm_#{arch}' >> /etc/modules
+            EOH
+            not_if "grep -e '^kvm_#{arch}' /etc/modules"
+        end
+    end
 end
 
 include_recipe "bcpc::cobalt"
