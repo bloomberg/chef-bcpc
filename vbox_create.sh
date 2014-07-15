@@ -26,6 +26,19 @@ CLUSTER_VM_MEM=2560
 CLUSTER_VM_CPUs=2
 CLUSTER_VM_DRIVE_SIZE=20480
 
+# Host-only networking configuration
+readonly BCPC_IFACE_IP_MANAGEMENT="10.0.100.2"
+readonly BCPC_IFACE_IP_STORAGE="172.16.100.2"
+readonly BCPC_IFACE_IP_FLOAT="192.168.100.2"
+readonly BCPC_IFACE_NETMASK="255.255.255.0"
+
+# Global variables for host-only interface names
+# Note that these should only be set by `create_network_interfaces`
+declare BCPC_IFACE_NAME_MANAGEMENT
+declare BCPC_IFACE_NAME_STORAGE
+declare BCPC_IFACE_NAME_FLOAT
+
+
 VBOX_DIR="`dirname ${BASH_SOURCE[0]}`/vbox"
 P=`python -c "import os.path; print os.path.abspath(\"${VBOX_DIR}/\")"`
 
@@ -37,6 +50,70 @@ vbm_import() {
     shift 2
     # this currently assumes that only one virtual system is imported
     "$VBM" import "$image_name" --vsys 0 --vmname "$vm_name" "$@"
+}
+
+# Output VirtualBox host-only interfaces in machine readable format
+function vbm_list_hostonlyifs {
+  $VBM list hostonlyifs \
+    | egrep "^(Name|IPAddress|NetworkMask):" \
+    | awk '{print $2}' \
+    | paste - - -
+}
+
+# Create a host-only interface and emit created interface name to stdout
+function vbm_hostonlyif_create {
+  $VBM hostonlyif create 2> /dev/null | egrep -o "vboxnet[[:digit:]]+"
+}
+
+function vbm_hostonlyif_ipconfig {
+  local name="$1"
+  local ip="$2"
+  local netmask="$3"
+  $VBM hostonlyif ipconfig "$name" --ip "$ip" --netmask "$netmask"
+}
+
+function create_network_interfaces {
+  local name ip mask
+
+  # find existing host-only interfaces and disable dhcp if enabled
+  while read -r name ip mask; do
+    local ip_found=1
+    echo "$ip"
+    case "$ip" in
+      "$BCPC_IFACE_IP_MANAGEMENT")
+        BCPC_IFACE_NAME_MANAGEMENT="$name"
+        ;;
+      "$BCPC_IFACE_IP_STORAGE")
+        BCPC_IFACE_NAME_STORAGE="$name"
+        ;;
+      "$BCPC_IFACE_IP_FLOAT")
+        BCPC_IFACE_NAME_FLOAT="$name"
+        ;;
+      *)
+        unset ip_found
+        ;;
+    esac
+
+    if [[ -n "$ip_found" ]]; then
+      $VBM dhcpserver remove --ifname "$name"
+    fi
+  done < <(vbm_list_hostonlyifs)
+
+  # if none of the host-only interfaces required are available, create them
+  if [[ -z "$BCPC_IFACE_NAME_MANAGEMENT" ]]; then
+    BCPC_IFACE_NAME_MANAGEMENT="$(vbm_hostonlyif_create)"
+    vbm_hostonlyif_ipconfig "$BCPC_IFACE_NAME_MANAGEMENT" "$BCPC_IFACE_IP_MANAGEMENT" "$BCPC_IFACE_NETMASK"
+  fi
+
+  if [[ -z "$BCPC_IFACE_NAME_STORAGE" ]]; then
+    BCPC_IFACE_NAME_STORAGE="$(vbm_hostonlyif_create)"
+    vbm_hostonlyif_ipconfig "$BCPC_IFACE_NAME_STORAGE" "$BCPC_IFACE_IP_STORAGE" "$BCPC_IFACE_NETMASK"
+  fi
+
+  if [[ -z "$BCPC_IFACE_NAME_FLOAT" ]]; then
+    BCPC_IFACE_NAME_FLOAT="$(vbm_hostonlyif_create)"
+    vbm_hostonlyif_ipconfig "$BCPC_IFACE_NAME_FLOAT" "$BCPC_IFACE_IP_FLOAT" "$BCPC_IFACE_NETMASK"
+  fi
 }
 
 ######################################################
@@ -113,60 +190,48 @@ function create_bootstrap_VM {
     fi
     vagrant up
   else
-    # Create bootstrap VM
-    for vm in bcpc-bootstrap; do
-        # Only if VM doesn't exist
-        if ! $VBM list vms | grep "^\"${vm}\"" ; then
+    local -r vm="bcpc-bootstrap"
+    # Only if VM doesn't exist
+    if ! $VBM list vms | grep '^"${vm}"'; then
+      # define this if you have a pre-built OVA image
+      # (virtualbox exported machine image), for example as
+      # built by
+      # https://github.com/ericvw/chef-bcpc/tree/packer/bootstrap
+      #ARCHIVED_BOOTSTRAP=~/bcpc-cache/packer-bcpc-bootstrap_ubuntu-12.04-amd64.ova
 
-            # define this if you have a pre-built OVA image
-            # (virtualbox exported machine image), for example as
-            # built by
-            # https://github.com/ericvw/chef-bcpc/tree/packer/bootstrap
-            #ARCHIVED_BOOTSTRAP=~/bcpc-cache/packer-bcpc-bootstrap_ubuntu-12.04-amd64.ova
-
-            if [[ -n "$ARCHIVED_BOOTSTRAP" && -f "$ARCHIVED_BOOTSTRAP" ]]; then
-                vbm_import "$ARCHIVED_BOOTSTRAP" bcpc-bootstrap
-            else
-                $VBM createvm --name $vm --ostype Ubuntu_64 --basefolder $P --register
-                $VBM modifyvm $vm --memory $BOOTSTRAP_VM_MEM
-                $VBM modifyvm $vm --cpus $BOOTSTRAP_VM_CPUs
-                $VBM storagectl $vm --name "SATA Controller" --add sata
-                $VBM storagectl $vm --name "IDE Controller" --add ide
-                # Create a number of hard disks
-                port=0
-                for disk in a; do
-                    $VBM createhd --filename $P/$vm/$vm-$disk.vdi --size ${BOOTSTRAP_VM_DRIVE_SIZE-20480}
-                    $VBM storageattach $vm --storagectl "SATA Controller" --device 0 --port $port --type hdd --medium $P/$vm/$vm-$disk.vdi
-                    port=$((port+1))
-                done
-                # Add the bootable mini ISO for installing Ubuntu 12.04
-                $VBM storageattach $vm --storagectl "IDE Controller" --device 0 --port 0 --type dvddrive --medium ubuntu-12.04-mini.iso
-                $VBM modifyvm $vm --boot1 disk
-            fi
-            # Add the network interfaces
-            $VBM modifyvm $vm --nic1 nat
-            $VBM modifyvm $vm --nic2 hostonly --hostonlyadapter2 "$VBN0"
-            $VBM modifyvm $vm --nic3 hostonly --hostonlyadapter3 "$VBN1"
-            $VBM modifyvm $vm --nic4 hostonly --hostonlyadapter4 "$VBN2"
-        fi
-    done
-        fi
-        popd
+      if [[ -n "$ARCHIVED_BOOTSTRAP" && -f "$ARCHIVED_BOOTSTRAP" ]]; then
+          vbm_import "$ARCHIVED_BOOTSTRAP" "$vm"
+      else
+          $VBM createvm --name $vm --ostype Ubuntu_64 --basefolder $P --register
+          $VBM modifyvm $vm --memory $BOOTSTRAP_VM_MEM
+          $VBM modifyvm $vm --cpus $BOOTSTRAP_VM_CPUs
+          $VBM storagectl $vm --name "SATA Controller" --add sata
+          $VBM storagectl $vm --name "IDE Controller" --add ide
+          # Create a number of hard disks
+          port=0
+          for disk in a; do
+              $VBM createhd --filename $P/$vm/$vm-$disk.vdi --size ${BOOTSTRAP_VM_DRIVE_SIZE-20480}
+              $VBM storageattach $vm --storagectl "SATA Controller" --device 0 --port $port --type hdd --medium $P/$vm/$vm-$disk.vdi
+              port=$((port+1))
+          done
+          # Add the bootable mini ISO for installing Ubuntu 12.04
+          $VBM storageattach $vm --storagectl "IDE Controller" --device 0 --port 0 --type dvddrive --medium ubuntu-12.04-mini.iso
+          $VBM modifyvm $vm --boot1 disk
+      fi
+      # Add the network interfaces
+      $VBM modifyvm $vm --nic1 nat
+      $VBM modifyvm $vm --nic2 hostonly --hostonlyadapter2 "$BCPC_IFACE_NAME_MANAGEMENT"
+      $VBM modifyvm $vm --nic3 hostonly --hostonlyadapter3 "$BCPC_IFACE_NAME_STORAGE"
+      $VBM modifyvm $vm --nic4 hostonly --hostonlyadapter4 "$BCPC_IFACE_NAME_FLOAT"
+    fi
+  fi
+  popd
 }
 
 ###################################################################
 # Function to create the BCPC cluster VMs
 # 
 function create_cluster_VMs {
-  # Gather VirtualBox networks in use by bootstrap VM (Vagrant simply uses the first not in-use so have to see what was picked)
-  oifs="$IFS"
-  IFS=$'\n'
-  bootstrap_interfaces=($($VBM showvminfo bcpc-bootstrap --machinereadable|egrep '^hostonlyadapter[0-9]=' |sort|sed -e 's/.*=//' -e 's/"//g'))
-  IFS="$oifs"
-  VBN0="${bootstrap_interfaces[0]}"
-  VBN1="${bootstrap_interfaces[1]}"
-  VBN2="${bootstrap_interfaces[2]}"
-
   # Create each VM
   for vm in bcpc-vm1 bcpc-vm2 bcpc-vm3; do
       # Only if VM doesn't exist
@@ -183,10 +248,10 @@ function create_cluster_VMs {
               port=$((port+1))
           done
           # Add the network interfaces
-          $VBM modifyvm $vm --nic1 hostonly --hostonlyadapter1 "$VBN0" --nictype1 82543GC
+          $VBM modifyvm $vm --nic1 hostonly --hostonlyadapter1 "$BCPC_IFACE_NAME_MANAGEMENT" --nictype1 82543GC
           $VBM setextradata $vm VBoxInternal/Devices/pcbios/0/Config/LanBootRom $P/gpxe-1.0.1-80861004.rom
-          $VBM modifyvm $vm --nic2 hostonly --hostonlyadapter2 "$VBN1"
-          $VBM modifyvm $vm --nic3 hostonly --hostonlyadapter3 "$VBN2"
+          $VBM modifyvm $vm --nic2 hostonly --hostonlyadapter2 "$BCPC_IFACE_NAME_STORAGE"
+          $VBM modifyvm $vm --nic3 hostonly --hostonlyadapter3 "$BCPC_IFACE_NAME_FLOAT"
 
           # Set hardware acceleration options
           $VBM modifyvm $vm --largepages on --vtxvpid on --hwvirtex on --nestedpaging on --ioapic on
@@ -224,6 +289,7 @@ ip=${2-10.0.100.3}
 # only execute functions if being run and not sourced
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   download_VM_files
+  create_network_interfaces
   create_bootstrap_VM
   create_cluster_VMs
   install_cluster $*
