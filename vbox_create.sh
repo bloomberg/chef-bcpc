@@ -3,10 +3,6 @@
 # bash imports
 source ./virtualbox_env.sh
 
-if [[ "$OSTYPE" == msys || "$OSTYPE" == cygwin ]]; then
-  WIN=TRUE
-fi
-
 set -x
 
 if [[ -f ./proxy_setup.sh ]]; then
@@ -99,38 +95,6 @@ function download_VM_files {
   popd
 }
 
-################################################################################
-# Function to remove VirtualBox DHCP servers
-# By default, checks for any DHCP server on networks without VM's & removes them
-# (expecting if a remove fails the function should bail)
-# If a network is provided, removes that network's DHCP server
-# (or passes the vboxmanage error and return code up to the caller)
-# 
-function remove_DHCPservers {
-  local network_name=${1-}
-  if [[ -z "$network_name" ]]; then
-    # make a list of VM UUID's
-    local vms=$($VBM list vms|sed 's/^.*{\([0-9a-f-]*\)}/\1/')
-    # make a list of networks (e.g. "vobxnet0 vboxnet1")
-    local vm_networks=$(for vm in $vms; do \
-                          $VBM showvminfo --details --machinereadable $vm | \
-                          grep -i '^hostonlyadapter[2-9]=' | \
-                          sed -e 's/^.*=//' -e 's/"//g'; \
-                        done | sort -u)
-    # will produce a regular expression string of networks which are in use by VMs
-    # (e.g. ^vboxnet0$|^vboxnet1$)
-    local existing_nets_reg_ex=$(sed -e 's/^/^/' -e '/$/$/' -e 's/ /$|^/g' <<< "$vm_networks")
-
-    $VBM list dhcpservers | grep -E "^NetworkName:\s+HostInterfaceNetworking" | awk '{print $2}' |
-    while read -r network_name; do
-      [[ -n $existing_nets_reg_ex ]] && ! egrep -q $existing_nets_reg_ex <<< $network_name && continue
-      remove_DHCPservers $network_name
-    done
-  else
-    $VBM dhcpserver remove --netname "$network_name" && local return=0 || local return=$?
-    return $return
-  fi
-}
 
 ###################################################################
 # Function to create the bootstrap VM
@@ -138,8 +102,6 @@ function remove_DHCPservers {
 # 
 function create_bootstrap_VM {
   pushd $P
-
-  remove_DHCPservers
 
   if hash vagrant 2> /dev/null ; then
     echo "Vagrant detected - using Vagrant to initialize bcpc-bootstrap VM"
@@ -151,55 +113,6 @@ function create_bootstrap_VM {
     fi
     vagrant up
   else
-    echo "Vagrant not detected - using raw VirtualBox for bcpc-bootstrap"
-    if [[ -z "$WIN" ]]; then
-      # Make the three BCPC networks we'll need, but clear all nets and dhcpservers first
-      for i in 0 1 2 3 4 5 6 7 8 9; do
-        if [[ ! -z `$VBM list hostonlyifs | grep vboxnet$i | cut -f2 -d" "` ]]; then
-          $VBM hostonlyif remove vboxnet$i || true
-        fi
-      done    
-    else
-      # On Windows the first interface has no number
-      # The second interface is #2
-      # Remove in reverse to avoid substring matching issue
-      for i in 10 9 8 7 6 5 4 3 2 1; do
-        if [[ i -gt 1 ]]; then
-          IF="VirtualBox Host-Only Ethernet Adapter #$i";
-        else
-          IF="VirtualBox Host-Only Ethernet Adapter";
-        fi
-        if [[ ! -z `$VBM list hostonlyifs | grep "$IF"` ]]; then
-          $VBM hostonlyif remove "$IF"
-        fi
-      done
-    fi
-  
-    $VBM hostonlyif create
-    $VBM hostonlyif create
-    $VBM hostonlyif create
-  
-    if [[ -z "$WIN" ]]; then
-      remove_DHCPservers vboxnet0 || true
-      remove_DHCPservers vboxnet1 || true
-      remove_DHCPservers vboxnet2 || true
-      # use variable names to refer to our three interfaces to disturb
-      # the remaining code that refers to these as little as possible -
-      # the names are compact on Unix :
-      VBN0=vboxnet0
-      VBN1=vboxnet1
-      VBN2=vboxnet2
-    else
-      # However, the names are verbose on Windows :
-      VBN0="VirtualBox Host-Only Ethernet Adapter"
-      VBN1="VirtualBox Host-Only Ethernet Adapter #2"
-      VBN2="VirtualBox Host-Only Ethernet Adapter #3"
-    fi
-
-    $VBM hostonlyif ipconfig "$VBN0" --ip 10.0.100.2    --netmask 255.255.255.0
-    $VBM hostonlyif ipconfig "$VBN1" --ip 172.16.100.2  --netmask 255.255.255.0
-    $VBM hostonlyif ipconfig "$VBN2" --ip 192.168.100.2 --netmask 255.255.255.0
-
     # Create bootstrap VM
     for vm in bcpc-bootstrap; do
         # Only if VM doesn't exist
