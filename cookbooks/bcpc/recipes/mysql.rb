@@ -111,9 +111,9 @@ ruby_block "Check MySQL Quorum Status" do
     status=`#{status_cmd}`
     while $?.to_i
       status=`#{status_cmd}`
-      if $?.to_i != 0 and i < 10
+      if $?.to_i != 0 and iter < 10
         sleep(poll_time)
-        i += 1
+        iter += 1
         Chef::Log.debug("MySQL is down #{iter*poll_time} seconds - #{status}")
       elsif $?.to_i != 0
         raise Chef::Application.fatal! "MySQL is not in a ready state per wsrep_ready for #{iter*poll_time} seconds!"
