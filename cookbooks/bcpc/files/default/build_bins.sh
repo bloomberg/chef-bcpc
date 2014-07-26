@@ -5,7 +5,8 @@ set -x
 # Define the appropriate version of each binary to grab/build
 VER_KIBANA=2581d314f12f520638382d23ffc03977f481c1e4
 # newer versions of Diamond depend upon dh-python which isn't in precise/12.04
-VER_DIAMOND=f33aa2f75c6ea2dfbbc659766fe581e5bfe2476d
+# Update to newest version of Diamond for 14.04 and add dh-python as dependency
+VER_DIAMOND=caff2fef7f930cdf22de5daf2e8f7c270a4c5711
 VER_ESPLUGIN=9c032b7c628d8da7745fbb1939dcd2db52629943
 
 if [[ -f ./proxy_setup.sh ]]; then
@@ -26,15 +27,16 @@ mkdir -p $DIR/bins
 pushd $DIR/bins/
 
 # Install tools needed for packaging
-apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
+apt-get -y install git ruby ruby-dev make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb dh-python libmysqlclient-dev libldap2-dev
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
 
 # Fetch chef client and server debs
-CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_10.32.2-1_amd64.deb
+# No 14.04 chef debs yet, so use 13.04
+CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/13.04/x86_64/chef_11.12.4-1_amd64.deb
 #CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.10.4-1.ubuntu.12.04_amd64.deb
-CHEF_SERVER_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.0.12-1.ubuntu.12.04_amd64.deb
+CHEF_SERVER_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.1.0-1_amd64.deb
 if [ ! -f chef-client.deb ]; then
    $CURL -o chef-client.deb ${CHEF_CLIENT_URL}
 fi
@@ -78,13 +80,13 @@ if [ ! -f cirros-0.3.2-x86_64-disk.img ]; then
 fi
 FILES="cirros-0.3.2-x86_64-disk.img $FILES"
 
-# Grab the Ubuntu 12.04 installer image
-if [ ! -f ubuntu-12.04-mini.iso ]; then
+# Grab the Ubuntu 14.04 installer image
+if [ ! -f ubuntu-14.04-mini.iso ]; then
     # Download this ISO to get the latest kernel/X LTS stack installer
     #$CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/raring-netboot/mini.iso
-    $CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso
+    $CURL -o ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty/main/installer-amd64/current/images/netboot/mini.iso
 fi
-FILES="ubuntu-12.04-mini.iso $FILES"
+FILES="ubuntu-14.04-mini.iso $FILES"
 
 # Grab the CentOS 6 PXE boot images
 if [ ! -f centos-6-initrd.img ]; then
