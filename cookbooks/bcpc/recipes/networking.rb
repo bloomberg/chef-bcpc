@@ -157,7 +157,7 @@ bash "disable-dhclient-resolvconf-enter-hook" do
     user "root"
     code <<-EOH
         gzip /etc/dhcp/dhclient-enter-hooks.d/resolvconf
-	resolvconf --enable-updates
+        resolvconf --enable-updates
         resolvconf -d #{node['bcpc']['management']['interface']}.dhclient
     EOH
 end
