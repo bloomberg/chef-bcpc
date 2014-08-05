@@ -2,7 +2,7 @@
 <html lang="en" xml:lang="en">
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>BCPC - <%=node['bcpc']['region_name']%> - <%=node['bcpc']['management']['vip']%></title>
+		<title><%=node['bcpc']['region_name']%> - <%=node['bcpc']['management']['vip']%> - BCPC</title>
 	</head>
 	<body>
 		<style>
@@ -25,10 +25,13 @@
 			}
 		</style>
 
-		<h2>Web Interfaces</h2>
+		<h2><%=node['bcpc']['region_name']%> - <%=node['bcpc']['management']['vip']%></h2>
+
+		<h3>Web Interfaces</h3>
 			<div class="block">
 				<label>Openstack</label>
 				<a href="https://<%=node['bcpc']['management']['vip']%>/horizon">https://<%=node['bcpc']['management']['vip']%>/horizon</a>
+				<br/><label>-</label>
 				<a href="https://openstack.<%=node['bcpc']['domain_name']%>/horizon">https://openstack.<%=node['bcpc']['domain_name']%>/horizon</a>
 			</div>
 			<div class="block">
@@ -54,49 +57,52 @@
 			<div class="block">
 				<label>Kibana</label>
 				<a href="https://<%=node['bcpc']['management']['vip']%>:5601">https://<%=node['bcpc']['management']['vip']%>:5601</a>
+				<br/><label>-</label>
 				<a href="https://kibana.<%=node['bcpc']['domain_name']%>">https://kibana.<%=node['bcpc']['domain_name']%></a>
-			</div>
-			<div class="block">
-				<label>Kibana (logstash interface)</label>
-				<a href="https://<%=node['bcpc']['management']['vip']%>:5601/index.html#/dashboard/file/logstash.json">https://<%=node['bcpc']['management']['vip']%>:5601/index.html#/dashboard/file/logstash.json</a>
-				<a href="https://kibana.<%=node['bcpc']['domain_name']%>/index.html#/dashboard/file/logstash.json">https://kibana.<%=node['bcpc']['domain_name']%>/index.html#/dashboard/file/logstash.json</a>
 			</div>
 			<div class="block">
 				<label>Graphite</label>
 				<a href="https://<%=node['bcpc']['management']['vip']%>:8888">https://<%=node['bcpc']['management']['vip']%>:8888</a>
+				<br/><label>-</label>
 				<a href="https://graphite.<%=node['bcpc']['domain_name']%>">https://graphite.<%=node['bcpc']['domain_name']%></a>
 			</div>
 			<div class="block">
 				<label>Zabbix</label>
 				<a href="https://<%=node['bcpc']['management']['vip']%>:7777">https://<%=node['bcpc']['management']['vip']%>:7777</a>
+				<br/><label>-</label>
 				<a href="https://zabbix.<%=node['bcpc']['domain_name']%>">https://zabbix.<%=node['bcpc']['domain_name']%></a>
 			</div>
 
-		<h2>API Endpoints</h2>
+		<h3>API Endpoints</h3>
 			<div class="block">
 				<label>Keystone API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:5000/v2.0">http://<%=node['bcpc']['management']['vip']%>:5000/v2.0</a>
+				<a href="<%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0"><%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0</a>
 			</div>
 			<div class="block">
 				<label>Keystone Admin API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:35357/v2.0">http://<%=node['bcpc']['management']['vip']%>:35357/v2.0</a>
+				<a href="<%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:35357/v2.0"><%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:35357/v2.0</a>
 			</div>
 			<div class="block">
 				<label>Nova API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:8774/v1.1">http://<%=node['bcpc']['management']['vip']%>:8774/v1.1</a>
+				<a href="<%=node['bcpc']['protocol']['nova']%>://<%=node['bcpc']['management']['vip']%>:8774/v1.1"><%=node['bcpc']['protocol']['nova']%>://<%=node['bcpc']['management']['vip']%>:8774/v1.1</a>
 			</div>
 			<div class="block">
 				<label>Glance API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:9292/v1">http://<%=node['bcpc']['management']['vip']%>:9292/v1</a>
+				<a href="<%=node['bcpc']['protocol']['glance']%>://<%=node['bcpc']['management']['vip']%>:9292/v1"><%=node['bcpc']['protocol']['glance']%>://<%=node['bcpc']['management']['vip']%>:9292/v1</a>
 			</div>
 			<div class="block">
 				<label>Cinder API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:8776/v1">http://<%=node['bcpc']['management']['vip']%>:8776/v1</a>
+				<a href="<%=node['bcpc']['protocol']['cinder']%>://<%=node['bcpc']['management']['vip']%>:8776/v1"><%=node['bcpc']['protocol']['cinder']%>://<%=node['bcpc']['management']['vip']%>:8776/v1</a>
 			</div>
 			<div class="block">
 				<label>EC2 API</label>
-				<a href="http://<%=node['bcpc']['management']['vip']%>:8773/services/Cloud">http://<%=node['bcpc']['management']['vip']%>:8773/services/Cloud</a>
+				<a href="<%=node['bcpc']['protocol']['nova']%>://<%=node['bcpc']['management']['vip']%>:8773/services/Cloud"><%=node['bcpc']['protocol']['nova']%>://<%=node['bcpc']['management']['vip']%>:8773/services/Cloud</a>
 			</div>
+
+		<h3>SSL Certificate</h3>
+			<code>
+				<%=get_config('ssl-certificate').gsub(/\n/, '<br/>')%>
+			</code>
 
 	</body>
 </html>
