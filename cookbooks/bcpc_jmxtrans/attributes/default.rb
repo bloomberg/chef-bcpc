@@ -260,3 +260,48 @@ default['jmxtrans']['default_queries']['hbase_master'] = [
               ]
   }
 ]
+default['jmxtrans']['default_queries']['hbase_rs'] = [
+  {
+    'obj' => "Hadoop:name=JvmMetrics,service=HBase",
+    'result_alias' => "hb_rs_jvm_metrics",
+    'attr' => [
+                      "GcCount",
+                      "GcTimeMillis",
+                      "LogError",
+                      "LogFatal",
+                      "LogInfo",
+                      "LogWarn",
+                      "MemHeapCommittedM",
+                      "MemHeapUsedM",
+                      "MemMaxM",
+                      "MemNonHeapCommittedM",
+                      "MemNonHeapUsedM",
+                      "ThreadsBlocked",
+                      "ThreadsNew",
+                      "ThreadsRunnable",
+                      "ThreadsTerminated",
+                      "ThreadsTimedWaiting",
+                      "ThreadsWaiting"
+              ]
+  },
+  {
+    'obj' => "Hadoop:name=RegionServer,service=HBase,sub=Server",
+    'result_alias' => "hb_rs_server",
+    'attr' => [
+                      "regionCount",
+                      "storeCount",
+                      "totalRequestCount",
+                      "readRequestCount",
+                      "writeRequestCount",
+                      "slowGetCount",
+                      "slowAppendCount",
+                      "slowPutCount",
+                      "blockCacheHitCount",
+                      "blockCacheMissCount",
+                      "blockCacheCount",
+                      "blockCacheEvictionCount",
+                      "blockCacheSize",
+                      "blockCountHitPercent"
+              ]
+  }
+]
