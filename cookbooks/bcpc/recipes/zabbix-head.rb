@@ -221,16 +221,17 @@ end
     end
 end
 
-cookbook_file "/tmp/python-requests-aws_0.1.5_all.deb" do
-    source "bins/python-requests-aws_0.1.5_all.deb"
-    owner "root"
-    mode 00444
+directory "#{node["chef_client"]["cache_path"]}/pip-packages" do
 end
 
-package "requests-aws" do
-    provider Chef::Provider::Package::Dpkg
-    source "/tmp/python-requests-aws_0.1.5_all.deb"
-    action :install
+cookbook_file "#{node["chef_client"]["cache_path"]}/pip-packages/requests-aws-0.1.5.tar.gz" do
+    action :create_if_missing
+    source "bins/pip-packages/requests-aws-0.1.5.tar.gz"
+end
+
+python_pip "requests==aws-0.1.5" do
+    action :upgrade
+    options "--no-index --find-links file://#{node["chef_client"]["cache_path"]}/pip-packages/"
 end
 
 template "/usr/local/bin/zabbix_bucket_stats" do

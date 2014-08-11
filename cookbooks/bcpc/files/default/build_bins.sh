@@ -26,7 +26,7 @@ mkdir -p $DIR/bins
 pushd $DIR/bins/
 
 # Install tools needed for packaging
-apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
+apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev python-pip
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
@@ -181,14 +181,19 @@ if [ ! -f zabbix-agent.tar.gz ] || [ ! -f zabbix-server.tar.gz ]; then
 fi
 FILES="zabbix-agent.tar.gz zabbix-server.tar.gz $FILES"
 
-# Get some python libs 
-if [ ! -f python-requests-aws_0.1.5_all.deb ]; then
-    $CURL -L -O http://pypi.python.org/packages/source/r/requests-aws/requests-aws-0.1.5.tar.gz
-    tar zxf requests-aws-0.1.5.tar.gz
-    fpm -s python -t deb requests-aws
-    rm -rf requests-aws-0.1.5 requests-aws-0.1.5.tar.gz
+# upgrade pip
+if [ "`pip --version | cut -d " " -f 2`" == "1.0" ]; then
+    pip install --upgrade pip
+    hash pip
 fi
-FILES="python-requests-aws_0.1.5_all.deb $FILES"
-
+PIPDIR="pip-packages"
+# Get pip packages
+if [ ! -e $PIPDIR ]; then
+    mkdir $PIPDIR
+fi
+for package in requests-aws==0.1.5 "httplib2>=0.7.5" http://tarballs.openstack.org/sahara/sahara-stable-icehouse.tar.gz sahara-dashboard python-saharaclient; do
+    pip --cert cacert.pem install --no-use-wheel --upgrade -d $PIPDIR $package
+done
+FILES="$PIPDIR $FILES"
 
 popd
