@@ -1,0 +1,13 @@
+18d17
+< 
+21a21
+> from oslo.config import cfg
+22a23
+> CONF = cfg.CONF
+27a29
+>     ca_file = CONF.ssl.ca_file
+32c34,35
+<                               auth_url=auth_url)
+---
+>                               auth_url=auth_url,
+>                               cacert=ca_file)

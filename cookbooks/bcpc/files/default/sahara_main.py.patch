@@ -1,0 +1,7 @@
+35a36
+> import sahara.openstack.common.sslutils
+147c148,149
+<         admin_tenant_name=CONF.os_admin_tenant_name
+---
+>         admin_tenant_name=CONF.os_admin_tenant_name,
+>         cafile=CONF.ssl.ca_file

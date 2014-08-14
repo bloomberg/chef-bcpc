@@ -173,6 +173,7 @@ default['bcpc']['dbname']['ceilometer'] = "ceilometer"
 default['bcpc']['dbname']['graphite'] = "graphite"
 default['bcpc']['dbname']['pdns'] = "pdns"
 default['bcpc']['dbname']['zabbix'] = "zabbix"
+default['bcpc']['dbname']['sahara'] = "sahara"
 
 default['bcpc']['admin_tenant'] = "AdminTenant"
 default['bcpc']['admin_role'] = "Admin"
@@ -193,3 +194,9 @@ default['bcpc']['protocol']['glance'] = "https"
 default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
+default['bcpc']['protocol']['sahara'] = "http"
+
+# Location for sahara vanilla ubuntu image
+default['bcpc']['sahara']['vanilla_img_location'] = "http://sahara-files.mirantis.com/sahara-icehouse-vanilla-1.2.1-ubuntu-13.10.qcow2"
+default['bcpc']['sahara']['vanilla_hadoop_version'] = "1.2.1"
+
