@@ -116,9 +116,8 @@ def get_head_nodes
 end
 
 def get_mysql_nodes
-  results = search(:node, "recipes:bcpc\\:\\:mysql AND chef_environment:#{node.chef_environment}")
-  results.map!{ |x| x.hostname == node.hostname ? node : x }
-  return (results.empty?) ? [node] : results.sort
+  results = get_nodes_for("mysql","bcpc")
+  return results
 end
 
 def get_nodes_for(recipe, cookbook="bcpc")
