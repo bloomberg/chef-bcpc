@@ -26,7 +26,7 @@ mkdir -p $DIR/bins
 pushd $DIR/bins/
 
 # Install tools needed for packaging
-apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev
+apt-get -y install git rubygems make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev python-pip
 if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
   gem install fpm --no-ri --no-rdoc
 fi
@@ -181,14 +181,39 @@ if [ ! -f zabbix-agent.tar.gz ] || [ ! -f zabbix-server.tar.gz ]; then
 fi
 FILES="zabbix-agent.tar.gz zabbix-server.tar.gz $FILES"
 
-# Get some python libs 
-if [ ! -f python-requests-aws_0.1.5_all.deb ]; then
-    $CURL -L -O http://pypi.python.org/packages/source/r/requests-aws/requests-aws-0.1.5.tar.gz
-    tar zxf requests-aws-0.1.5.tar.gz
-    fpm -s python -t deb requests-aws
-    rm -rf requests-aws-0.1.5 requests-aws-0.1.5.tar.gz
+# upgrade pip
+if [ "`pip --version | cut -d " " -f 2`" == "1.0" ]; then
+    pip install --upgrade pip
+    hash pip
 fi
-FILES="python-requests-aws_0.1.5_all.deb $FILES"
+PIPDIR="pip-packages"
+# Get pip packages
+if [ ! -e $PIPDIR ]; then
+    mkdir $PIPDIR
+fi
 
+cert="cacert.pem"
+if [ -e $cert ]; then
+    echo "Using $cert as pip cert file"
+    cert="--cert $cert"
+else
+    echo "Not using a pip cert file. If behind a MITM proxy, put a $cert in `pwd`"
+    cert=""
+fi
+
+# provide package name and optional exact version, or package url
+for package in requests-aws==0.1.5; do
+    # check if url
+    if [[ $package == *.tar.gz ]]; then
+        filename=`echo $package | sed 's/.*\///'`
+    else
+        filename=`echo $package | sed 's/==/-/'`*.tar.gz
+    fi
+
+    if [ ! -e $(echo $PIPDIR/$filename) ]; then
+        pip $cert install --no-use-wheel --upgrade -d $PIPDIR $package
+    fi
+done
+FILES="`ls $PIPDIR/* | tr '\n' ' '` $FILES"
 
 popd
