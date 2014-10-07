@@ -1,0 +1,4 @@
+47c47
+<         service = parts[2].replace('_', '-')
+---
+>         service = parts[2]#.replace('_', '-')

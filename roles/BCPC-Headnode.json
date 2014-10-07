@@ -29,6 +29,7 @@
       "recipe[bcpc::elasticsearch]",
       "recipe[bcpc::kibana]",
       "recipe[bcpc::zabbix-head]",
+      "recipe[bcpc::sahara]",
       "role[BCPC-Worknode]"
     ],
     "description": "A highly-available head node in a BCPC cluster",

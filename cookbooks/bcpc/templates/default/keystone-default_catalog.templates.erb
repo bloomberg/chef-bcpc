@@ -48,3 +48,8 @@ catalog.<%=node['bcpc']['region_name']%>.cloudformation.name = Cloudformation Se
 # catalog.<%=node['bcpc']['region_name']%>.network.adminURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
 # catalog.<%=node['bcpc']['region_name']%>.network.internalURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
 # catalog.<%=node['bcpc']['region_name']%>.network.name = Networking Service
+
+catalog.<%=node['bcpc']['region_name']%>.data_processing.publicURL = <%=node['bcpc']['protocol']['sahara']%>://<%=node['bcpc']['management']['vip']%>:8386/v1.1/%(tenant_id)s
+catalog.<%=node['bcpc']['region_name']%>.data_processing.adminURL = <%=node['bcpc']['protocol']['sahara']%>://<%=node['bcpc']['management']['vip']%>:8386/v1.1/%(tenant_id)s
+catalog.<%=node['bcpc']['region_name']%>.data_processing.internalURL = <%=node['bcpc']['protocol']['sahara']%>://<%=node['bcpc']['management']['vip']%>:8386/v1.1/%(tenant_id)s
+catalog.<%=node['bcpc']['region_name']%>.data_processing.name = Sahara Data Processing

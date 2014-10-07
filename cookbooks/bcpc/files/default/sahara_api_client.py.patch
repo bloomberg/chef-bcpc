@@ -1,0 +1,23 @@
+36c36
+<                  input_auth_token=None):
+---
+>                  input_auth_token=None, cacert=None):
+43c43,44
+<                                                 project_name=project_name)
+---
+>                                                 project_name=project_name,
+>                                                 cacert=cacert)
+55c56,57
+<                                                 project_name=project_name)
+---
+>                                                 project_name=project_name,
+>                                                 cacert=cacert)
+83c85
+<                             token=None, project_id=None, project_name=None):
+---
+>                             token=None, project_id=None, project_name=None, cacert=None):
+96c98,99
+<                 endpoint=auth_url)
+---
+>                 endpoint=auth_url,
+>                 cacert=cacert)
