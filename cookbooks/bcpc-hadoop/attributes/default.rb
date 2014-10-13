@@ -41,8 +41,13 @@ default["bcpc"]["hadoop"]["restart_lock_acquire"]["max_tries"] = 5
 default["bcpc"]["hadoop"]["restart_lock"]["root"] = "/"
 # Sleep time in seconds between tries to acquire the lock for restart
 default["bcpc"]["hadoop"]["restart_lock_acquire"]["sleep_time"] = 2
-# Flag to set whether the restart process was successful or not
+# Flag to set whether the HDFS datanode restart process was successful or not
 default["bcpc"]["hadoop"]["datanode"]["restart_failed"] = false
+# Attribute to save the time when HDFS datanode restart process failed
+default["bcpc"]["hadoop"]["datanode"]["restart_failed_time"] = ""
+# Flag to control whether automatic restarts due to config changes need to be skipped 
+# for e.g. if ZK quorum is down or if the recipes need to be run in a non ZK env
+default["bcpc"]["hadoop"]["skip_restart_coordination"] = false
 
 default[:bcpc][:hadoop][:nn_hosts] = []
 default[:bcpc][:hadoop][:jn_hosts] = []
