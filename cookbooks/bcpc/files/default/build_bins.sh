@@ -80,9 +80,9 @@ FILES="cirros-0.3.2-x86_64-disk.img $FILES"
 
 # Grab the Ubuntu 12.04 installer image
 if [ ! -f ubuntu-12.04-mini.iso ]; then
-    # Download this ISO to get the latest kernel/X LTS stack installer
-    #$CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/raring-netboot/mini.iso
-    $CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso
+    #$CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso
+    # Download this ISO to get the latest kernel/X HWE stack installer
+    $CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/trusty-netboot/mini.iso
 fi
 FILES="ubuntu-12.04-mini.iso $FILES"
 
