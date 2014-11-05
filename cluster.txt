@@ -1,4 +1,3 @@
-bcpc-vm1 08:00:27:56:A2:28 10.0.100.11 - bloomberg.com head
-bcpc-vm2 08:00:27:E5:3A:00 10.0.100.12 - bloomberg.com work
-bcpc-vm3 08:00:27:AD:1D:EA 10.0.100.13 - bloomberg.com work
-end
+bcpc-vm1 08:00:27:56:A2:28 10.0.100.11 - bloomberg.com role[BCPC-Headnode]
+bcpc-vm2 08:00:27:E5:3A:00 10.0.100.12 - bloomberg.com role[BCPC-Worknode]
+bcpc-vm3 08:00:27:AD:1D:EA 10.0.100.13 - bloomberg.com role[BCPC-Worknode]
