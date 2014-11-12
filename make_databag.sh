@@ -5,9 +5,9 @@ if [ X"$1" = X ]; then
     exit -1
 fi
 
-if [ ! -f roles/$1.json ]; then
-    echo " ** must create roles/$1.json first..."
-    echo "    (try 'cp roles/Env-Example.json roles/$1.json' and editing)"
+if [ ! -f environments/$1.json ]; then
+    echo " ** must create environments/$1.json first..."
+    echo "    (try 'cp environments/Test-Laptop.json environments/$1.json' and editing)"
     exit -1
 fi
 
@@ -26,10 +26,10 @@ require 'net/ssh'
 require 'erubis'
 
 JSON.create_id = nil
-node = JSON.parse(IO.read("roles/#{@environ}.json"))['override_attributes']
+node = JSON.parse(IO.read("environments/#{@environ}.json"))['override_attributes']
 node['bcpc']['region_name'] = @environ
 
-require 'cookbooks/bcpc/libraries/utils.rb'
+load 'cookbooks/bcpc/libraries/utils.rb'
 
 ssl_conf = Erubis::Eruby.new(IO.read("cookbooks/bcpc/templates/default/openssl.cnf.erb")).result(:node=>node)
 File.open("/tmp/openssl.cnf", 'w') {|f| f.write(ssl_conf)}
@@ -45,6 +45,12 @@ File.open("/tmp/openssl.cnf", 'w') {|f| f.write(ssl_conf)}
     "ceilometer-secret": "<%="#{secure_password}"%>",
     "ceph-fs-uuid": "<%="#{%x[uuidgen].strip.downcase}"%>",
     "ceph-mon-key": "<%="#{ceph_keygen}"%>",
+    "contrail-api-passwd": "<%="#{secure_password}"%>",
+    "contrail-control-passwd": "<%="#{secure_password}"%>",
+    "contrail-dns-passwd": "<%="#{secure_password}"%>",
+    "contrail-metadata-secret": "<%="#{secure_password}"%>",
+    "contrail-schema-passwd": "<%="#{secure_password}"%>",
+    "contrail-svc-monitor-passwd": "<%="#{secure_password}"%>",
     "glance-cloudpipe-uuid": "<%="#{%x[uuidgen].strip.downcase}"%>",
     "graphite-secret-key": "<%="#{secure_password}"%>",
     "haproxy-stats-password": "<%="#{secure_password}"%>",
@@ -79,6 +85,8 @@ File.open("/tmp/openssl.cnf", 'w') {|f| f.write(ssl_conf)}
     "mysql-horizon-user": "horizon",
     "mysql-keystone-password": "<%="#{secure_password}"%>",
     "mysql-keystone-user": "keystone",
+    "mysql-neutron-password": "<%="#{secure_password}"%>",
+    "mysql-neutron-user": "neutron",
     "mysql-nova-password": "<%="#{secure_password}"%>",
     "mysql-nova-user": "nova",
     "mysql-pdns-password": "<%="#{secure_password}"%>",

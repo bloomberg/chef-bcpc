@@ -19,23 +19,20 @@
 
 require 'ipaddr'
 
-node.set['bcpc']['management']['ip'] = node['network']['interfaces'][node['bcpc']['management']['interface']]['addresses'].select { |k, v| v['family'] == "inet" and k != node['bcpc']['management']['vip'] }[0].first
+node.set['bcpc']['management']['ip'] = node['network']['interfaces'][node['bcpc']['management']['interface']]['addresses'].select { |k, v| v['family'] == "inet" and k != node['bcpc']['management']['vip'] }.first[0]
 
+# Compute the bitlen for each of the network cidrs
 mgmt_bitlen = (node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
-mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<mgmt_bitlen>>mgmt_bitlen
-
 stor_bitlen = (node['bcpc']['storage']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
-stor_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<stor_bitlen>>stor_bitlen
-
 flot_bitlen = (node['bcpc']['floating']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
-##If we have a full class B, then simply leave the 3rd octet alone and use the 4th octet from mgmt ip
-#Then we leave the rest of the float Ips for the VMs
-flot_bitlen = 24 if flot_bitlen == 16
-flot_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<flot_bitlen>>flot_bitlen
 
+# Save the host number on the mgmt network to the node_number for this node
+mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<mgmt_bitlen>>mgmt_bitlen
 node.set['bcpc']['node_number'] = mgmt_hostaddr.to_i.to_s
-node.set['bcpc']['storage']['ip'] = ((IPAddr.new(node['bcpc']['storage']['cidr'])>>(32-stor_bitlen)<<(32-stor_bitlen))|stor_hostaddr).to_s
-node.set['bcpc']['floating']['ip'] = ((IPAddr.new(node['bcpc']['floating']['cidr'])>>(32-flot_bitlen)<<(32-flot_bitlen))|flot_hostaddr).to_s
+
+# Keep the same host number for addresses on the storage and float networks
+node.set['bcpc']['storage']['ip'] = ((IPAddr.new(node['bcpc']['storage']['cidr'])>>(32-stor_bitlen)<<(32-stor_bitlen))|mgmt_hostaddr).to_s
+node.set['bcpc']['floating']['ip'] = ((IPAddr.new(node['bcpc']['floating']['cidr'])>>(32-flot_bitlen)<<(32-flot_bitlen))|mgmt_hostaddr).to_s
 
 # Take a guess at the rack name or default to 'rack'
 if node['bcpc']['rack_name'].nil? then

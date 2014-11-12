@@ -1,7 +1,8 @@
 {
-    "ipaddress": "10.0.100.11",
+    "chef_environment": "Test-Laptop",
     "bcpc": {
         "node_number": "11",
+        "rack_name": "rack1",
         "management": {
             "ip" : "10.0.100.11"
         },
@@ -12,12 +13,7 @@
             "ip" : "192.168.100.11"
         }
     },
-    "platform": "ubuntu",
-    "platform_family": "debian",
-    "platform_version": "12.04",
-    "chef_environment" : "Env-Example",
     "run_list": [
-    	"role[Env-Example]",
-    	"role[BCPC-Headnode]"
+        "role[BCPC-Headnode]"
     ]
 }

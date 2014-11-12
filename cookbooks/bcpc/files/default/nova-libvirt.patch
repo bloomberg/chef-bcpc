@@ -1,26 +1,13 @@
-diff --ru a/nova/virt/libvirt/config.py b/nova/virt/libvirt/config.py
---- a/nova/virt/libvirt/config.py	2014-06-05 17:33:15.000000000 -0400
-+++ b/nova/virt/libvirt/config.py	2014-07-06 17:37:58.782511018 -0400
-@@ -311,6 +311,9 @@
-         return cpu
- 
-     def add_feature(self, feat):
-+        for feature in self.features:
-+            if feat.name == feature.name:
-+                return
-         self.features.append(feat)
- 
- 
 diff --git a/nova/compute/manager.py b/nova/compute/manager.py
-index fc887d7..744c051 100644
+index 32ab334..470f6de 100644
 --- a/nova/compute/manager.py
 +++ b/nova/compute/manager.py
-@@ -4534,6 +4534,39 @@ class ComputeManager(manager.Manager):
+@@ -4558,6 +4558,39 @@ class ComputeManager(manager.Manager):
                                     self._rollback_live_migration,
                                     block_migration, migrate_data)
  
 +    def _live_migration_cleanup_flags(self, block_migration, migrate_data):
-+        '''Determine whether disks or intance path need to be cleaned up after
++        """Determine whether disks or intance path need to be cleaned up after
 +        live migration (at source on success, at destination on rollback)
 +
 +        Block migration needs empty image at destination host before migration
@@ -33,7 +20,7 @@ index fc887d7..744c051 100644
 +        :param block_migration: if true, it was a block migration
 +        :param migrate_data: implementation specific data
 +        :returns: (bool, bool) -- do_cleanup, destroy_disks
-+        '''
++        """
 +        # NOTE(angdraug): block migration wouldn't have been allowed if either
 +        #                 block storage or instance path were shared
 +        is_shared_block_storage = not block_migration
@@ -55,7 +42,7 @@ index fc887d7..744c051 100644
      @wrap_exception()
      @wrap_instance_fault
      def _post_live_migration(self, ctxt, instance,
-@@ -4599,16 +4632,15 @@ class ComputeManager(manager.Manager):
+@@ -4623,16 +4656,15 @@ class ComputeManager(manager.Manager):
          self.compute_rpcapi.post_live_migration_at_destination(ctxt,
                  instance, block_migration, dest)
  
@@ -80,7 +67,7 @@ index fc887d7..744c051 100644
              # but we must do it explicitly here when block_migration
              # is false, as the network devices at the source must be
              # torn down
-@@ -4731,27 +4763,22 @@ class ComputeManager(manager.Manager):
+@@ -4755,27 +4787,22 @@ class ComputeManager(manager.Manager):
          self._notify_about_instance_usage(context, instance,
                                            "live_migration._rollback.start")
  
@@ -118,7 +105,7 @@ index fc887d7..744c051 100644
          """Cleaning up image directory that is created pre_live_migration.
  
          :param context: security context
-@@ -4770,8 +4797,9 @@ class ComputeManager(manager.Manager):
+@@ -4794,8 +4821,9 @@ class ComputeManager(manager.Manager):
          #             from remote volumes if necessary
          block_device_info = self._get_instance_volume_block_device_info(
                              context, instance)
@@ -131,10 +118,51 @@ index fc887d7..744c051 100644
                          context, instance, "live_migration.rollback.dest.end",
                          network_info=network_info)
 diff --git a/nova/compute/rpcapi.py b/nova/compute/rpcapi.py
-index a1adfbf..27d257e 100644
+index a1adfbf..4200916 100644
 --- a/nova/compute/rpcapi.py
 +++ b/nova/compute/rpcapi.py
-@@ -734,13 +734,22 @@ class ComputeAPI(object):
+@@ -271,6 +271,13 @@ class ComputeAPI(object):
+             return havana_compat
+         return current
+ 
++    def _check_live_migration_api_version(self, server):
++        # NOTE(angdraug): live migration involving a compute host running Nova
++        # API older than v3.23 as either source or destination can cause
++        # instance disks to be deleted from shared storage
++        if not self.client.can_send_version('3.23'):
++            raise exception.LiveMigrationWithOldNovaNotSafe(server=server)
++
+     def add_aggregate_host(self, ctxt, aggregate, host_param, host,
+                            slave_info=None):
+         '''Add aggregate host.
+@@ -351,19 +358,19 @@ class ComputeAPI(object):
+ 
+     def check_can_live_migrate_destination(self, ctxt, instance, destination,
+                                            block_migration, disk_over_commit):
+-        # NOTE(russellb) Havana compat
+-        version = self._get_compat_version('3.0', '2.38')
+-        cctxt = self.client.prepare(server=destination, version=version)
++        self._check_live_migration_api_version(destination)
++        cctxt = self.client.prepare(server=destination, version='3.23')
++
+         return cctxt.call(ctxt, 'check_can_live_migrate_destination',
+                           instance=instance,
+                           block_migration=block_migration,
+                           disk_over_commit=disk_over_commit)
+ 
+     def check_can_live_migrate_source(self, ctxt, instance, dest_check_data):
+-        # NOTE(russellb) Havana compat
+-        version = self._get_compat_version('3.0', '2.38')
+-        cctxt = self.client.prepare(server=_compute_host(None, instance),
+-                version=version)
++        source = _compute_host(None, instance)
++        self._check_live_migration_api_version(source)
++        cctxt = self.client.prepare(server=source, version='3.23')
++
+         return cctxt.call(ctxt, 'check_can_live_migrate_source',
+                           instance=instance,
+                           dest_check_data=dest_check_data)
+@@ -734,13 +741,15 @@ class ComputeAPI(object):
                     instance=instance, migration=migration,
                     reservations=reservations)
  
@@ -142,26 +170,1258 @@ index a1adfbf..27d257e 100644
 -        # NOTE(russellb) Havana compat
 -        version = self._get_compat_version('3.0', '2.0')
 -        instance_p = jsonutils.to_primitive(instance)
+-        cctxt = self.client.prepare(server=host, version=version)
 +    def rollback_live_migration_at_destination(self, ctxt, instance, host,
 +                                               destroy_disks=True,
 +                                               migrate_data=None):
-+        msg_kwargs = {'instance': instance}
-+        if self.client.can_send_version('3.23'):
-+            version = '3.23'
-+            msg_kwargs.update(destroy_disks=destroy_disks,
-+                              migrate_data=migrate_data)
-+        else:
-+            # NOTE(russellb) Havana compat
-+            version = self._get_compat_version('3.0', '2.0')
-+        instance = jsonutils.to_primitive(instance)
++        self._check_live_migration_api_version(host)
++        cctxt = self.client.prepare(server=host, version='3.23')
 +
-         cctxt = self.client.prepare(server=host, version=version)
          cctxt.cast(ctxt, 'rollback_live_migration_at_destination',
 -                   instance=instance_p)
-+                   **msg_kwargs)
++                   instance=instance,
++                   destroy_disks=destroy_disks, migrate_data=migrate_data)
  
      def run_instance(self, ctxt, instance, host, request_spec,
                       filter_properties, requested_networks,
+diff --git a/nova/exception.py b/nova/exception.py
+index e874927..897e576 100644
+--- a/nova/exception.py
++++ b/nova/exception.py
+@@ -1544,6 +1544,12 @@ class InvalidWatchdogAction(Invalid):
+     msg_fmt = _("Provided watchdog action (%(action)s) is not supported.")
+ 
+ 
+-class NoBlockMigrationForConfigDriveInLibVirt(NovaException):
+-    msg_fmt = _("Block migration of instances with config drives is not "
+-                "supported in libvirt.")
++class NoLiveMigrationForConfigDriveInLibVirt(NovaException):
++    msg_fmt = _("Live migration of instances with config drives is not "
++                "supported in libvirt unless libvirt instance path and "
++                "drive data is shared across compute nodes.")
++
++class LiveMigrationWithOldNovaNotSafe(NovaException):
++    msg_fmt = _("Host %(server)s is running an old version of Nova, "
++                "live migrations involving that version may cause data loss. "
++                "Upgrade Nova on %(server)s and try again.")
+diff --git a/nova/tests/compute/test_compute.py b/nova/tests/compute/test_compute.py
+index be8c393..35cd764 100644
+--- a/nova/tests/compute/test_compute.py
++++ b/nova/tests/compute/test_compute.py
+@@ -4993,7 +4993,7 @@ class ComputeTestCase(BaseTestCase):
+         fake_notifier.NOTIFICATIONS = []
+         # start test
+         self.mox.ReplayAll()
+-        migrate_data = {'is_shared_storage': False}
++        migrate_data = {'is_shared_instance_path': False}
+         ret = self.compute.pre_live_migration(c, instance=instance,
+                                               block_migration=False, disk=None,
+                                               migrate_data=migrate_data)
+@@ -5065,7 +5065,8 @@ class ComputeTestCase(BaseTestCase):
+         self.compute.compute_rpcapi.remove_volume_connection(
+                 c, updated_instance, 'vol2-id', dest_host)
+         self.compute.compute_rpcapi.rollback_live_migration_at_destination(
+-                c, updated_instance, dest_host)
++                c, updated_instance, dest_host,
++                destroy_disks=True, migrate_data={})
+ 
+         # start test
+         self.mox.ReplayAll()
+@@ -5082,7 +5083,7 @@ class ComputeTestCase(BaseTestCase):
+         instance.host = self.compute.host
+         dest = 'desthost'
+ 
+-        migrate_data = {'is_shared_storage': False}
++        migrate_data = {'is_shared_instance_path': False}
+ 
+         self.mox.StubOutWithMock(self.compute.compute_rpcapi,
+                                  'pre_live_migration')
+@@ -5175,7 +5176,7 @@ class ComputeTestCase(BaseTestCase):
+ 
+         # start test
+         self.mox.ReplayAll()
+-        migrate_data = {'is_shared_storage': False}
++        migrate_data = {'is_shared_instance_path': False}
+         self.compute._post_live_migration(c, inst_ref, dest,
+                                           migrate_data=migrate_data)
+         self.assertIn('cleanup', result)
+@@ -5375,7 +5376,8 @@ class ComputeTestCase(BaseTestCase):
+         self.mox.StubOutWithMock(self.compute.driver,
+                                  'rollback_live_migration_at_destination')
+         self.compute.driver.rollback_live_migration_at_destination(c,
+-                instance, [], {'block_device_mapping': []})
++                instance, [], {'block_device_mapping': []},
++                destroy_disks=True, migrate_data=None)
+ 
+         # start test
+         self.mox.ReplayAll()
+diff --git a/nova/tests/compute/test_rpcapi.py b/nova/tests/compute/test_rpcapi.py
+index d4026ea..a1eb68a 100644
+--- a/nova/tests/compute/test_rpcapi.py
++++ b/nova/tests/compute/test_rpcapi.py
+@@ -23,6 +23,7 @@ from oslo.config import cfg
+ 
+ from nova.compute import rpcapi as compute_rpcapi
+ from nova import context
++from nova import exception
+ from nova import db
+ from nova.openstack.common import jsonutils
+ from nova import test
+@@ -154,24 +155,30 @@ class ComputeRpcAPITestCase(test.TestCase):
+         self._test_compute_api('check_can_live_migrate_destination', 'call',
+                 instance=self.fake_instance,
+                 destination='dest', block_migration=True,
+-                disk_over_commit=True)
++                disk_over_commit=True, version='3.23')
+ 
++    def test_check_can_live_migrate_destination_raises_old_nova(self):
+         # NOTE(russellb) Havana compat
+         self.flags(compute='havana', group='upgrade_levels')
+-        self._test_compute_api('check_can_live_migrate_destination', 'call',
+-                instance=self.fake_instance,
++        self.assertRaises(
++                exception.LiveMigrationWithOldNovaNotSafe,
++                self._test_compute_api, 'check_can_live_migrate_destination',
++                'call', instance=self.fake_instance,
+                 destination='dest', block_migration=True,
+                 disk_over_commit=True, version='2.38')
+ 
+     def test_check_can_live_migrate_source(self):
+         self._test_compute_api('check_can_live_migrate_source', 'call',
+                 instance=self.fake_instance,
+-                dest_check_data={"test": "data"})
++                dest_check_data={"test": "data"}, version='3.23')
+ 
++    def test_check_can_live_migrate_source_raises_old_nova(self):
+         # NOTE(russellb) Havana compat
+         self.flags(compute='havana', group='upgrade_levels')
+-        self._test_compute_api('check_can_live_migrate_source', 'call',
+-                instance=self.fake_instance,
++        self.assertRaises(
++                exception.LiveMigrationWithOldNovaNotSafe,
++                self._test_compute_api, 'check_can_live_migrate_source',
++                'call', instance=self.fake_instance,
+                 dest_check_data={"test": "data"}, version='2.38')
+ 
+     def test_check_instance_shared_storage(self):
+@@ -621,13 +628,17 @@ class ComputeRpcAPITestCase(test.TestCase):
+ 
+     def test_rollback_live_migration_at_destination(self):
+         self._test_compute_api('rollback_live_migration_at_destination',
+-                'cast', instance=self.fake_instance, host='host')
++                'cast', instance=self.fake_instance, host='host',
++                destroy_disks=True, migrate_data=None, version='3.23')
+ 
++    def test_rollback_live_migration_at_destination_raises_old_nova(self):
+         # NOTE(russellb) Havana compat
+         self.flags(compute='havana', group='upgrade_levels')
+-        self._test_compute_api('rollback_live_migration_at_destination',
+-                'cast', instance=self.fake_instance, host='host',
+-                version='2.0')
++        self.assertRaises(
++                exception.LiveMigrationWithOldNovaNotSafe,
++                self._test_compute_api,
++                'rollback_live_migration_at_destination', 'cast',
++                instance=self.fake_instance, host='host', version='2.0')
+ 
+     def test_run_instance(self):
+         self._test_compute_api('run_instance', 'cast',
+diff --git a/nova/tests/virt/libvirt/fake_libvirt_utils.py b/nova/tests/virt/libvirt/fake_libvirt_utils.py
+index 1585e60..865c058 100644
+--- a/nova/tests/virt/libvirt/fake_libvirt_utils.py
++++ b/nova/tests/virt/libvirt/fake_libvirt_utils.py
+@@ -110,10 +110,6 @@ def create_lvm_image(vg, lv, size, sparse=False):
+     pass
+ 
+ 
+-def import_rbd_image(path, *args):
+-    pass
+-
+-
+ def volume_group_free_space(vg):
+     pass
+ 
+@@ -194,17 +190,5 @@ def pick_disk_driver_name(hypervisor_version, is_block_dev=False):
+     return "qemu"
+ 
+ 
+-def list_rbd_volumes(pool):
+-    fake_volumes = ['875a8070-d0b9-4949-8b31-104d125c9a64.local',
+-                    '875a8070-d0b9-4949-8b31-104d125c9a64.swap',
+-                    '875a8070-d0b9-4949-8b31-104d125c9a64',
+-                    'wrong875a8070-d0b9-4949-8b31-104d125c9a64']
+-    return fake_volumes
+-
+-
+-def remove_rbd_volumes(pool, *names):
+-    pass
+-
+-
+ def get_arch(image_meta):
+     pass
+diff --git a/nova/tests/virt/libvirt/test_imagebackend.py b/nova/tests/virt/libvirt/test_imagebackend.py
+index 5ae910a..3153e75 100644
+--- a/nova/tests/virt/libvirt/test_imagebackend.py
++++ b/nova/tests/virt/libvirt/test_imagebackend.py
+@@ -18,7 +18,6 @@ import shutil
+ import tempfile
+ 
+ import fixtures
+-import mock
+ from oslo.config import cfg
+ 
+ import inspect
+@@ -31,6 +30,7 @@ from nova.tests import fake_processutils
+ from nova.tests.virt.libvirt import fake_libvirt_utils
+ from nova import utils
+ from nova.virt.libvirt import imagebackend
++from nova.virt.libvirt import rbd_utils
+ 
+ CONF = cfg.CONF
+ 
+@@ -397,14 +397,14 @@ class Qcow2TestCase(_ImageTestCase, test.NoDBTestCase):
+     def test_create_image_too_small(self):
+         fn = self.prepare_mocks()
+         self.mox.StubOutWithMock(os.path, 'exists')
+-        self.mox.StubOutWithMock(imagebackend.disk, 'get_disk_size')
++        self.mox.StubOutWithMock(imagebackend.Qcow2, 'get_disk_size')
+         if self.OLD_STYLE_INSTANCE_PATH:
+             os.path.exists(self.OLD_STYLE_INSTANCE_PATH).AndReturn(False)
+         os.path.exists(self.DISK_INFO_PATH).AndReturn(False)
+         os.path.exists(self.INSTANCES_PATH).AndReturn(True)
+         os.path.exists(self.TEMPLATE_PATH).AndReturn(True)
+-        imagebackend.disk.get_disk_size(self.TEMPLATE_PATH
+-                                       ).AndReturn(self.SIZE)
++        imagebackend.Qcow2.get_disk_size(self.TEMPLATE_PATH
++                                         ).AndReturn(self.SIZE)
+         self.mox.ReplayAll()
+ 
+         image = self.image_class(self.INSTANCE, self.NAME)
+@@ -730,14 +730,8 @@ class RbdTestCase(_ImageTestCase, test.NoDBTestCase):
+                    group='libvirt')
+         self.libvirt_utils = imagebackend.libvirt_utils
+         self.utils = imagebackend.utils
+-        self.rbd = self.mox.CreateMockAnything()
+-        self.rados = self.mox.CreateMockAnything()
+-
+-    def prepare_mocks(self):
+-        fn = self.mox.CreateMockAnything()
+-        self.mox.StubOutWithMock(imagebackend, 'rbd')
+-        self.mox.StubOutWithMock(imagebackend, 'rados')
+-        return fn
++        self.mox.StubOutWithMock(rbd_utils, 'rbd')
++        self.mox.StubOutWithMock(rbd_utils, 'rados')
+ 
+     def test_cache(self):
+         image = self.image_class(self.INSTANCE, self.NAME)
+@@ -758,6 +752,7 @@ class RbdTestCase(_ImageTestCase, test.NoDBTestCase):
+         self.mox.VerifyAll()
+ 
+     def test_cache_base_dir_exists(self):
++        fn = self.mox.CreateMockAnything()
+         image = self.image_class(self.INSTANCE, self.NAME)
+ 
+         self.mox.StubOutWithMock(os.path, 'exists')
+@@ -804,38 +799,78 @@ class RbdTestCase(_ImageTestCase, test.NoDBTestCase):
+ 
+         self.mox.VerifyAll()
+ 
+-    def test_cache_base_dir_exists(self):
+-        self.mox.StubOutWithMock(os.path, 'exists')
+-        os.path.exists(self.TEMPLATE_DIR).AndReturn(True)
++    def test_create_image(self):
+         fn = self.mox.CreateMockAnything()
+-        fn(target=self.TEMPLATE_PATH)
+-        self.mox.StubOutWithMock(imagebackend.fileutils, 'ensure_tree')
+-        self.mox.ReplayAll()
++        fn(max_size=None, target=self.TEMPLATE_PATH)
++
++        rbd_utils.rbd.RBD_FEATURE_LAYERING = 1
++
++        fake_processutils.fake_execute_clear_log()
++        fake_processutils.stub_out_processutils_execute(self.stubs)
+ 
+         image = self.image_class(self.INSTANCE, self.NAME)
+-        self.mock_create_image(image)
+-        image.cache(fn, self.TEMPLATE)
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        image.check_image_exists().AndReturn(False)
++        self.mox.ReplayAll()
++
++        image.create_image(fn, self.TEMPLATE_PATH, None)
+ 
++        rbd_name = "%s_%s" % (self.INSTANCE['uuid'], self.NAME)
++        cmd = ('rbd', 'import', '--pool', self.POOL, self.TEMPLATE_PATH,
++               rbd_name, '--new-format', '--id', self.USER,
++               '--conf', self.CONF)
++        self.assertEqual(fake_processutils.fake_execute_get_log(),
++            [' '.join(cmd)])
+         self.mox.VerifyAll()
+ 
+-    def test_create_image(self):
+-        fn = self.prepare_mocks()
+-        fn(max_size=None, rbd=self.rbd, target=self.TEMPLATE_PATH)
++    def test_create_image_resize(self):
++        fn = self.mox.CreateMockAnything()
++        full_size = self.SIZE * 2
++        fn(max_size=full_size, target=self.TEMPLATE_PATH)
++
++        rbd_utils.rbd.RBD_FEATURE_LAYERING = 1
+ 
+-        self.rbd.RBD_FEATURE_LAYERING = 1
++        fake_processutils.fake_execute_clear_log()
++        fake_processutils.stub_out_processutils_execute(self.stubs)
+ 
+-        self.mox.StubOutWithMock(imagebackend.disk, 'get_disk_size')
+-        imagebackend.disk.get_disk_size(self.TEMPLATE_PATH
+-                                       ).AndReturn(self.SIZE)
+-        rbd_name = "%s/%s" % (self.INSTANCE['name'], self.NAME)
+-        cmd = ('--pool', self.POOL, self.TEMPLATE_PATH,
++        image = self.image_class(self.INSTANCE, self.NAME)
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        image.check_image_exists().AndReturn(False)
++        rbd_name = "%s_%s" % (self.INSTANCE['uuid'], self.NAME)
++        cmd = ('rbd', 'import', '--pool', self.POOL, self.TEMPLATE_PATH,
+                rbd_name, '--new-format', '--id', self.USER,
+                '--conf', self.CONF)
+-        self.libvirt_utils.import_rbd_image(self.TEMPLATE_PATH, *cmd)
++        self.mox.StubOutWithMock(image, 'get_disk_size')
++        image.get_disk_size(rbd_name).AndReturn(self.SIZE)
++        self.mox.StubOutWithMock(image.driver, 'resize')
++        image.driver.resize(rbd_name, full_size)
++
+         self.mox.ReplayAll()
+ 
++        image.create_image(fn, self.TEMPLATE_PATH, full_size)
++
++        self.assertEqual(fake_processutils.fake_execute_get_log(),
++            [' '.join(cmd)])
++        self.mox.VerifyAll()
++
++    def test_create_image_already_exists(self):
++        rbd_utils.rbd.RBD_FEATURE_LAYERING = 1
++
+         image = self.image_class(self.INSTANCE, self.NAME)
+-        image.create_image(fn, self.TEMPLATE_PATH, None, rbd=self.rbd)
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(True)
++        self.mox.StubOutWithMock(image, 'get_disk_size')
++        image.get_disk_size(self.TEMPLATE_PATH).AndReturn(self.SIZE)
++        image.check_image_exists().AndReturn(True)
++        rbd_name = "%s_%s" % (self.INSTANCE['uuid'], self.NAME)
++        image.get_disk_size(rbd_name).AndReturn(self.SIZE)
++
++        self.mox.ReplayAll()
++
++        fn = self.mox.CreateMockAnything()
++        image.create_image(fn, self.TEMPLATE_PATH, self.SIZE)
+ 
+         self.mox.VerifyAll()
+ 
+@@ -844,8 +879,6 @@ class RbdTestCase(_ImageTestCase, test.NoDBTestCase):
+ 
+         fake_processutils.fake_execute_clear_log()
+         fake_processutils.stub_out_processutils_execute(self.stubs)
+-        self.mox.StubOutWithMock(imagebackend, 'rbd')
+-        self.mox.StubOutWithMock(imagebackend, 'rados')
+         image = self.image_class(self.INSTANCE, self.NAME)
+ 
+         def fake_fetch(target, *args, **kwargs):
+@@ -880,15 +913,66 @@ class RbdTestCase(_ImageTestCase, test.NoDBTestCase):
+ 
+         self.assertEqual(image.path, rbd_path)
+ 
+-    def test_resize(self):
++    def test_direct_fetch_success(self):
++        location = {'url': 'rbd://a/b/c/d'}
++        meta = {'disk_format': 'raw'}
++        image = self.image_class(self.INSTANCE, self.NAME)
++
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        self.mox.StubOutWithMock(image.driver, 'supports_layering')
++        image.driver.supports_layering().AndReturn(True)
++        self.mox.StubOutWithMock(image.driver, 'is_cloneable')
++        image.driver.is_cloneable(location, meta).AndReturn(True)
++        self.mox.StubOutWithMock(image.driver, 'clone')
++        image.driver.clone(location, image.rbd_name)
++        self.mox.ReplayAll()
++
++        image.direct_fetch('image_id', meta, [location])
++
++        self.mox.VerifyAll()
++
++    def test_direct_fetch_fail_no_layering(self):
++        location = {'url': 'rbd://a/b/c/d'}
++        meta = {'disk_format': 'raw'}
++        image = self.image_class(self.INSTANCE, self.NAME)
++
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        self.mox.StubOutWithMock(image.driver, 'supports_layering')
++        image.driver.supports_layering().AndReturn(False)
++        self.mox.ReplayAll()
++
++        self.assertRaises(exception.ImageUnacceptable,
++                          image.direct_fetch, 'image_id', meta, [location])
++
++    def test_direct_fetch_fail_not_raw(self):
++        location = {'url': 'rbd://a/b/c/d'}
++        meta = {}
++        image = self.image_class(self.INSTANCE, self.NAME)
++
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        self.mox.ReplayAll()
++
++        self.assertRaises(exception.ImageUnacceptable,
++                          image.direct_fetch, 'image_id', meta, [location])
++
++    def test_direct_fetch_fail_no_locations(self):
++        location = {'url': 'rbd://a/b/c/d'}
++        meta = {'disk_format': 'raw'}
+         image = self.image_class(self.INSTANCE, self.NAME)
+-        with mock.patch.object(imagebackend, "RBDVolumeProxy") as mock_proxy:
+-            volume_mock = mock.Mock()
+-            mock_proxy.side_effect = [mock_proxy]
+-            mock_proxy.__enter__.side_effect = [volume_mock]
+ 
+-            image._resize(image.rbd_name, self.SIZE)
+-            volume_mock.resize.assert_called_once_with(self.SIZE)
++        self.mox.StubOutWithMock(image, 'check_image_exists')
++        image.check_image_exists().AndReturn(False)
++        self.mox.StubOutWithMock(image.driver, 'supports_layering')
++        image.driver.supports_layering().AndReturn(True)
++        self.mox.StubOutWithMock(image.driver, 'is_cloneable')
++        image.driver.is_cloneable(location, meta).AndReturn(False)
++        self.mox.ReplayAll()
++
++        self.assertRaises(exception.ImageUnacceptable,
++                          image.direct_fetch, 'image_id', meta, [location])
+ 
+ 
+ class BackendTestCase(test.NoDBTestCase):
+@@ -936,6 +1020,8 @@ class BackendTestCase(test.NoDBTestCase):
+         pool = "FakePool"
+         self.flags(images_rbd_pool=pool, group='libvirt')
+         self.flags(images_rbd_ceph_conf=conf, group='libvirt')
++        self.mox.StubOutWithMock(rbd_utils, 'rbd')
++        self.mox.StubOutWithMock(rbd_utils, 'rados')
+         self._test_image('rbd', imagebackend.Rbd, imagebackend.Rbd)
+ 
+     def test_image_default(self):
+diff --git a/nova/tests/virt/libvirt/test_libvirt.py b/nova/tests/virt/libvirt/test_libvirt.py
+index 15a0445..1b0f4267 100644
+--- a/nova/tests/virt/libvirt/test_libvirt.py
++++ b/nova/tests/virt/libvirt/test_libvirt.py
+@@ -75,6 +75,7 @@ from nova.virt.libvirt import config as vconfig
+ from nova.virt.libvirt import driver as libvirt_driver
+ from nova.virt.libvirt import firewall
+ from nova.virt.libvirt import imagebackend
++from nova.virt.libvirt import rbd_utils
+ from nova.virt.libvirt import utils as libvirt_utils
+ from nova.virt import netutils
+ 
+@@ -3812,6 +3813,7 @@ class LibvirtConnTestCase(test.TestCase):
+         return_value = conn.check_can_live_migrate_destination(self.context,
+                 instance_ref, compute_info, compute_info, True)
+         self.assertThat({"filename": "file",
++                         'image_type': 'default',
+                          'disk_available_mb': 409600,
+                          "disk_over_commit": False,
+                          "block_migration": True},
+@@ -3836,6 +3838,7 @@ class LibvirtConnTestCase(test.TestCase):
+         return_value = conn.check_can_live_migrate_destination(self.context,
+                 instance_ref, compute_info, compute_info, False)
+         self.assertThat({"filename": "file",
++                         "image_type": 'default',
+                          "block_migration": False,
+                          "disk_over_commit": False,
+                          "disk_available_mb": None},
+@@ -3873,139 +3876,150 @@ class LibvirtConnTestCase(test.TestCase):
+         conn.check_can_live_migrate_destination_cleanup(self.context,
+                                                         dest_check_data)
+ 
+-    def test_check_can_live_migrate_source_works_correctly(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": True,
+-                           "disk_over_commit": False,
+-                           "disk_available_mb": 1024}
++    def _mock_can_live_migrate_source(self, block_migration=False,
++                                      is_shared_block_storage=False,
++                                      is_shared_instance_path=False,
++                                      disk_available_mb=1024):
++        instance = db.instance_create(self.context, self.test_instance)
++        dest_check_data = {'filename': 'file',
++                           'image_type': 'default',
++                           'block_migration': block_migration,
++                           'disk_over_commit': False,
++                           'disk_available_mb': disk_available_mb}
+         conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+ 
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn('[]')
++        self.mox.StubOutWithMock(conn, '_is_shared_block_storage')
++        conn._is_shared_block_storage(instance, dest_check_data).AndReturn(
++                is_shared_block_storage)
++        self.mox.StubOutWithMock(conn, '_is_shared_instance_path')
++        conn._is_shared_instance_path(dest_check_data).AndReturn(
++                is_shared_instance_path)
++
++        return (instance, dest_check_data, conn)
++
++    def test_check_can_live_migrate_source_block_migration(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                block_migration=True)
+ 
+         self.mox.StubOutWithMock(conn, "_assert_dest_node_has_enough_disk")
+         conn._assert_dest_node_has_enough_disk(
+-            self.context, instance_ref, dest_check_data['disk_available_mb'],
++            self.context, instance, dest_check_data['disk_available_mb'],
+             False)
+ 
+         self.mox.ReplayAll()
+-        conn.check_can_live_migrate_source(self.context, instance_ref,
+-                                           dest_check_data)
+-
+-    def test_check_can_live_migrate_source_vol_backed_works_correctly(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": False,
+-                           "disk_over_commit": False,
+-                           "disk_available_mb": 1024,
+-                           "is_volume_backed": True}
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn('[]')
+-        self.mox.ReplayAll()
+-        ret = conn.check_can_live_migrate_source(self.context, instance_ref,
++        ret = conn.check_can_live_migrate_source(self.context, instance,
+                                                  dest_check_data)
+         self.assertTrue(type(ret) == dict)
+-        self.assertIn('is_shared_storage', ret)
++        self.assertIn('is_shared_block_storage', ret)
++        self.assertIn('is_shared_instance_path', ret)
+ 
+-    def test_check_can_live_migrate_source_vol_backed_w_disk_raises(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": False,
+-                           "disk_over_commit": False,
+-                           "disk_available_mb": 1024,
+-                           "is_volume_backed": True}
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn(
+-                '[{"fake_disk_attr": "fake_disk_val"}]')
++    def test_check_can_live_migrate_source_shared_block_storage(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                is_shared_block_storage=True)
+         self.mox.ReplayAll()
+-        self.assertRaises(exception.InvalidSharedStorage,
+-                          conn.check_can_live_migrate_source, self.context,
+-                          instance_ref, dest_check_data)
++        conn.check_can_live_migrate_source(self.context, instance,
++                                           dest_check_data)
+ 
+-    def test_check_can_live_migrate_source_vol_backed_fails(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": False,
+-                           "disk_over_commit": False,
+-                           "disk_available_mb": 1024,
+-                           "is_volume_backed": False}
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn(
+-                '[{"fake_disk_attr": "fake_disk_val"}]')
++    def test_check_can_live_migrate_source_shared_instance_path(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                is_shared_instance_path=True)
++        self.mox.ReplayAll()
++        conn.check_can_live_migrate_source(self.context, instance,
++                                           dest_check_data)
++
++    def test_check_can_live_migrate_source_non_shared_fails(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source()
+         self.mox.ReplayAll()
+         self.assertRaises(exception.InvalidSharedStorage,
+                           conn.check_can_live_migrate_source, self.context,
+-                          instance_ref, dest_check_data)
++                          instance, dest_check_data)
+ 
+-    def test_check_can_live_migrate_dest_fail_shared_storage_with_blockm(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": True,
+-                           "disk_over_commit": False,
+-                           'disk_available_mb': 1024}
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(True)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn('[]')
++    def test_check_can_live_migrate_source_shared_block_migration_fails(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                block_migration=True,
++                is_shared_block_storage=True)
+ 
+         self.mox.ReplayAll()
+         self.assertRaises(exception.InvalidLocalStorage,
+                           conn.check_can_live_migrate_source,
+-                          self.context, instance_ref, dest_check_data)
++                          self.context, instance, dest_check_data)
+ 
+-    def test_check_can_live_migrate_no_shared_storage_no_blck_mig_raises(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        dest_check_data = {"filename": "file",
+-                           "block_migration": False,
+-                           "disk_over_commit": False,
+-                           'disk_available_mb': 1024}
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++    def test_check_can_live_migrate_shared_path_block_migration_fails(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                block_migration=True,
++                is_shared_instance_path=True)
+ 
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
+-        self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref['name']).AndReturn('[]')
++        self.mox.ReplayAll()
++        self.assertRaises(exception.InvalidLocalStorage,
++                          conn.check_can_live_migrate_source,
++                          self.context, instance, dest_check_data)
+ 
++    def test_check_can_live_migrate_non_shared_non_block_migration_fails(self):
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source()
+         self.mox.ReplayAll()
+         self.assertRaises(exception.InvalidSharedStorage,
+                           conn.check_can_live_migrate_source,
+-                          self.context, instance_ref, dest_check_data)
++                          self.context, instance, dest_check_data)
+ 
+     def test_check_can_live_migrate_source_with_dest_not_enough_disk(self):
+-        instance_ref = db.instance_create(self.context, self.test_instance)
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-
+-        self.mox.StubOutWithMock(conn, "_check_shared_storage_test_file")
+-        conn._check_shared_storage_test_file("file").AndReturn(False)
++        instance, dest_check_data, conn = self._mock_can_live_migrate_source(
++                block_migration=True,
++                disk_available_mb=0)
+ 
+         self.mox.StubOutWithMock(conn, "get_instance_disk_info")
+-        conn.get_instance_disk_info(instance_ref["name"]).AndReturn(
+-                                            '[{"virt_disk_size":2}]')
+-        conn.get_instance_disk_info(instance_ref["name"]).AndReturn(
++        conn.get_instance_disk_info(instance["name"]).AndReturn(
+                                             '[{"virt_disk_size":2}]')
+ 
+-        dest_check_data = {"filename": "file",
+-                           "disk_available_mb": 0,
+-                           "block_migration": True,
+-                           "disk_over_commit": False}
+         self.mox.ReplayAll()
+         self.assertRaises(exception.MigrationError,
+                           conn.check_can_live_migrate_source,
+-                          self.context, instance_ref, dest_check_data)
++                          self.context, instance, dest_check_data)
++
++    def test_is_shared_block_storage_rbd(self):
++        CONF.set_override('images_type', 'rbd', 'libvirt')
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        self.assertTrue(conn._is_shared_block_storage(
++                            'instance', {'image_type': 'rbd'}))
++
++    def test_is_shared_block_storage_non_remote(self):
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        self.assertFalse(conn._is_shared_block_storage(
++                            'instance', {}))
++
++    def test_is_shared_block_storage_rbd_only_source(self):
++        CONF.set_override('images_type', 'rbd', 'libvirt')
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        self.assertFalse(conn._is_shared_block_storage(
++                            'instance', {}))
++
++    def test_is_shared_block_storage_rbd_only_dest(self):
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        self.assertFalse(conn._is_shared_block_storage(
++                            'instance', {'image_type': 'rbd'}))
++
++    def test_is_shared_block_storage_volume_backed(self):
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        with mock.patch.object(conn, 'get_instance_disk_info') as mock_conn:
++            mock_conn.return_value = '[]'
++            self.assertTrue(conn._is_shared_block_storage(
++                {'name': 'name'}, {'is_volume_backed': True}))
++
++    def test_is_shared_block_storage_volume_backed_with_disk(self):
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        with mock.patch.object(conn, 'get_instance_disk_info') as mock_get:
++            mock_get.return_value = '[{"virt_disk_size":2}]'
++            self.assertFalse(conn._is_shared_block_storage(
++                {'name': 'instance_name'}, {'is_volume_backed': True}))
++            mock_get.assert_called_once_with('instance_name')
++
++    def test_is_shared_instance_path(self):
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        with mock.patch.object(
++                conn, '_check_shared_storage_test_file') as mock_check:
++            mock_check.return_value = True
++            self.assertTrue(conn._is_shared_instance_path(
++                {'filename': 'test'}))
++            mock_check.assert_called_once_with('test')
+ 
+     def test_live_migration_raises_exception(self):
+         # Confirms recover method is called when exceptions are raised.
+@@ -4054,9 +4068,9 @@ class LibvirtConnTestCase(test.TestCase):
+         conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+         with mock.patch.object(conn, "destroy") as mock_destroy:
+             conn.rollback_live_migration_at_destination("context",
+-                    "instance", [], None)
++                    "instance", [], None, True, None)
+             mock_destroy.assert_called_once_with("context",
+-                    "instance", [], None)
++                    "instance", [], None, True, None)
+ 
+     def _do_test_create_images_and_backing(self, disk_type):
+         conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+@@ -4192,9 +4206,10 @@ class LibvirtConnTestCase(test.TestCase):
+         inst_ref = {'id': 'foo'}
+         c = context.get_admin_context()
+ 
+-        self.assertRaises(exception.NoBlockMigrationForConfigDriveInLibVirt,
++        self.assertRaises(exception.NoLiveMigrationForConfigDriveInLibVirt,
+                           conn.pre_live_migration, c, inst_ref, vol, None,
+-                          None, {'is_shared_storage': False})
++                          None, {'is_shared_instance_path': False,
++                                 'is_shared_block_storage': False})
+ 
+     def test_pre_live_migration_vol_backed_works_correctly_mocked(self):
+         # Creating testdata, using temp dir.
+@@ -4230,7 +4245,7 @@ class LibvirtConnTestCase(test.TestCase):
+             self.mox.StubOutWithMock(conn, 'plug_vifs')
+             conn.plug_vifs(mox.IsA(inst_ref), nw_info)
+             self.mox.ReplayAll()
+-            migrate_data = {'is_shared_storage': False,
++            migrate_data = {'is_shared_instance_path': False,
+                             'is_volume_backed': True,
+                             'block_migration': False,
+                             'instance_relative_path': inst_ref['name']
+@@ -4275,6 +4290,30 @@ class LibvirtConnTestCase(test.TestCase):
+         conn.pre_live_migration(self.context, instance, block_device_info=None,
+                                 network_info=[], disk_info={})
+ 
++    def test_pre_live_migration_with_shared_instance_path(self):
++        migrate_data = {'is_shared_block_storage': False,
++                        'block_migration': False}
++
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
++        instance = db.instance_create(self.context, self.test_instance)
++        # creating mocks
++        with contextlib.nested(
++            mock.patch.object(conn,
++                              '_create_images_and_backing'),
++            mock.patch.object(conn,
++                              'ensure_filtering_rules_for_instance'),
++            mock.patch.object(conn, 'plug_vifs'),
++        ) as (
++            create_image_mock,
++            rules_mock,
++            plug_mock,
++        ):
++            conn.pre_live_migration(self.context, instance,
++                                    block_device_info=None,
++                                    network_info=[], disk_info={},
++                                    migrate_data=migrate_data)
++            self.assertFalse(create_image_mock.called)
++
+     def test_get_instance_disk_info_works_correctly(self):
+         # Test data
+         instance_ref = db.instance_create(self.context, self.test_instance)
+@@ -5553,38 +5592,16 @@ class LibvirtConnTestCase(test.TestCase):
+                     "uuid": "875a8070-d0b9-4949-8b31-104d125c9a64"}
+         conn.destroy(self.context, instance, [])
+ 
+-    def test_cleanup_rbd(self):
+-        mock = self.mox.CreateMock(libvirt.virDomain)
+-
+-        def fake_lookup_by_name(instance_name):
+-            return mock
+-
+-        def fake_get_info(instance_name):
+-            return {'state': power_state.SHUTDOWN, 'id': -1}
+-
+-        fake_volumes = ['875a8070-d0b9-4949-8b31-104d125c9a64.local',
+-                        '875a8070-d0b9-4949-8b31-104d125c9a64.swap',
+-                        '875a8070-d0b9-4949-8b31-104d125c9a64',
+-                        'wrong875a8070-d0b9-4949-8b31-104d125c9a64']
+-        fake_pool = 'fake_pool'
+-        fake_instance = {'name': 'fakeinstancename', 'id': 'instanceid',
+-                         'uuid': '875a8070-d0b9-4949-8b31-104d125c9a64'}
+-
+-        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), False)
+-        self.stubs.Set(conn, '_lookup_by_name', fake_lookup_by_name)
+-        self.stubs.Set(conn, 'get_info', fake_get_info)
+-
+-        self.flags(images_rbd_pool=fake_pool, group='libvirt')
+-        self.mox.StubOutWithMock(libvirt_driver.libvirt_utils,
+-                                 'remove_rbd_volumes')
+-        libvirt_driver.libvirt_utils.remove_rbd_volumes(fake_pool,
+-                                                        *fake_volumes[:3])
+-
+-        self.mox.ReplayAll()
++    @mock.patch.object(rbd_utils, 'RBDDriver')
++    def test_cleanup_rbd(self, mock_driver):
++        driver = mock_driver.return_value
++        driver.cleanup_volumes = mock.Mock()
++        fake_instance = {'uuid': '875a8070-d0b9-4949-8b31-104d125c9a64'}
+ 
++        conn = libvirt_driver.LibvirtDriver(fake.FakeVirtAPI(), True)
+         conn._cleanup_rbd(fake_instance)
+ 
+-        self.mox.VerifyAll()
++        driver.cleanup_volumes.assert_called_with(fake_instance)
+ 
+     def test_destroy_undefines_no_undefine_flags(self):
+         mock = self.mox.CreateMock(libvirt.virDomain)
+@@ -8066,7 +8083,7 @@ disk size: 4.4M''', ''))
+         user_id = 'fake'
+         project_id = 'fake'
+         images.fetch_to_raw(context, image_id, target, user_id, project_id,
+-                            max_size=0)
++                            max_size=0, backend=None)
+ 
+         self.mox.ReplayAll()
+         libvirt_utils.fetch_image(context, target, image_id,
+diff --git a/nova/tests/virt/libvirt/test_libvirt_utils.py b/nova/tests/virt/libvirt/test_libvirt_utils.py
+index c10fc21..fc4b3d3 100644
+--- a/nova/tests/virt/libvirt/test_libvirt_utils.py
++++ b/nova/tests/virt/libvirt/test_libvirt_utils.py
+@@ -170,48 +170,6 @@ blah BLAH: bb
+         libvirt_utils.clear_logical_volume('/dev/vd')
+         self.assertEqual(expected_commands, executes)
+ 
+-    def test_list_rbd_volumes(self):
+-        conf = '/etc/ceph/fake_ceph.conf'
+-        pool = 'fake_pool'
+-        user = 'user'
+-        self.flags(images_rbd_ceph_conf=conf, group='libvirt')
+-        self.flags(rbd_user=user, group='libvirt')
+-        fn = self.mox.CreateMockAnything()
+-        self.mox.StubOutWithMock(libvirt_utils.utils,
+-                                 'execute')
+-        libvirt_utils.utils.execute('rbd', '-p', pool, 'ls', '--id',
+-                                    user,
+-                                    '--conf', conf).AndReturn(("Out", "Error"))
+-        self.mox.ReplayAll()
+-
+-        libvirt_utils.list_rbd_volumes(pool)
+-
+-        self.mox.VerifyAll()
+-
+-    def test_remove_rbd_volumes(self):
+-        conf = '/etc/ceph/fake_ceph.conf'
+-        pool = 'fake_pool'
+-        user = 'user'
+-        names = ['volume1', 'volume2', 'volume3']
+-        self.flags(images_rbd_ceph_conf=conf, group='libvirt')
+-        self.flags(rbd_user=user, group='libvirt')
+-        fn = self.mox.CreateMockAnything()
+-        self.mox.StubOutWithMock(libvirt_utils.utils, 'execute')
+-        libvirt_utils.utils.execute('rbd', '-p', pool, 'rm', 'volume1',
+-                                    '--id', user, '--conf', conf, attempts=3,
+-                                    run_as_root=True)
+-        libvirt_utils.utils.execute('rbd', '-p', pool, 'rm', 'volume2',
+-                                    '--id', user, '--conf', conf, attempts=3,
+-                                    run_as_root=True)
+-        libvirt_utils.utils.execute('rbd', '-p', pool, 'rm', 'volume3',
+-                                    '--id', user, '--conf', conf, attempts=3,
+-                                    run_as_root=True)
+-        self.mox.ReplayAll()
+-
+-        libvirt_utils.remove_rbd_volumes(pool, *names)
+-
+-        self.mox.VerifyAll()
+-
+     @mock.patch('nova.utils.execute')
+     def test_copy_image_local_cp(self, mock_execute):
+         libvirt_utils.copy_image('src', 'dest')
+diff --git a/nova/tests/virt/libvirt/test_rbd.py b/nova/tests/virt/libvirt/test_rbd.py
+new file mode 100644
+index 0000000..1a18838
+--- /dev/null
++++ b/nova/tests/virt/libvirt/test_rbd.py
+@@ -0,0 +1,283 @@
++#    Licensed under the Apache License, Version 2.0 (the "License"); you may
++#    not use this file except in compliance with the License. You may obtain
++#    a copy of the License at
++#
++#         http://www.apache.org/licenses/LICENSE-2.0
++#
++#    Unless required by applicable law or agreed to in writing, software
++#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++#    License for the specific language governing permissions and limitations
++#    under the License.
++
++
++import mock
++
++from nova import exception
++from nova.openstack.common import log as logging
++from nova import test
++from nova import utils
++from nova.virt.libvirt import rbd_utils
++
++
++LOG = logging.getLogger(__name__)
++
++
++CEPH_MON_DUMP = """dumped monmap epoch 1
++{ "epoch": 1,
++  "fsid": "33630410-6d93-4d66-8e42-3b953cf194aa",
++  "modified": "2013-05-22 17:44:56.343618",
++  "created": "2013-05-22 17:44:56.343618",
++  "mons": [
++        { "rank": 0,
++          "name": "a",
++          "addr": "[::1]:6789\/0"},
++        { "rank": 1,
++          "name": "b",
++          "addr": "[::1]:6790\/0"},
++        { "rank": 2,
++          "name": "c",
++          "addr": "[::1]:6791\/0"},
++        { "rank": 3,
++          "name": "d",
++          "addr": "127.0.0.1:6792\/0"},
++        { "rank": 4,
++          "name": "e",
++          "addr": "example.com:6791\/0"}],
++  "quorum": [
++        0,
++        1,
++        2]}
++"""
++
++
++class RbdTestCase(test.NoDBTestCase):
++
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def setUp(self, mock_rados, mock_rbd):
++        super(RbdTestCase, self).setUp()
++
++        self.mock_rados = mock_rados
++        self.mock_rados.Rados = mock.Mock
++        self.mock_rados.Rados.ioctx = mock.Mock()
++        self.mock_rados.Rados.connect = mock.Mock()
++        self.mock_rados.Rados.shutdown = mock.Mock()
++        self.mock_rados.Rados.open_ioctx = mock.Mock()
++        self.mock_rados.Rados.open_ioctx.return_value = \
++            self.mock_rados.Rados.ioctx
++        self.mock_rados.Error = Exception
++
++        self.mock_rbd = mock_rbd
++        self.mock_rbd.RBD = mock.Mock
++        self.mock_rbd.Image = mock.Mock
++        self.mock_rbd.Image.close = mock.Mock()
++        self.mock_rbd.RBD.Error = Exception
++
++        self.rbd_pool = 'rbd'
++        self.driver = rbd_utils.RBDDriver(self.rbd_pool, None, None)
++
++        self.volume_name = u'volume-00000001'
++
++    def tearDown(self):
++        super(RbdTestCase, self).tearDown()
++
++    def test_good_locations(self):
++        locations = ['rbd://fsid/pool/image/snap',
++                     'rbd://%2F/%2F/%2F/%2F', ]
++        map(self.driver.parse_url, locations)
++
++    def test_bad_locations(self):
++        locations = ['rbd://image',
++                     'http://path/to/somewhere/else',
++                     'rbd://image/extra',
++                     'rbd://image/',
++                     'rbd://fsid/pool/image/',
++                     'rbd://fsid/pool/image/snap/',
++                     'rbd://///', ]
++        for loc in locations:
++            self.assertRaises(exception.ImageUnacceptable,
++                              self.driver.parse_url, loc)
++            self.assertFalse(self.driver.is_cloneable({'url': loc},
++                                                      {'disk_format': 'raw'}))
++
++    @mock.patch.object(rbd_utils.RBDDriver, '_get_fsid')
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_cloneable(self, mock_rados, mock_rbd, mock_get_fsid):
++        mock_get_fsid.return_value = 'abc'
++        location = {'url': 'rbd://abc/pool/image/snap'}
++        info = {'disk_format': 'raw'}
++        self.assertTrue(self.driver.is_cloneable(location, info))
++        self.assertTrue(mock_get_fsid.called)
++
++    @mock.patch.object(rbd_utils.RBDDriver, '_get_fsid')
++    def test_uncloneable_different_fsid(self, mock_get_fsid):
++        mock_get_fsid.return_value = 'abc'
++        location = {'url': 'rbd://def/pool/image/snap'}
++        self.assertFalse(
++            self.driver.is_cloneable(location, {'disk_format': 'raw'}))
++        self.assertTrue(mock_get_fsid.called)
++
++    @mock.patch.object(rbd_utils.RBDDriver, '_get_fsid')
++    @mock.patch.object(rbd_utils, 'RBDVolumeProxy')
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_uncloneable_unreadable(self, mock_rados, mock_rbd, mock_proxy,
++                                    mock_get_fsid):
++        mock_get_fsid.return_value = 'abc'
++        location = {'url': 'rbd://abc/pool/image/snap'}
++
++        mock_proxy.side_effect = self.mock_rbd.Error
++
++        self.assertFalse(
++            self.driver.is_cloneable(location, {'disk_format': 'raw'}))
++        mock_proxy.assert_called_once_with(self.driver, 'image', pool='pool',
++                                           snapshot='snap', read_only=True)
++        self.assertTrue(mock_get_fsid.called)
++
++    @mock.patch.object(rbd_utils.RBDDriver, '_get_fsid')
++    def test_uncloneable_bad_format(self, mock_get_fsid):
++        mock_get_fsid.return_value = 'abc'
++        location = {'url': 'rbd://abc/pool/image/snap'}
++        formats = ['qcow2', 'vmdk', 'vdi']
++        for f in formats:
++            self.assertFalse(
++                self.driver.is_cloneable(location, {'disk_format': f}))
++        self.assertTrue(mock_get_fsid.called)
++
++    @mock.patch.object(utils, 'execute')
++    def test_get_mon_addrs(self, mock_execute):
++        mock_execute.return_value = (CEPH_MON_DUMP, '')
++        hosts = ['::1', '::1', '::1', '127.0.0.1', 'example.com']
++        ports = ['6789', '6790', '6791', '6792', '6791']
++        self.assertEqual((hosts, ports), self.driver.get_mon_addrs())
++
++    @mock.patch.object(rbd_utils, 'RADOSClient')
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_clone(self, mock_rados, mock_rbd, mock_client):
++        pool = u'images'
++        image = u'image-name'
++        snap = u'snapshot-name'
++        location = {'url': u'rbd://fsid/%s/%s/%s' % (pool, image, snap)}
++
++        client_stack = []
++
++        def mock__enter__(inst):
++            def _inner():
++                client_stack.append(inst)
++                return inst
++            return _inner
++
++        client = mock_client.return_value
++        # capture both rados client used to perform the clone
++        client.__enter__.side_effect = mock__enter__(client)
++
++        rbd = mock_rbd.RBD.return_value
++
++        self.driver.clone(location, self.volume_name)
++
++        args = [client_stack[0].ioctx, str(image), str(snap),
++                client_stack[1].ioctx, str(self.volume_name)]
++        kwargs = {'features': mock_rbd.RBD_FEATURE_LAYERING}
++        rbd.clone.assert_called_once_with(*args, **kwargs)
++        self.assertEqual(client.__enter__.call_count, 2)
++
++    @mock.patch.object(rbd_utils, 'RBDVolumeProxy')
++    def test_resize(self, mock_proxy):
++        size = 1024
++        proxy = mock_proxy.return_value
++        proxy.__enter__.return_value = proxy
++        self.driver.resize(self.volume_name, size)
++        proxy.resize.assert_called_once_with(size)
++
++    @mock.patch.object(rbd_utils.RBDDriver, '_disconnect_from_rados')
++    @mock.patch.object(rbd_utils.RBDDriver, '_connect_to_rados')
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_rbd_volume_proxy_init(self, mock_rados, mock_rbd,
++                                   mock_connect_from_rados,
++                                   mock_disconnect_from_rados):
++        mock_connect_from_rados.return_value = (None, None)
++        mock_disconnect_from_rados.return_value = (None, None)
++
++        with rbd_utils.RBDVolumeProxy(self.driver, self.volume_name):
++            mock_connect_from_rados.assert_called_once_with(None)
++            self.assertFalse(mock_disconnect_from_rados.called)
++
++        mock_disconnect_from_rados.assert_called_once_with(None, None)
++
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_connect_to_rados_default(self, mock_rados, mock_rbd):
++        ret = self.driver._connect_to_rados()
++        self.assertTrue(self.mock_rados.Rados.connect.called)
++        self.assertTrue(self.mock_rados.Rados.open_ioctx.called)
++        self.assertIsInstance(ret[0], self.mock_rados.Rados)
++        self.assertEqual(ret[1], self.mock_rados.Rados.ioctx)
++        self.mock_rados.Rados.open_ioctx.assert_called_with(self.rbd_pool)
++
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_connect_to_rados_different_pool(self, mock_rados, mock_rbd):
++        ret = self.driver._connect_to_rados('alt_pool')
++        self.assertTrue(self.mock_rados.Rados.connect.called)
++        self.assertTrue(self.mock_rados.Rados.open_ioctx.called)
++        self.assertIsInstance(ret[0], self.mock_rados.Rados)
++        self.assertEqual(ret[1], self.mock_rados.Rados.ioctx)
++        self.mock_rados.Rados.open_ioctx.assert_called_with('alt_pool')
++
++    @mock.patch.object(rbd_utils, 'rados')
++    def test_connect_to_rados_error(self, mock_rados):
++        self.mock_rados.Rados.open_ioctx.side_effect = mock_rados.Error
++        self.assertRaises(mock_rados.Error, self.driver._connect_to_rados)
++        self.mock_rados.Rados.open_ioctx.assert_called_once_with(self.rbd_pool)
++        self.mock_rados.Rados.shutdown.assert_called_once_with()
++
++    def test_ceph_args_none(self):
++        self.driver.rbd_user = None
++        self.driver.ceph_conf = None
++        self.assertEqual([], self.driver.ceph_args())
++
++    def test_ceph_args_rbd_user(self):
++        self.driver.rbd_user = 'foo'
++        self.driver.ceph_conf = None
++        self.assertEqual(['--id', 'foo'], self.driver.ceph_args())
++
++    def test_ceph_args_ceph_conf(self):
++        self.driver.rbd_user = None
++        self.driver.ceph_conf = '/path/bar.conf'
++        self.assertEqual(['--conf', '/path/bar.conf'],
++                         self.driver.ceph_args())
++
++    def test_ceph_args_rbd_user_and_ceph_conf(self):
++        self.driver.rbd_user = 'foo'
++        self.driver.ceph_conf = '/path/bar.conf'
++        self.assertEqual(['--id', 'foo', '--conf', '/path/bar.conf'],
++                         self.driver.ceph_args())
++
++    @mock.patch.object(rbd_utils, 'RBDVolumeProxy')
++    def test_exists(self, mock_proxy):
++        snapshot = 'snap'
++        proxy = mock_proxy.return_value
++        self.assertTrue(self.driver.exists(self.volume_name,
++                                           self.rbd_pool,
++                                           snapshot))
++        proxy.__enter__.assert_called_once_with()
++        proxy.__exit__.assert_called_once_with(None, None, None)
++
++    @mock.patch.object(rbd_utils, 'rbd')
++    @mock.patch.object(rbd_utils, 'rados')
++    @mock.patch.object(rbd_utils, 'RADOSClient')
++    def test_cleanup_volumes(self, mock_client, mock_rados, mock_rbd):
++        instance = {'uuid': '12345'}
++
++        rbd = mock_rbd.RBD.return_value
++        rbd.list.return_value = ['12345_test', '111_test']
++
++        client = mock_client.return_value
++        self.driver.cleanup_volumes(instance)
++        rbd.remove.assert_called_once_with(client.ioctx, '12345_test')
++        client.__enter__.assert_called_once_with()
++        client.__exit__.assert_called_once_with(None, None, None)
+diff --git a/nova/tests/virt/test_images.py b/nova/tests/virt/test_images.py
+index b07cb6b..df6e088 100644
+--- a/nova/tests/virt/test_images.py
++++ b/nova/tests/virt/test_images.py
+@@ -12,6 +12,7 @@
+ #    License for the specific language governing permissions and limitations
+ #    under the License.
+ 
++import mock
+ 
+ from nova import test
+ from nova.virt import images
+@@ -22,3 +23,36 @@ class QemuTestCase(test.NoDBTestCase):
+         image_info = images.qemu_img_info("/path/that/does/not/exist")
+         self.assertTrue(image_info)
+         self.assertTrue(str(image_info))
++
++
++class FetchImagesTestCase(test.NoDBTestCase):
++
++    @mock.patch('nova.image.glance.get_remote_image_service')
++    @mock.patch('nova.openstack.common.fileutils.remove_path_on_error')
++    def test_fetch(self, mock_fileutils, mock_glance):
++        mock_image_service = mock.Mock()
++        mock_glance.return_value = [mock_image_service, 'image_id']
++
++        images.fetch('context', None, 'path', None, None)
++
++        mock_image_service.download.assert_called_with(
++                'context', 'image_id', dst_path='path')
++
++    @mock.patch('nova.image.glance.get_remote_image_service')
++    def test_direct_fetch(self, mock_glance):
++        mock_image_service = mock.Mock()
++        mock_glance.return_value = [mock_image_service, 'image_id']
++        mock_image_service._get_locations.return_value = 'locations'
++        mock_image_service.show.return_value = 'image_meta'
++        mock_backend = mock.Mock()
++
++        images.direct_fetch('context', 'image_href', mock_backend)
++
++        mock_backend.direct_fetch.assert_called_with(
++                'image_id', 'image_meta', 'locations')
++
++    @mock.patch('nova.virt.images.direct_fetch')
++    def test_fetch_to_raw_direct_fetch(self, mock_direct_fetch):
++        images.fetch_to_raw('context', 'image', None, None, None,
++                            backend='backend')
++        mock_direct_fetch.assert_called_with('context', 'image', 'backend')
+diff --git a/nova/virt/baremetal/driver.py b/nova/virt/baremetal/driver.py
+index c1de148..c556032 100644
+--- a/nova/virt/baremetal/driver.py
++++ b/nova/virt/baremetal/driver.py
+@@ -362,7 +362,8 @@ class BareMetalDriver(driver.ComputeDriver):
+                 "for instance %r") % instance['uuid'])
+         _update_state(ctx, node, instance, state)
+ 
+-    def destroy(self, context, instance, network_info, block_device_info=None):
++    def destroy(self, context, instance, network_info, block_device_info=None,
++                destroy_disks=True, migrate_data=None):
+         context = nova_context.get_admin_context()
+ 
+         try:
+@@ -395,7 +396,7 @@ class BareMetalDriver(driver.ComputeDriver):
+                                 "baremetal database: %s") % e)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Cleanup after instance being destroyed."""
+         pass
+ 
 diff --git a/nova/virt/driver.py b/nova/virt/driver.py
 index a36c10b..1ccd200 100644
 --- a/nova/virt/driver.py
@@ -240,6 +1500,36 @@ index ea175cb..0f869ee 100644
          pass
  
      def attach_volume(self, context, connection_info, instance, mountpoint,
+diff --git a/nova/virt/hyperv/driver.py b/nova/virt/hyperv/driver.py
+index 30be02e..bbec69b 100644
+--- a/nova/virt/hyperv/driver.py
++++ b/nova/virt/hyperv/driver.py
+@@ -59,12 +59,12 @@ class HyperVDriver(driver.ComputeDriver):
+         self._vmops.reboot(instance, network_info, reboot_type)
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         self._vmops.destroy(instance, network_info, block_device_info,
+                             destroy_disks)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Cleanup after instance being destroyed by Hypervisor."""
+         pass
+ 
+@@ -124,7 +124,9 @@ class HyperVDriver(driver.ComputeDriver):
+ 
+     def rollback_live_migration_at_destination(self, context, instance,
+                                                network_info,
+-                                               block_device_info):
++                                               block_device_info,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         self.destroy(context, instance, network_info, block_device_info)
+ 
+     def pre_live_migration(self, context, instance, block_device_info,
 diff --git a/nova/virt/imagehandler/__init__.py b/nova/virt/imagehandler/__init__.py
 deleted file mode 100644
 index 54310a0..0000000
@@ -462,10 +1752,10 @@ index 6b23944..c82ccb2 100644
      fetch(context, image_href, path_tmp, user_id, project_id,
            max_size=max_size)
 diff --git a/nova/virt/libvirt/driver.py b/nova/virt/libvirt/driver.py
-index df367dd..8b12e7b 100644
+index 1e14892..d6a6a1b 100644
 --- a/nova/virt/libvirt/driver.py
 +++ b/nova/virt/libvirt/driver.py
-@@ -100,6 +100,7 @@ from nova.virt.libvirt import config as vconfig
+@@ -102,6 +102,7 @@ from nova.virt.libvirt import config as vconfig
  from nova.virt.libvirt import firewall as libvirt_firewall
  from nova.virt.libvirt import imagebackend
  from nova.virt.libvirt import imagecache
@@ -473,7 +1763,7 @@ index df367dd..8b12e7b 100644
  from nova.virt.libvirt import utils as libvirt_utils
  from nova.virt import netutils
  from nova.virt import watchdog_actions
-@@ -954,10 +955,10 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -956,10 +957,10 @@ class LibvirtDriver(driver.ComputeDriver):
              self._destroy(instance)
  
      def destroy(self, context, instance, network_info, block_device_info=None,
@@ -486,7 +1776,7 @@ index df367dd..8b12e7b 100644
  
      def _undefine_domain(self, instance):
          try:
-@@ -991,7 +992,7 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -993,7 +994,7 @@ class LibvirtDriver(driver.ComputeDriver):
                                {'errcode': errcode, 'e': e}, instance=instance)
  
      def cleanup(self, context, instance, network_info, block_device_info=None,
@@ -495,7 +1785,7 @@ index df367dd..8b12e7b 100644
          self._undefine_domain(instance)
          self.unplug_vifs(instance, network_info, ignore_errors=True)
          retry = True
-@@ -1066,26 +1067,26 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -1068,26 +1069,26 @@ class LibvirtDriver(driver.ComputeDriver):
                                   {'vol_id': vol.get('volume_id'), 'exc': exc},
                                   instance=instance)
  
@@ -534,7 +1824,7 @@ index df367dd..8b12e7b 100644
  
      def _cleanup_lvm(self, instance):
          """Delete all LVM disks for given instance object."""
-@@ -2618,13 +2619,15 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -2639,13 +2640,15 @@ class LibvirtDriver(driver.ComputeDriver):
              if size == 0 or suffix == '.rescue':
                  size = None
  
@@ -557,7 +1847,7 @@ index df367dd..8b12e7b 100644
  
          # Lookup the filesystem type if required
          os_type_with_default = disk.get_fs_type_for_os_type(
-@@ -3800,6 +3803,8 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -3828,6 +3831,8 @@ class LibvirtDriver(driver.ComputeDriver):
          if CONF.libvirt.images_type == 'lvm':
              info = libvirt_utils.get_volume_group_info(
                                   CONF.libvirt.images_volume_group)
@@ -566,7 +1856,7 @@ index df367dd..8b12e7b 100644
          else:
              info = libvirt_utils.get_fs_info(CONF.instances_path)
  
-@@ -4208,6 +4213,7 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4236,6 +4241,7 @@ class LibvirtDriver(driver.ComputeDriver):
          filename = self._create_shared_storage_test_file()
  
          return {"filename": filename,
@@ -574,7 +1864,7 @@ index df367dd..8b12e7b 100644
                  "block_migration": block_migration,
                  "disk_over_commit": disk_over_commit,
                  "disk_available_mb": disk_available_mb}
-@@ -4236,16 +4242,15 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4264,16 +4270,15 @@ class LibvirtDriver(driver.ComputeDriver):
          # Checking shared storage connectivity
          # if block migration, instances_paths should not be on shared storage.
          source = CONF.host
@@ -585,10 +1875,10 @@ index df367dd..8b12e7b 100644
 -                jsonutils.loads(self.get_instance_disk_info(instance['name'])))
  
 -        shared = self._check_shared_storage_test_file(filename)
-+        dest_check_data.update({'is_shared_block_storage':
-+                self._is_shared_block_storage(instance, dest_check_data)})
 +        dest_check_data.update({'is_shared_instance_path':
 +                self._is_shared_instance_path(dest_check_data)})
++        dest_check_data.update({'is_shared_block_storage':
++                self._is_shared_block_storage(instance, dest_check_data)})
  
 -        if block_migration:
 -            if shared:
@@ -598,7 +1888,7 @@ index df367dd..8b12e7b 100644
                  reason = _("Block migration can not be used "
                             "with shared storage.")
                  raise exception.InvalidLocalStorage(reason=reason, path=source)
-@@ -4253,11 +4258,11 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4281,11 +4286,11 @@ class LibvirtDriver(driver.ComputeDriver):
                                      dest_check_data['disk_available_mb'],
                                      dest_check_data['disk_over_commit'])
  
@@ -612,7 +1902,7 @@ index df367dd..8b12e7b 100644
  
          # NOTE(mikal): include the instance directory name here because it
          # doesn't yet exist on the destination but we want to force that
-@@ -4268,6 +4273,32 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4296,6 +4301,39 @@ class LibvirtDriver(driver.ComputeDriver):
  
          return dest_check_data
  
@@ -628,9 +1918,16 @@ index df367dd..8b12e7b 100644
 +                self.image_backend.backend().is_shared_block_storage()):
 +            return True
 +
++        if (dest_check_data.get('is_shared_instance_path') and
++                self.image_backend.backend().is_file_in_instance_path()):
++            # NOTE(angdraug): file based image backends (Raw, Qcow2)
++            # place block device files under the instance path
++            return True
++
 +        if (dest_check_data.get('is_volume_backed') and
 +                not bool(jsonutils.loads(
 +                    self.get_instance_disk_info(instance['name'])))):
++            # pylint: disable E1120
 +            return True
 +
 +        return False
@@ -645,7 +1942,7 @@ index df367dd..8b12e7b 100644
      def _assert_dest_node_has_enough_disk(self, context, instance,
                                               available_mb, disk_over_commit):
          """Checks if destination has enough disk for block migration."""
-@@ -4514,31 +4545,37 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4542,31 +4580,37 @@ class LibvirtDriver(driver.ComputeDriver):
  
      def rollback_live_migration_at_destination(self, context, instance,
                                                 network_info,
@@ -684,17 +1981,18 @@ index df367dd..8b12e7b 100644
              # not supported because of a bug in libvirt (read only devices
              # are not copied by libvirt). See bug/1246201
              if configdrive.required_by(instance):
-                 raise exception.NoBlockMigrationForConfigDriveInLibVirt()
+-                raise exception.NoBlockMigrationForConfigDriveInLibVirt()
++                raise exception.NoLiveMigrationForConfigDriveInLibVirt()
  
 +        if not is_shared_instance_path:
              # NOTE(mikal): this doesn't use libvirt_utils.get_instance_path
              # because we are ensuring that the same instance directory name
              # is used as was at the source
-@@ -4552,11 +4589,16 @@ class LibvirtDriver(driver.ComputeDriver):
+@@ -4580,11 +4624,16 @@ class LibvirtDriver(driver.ComputeDriver):
                  raise exception.DestinationDiskExists(path=instance_dir)
              os.mkdir(instance_dir)
  
-+        if not is_shared_block_storage:
++        if not (is_shared_block_storage or is_shared_instance_path):
              # Ensure images and backing files are present.
              self._create_images_and_backing(context, instance, instance_dir,
                                              disk_info)
@@ -709,7 +2007,7 @@ index df367dd..8b12e7b 100644
              console_file = self._get_console_log_path(instance)
              libvirt_utils.file_open(console_file, 'a').close()
 diff --git a/nova/virt/libvirt/imagebackend.py b/nova/virt/libvirt/imagebackend.py
-index 6511496..016c98c 100644
+index f66b4f2..8c3e28b 100644
 --- a/nova/virt/libvirt/imagebackend.py
 +++ b/nova/virt/libvirt/imagebackend.py
 @@ -32,17 +32,9 @@ from nova import utils
@@ -769,7 +2067,7 @@ index 6511496..016c98c 100644
      def snapshot_extract(self, target, out_format):
          raise NotImplementedError()
  
-@@ -304,6 +300,20 @@ class Image(object):
+@@ -304,6 +300,25 @@ class Image(object):
              raise exception.DiskInfoReadWriteFail(reason=unicode(e))
          return driver_format
  
@@ -777,6 +2075,11 @@ index 6511496..016c98c 100644
 +    def is_shared_block_storage():
 +        '''Return True if the backend puts images on a shared block storage
 +        '''
++        return False
++
++    @staticmethod
++    def is_file_in_instance_path():
++        """True if the backend stores images in files under instance path."""
 +        return False
 +
 +    def direct_fetch(self, image_id, image_meta, image_locations):
@@ -790,7 +2093,29 @@ index 6511496..016c98c 100644
  
  class Raw(Image):
      def __init__(self, instance=None, disk_name=None, path=None):
-@@ -491,51 +501,6 @@ class Lvm(Image):
+@@ -353,6 +368,10 @@ class Raw(Image):
+     def snapshot_extract(self, target, out_format):
+         images.convert_image(self.path, target, out_format)
+ 
++    @staticmethod
++    def is_file_in_instance_path():
++        return True
++
+ 
+ class Qcow2(Image):
+     def __init__(self, instance=None, disk_name=None, path=None):
+@@ -417,6 +436,10 @@ class Qcow2(Image):
+                                        target,
+                                        out_format)
+ 
++    @staticmethod
++    def is_file_in_instance_path():
++        return True
++
+ 
+ class Lvm(Image):
+     @staticmethod
+@@ -491,51 +514,6 @@ class Lvm(Image):
                               run_as_root=True)
  
  
@@ -842,7 +2167,7 @@ index 6511496..016c98c 100644
  class Rbd(Image):
      def __init__(self, instance=None, disk_name=None, path=None, **kwargs):
          super(Rbd, self).__init__("block", "rbd", is_block_dev=True)
-@@ -552,10 +517,15 @@ class Rbd(Image):
+@@ -552,10 +530,13 @@ class Rbd(Image):
                                   ' images_rbd_pool'
                                   ' flag to use rbd images.'))
          self.pool = CONF.libvirt.images_rbd_pool
@@ -856,13 +2181,11 @@ index 6511496..016c98c 100644
 +        self.driver = rbd_utils.RBDDriver(
 +            pool=self.pool,
 +            ceph_conf=self.ceph_conf,
-+            rbd_user=self.rbd_user,
-+            rbd_lib=kwargs.get('rbd'),
-+            rados_lib=kwargs.get('rados'))
++            rbd_user=self.rbd_user)
  
          self.path = 'rbd:%s/%s' % (self.pool, self.rbd_name)
          if self.rbd_user:
-@@ -563,52 +533,6 @@ class Rbd(Image):
+@@ -563,52 +544,6 @@ class Rbd(Image):
          if self.ceph_conf:
              self.path += ':conf=' + self.ceph_conf
  
@@ -915,7 +2238,7 @@ index 6511496..016c98c 100644
      def libvirt_info(self, disk_bus, disk_dev, device_type, cache_mode,
              extra_specs, hypervisor_version):
          """Get `LibvirtConfigGuestDisk` filled for this image.
-@@ -621,8 +545,8 @@ class Rbd(Image):
+@@ -621,8 +556,8 @@ class Rbd(Image):
          """
          info = vconfig.LibvirtConfigGuestDisk()
  
@@ -926,7 +2249,7 @@ index 6511496..016c98c 100644
          info.driver_format = 'raw'
          info.driver_cache = cache_mode
          info.target_bus = disk_bus
-@@ -647,44 +571,61 @@ class Rbd(Image):
+@@ -647,42 +582,55 @@
          return False
  
      def check_image_exists(self):
@@ -937,14 +2260,12 @@ index 6511496..016c98c 100644
 +        return self.driver.exists(self.rbd_name)
  
 -        return False
--
--    def _resize(self, volume_name, size):
--        size = int(size) * units.Ki
 +    def get_disk_size(self, name):
 +        """Returns the size of the virtual disk in bytes.
  
+-    def _resize(self, volume_name, size):
 -        with RBDVolumeProxy(self, volume_name) as vol:
--            vol.resize(size)
+-            vol.resize(int(size))
 +        The name argument is ignored since this backend already knows
 +        its name, and callers may pass a non-existent local file path.
 +        """
@@ -972,13 +2293,7 @@ index 6511496..016c98c 100644
 +        # prepare_template() may have cloned the image into a new rbd
 +        # image already instead of downloading it locally
 +        if not self.check_image_exists():
-+            # keep using the command line import instead of librbd since it
-+            # detects zeroes to preserve sparseness in the image
-+            args = ['--pool', self.pool, base, self.rbd_name]
-+            if self.driver.supports_layering():
-+                args += ['--new-format']
-+                args += self.driver.ceph_args()
-+                utils.execute('rbd', 'import', *args)
++            self.driver.import_image(base, self.rbd_name)
  
 -        if size and size > base_size:
 -            self._resize(self.rbd_name, size)
@@ -1014,11 +2329,14 @@ index 6511496..016c98c 100644
      def __init__(self, use_cow):
 diff --git a/nova/virt/libvirt/rbd_utils.py b/nova/virt/libvirt/rbd_utils.py
 new file mode 100644
-index 0000000..30f7dd4
+index 0000000..fce4b3d
 --- /dev/null
 +++ b/nova/virt/libvirt/rbd_utils.py
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,274 @@
 +# Copyright 2012 Grid Dynamics
++# Copyright 2013 Inktank Storage, Inc.
++# Copyright 2014 Mirantis, Inc.
++#
 +#    Licensed under the Apache License, Version 2.0 (the "License"); you may
 +#    not use this file except in compliance with the License. You may obtain
 +#    a copy of the License at
@@ -1065,14 +2383,14 @@ index 0000000..30f7dd4
 +        client, ioctx = driver._connect_to_rados(pool)
 +        try:
 +            snap_name = snapshot.encode('utf8') if snapshot else None
-+            self.volume = driver.rbd.Image(ioctx, name.encode('utf8'),
-+                                           snapshot=snap_name,
-+                                           read_only=read_only)
-+        except driver.rbd.ImageNotFound:
++            self.volume = rbd.Image(ioctx, name.encode('utf8'),
++                                    snapshot=snap_name,
++                                    read_only=read_only)
++        except rbd.ImageNotFound:
 +            with excutils.save_and_reraise_exception():
 +                LOG.debug("rbd image %s does not exist", name)
 +                driver._disconnect_from_rados(client, ioctx)
-+        except driver.rbd.Error:
++        except rbd.Error:
 +            with excutils.save_and_reraise_exception():
 +                LOG.exception(_("error opening rbd image %s"), name)
 +                driver._disconnect_from_rados(client, ioctx)
@@ -1109,27 +2427,24 @@ index 0000000..30f7dd4
 +
 +class RBDDriver(object):
 +
-+    def __init__(self, pool, ceph_conf, rbd_user,
-+                 rbd_lib=None, rados_lib=None):
++    def __init__(self, pool, ceph_conf, rbd_user):
 +        self.pool = pool.encode('utf8')
 +        # NOTE(angdraug): rados.Rados fails to connect if ceph_conf is None:
 +        # https://github.com/ceph/ceph/pull/1787
 +        self.ceph_conf = ceph_conf.encode('utf8') if ceph_conf else ''
 +        self.rbd_user = rbd_user.encode('utf8') if rbd_user else None
-+        self.rbd = rbd_lib or rbd
-+        self.rados = rados_lib or rados
-+        if self.rbd is None:
++        if rbd is None:
 +            raise RuntimeError(_('rbd python libraries not found'))
 +
 +    def _connect_to_rados(self, pool=None):
-+        client = self.rados.Rados(rados_id=self.rbd_user,
-+                                  conffile=self.ceph_conf)
++        client = rados.Rados(rados_id=self.rbd_user,
++                             conffile=self.ceph_conf)
 +        try:
 +            client.connect()
 +            pool_to_open = pool or self.pool
 +            ioctx = client.open_ioctx(pool_to_open.encode('utf-8'))
 +            return client, ioctx
-+        except self.rados.Error:
++        except rados.Error:
 +            # shutdown cannot raise an exception
 +            client.shutdown()
 +            raise
@@ -1140,9 +2455,13 @@ index 0000000..30f7dd4
 +        client.shutdown()
 +
 +    def supports_layering(self):
-+        return hasattr(self.rbd, 'RBD_FEATURE_LAYERING')
++        return hasattr(rbd, 'RBD_FEATURE_LAYERING')
 +
 +    def ceph_args(self):
++        """List of command line parameters to be passed to ceph commands to
++           reflect RBDDriver configuration such as RBD user name and location
++           of ceph.conf.
++        """
 +        args = []
 +        if self.rbd_user:
 +            args.extend(['--id', self.rbd_user])
@@ -1208,7 +2527,7 @@ index 0000000..30f7dd4
 +        # check that we can read the image
 +        try:
 +            return self.exists(image, pool=pool, snapshot=snapshot)
-+        except self.rbd.Error as e:
++        except rbd.Error as e:
 +            LOG.debug(_('Unable to open image %(loc)s: %(err)s') %
 +                      dict(loc=url, err=e))
 +            return False
@@ -1220,21 +2539,26 @@ index 0000000..30f7dd4
 +                  dict(pool=pool, img=image, snap=snapshot))
 +        with RADOSClient(self, str(pool)) as src_client:
 +            with RADOSClient(self) as dest_client:
-+                self.rbd.RBD().clone(src_client.ioctx,
++                rbd.RBD().clone(src_client.ioctx,
 +                                     image.encode('utf-8'),
 +                                     snapshot.encode('utf-8'),
 +                                     dest_client.ioctx,
 +                                     dest_name,
-+                                     features=self.rbd.RBD_FEATURE_LAYERING)
++                                     features=rbd.RBD_FEATURE_LAYERING)
 +
 +    def size(self, name):
 +        with RBDVolumeProxy(self, name) as vol:
 +            return vol.size()
 +
-+    def resize(self, name, size_bytes):
-+        LOG.debug('resizing rbd image %s to %d', name, size_bytes)
++    def resize(self, name, size):
++        """Resize RBD volume.
++
++        :name: Name of RBD object
++        :size: New size in bytes
++        """
++        LOG.debug('resizing rbd image %s to %d', name, size)
 +        with RBDVolumeProxy(self, name) as vol:
-+            vol.resize(size_bytes)
++            vol.resize(size)
 +
 +    def exists(self, name, pool=None, snapshot=None):
 +        try:
@@ -1243,8 +2567,23 @@ index 0000000..30f7dd4
 +                                snapshot=snapshot,
 +                                read_only=True):
 +                return True
-+        except self.rbd.ImageNotFound:
++        except rbd.ImageNotFound:
 +            return False
++
++    def import_image(self, base, name):
++        """Import RBD volume from image file.
++
++        Uses the command line import instead of librbd since rbd import
++        command detects zeroes to preserve sparseness in the image.
++
++        :base: Path to image file
++        :name: Name of RBD volume
++        """
++        args = ['--pool', self.pool, base, name]
++        if self.supports_layering():
++            args += ['--new-format']
++        args += self.ceph_args()
++        utils.execute('rbd', 'import', *args)
 +
 +    def cleanup_volumes(self, instance):
 +        with RADOSClient(self, self.pool) as client:
@@ -1252,10 +2591,11 @@ index 0000000..30f7dd4
 +            def belongs_to_instance(disk):
 +                return disk.startswith(instance['uuid'])
 +
-+            volumes = self.rbd.RBD().list(client.ioctx)
++            # pylint: disable=E1101
++            volumes = rbd.RBD().list(client.ioctx)
 +            for volume in filter(belongs_to_instance, volumes):
 +                try:
-+                    self.rbd.RBD().remove(client.ioctx, volume)
++                    rbd.RBD().remove(client.ioctx, volume)
 +                except (rbd.ImageNotFound, rbd.ImageHasSnapshots):
 +                    LOG.warn(_('rbd remove %(volume)s in pool %(pool)s '
 +                               'failed'),
@@ -1332,3 +2672,76 @@ index ddfad72..53dd411 100644
  
  
  def get_instance_path(instance, forceold=False, relative=False):
+diff --git a/nova/virt/vmwareapi/driver.py b/nova/virt/vmwareapi/driver.py
+index d5d5d48..082f0cf 100644
+--- a/nova/virt/vmwareapi/driver.py
++++ b/nova/virt/vmwareapi/driver.py
+@@ -180,7 +180,7 @@ class VMwareESXDriver(driver.ComputeDriver):
+         self._vmops.reboot(instance, network_info)
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Destroy VM instance."""
+ 
+         # Destroy gets triggered when Resource Claim in resource_tracker
+@@ -192,7 +192,7 @@ class VMwareESXDriver(driver.ComputeDriver):
+         self._vmops.destroy(instance, network_info, destroy_disks)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Cleanup after instance being destroyed by Hypervisor."""
+         pass
+ 
+@@ -469,7 +469,9 @@ class VMwareVCDriver(VMwareESXDriver):
+ 
+     def rollback_live_migration_at_destination(self, context, instance,
+                                                network_info,
+-                                               block_device_info):
++                                               block_device_info,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         """Clean up destination node after a failed live migration."""
+         self.destroy(context, instance, network_info, block_device_info)
+ 
+@@ -658,7 +660,7 @@ class VMwareVCDriver(VMwareESXDriver):
+         _vmops.reboot(instance, network_info)
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Destroy VM instance."""
+ 
+         # Destroy gets triggered when Resource Claim in resource_tracker
+diff --git a/nova/virt/xenapi/driver.py b/nova/virt/xenapi/driver.py
+index e7a0d1c..d343f06 100644
+--- a/nova/virt/xenapi/driver.py
++++ b/nova/virt/xenapi/driver.py
+@@ -275,13 +275,13 @@ class XenAPIDriver(driver.ComputeDriver):
+         self._vmops.change_instance_metadata(instance, diff)
+ 
+     def destroy(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Destroy VM instance."""
+         self._vmops.destroy(instance, network_info, block_device_info,
+                             destroy_disks)
+ 
+     def cleanup(self, context, instance, network_info, block_device_info=None,
+-                destroy_disks=True):
++                destroy_disks=True, migrate_data=None):
+         """Cleanup after instance being destroyed by Hypervisor."""
+         pass
+ 
+@@ -558,7 +558,9 @@ class XenAPIDriver(driver.ComputeDriver):
+ 
+     def rollback_live_migration_at_destination(self, context, instance,
+                                                network_info,
+-                                               block_device_info):
++                                               block_device_info,
++                                               destroy_disks=True,
++                                               migrate_data=None):
+         # NOTE(johngarbutt) Destroying the VM is not appropriate here
+         # and in the cases where it might make sense,
+         # XenServer has already done it.

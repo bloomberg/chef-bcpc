@@ -35,43 +35,13 @@ end
     end
 end
 
-%w{ssl wsgi python php5 proxy_http rewrite}.each do |mod|
+%w{ssl wsgi python php5 proxy_http rewrite cache disk_cache}.each do |mod|
     bash "apache-enable-#{mod}" do
         user "root"
         code "a2enmod #{mod}"
         not_if "test -r /etc/apache2/mods-enabled/#{mod}.load"
         notifies :restart, "service[apache2]", :delayed
     end
-end
-
-directory "/etc/apache2/vhost-root.d" do
-    owner "root"
-    group "root"
-    mode 00755
-    action :create
-end
-
-directory "/etc/apache2/vhost-ssl-root.d" do
-    owner "root"
-    group "root"
-    mode 00755
-    action :create
-end
-
-template "/etc/apache2/vhost-root.d/000-default.conf" do
-    source "apache-vhost-root-000-default.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    notifies :restart, "service[apache2]", :delayed
-end
-
-template "/etc/apache2/vhost-ssl-root.d/000-default.conf" do
-    source "apache-vhost-ssl-root-000-default.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    notifies :restart, "service[apache2]", :delayed
 end
 
 template "/etc/apache2/sites-enabled/000-default" do

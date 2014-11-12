@@ -20,10 +20,6 @@
 include_recipe "bcpc::mysql"
 include_recipe "bcpc::openstack"
 
-if node['bcpc']['protocol']['keystone'] == 'https' then
-    include_recipe "bcpc::stunnel"
-end
-
 ruby_block "initialize-keystone-config" do
     block do
         make_config('mysql-keystone-user', "keystone")
@@ -49,6 +45,14 @@ template "/etc/keystone/keystone.conf" do
     owner "keystone"
     group "keystone"
     mode 00600
+    notifies :restart, "service[keystone]", :delayed
+end
+
+template "/etc/keystone/default_catalog.templates" do
+    source "keystone-default_catalog.templates.erb"
+    owner "keystone"
+    group "keystone"
+    mode 00644
     notifies :restart, "service[keystone]", :delayed
 end
 
@@ -89,10 +93,10 @@ end
 
 ruby_block "keystone-database-creation" do
     block do
-        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['keystone_dbname']}\"'|grep \"#{node['bcpc']['keystone_dbname']}\"" then
-            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['keystone_dbname']};"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['keystone_dbname']}.* TO '#{get_config('mysql-keystone-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['keystone_dbname']}.* TO '#{get_config('mysql-keystone-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
+        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['keystone']}\"'|grep \"#{node['bcpc']['dbname']['keystone']}\"" then
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['dbname']['keystone']};"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['keystone']}.* TO '#{get_config('mysql-keystone-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['keystone']}.* TO '#{get_config('mysql-keystone-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
                 mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
             ]
             self.notifies :run, "bash[keystone-database-sync]", :immediately
@@ -108,178 +112,15 @@ bash "keystone-database-sync" do
     notifies :restart, "service[keystone]", :immediately
 end
 
-bash "keystone-service-catalog-keystone" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export KEYSTONE_ID=`keystone service-create --name=keystone --type=identity --description="Identity Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $KEYSTONE_ID \
-            --publicurl   "#{node['bcpc']['protocol']['keystone']}://#{node['bcpc']['management']['vip']}:5000/v2.0" \
-            --adminurl    "#{node['bcpc']['protocol']['keystone']}://#{node['bcpc']['management']['vip']}:35357/v2.0" \
-            --internalurl "#{node['bcpc']['protocol']['keystone']}://#{node['bcpc']['management']['vip']}:5000/v2.0"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get keystone 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-glance" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export GLANCE_ID=`keystone service-create --name=glance --type=image --description="Image Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $GLANCE_ID \
-            --publicurl   "#{node['bcpc']['protocol']['glance']}://#{node['bcpc']['management']['vip']}:9292/v1" \
-            --adminurl    "#{node['bcpc']['protocol']['glance']}://#{node['bcpc']['management']['vip']}:9292/v1" \
-            --internalurl "#{node['bcpc']['protocol']['glance']}://#{node['bcpc']['management']['vip']}:9292/v1"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get glance 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-nova" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export NOVA_ID=`keystone service-create --name=nova --type=compute --description="Compute Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $NOVA_ID \
-            --publicurl   "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8774/v1.1/\\\$(tenant_id)s" \
-            --adminurl    "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8774/v1.1/\\\$(tenant_id)s" \
-            --internalurl "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8774/v1.1/\\\$(tenant_id)s"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get nova 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-cinder" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export CINDER_ID=`keystone service-create --name=cinder --type=volume --description="Volume Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $CINDER_ID \
-            --publicurl   "#{node['bcpc']['protocol']['cinder']}://#{node['bcpc']['management']['vip']}:8776/v1/\\\$(tenant_id)s" \
-            --adminurl    "#{node['bcpc']['protocol']['cinder']}://#{node['bcpc']['management']['vip']}:8776/v1/\\\$(tenant_id)s" \
-            --internalurl "#{node['bcpc']['protocol']['cinder']}://#{node['bcpc']['management']['vip']}:8776/v1/\\\$(tenant_id)s"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get cinder 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-ec2" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export EC2_ID=`keystone service-create --name=ec2 --type=ec2 --description="EC2 Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $EC2_ID \
-            --publicurl   "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8773/services/Cloud" \
-            --adminurl    "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8773/services/Admin" \
-            --internalurl "#{node['bcpc']['protocol']['nova']}://#{node['bcpc']['management']['vip']}:8773/services/Cloud"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get ec2 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-heat" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export HEAT_ID=`keystone service-create --name=heat --type=orchestration --description="Heat Orchestration API" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $HEAT_ID \
-            --publicurl   "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8004/v1/\\\$(tenant_id)s" \
-            --adminurl    "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8004/v1/\\\$(tenant_id)s" \
-            --internalurl "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8004/v1/\\\$(tenant_id)s"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get heat 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-heat-cfn" do
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export HEAT_CFN_ID=`keystone service-create --name=heat-cfn --type=cloudformation --description="Heat CloudFormation API" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $HEAT_CFN_ID \
-            --publicurl   "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8000/v1" \
-            --adminurl    "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8000/v1" \
-            --internalurl "#{node['bcpc']['protocol']['heat']}://#{node['bcpc']['management']['vip']}:8000/v1"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get heat-cfn 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-ceilometer" do
-    action :nothing
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export CEILOMETER_ID=`keystone service-create --name=ceilometer --type=metering --description="Ceilometer Metring API" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $CEILOMETER_ID \
-            --publicurl   "http://#{node['bcpc']['management']['vip']}:8777/" \
-            --adminurl    "http://#{node['bcpc']['management']['vip']}:8777/" \
-            --internalurl "http://#{node['bcpc']['management']['vip']}:8777/"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get ceilometer 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-s3" do
-    action :nothing
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export S3_ID=`keystone service-create --name=s3 --type=s3 --description="S3 Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $S3_ID \
-            --publicurl   "http://#{node['bcpc']['management']['vip']}:8080/" \
-            --adminurl    "http://#{node['bcpc']['management']['vip']}:8080/" \
-            --internalurl "http://#{node['bcpc']['management']['vip']}:8080/"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get s3 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-swift" do
-    action :nothing
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export SWIFT_ID=`keystone service-create --name=swift --type=object-store --description="Swift Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $SWIFT_ID \
-            --publicurl   "http://#{node['bcpc']['management']['vip']}:8080/v1/AUTH_\\\$(tenant_id)s" \
-            --adminurl    "http://#{node['bcpc']['management']['vip']}:8080/" \
-            --internalurl "http://#{node['bcpc']['management']['vip']}:8080/v1/AUTH_\\\$(tenant_id)s"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get swift 2>&1 | grep -e '^No service'"
-end
-
-bash "keystone-service-catalog-quantum" do
-    action :nothing
-    user "root"
-    code <<-EOH
-        . /root/keystonerc
-        export QUANTUM_ID=`keystone service-create --name=quantum --type=network --description="Quantum Service" | grep " id " | awk '{print $4}'`
-        keystone endpoint-create --region #{node['bcpc']['region_name']} --service_id $QUANTUM_ID \
-            --publicurl   "http://#{node['bcpc']['management']['vip']}:9696/" \
-            --adminurl    "http://#{node['bcpc']['management']['vip']}:9696/" \
-            --internalurl "http://#{node['bcpc']['management']['vip']}:9696/"
-    EOH
-    only_if ". /root/keystonerc; keystone service-get quantum 2>&1 | grep -e '^No service'"
-end
-
 bash "keystone-create-users-tenants" do
     user "root"
     code <<-EOH
         . /root/adminrc
         . /root/keystonerc
-        export KEYSTONE_ADMIN_TENANT_ID=`keystone tenant-create --name "#{node['bcpc']['admin_tenant']}" | grep " id " | awk '{print $4}'`
+        export KEYSTONE_ADMIN_TENANT_ID=`keystone tenant-create --name "#{node['bcpc']['admin_tenant']}" --description "Admin services" | grep " id " | awk '{print $4}'`
         export KEYSTONE_ROLE_ADMIN_ID=`keystone role-create --name "#{node['bcpc']['admin_role']}" | grep " id " | awk '{print $4}'`
-        export KEYSTONE_ROLE_MEMBER_ID=`keystone role-create --name "#{node['bcpc']['member_role']}" | grep " id " | awk '{print $4}'`
-
         export KEYSTONE_ADMIN_LOGIN_ID=`keystone user-create --name "$OS_USERNAME" --tenant_id $KEYSTONE_ADMIN_TENANT_ID --pass "$OS_PASSWORD" --email "#{node['bcpc']['admin_email']}" --enabled true | grep " id " | awk '{print $4}'`
-
-        for i in $KEYSTONE_ROLE_ADMIN_ID $KEYSTONE_ROLE_MEMBER_ID; do \
-            keystone user-role-add --user_id $KEYSTONE_ADMIN_LOGIN_ID --role_id $i --tenant_id $KEYSTONE_ADMIN_TENANT_ID
-        done
-
-        # KEYSTONE_GLANCE_USER_ID=`keystone user-create --name $KEYSTONE_GLANCE_USER --tenant_id $KEYSTONE_SERVICE_TENANT_ID --pass $KEYSTONE_GLANCE_PASS --email $KEYSTONE_GLANCE_EMAIL --enabled true | grep " id " | awk '{print $4}'`
-        # KEYSTONE_NOVA_USER_ID=`keystone user-create --name $KEYSTONE_NOVA_USER --tenant_id $KEYSTONE_SERVICE_TENANT_ID --pass $KEYSTONE_NOVA_PASS --email $KEYSTONE_NOVA_EMAIL --enabled true | grep " id " | awk '{print $4}'`
-        # KEYSTONE_SWIFT_USER_ID=`keystone user-create --name $KEYSTONE_SWIFT_USER --tenant_id $KEYSTONE_SERVICE_TENANT_ID --pass $KEYSTONE_SWIFT_PASS --email $KEYSTONE_SWIFT_EMAIL --enabled true | grep " id " | awk '{print $4}'`
-        # KEYSTONE_QUANTUM_USER_ID=`keystone user-create --name $KEYSTONE_QUANTUM_USER --tenant_id $KEYSTONE_SERVICE_TENANT_ID --pass $KEYSTONE_QUANTUM_PASS --email $KEYSTONE_QUANTUM_EMAIL --enabled true | grep " id " | awk '{print $4}'`
-
-        # keystone user-role-add --user_id $KEYSTONE_ADMIN_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
-        # keystone user-role-add --user_id $KEYSTONE_GLANCE_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
-        # keystone user-role-add --user_id $KEYSTONE_NOVA_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
-        # keystone user-role-add --user_id $KEYSTONE_SWIFT_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
-        # keystone user-role-add --user_id $KEYSTONE_QUANTUM_USER_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_SERVICE_TENANT_ID
+        keystone user-role-add --user_id $KEYSTONE_ADMIN_LOGIN_ID --role_id $KEYSTONE_ROLE_ADMIN_ID --tenant_id $KEYSTONE_ADMIN_TENANT_ID
     EOH
     only_if ". /root/keystonerc; . /root/adminrc; keystone user-get $OS_USERNAME 2>&1 | grep -e '^No user'"
 end

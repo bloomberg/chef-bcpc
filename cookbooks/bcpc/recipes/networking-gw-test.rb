@@ -17,9 +17,13 @@
 # limitations under the License.
 #
 
-ruby_block "check-gateways" do
-    block do
-        ping_node("storage gateway", node['bcpc']['storage']['gateway'])
-        ping_node("floating gateway", node['bcpc']['floating']['gateway'])
+if node['bcpc']['enabled']['network_tests'] then
+
+    ruby_block "check-gateways" do
+        block do
+            ping_node("storage gateway", node['bcpc']['storage']['gateway'])
+            ping_node("floating gateway", node['bcpc']['floating']['gateway'])
+        end
     end
+
 end

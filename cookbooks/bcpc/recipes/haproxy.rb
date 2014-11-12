@@ -26,6 +26,13 @@ ruby_block "initialize-haproxy-config" do
     end
 end
 
+apt_repository "haproxy" do
+    uri node['bcpc']['repos']['haproxy']
+    distribution node['lsb']['codename']
+    components ["main"]
+    key "haproxy.key"
+end
+
 package "haproxy" do
     action :upgrade
 end
@@ -37,6 +44,14 @@ bash "enable-defaults-haproxy" do
         echo 'ENABLED=1' >> /etc/default/haproxy
     EOH
     not_if "grep -e '^ENABLED=1' /etc/default/haproxy"
+end
+
+template "/etc/haproxy/haproxy.pem" do
+    source "haproxy.pem.erb"
+    owner "root"
+    group "root"
+    mode 00600
+    notifies :restart, "service[haproxy]", :delayed
 end
 
 template "/etc/haproxy/haproxy.cfg" do

@@ -40,7 +40,11 @@ else
         else
             HOST="$NATADDR"
         fi
-        UP=`fping -aq "$HOST" | awk '{print $1}'`
+	if hash fping 2>/dev/null; then
+            UP=`fping -aq ${HOST} | awk '{print $1}'`
+	else
+	    UP=`ping -c 1 ${HOST} | grep ttl |cut -f4 -d" " | cut -f1 -d":"`
+	fi
         if [[ -z "$UP" ]]; then
             echo "VM is not up yet or is unreachable"
             if [[ $ATTEMPT = G ]]; then
@@ -55,8 +59,13 @@ else
     SSHCOMMON="-q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o VerifyHostKeyDNS=no"
     SSHCMD="ssh $SSHCOMMON"
     SCPCMD="scp $SSHCOMMON"
-    EDITED=`sshpass -p ubuntu $SSHCMD -t ubuntu@$HOST "echo ubuntu | sudo -S grep 'Static interfaces' /etc/network/interfaces"`
-    echo "EDITED = $EDITED"
+    if hash sshpass 2>/dev/null; then
+	EDITED=`sshpass -p ubuntu $SSHCMD -t ubuntu@$HOST "echo ubuntu | sudo -S grep 'Static interfaces' /etc/network/interfaces"`
+	echo "EDITED = $EDITED"
+    else
+	echo "please install sshpass"
+	exit 1
+    fi
     if [[ "$EDITED" =~ "Static interfaces" ]]; then
         echo "interfaces file appears adjusted already"
         exit 0

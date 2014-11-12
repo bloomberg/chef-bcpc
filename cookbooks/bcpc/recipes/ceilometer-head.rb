@@ -32,10 +32,10 @@ end
 
 ruby_block "ceilometer-database-creation" do
     block do
-        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['ceilometer_dbname']}\"'|grep \"#{node['bcpc']['ceilometer_dbname']}\"" then
-            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['ceilometer_dbname']};"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['ceilometer_dbname']}.* TO '#{get_config('mysql-ceilometer-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-ceilometer-password')}';"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['ceilometer_dbname']}.* TO '#{get_config('mysql-ceilometer-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-ceilometer-password')}';"
+        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['ceilometer']}\"'|grep \"#{node['bcpc']['dbname']['ceilometer']}\"" then
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['dbname']['ceilometer']};"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['ceilometer']}.* TO '#{get_config('mysql-ceilometer-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-ceilometer-password')}';"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['ceilometer']}.* TO '#{get_config('mysql-ceilometer-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-ceilometer-password')}';"
                 mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
             ]
             self.notifies :run, "bash[ceilometer-database-sync]", :immediately

@@ -16,19 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-cookbook_file "/usr/local/bin/routemon.pl" do
-  source "routemon.pl"
-  owner "root"
-  mode 00755
-end
 
-template "/etc/init/routemon.conf" do
-  source "routemon.conf.erb"
-  owner "root"
-  mode "0644"
-end
+if node['bcpc']['enabled']['network_tests'] then
 
-service "routemon" do
-  provider Chef::Provider::Service::Upstart
-  action :start
+    cookbook_file "/usr/local/bin/routemon.pl" do
+        source "routemon.pl"
+        owner "root"
+        mode 00755
+    end
+
+    template "/etc/init/routemon.conf" do
+        source "routemon.conf.erb"
+        owner "root"
+        mode "0644"
+    end
+
+    service "routemon" do
+        provider Chef::Provider::Service::Upstart
+        action :start
+    end
+
 end

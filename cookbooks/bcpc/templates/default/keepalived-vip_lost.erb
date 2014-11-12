@@ -10,13 +10,7 @@
 /usr/local/bin/vip_change
 
 #
-# Zabbix has problems running active-active HA. For example
-# you can have interesting problems in the database when
-# multiple zabbix servers try run house keeping.
-# Also having N servers running the same checks can cause
-# load prblems and confuse agents.
-# For this reason this is the one place we break our
-# active-active HA model. This must die.
+# Generate an upstart event to notify anything that needs
+# to take action on a vip chnage.
 #
-/usr/local/bin/vip_change
-service zabbix-server stop
+initctl emit --no-wait vip_lost

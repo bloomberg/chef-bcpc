@@ -534,7 +534,7 @@ metering_secret=<%=get_config('ceilometer-secret')%>
 
 # The SQLAlchemy connection string used to connect to the
 # database (string value)
-connection = mysql://<%=get_config('mysql-ceilometer-user')%>:<%=get_config('mysql-ceilometer-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['ceilometer_dbname']%>
+connection = mysql://<%=get_config('mysql-ceilometer-user')%>:<%=get_config('mysql-ceilometer-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['dbname']['ceilometer']%>
 
 # The SQLAlchemy connection string used to connect to the
 # slave database (string value)

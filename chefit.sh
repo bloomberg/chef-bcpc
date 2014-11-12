@@ -10,21 +10,30 @@ echo "initial configuration of $IP"
 SCPCMD="./nodescp    $ENVIRONMENT $IP"
 SSHCMD="./nodessh.sh $ENVIRONMENT $IP"
 
-echo "copy files..."
-$SCPCMD zap-ceph-disks.sh ubuntu@$IP:/home/ubuntu
-$SCPCMD cookbooks/bcpc/files/default/bins/chef-client.deb ubuntu@$IP:/home/ubuntu
-$SCPCMD install-chef.sh   ubuntu@$IP:/home/ubuntu
-$SCPCMD finish-worker.sh  ubuntu@$IP:/home/ubuntu
-$SCPCMD finish-head.sh    ubuntu@$IP:/home/ubuntu
+echo "Checking for Chef ..."
 
-if [[ -n "$(source proxy_setup.sh >/dev/null; echo $PROXY)" ]]; then
-  PROXY=$(source proxy_setup.sh >/dev/null; echo $PROXY)
-  echo "setting up .wgetrc's to $PROXY"
-  $SSHCMD "echo \"http_proxy = http://$PROXY\" > .wgetrc"
+CHEF=`$SSHCMD "which chef-client || true"`
+
+if [[ -z "$CHEF" ]]; then
+
+    echo "copy files..."
+    $SCPCMD zap-ceph-disks.sh /home/ubuntu
+    $SCPCMD cookbooks/bcpc/files/default/bins/chef-client.deb /home/ubuntu
+    $SCPCMD install-chef.sh   /home/ubuntu
+    $SCPCMD finish-worker.sh  /home/ubuntu
+    $SCPCMD finish-head.sh    /home/ubuntu
+
+    if [[ -n "$(source proxy_setup.sh >/dev/null; echo $PROXY)" ]]; then
+	PROXY=$(source proxy_setup.sh >/dev/null; echo $PROXY)
+	echo "setting up .wgetrc's to $PROXY"
+	$SSHCMD "echo \"http_proxy = http://$PROXY\" > .wgetrc"
+    fi
+
+    echo "setup chef"
+    $SSHCMD  "/home/ubuntu/install-chef.sh" sudo
+else
+    echo "Chef is installed as $CHEF"
 fi
-
-echo "setup chef"
-$SSHCMD  "/home/ubuntu/install-chef.sh" sudo
 
 echo "zap disks"
 $SSHCMD "/home/ubuntu/zap-ceph-disks.sh" sudo

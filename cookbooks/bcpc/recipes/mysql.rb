@@ -161,12 +161,5 @@ bash "phpmyadmin-config-setup" do
         echo '$cfg["AllowArbitraryServer"] = TRUE;' >> /etc/phpmyadmin/config.inc.php
     EOH
     not_if "cat /etc/phpmyadmin/config.inc.php | grep AllowArbitraryServer"
-end
-
-template "/etc/apache2/vhost-ssl-root.d/phpmyadmin.conf" do
-    source "apache-vhost-ssl-root-phpmyadmin.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
     notifies :restart, "service[apache2]", :delayed
 end

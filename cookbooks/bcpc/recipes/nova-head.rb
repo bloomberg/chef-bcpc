@@ -33,10 +33,10 @@ end
 
 ruby_block "nova-database-creation" do
     block do
-        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['nova_dbname']}\"'|grep \"#{node['bcpc']['nova_dbname']}\"" then
-            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['nova_dbname']};"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['nova_dbname']}.* TO '#{get_config('mysql-nova-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-nova-password')}';"
-                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['nova_dbname']}.* TO '#{get_config('mysql-nova-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-nova-password')}';"
+        if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['nova']}\"'|grep \"#{node['bcpc']['dbname']['nova']}\"" then
+            %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['dbname']['nova']};"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-nova-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-nova-password')}';"
+                mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-nova-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-nova-password')}';"
                 mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
             ]
             self.notifies :run, "bash[nova-database-sync]", :immediately
@@ -61,8 +61,8 @@ ruby_block "reap-dead-servers-from-nova" do
         nova_hosts = %x[nova-manage service list | awk '{print $2}' | grep -ve "^Host$" | uniq].split
         nova_hosts.each do |host|
             if not all_hosts.include?(host)
-                %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['nova_dbname']} -e "DELETE FROM services WHERE host=\\"#{host}\\";"
-                    mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['nova_dbname']} -e "DELETE FROM compute_nodes WHERE hypervisor_hostname=\\"#{host}\\";"
+                %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['dbname']['nova']} -e "DELETE FROM services WHERE host=\\"#{host}\\";"
+                    mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['dbname']['nova']} -e "DELETE FROM compute_nodes WHERE hypervisor_hostname=\\"#{host}\\";"
                 ]
             end
         end

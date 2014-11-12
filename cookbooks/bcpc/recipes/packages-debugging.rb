@@ -33,7 +33,17 @@ package "iperf"
 # I/O troubleshooting tools
 package "fio"
 package "bc"
+package "iotop"
 
 # System troubleshooting tools
 package "htop"
 package "sysstat"
+
+# In precise, sosreport is only in backports.
+apt_repository "backports" do
+    uri node['ubuntu']['archive_url']
+    distribution "#{node['lsb']['codename']}-backports"
+    components node['ubuntu']['components'].split(" ")
+end
+package "sosreport"
+

@@ -3,6 +3,12 @@
   "override_attributes": {
     "bcpc": {
       "virt_type" : "qemu",
+      "enabled": {
+        "logging": true,
+        "monitoring": true,
+        "metrics": true,
+        "dns": true
+      },
       "ceph": {
         "pgp_auto_adjust" : true,
         "hdd_disks" : [ "sdb", "sdc" ],

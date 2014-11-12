@@ -17,72 +17,76 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
+if node['bcpc']['enabled']['logging'] then
 
-package "openjdk-7-jre-headless" do
-    action :upgrade
-end
+    include_recipe "bcpc::default"
 
-cookbook_file "/tmp/elasticsearch-1.1.1.deb" do
-    source "bins/elasticsearch-1.1.1.deb"
-    owner "root"
-    mode 00444
-end
+    package "openjdk-7-jre-headless" do
+        action :upgrade
+    end
 
-package "elasticsearch" do
-    provider Chef::Provider::Package::Dpkg
-    source "/tmp/elasticsearch-1.1.1.deb"
-    action :install
-end
+    cookbook_file "/tmp/elasticsearch-1.1.1.deb" do
+        source "bins/elasticsearch-1.1.1.deb"
+        owner "root"
+        mode 00444
+    end
 
-service "elasticsearch" do
-    action [:enable, :start]
-end
+    package "elasticsearch" do
+        provider Chef::Provider::Package::Dpkg
+        source "/tmp/elasticsearch-1.1.1.deb"
+        action :install
+    end
 
-template "/etc/elasticsearch/elasticsearch.yml" do
-    source "elasticsearch.yml.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables(
-        :servers => get_head_nodes,
-        :min_quorum => get_head_nodes.length/2 + 1
-    )
-    notifies :restart, "service[elasticsearch]", :immediately
-end
+    service "elasticsearch" do
+        action [:enable, :start]
+    end
 
-directory "/usr/share/elasticsearch/plugins" do
-    owner "root"
-    group "root"
-    mode 00755
-end
+    template "/etc/elasticsearch/elasticsearch.yml" do
+        source "elasticsearch.yml.erb"
+        owner "root"
+        group "root"
+        mode 00644
+        variables(
+            :servers => get_head_nodes,
+            :min_quorum => get_head_nodes.length/2 + 1
+        )
+        notifies :restart, "service[elasticsearch]", :immediately
+    end
 
-cookbook_file "/tmp/elasticsearch-plugins.tgz" do
-    source "bins/elasticsearch-plugins.tgz"
-    owner "root"
-    mode 00444
-end
+    directory "/usr/share/elasticsearch/plugins" do
+        owner "root"
+        group "root"
+        mode 00755
+    end
 
-bash "install-elasticsearch-plugins" do
-    code <<-EOH
-        tar zxf /tmp/elasticsearch-plugins.tgz -C /usr/share/elasticsearch/plugins/
-    EOH
-    not_if "test -d /usr/share/elasticsearch/plugins/head"
-end
+    cookbook_file "/tmp/elasticsearch-plugins.tgz" do
+        source "bins/elasticsearch-plugins.tgz"
+        owner "root"
+        mode 00444
+    end
 
-package "curl" do
-    action :upgrade
-end
+    bash "install-elasticsearch-plugins" do
+        code <<-EOH
+            tar zxf /tmp/elasticsearch-plugins.tgz -C /usr/share/elasticsearch/plugins/
+        EOH
+        not_if "test -d /usr/share/elasticsearch/plugins/head"
+    end
 
-bash "set-elasticsearch-replicas" do
-    min_quorum = get_head_nodes.length/2 + 1
-    code <<-EOH
-        curl -XPUT '#{node['bcpc']['management']['vip']}:9200/_settings' -d '
-        {
-            "index" : {
-                "number_of_replicas" : #{min_quorum-1}
+    package "curl" do
+        action :upgrade
+    end
+
+    bash "set-elasticsearch-replicas" do
+        min_quorum = get_head_nodes.length/2 + 1
+        code <<-EOH
+            curl -XPUT '#{node['bcpc']['management']['vip']}:9200/_settings' -d '
+            {
+                "index" : {
+                    "number_of_replicas" : #{min_quorum-1}
+                }
             }
-        }
-        '
-    EOH
+            '
+        EOH
+    end
+
 end

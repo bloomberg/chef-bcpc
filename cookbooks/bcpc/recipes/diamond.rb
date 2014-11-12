@@ -17,67 +17,71 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
+if node['bcpc']['enabled']['metrics'] then
 
-cookbook_file "/tmp/diamond.deb" do
-    source "bins/diamond.deb"
-    owner "root"
-    mode 00444
-end
+    include_recipe "bcpc::default"
 
-%w{python-support python-configobj python-pip python-httplib2}.each do |pkg|
-    package pkg do
-        action :upgrade
+    cookbook_file "/tmp/diamond.deb" do
+        source "bins/diamond.deb"
+        owner "root"
+        mode 00444
     end
-end
 
-package "diamond" do
-    provider Chef::Provider::Package::Dpkg
-    source "/tmp/diamond.deb"
-    action :install
-end
-
-if node['bcpc']['virt_type'] == "kvm"
-    package "ipmitool" do
-        action :upgrade
+    %w{python-support python-configobj python-pip python-httplib2}.each do |pkg|
+        package pkg do
+            action :upgrade
+        end
     end
-    package "smartmontools" do
-        action :upgrade
+
+    package "diamond" do
+        provider Chef::Provider::Package::Dpkg
+        source "/tmp/diamond.deb"
+        action :install
     end
-end
 
-cookbook_file "/tmp/pyrabbit-1.0.1.tar.gz" do
-    source "bins/pyrabbit-1.0.1.tar.gz"
-    owner "root"
-    mode 00444
-end
+    if node['bcpc']['virt_type'] == "kvm"
+        package "ipmitool" do
+            action :upgrade
+        end
+        package "smartmontools" do
+            action :upgrade
+        end
+    end
 
-bash "install-pyrabbit" do
-    code <<-EOH
-        pip install /tmp/pyrabbit-1.0.1.tar.gz
-    EOH
-    not_if "pip freeze|grep pyrabbit"
-end
+    cookbook_file "/tmp/pyrabbit-1.0.1.tar.gz" do
+        source "bins/pyrabbit-1.0.1.tar.gz"
+        owner "root"
+        mode 00444
+    end
 
-bash "diamond-set-user" do
-    user "root"
-    code <<-EOH
-        sed --in-place '/^DIAMOND_USER=/d' /etc/default/diamond
-        echo 'DIAMOND_USER="root"' >> /etc/default/diamond
-    EOH
-    not_if "grep -e '^DIAMOND_USER=\"root\"' /etc/default/diamond"
-    notifies :restart, "service[diamond]", :delayed
-end
+    bash "install-pyrabbit" do
+        code <<-EOH
+            pip install /tmp/pyrabbit-1.0.1.tar.gz
+        EOH
+        not_if "pip freeze|grep pyrabbit"
+    end
 
-template "/etc/diamond/diamond.conf" do
-    source "diamond.conf.erb"
-    owner "diamond"
-    group "root"
-    mode 00600
-    variables(:servers => get_head_nodes)
-    notifies :restart, "service[diamond]", :delayed
-end
+    bash "diamond-set-user" do
+        user "root"
+        code <<-EOH
+            sed --in-place '/^DIAMOND_USER=/d' /etc/default/diamond
+            echo 'DIAMOND_USER="root"' >> /etc/default/diamond
+        EOH
+        not_if "grep -e '^DIAMOND_USER=\"root\"' /etc/default/diamond"
+        notifies :restart, "service[diamond]", :delayed
+    end
 
-service "diamond" do
-    action [:enable, :start]
+    template "/etc/diamond/diamond.conf" do
+        source "diamond.conf.erb"
+        owner "diamond"
+        group "root"
+        mode 00600
+        variables(:servers => get_head_nodes)
+        notifies :restart, "service[diamond]", :delayed
+    end
+
+    service "diamond" do
+        action [:enable, :start]
+    end
+
 end

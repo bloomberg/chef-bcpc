@@ -10,6 +10,9 @@ iface <%= @interface %> inet static
  netmask <%= @netmask %>
  gateway <%= @gateway %>
  metric <%= @metric %>
+<% if @mtu %>
+ mtu <%= @mtu %>
+<% end %>
 <% if @dns %>
  dns-nameservers <%= @dns.join(' ') %>
  dns-search <%=node['bcpc']['domain_name']%>

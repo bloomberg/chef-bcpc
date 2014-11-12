@@ -351,7 +351,7 @@ data bag.
 If you get a "Tampered with cookie 500" error clear out your cookies
 from your browser for 10.0.100.3
 
-Boostrapping these nodes will take quite a long time - as much as an
+Bootstrapping these nodes will take quite a long time - as much as an
 hour or more. You can monitor progress by logging into the VMs and
 using tools such as 'top' or 'ps'.
 

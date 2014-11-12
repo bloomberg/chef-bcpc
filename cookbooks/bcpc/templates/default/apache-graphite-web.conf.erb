@@ -4,10 +4,9 @@
 #
 ################################################
 
-Listen <%=node['bcpc']['management']['vip']%>:8888
-NameVirtualHost <%=node['bcpc']['management']['ip']%>:443
+Listen <%=node['bcpc']['management']['ip']%>:8888
 
-<VirtualHost <%=node['bcpc']['management']['vip']%>:8888 <%=node['bcpc']['management']['ip']%>:443>
+<VirtualHost <%=node['bcpc']['management']['ip']%>:8888>
     ServerName "graphite.<%=node['bcpc']['domain_name']%>"
 
     DocumentRoot "/opt/graphite/webapp"
@@ -41,7 +40,4 @@ NameVirtualHost <%=node['bcpc']['management']['ip']%>:443
         SetHandler None
     </Location>
 
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
-    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
 </VirtualHost>

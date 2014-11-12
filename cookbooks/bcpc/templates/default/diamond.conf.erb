@@ -209,7 +209,7 @@ enabled = True
 
 [[MySQLCollector]]
 enabled = True
-hosts=<%=get_config('mysql-root-user')%>:<%=get_config('mysql-root-password')%>@<%=node['bcpc']['management']['ip']%>:3306/<%=node['bcpc']['nova_dbname']%>
+hosts=<%=get_config('mysql-root-user')%>:<%=get_config('mysql-root-password')%>@<%=node['bcpc']['management']['ip']%>:3306/<%=node['bcpc']['dbname']['nova']%>
 innodb = True
 
 [[RabbitMQCollector]]

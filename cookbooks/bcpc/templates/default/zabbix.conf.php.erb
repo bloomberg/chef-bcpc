@@ -11,7 +11,7 @@ global $DB;
 $DB['TYPE']     = 'MYSQL';
 $DB['SERVER']   = '<%=node['bcpc']['management']['vip']%>';
 $DB['PORT']     = '0';
-$DB['DATABASE'] = '<%=node['bcpc']['zabbix_dbname']%>';
+$DB['DATABASE'] = '<%=node['bcpc']['dbname']['zabbix']%>';
 $DB['USER']     = '<%=get_config('mysql-zabbix-user')%>';
 $DB['PASSWORD'] = '<%=get_config('mysql-zabbix-password')%>';
 

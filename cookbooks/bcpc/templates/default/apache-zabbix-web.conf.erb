@@ -4,13 +4,9 @@
 #
 ################################################
 
-Listen <%=node['bcpc']['management']['vip']%>:7777
-NameVirtualHost <%=node['bcpc']['management']['ip']%>:443
+Listen <%=node['bcpc']['management']['ip']%>:7777
 
-<VirtualHost <%=node['bcpc']['management']['vip']%>:7777 <%=node['bcpc']['management']['ip']%>:443>
+<VirtualHost <%=node['bcpc']['management']['ip']%>:7777>
     ServerName zabbix.<%=node['bcpc']['domain_name']%>
     DocumentRoot "/usr/local/share/zabbix/php"
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
-    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
 </VirtualHost>

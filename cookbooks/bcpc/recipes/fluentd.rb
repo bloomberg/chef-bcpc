@@ -17,64 +17,73 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
+if node['bcpc']['enabled']['logging'] then
 
-apt_repository "fluentd" do
-    uri node['bcpc']['repos']['fluentd']
-    distribution node['lsb']['codename']
-    components ["contrib"]
-    key "fluentd.key"
-end
+    include_recipe "bcpc::default"
 
-package "td-agent" do
-    action :upgrade
-    options "--allow-unauthenticated"
-end
+    apt_repository "fluentd" do
+        uri node['bcpc']['repos']['fluentd']
+        distribution node['lsb']['codename']
+        components ["contrib"]
+        key "fluentd.key"
+    end
 
-bash "set-td-agent-user" do
-    user "root"
-    code "sed --in-place 's/^USER=td-agent.*/USER=root/' /etc/init.d/td-agent"
-    only_if "grep -e '^USER=td-agent' /etc/init.d/td-agent"
-    notifies :restart, "service[td-agent]", :delayed
-end
+    package "td-agent" do
+        action :upgrade
+        options "--allow-unauthenticated"
+    end
 
-%w{elasticsearch tail-multiline tail-ex record-reformer rewrite}.each do |pkg|
-    cookbook_file "/tmp/fluent-plugin-#{pkg}.gem" do
-        source "bins/fluent-plugin-#{pkg}.gem"
+    bash "set-td-agent-user" do
+        user "root"
+        code "sed --in-place 's/^USER=td-agent.*/USER=root/' /etc/init.d/td-agent"
+        only_if "grep -e '^USER=td-agent' /etc/init.d/td-agent"
+        notifies :restart, "service[td-agent]", :delayed
+    end
+
+    %w{elasticsearch tail-multiline tail-ex record-reformer rewrite}.each do |pkg|
+        cookbook_file "/tmp/fluent-plugin-#{pkg}.gem" do
+            source "bins/fluent-plugin-#{pkg}.gem"
+            owner "root"
+            mode 00444
+        end
+        bash "install-fluent-plugin-#{pkg}" do
+            code "/usr/lib/fluent/ruby/bin/fluent-gem install --local --no-ri --no-rdoc /tmp/fluent-plugin-#{pkg}.gem"
+            not_if "/usr/lib/fluent/ruby/bin/fluent-gem list --local --no-versions | grep fluent-plugin-#{pkg}$"
+        end
+    end
+
+    cookbook_file "/tmp/fluentd.patch" do
+        source "fluentd.patch"
         owner "root"
-        mode 00444
+        mode 00644
     end
-    bash "install-fluent-plugin-#{pkg}" do
-        code "/usr/lib/fluent/ruby/bin/fluent-gem install --local --no-ri --no-rdoc /tmp/fluent-plugin-#{pkg}.gem"
-        not_if "/usr/lib/fluent/ruby/bin/fluent-gem list --local --no-versions | grep fluent-plugin-#{pkg}$"
+
+    bash "patch-for-fluentd-plugin" do
+        user "root"
+        code <<-EOH
+            cd /usr/lib/fluent/ruby/lib/ruby/gems/*/gems/fluent-plugin-elasticsearch-*/lib/fluent/plugin
+            patch < /tmp/fluentd.patch
+            rv=$?
+            if [ $rv -ne 0 ]; then
+              echo "Error applying patch ($rv) - aborting!"
+              exit $rv
+            fi
+            cp /tmp/fluentd.patch .
+        EOH
+        not_if "test -f /usr/lib/fluent/ruby/lib/ruby/gems/*/gems/fluent-plugin-elasticsearch-*/lib/fluent/plugin/fluentd.patch"
+        notifies :restart, "service[td-agent]", :delayed
     end
-end
 
-cookbook_file "/tmp/fluentd.patch" do
-    source "fluentd.patch"
-    owner "root"
-    mode 00644
-end
+    template "/etc/td-agent/td-agent.conf" do
+        source "fluentd-td-agent.conf.erb"
+        owner "root"
+        group "root"
+        mode 00644
+        notifies :restart, "service[td-agent]", :immediately
+    end
 
-bash "patch-for-fluentd-plugin" do
-    user "root"
-    code <<-EOH
-        cd /usr/lib/fluent/ruby/lib/ruby/gems/*/gems/fluent-plugin-elasticsearch-*/lib/fluent/plugin
-        patch < /tmp/fluentd.patch
-        cp /tmp/fluentd.patch .
-    EOH
-    not_if "test -f /usr/lib/fluent/ruby/lib/ruby/gems/*/gems/fluent-plugin-elasticsearch-*/lib/fluent/plugin/fluentd.patch"
-    notifies :restart, "service[td-agent]", :delayed
-end
+    service "td-agent" do
+        action [:enable, :start]
+    end
 
-template "/etc/td-agent/td-agent.conf" do
-    source "fluentd-td-agent.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    notifies :restart, "service[td-agent]", :immediately
-end
-
-service "td-agent" do
-    action [:enable, :start]
 end

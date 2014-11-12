@@ -4,13 +4,9 @@
 #
 ################################################
 
-Listen <%=node['bcpc']['management']['vip']%>:5601
-NameVirtualHost <%=node['bcpc']['management']['ip']%>:443
+Listen <%=node['bcpc']['management']['ip']%>:5601
 
-<VirtualHost <%=node['bcpc']['management']['vip']%>:5601 <%=node['bcpc']['management']['ip']%>:443>
+<VirtualHost <%=node['bcpc']['management']['ip']%>:5601>
     ServerName "kibana.<%=node['bcpc']['domain_name']%>"
     DocumentRoot "/opt/kibana3"
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
-    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
 </VirtualHost>

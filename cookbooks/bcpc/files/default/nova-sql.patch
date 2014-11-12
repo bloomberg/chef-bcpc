@@ -1,0 +1,153 @@
+From 5d5970a77a79a11864363d8e3e4fd66862157d19 Mon Sep 17 00:00:00 2001
+From: Russell Bryant <rbryant@redhat.com>
+Date: Tue, 16 Sep 2014 18:10:47 +0000
+Subject: [PATCH] db: Add @_retry_on_deadlock to service_update()
+
+Add the _retry_on_deadlock decorator to the service_update() method of
+nova's sqlalchemy API.  This decorator is scattered throughout the
+sqlalchemy API for other methods that may encounter this error.  The
+referenced bug report shows a trace from where it occurred on this
+method.
+
+Change-Id: I93b370d6457d2e85493be01a62a76404d228a6fa
+Closes-bug: #1370191
+(cherry picked from commit 61d54f2652424279af81c4084e87651044fac4bd)
+---
+ nova/db/sqlalchemy/api.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/nova/db/sqlalchemy/api.py b/nova/db/sqlalchemy/api.py
+index aa99c53..dc6d00b 100644
+--- a/nova/db/sqlalchemy/api.py
++++ b/nova/db/sqlalchemy/api.py
+@@ -525,6 +525,7 @@ def service_create(context, values):
+ 
+ 
+ @require_admin_context
++@_retry_on_deadlock
+ def service_update(context, service_id, values):
+     session = get_session()
+     with session.begin():
+-- 
+1.9.3 (Apple Git-50)
+
+From cac6472fd2ad495d22fe6fad89a9485cf025c437 Mon Sep 17 00:00:00 2001
+From: Mike Bayer <mike_mp@zzzcomputing.com>
+Date: Fri, 26 Sep 2014 17:27:53 -0400
+Subject: [PATCH] Add _wrap_db_error() support to SessionTransaction.commit()
+
+This patch adds _wrap_db_error() to the commit()
+and rollback() methods of sqlalchemy.orm.session.SessionTransaction,
+which is the object that is dealt with when one invokes
+code of the form "with session.begin():".  The context manager
+form does not invoke the commit() method on the
+SQLAlchemy Session directly, and instead calls the one
+local to the SessionTransaction.
+
+In order to intercept this, we must build a subclass
+of SessionTransaction with the appropriate wrapping, and
+then patch it into the object that is returned by
+Session.begin(), ensuring that it is compatible with
+_wrap_db_error().
+
+This whole approach is legacy; newer oslo.db versions
+intercept errors at the point at which they occur
+via engine events.
+
+Tests are omitted here as we are relying upon the tests
+that were added to the corresponding oslo-incubator code.
+
+Closes-bug: #1370191
+
+Change-Id: Ie0456e6daa86c99cf6fbe56ca5dfd8a618f14232
+---
+ nova/openstack/common/db/sqlalchemy/session.py | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/nova/openstack/common/db/sqlalchemy/session.py b/nova/openstack/common/db/sqlalchemy/session.py
+index 2c1cfaa..c10bcb1 100644
+--- a/nova/openstack/common/db/sqlalchemy/session.py
++++ b/nova/openstack/common/db/sqlalchemy/session.py
+@@ -700,6 +700,25 @@ class Session(sqlalchemy.orm.session.Session):
+     def commit(self, *args, **kwargs):
+         return super(Session, self).commit(*args, **kwargs)
+ 
++    def begin(self, **kw):
++        trans = super(Session, self).begin(**kw)
++        trans.__class__ = SessionTransactionWrapper
++        return trans
++
++
++class SessionTransactionWrapper(sqlalchemy.orm.session.SessionTransaction):
++    @property
++    def bind(self):
++        return self.session.bind
++
++    @_wrap_db_error
++    def commit(self, *args, **kwargs):
++        return super(SessionTransactionWrapper, self).commit(*args, **kwargs)
++
++    @_wrap_db_error
++    def rollback(self, *args, **kwargs):
++        return super(SessionTransactionWrapper, self).rollback(*args, **kwargs)
++
+ 
+ def get_maker(engine, autocommit=True, expire_on_commit=False):
+     """Return a SQLAlchemy sessionmaker using the given engine."""
+-- 
+1.9.3 (Apple Git-50)
+
+From 182e35a47d9470050a32295c62c43128bcf19fef Mon Sep 17 00:00:00 2001
+From: Mike Bayer <mike_mp@zzzcomputing.com>
+Date: Mon, 22 Sep 2014 16:53:55 -0400
+Subject: [PATCH] Add _wrap_db_error() support to Session.commit()
+
+This patch adds _wrap_db_error() to session.commit(),
+which has been observed to be a common point of failure for
+deadlock exceptions.   In order to achieve this, the
+_wrap_db_error() decorator itself also needed to propagate an
+existing DBError, as it is the case that SQLAlchemy's
+session.commit() calls into the session.flush() method.
+Tests are added to exercise both the nesting of _wrap_db_error()
+when a flush() inside commit() raises an exception, as well
+as when commit() alone raises an exception that the error
+is wrapped as expected.
+
+Tests are omitted here as we are relying upon the tests
+that were added to the corresponding oslo-incubator code.
+
+Closes-bug: #1370191
+Change-Id: Icdae75678416e2933e382507e5c0a34c03e74016
+References: I91510a2b864f0c1b73cfae18f271e94334714dce
+---
+ nova/openstack/common/db/sqlalchemy/session.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/nova/openstack/common/db/sqlalchemy/session.py b/nova/openstack/common/db/sqlalchemy/session.py
+index b281915..2c1cfaa 100644
+--- a/nova/openstack/common/db/sqlalchemy/session.py
++++ b/nova/openstack/common/db/sqlalchemy/session.py
+@@ -455,6 +455,10 @@ def _wrap_db_error(f):
+             # unique constraint, from error message.
+             _raise_if_duplicate_entry_error(e, self.bind.dialect.name)
+             raise exception.DBError(e)
++        except exception.DBError:
++            # note(zzzeek) - if _wrap_db_error is applied to nested functions,
++            # ensure an existing DBError is propagated outwards
++            raise
+         except Exception as e:
+             LOG.exception(_LE('DB exception wrapped.'))
+             raise exception.DBError(e)
+@@ -692,6 +696,10 @@ class Session(sqlalchemy.orm.session.Session):
+     def execute(self, *args, **kwargs):
+         return super(Session, self).execute(*args, **kwargs)
+ 
++    @_wrap_db_error
++    def commit(self, *args, **kwargs):
++        return super(Session, self).commit(*args, **kwargs)
++
+ 
+ def get_maker(engine, autocommit=True, expire_on_commit=False):
+     """Return a SQLAlchemy sessionmaker using the given engine."""
+-- 
+1.9.3 (Apple Git-50)

@@ -119,7 +119,7 @@ ubuntu@bcpc-bootstrap:~/chef-bcpc$
 # use of nodescp
 #
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ echo test > somefile.txt
-ubuntu@bcpc-bootstrap:~/chef-bcpc$ ./nodescp Test-Laptop 10.0.100.11 somefile.txt ubuntu@10.0.100.11:/home/ubuntu
+ubuntu@bcpc-bootstrap:~/chef-bcpc$ ./nodescp Test-Laptop 10.0.100.11 somefile.txt /home/ubuntu
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ ./nodessh.sh Test-Laptop 10.0.100.11 'more somefile.txt'
 test
 ubuntu@bcpc-bootstrap:~/chef-bcpc$ 

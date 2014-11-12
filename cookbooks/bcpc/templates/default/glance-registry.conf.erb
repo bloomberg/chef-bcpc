@@ -12,7 +12,7 @@
 #debug = False
 
 # Address to bind the registry server
-bind_host = <%= (node['bcpc']['protocol']['glance'] == 'https') ? "127.0.0.1" : node['bcpc']['management']['ip'] %>
+bind_host = <%=node['bcpc']['management']['ip']%>
 
 # Port the bind the registry server to
 bind_port = 9191
@@ -97,7 +97,7 @@ backend = sqlalchemy
 # Deprecated group/name - [DEFAULT]/sql_connection
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
-connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-glance-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['glance_dbname']%>
+connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-glance-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['dbname']['glance']%>
 
 # The SQL mode to be used for MySQL sessions. This option,
 # including the default, overrides any server-set SQL mode. To

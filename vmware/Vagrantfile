@@ -5,6 +5,16 @@
 # Chef server.
 # See http://www.vagrantup.com/ for info on Vagrant.
 
+# N.B. When PXE booting VMware cluster nodes into Ubuntu, you may run into a
+# warning about the default route not being present.  This is likely due to
+# VMware's dhcpd running which conflicts with Cobbler's DHCP on the bootstrap
+# node.
+# You'll need to manually disable VMware's dhcpd as Vagrant doesn't know
+# how to do that yet.
+# Please see:
+#  http://kb.vmware.com/kb/1026510 (Fusion)
+#  http://kb.vmware.com/kb/2012 (Workstation)
+
 $local_environment = "Test-Laptop-VMware"
 $local_mirror = nil
 #$local_mirror = "10.0.100.4"

@@ -20,10 +20,6 @@
 include_recipe "bcpc::ceph-work"
 include_recipe "bcpc::nova-common"
 
-if node['bcpc']['protocol']['nova'] == 'https' then
-    include_recipe "bcpc::stunnel"
-end
-
 package "nova-compute-#{node['bcpc']['virt_type']}" do
     action :upgrade
 end
@@ -56,15 +52,41 @@ cookbook_file "/tmp/nova-libvirt.patch" do
     mode 00644
 end
 
-bash "patch-for-nova-libvirt-bugs" do
-    user "root"
-    code <<-EOH
-        cd /usr/lib/python2.7/dist-packages/nova
-        patch -p2 < /tmp/nova-libvirt.patch
-        cp /tmp/nova-libvirt.patch .
-    EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova-libvirt.patch"
+cookbook_file "/tmp/nova-sql.patch" do
+    source "nova-sql.patch"
+    owner "root"
+    mode 00644
 end
+
+#bash "patch-for-nova-libvirt-bugs" do
+#    user "root"
+#    code <<-EOH
+#        cd /usr/lib/python2.7/dist-packages/nova
+#        patch -p2 < /tmp/nova-libvirt.patch
+#        rv=$?
+#        if [ $rv -ne 0 ]; then
+#          echo "Error applying patch ($rv) - aborting!"
+#          exit $rv
+#        fi
+#        cp /tmp/nova-libvirt.patch .
+#    EOH
+#    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova-libvirt.patch"
+#end
+
+#bash "patch-for-nova-sql-bugs" do
+#    user "root"
+#    code <<-EOH
+#        cd /usr/lib/python2.7/dist-packages/nova
+#        patch -p2 < /tmp/nova-sql.patch
+#        rv=$?
+#        if [ $rv -ne 0 ]; then
+#          echo "Error applying patch ($rv) - aborting!"
+#          exit $rv
+#        fi
+#        cp /tmp/nova-sql.patch .
+#    EOH
+#    not_if "test -f /usr/lib/python2.7/dist-packages/nova/nova-sql.patch"
+#end
 
 directory "/var/lib/nova/.ssh" do
     owner "nova"

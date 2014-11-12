@@ -19,14 +19,17 @@
 
 include_recipe "bcpc::default"
 
-bash "set-swappiness-to-zero" do
-    user "root"
-    code <<-EOH
-        echo "0" > /proc/sys/vm/swappiness
-        sed --in-place '/^vm.swappiness/d' /etc/sysctl.conf
-        echo 'vm.swappiness=0' >> /etc/sysctl.conf
-    EOH
-    not_if "grep -e '^vm.swappiness=0' /etc/sysctl.conf"
+template "/etc/sysctl.d/70-bcpc.conf" do
+    source "sysctl-70-bcpc.conf.erb"
+    owner "root"
+    group "root"
+    mode 00644
+    notifies :run, "execute[reload-sysctl]", :immediately
+end
+
+execute "reload-sysctl" do
+    action :nothing
+    command "sysctl -p /etc/sysctl.d/70-bcpc.conf"
 end
 
 bash "set-deadline-io-scheduler" do

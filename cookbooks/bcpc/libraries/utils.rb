@@ -22,6 +22,11 @@ require 'base64'
 require 'thread'
 require 'ipaddr'
 
+def is_vip?
+    ipaddr = `ip addr show dev #{node['bcpc']['management']['interface']}`
+    return ipaddr.include? node['bcpc']['management']['vip']
+end
+
 def init_config
     if not Chef::DataBag.list.key?('configs')
         puts "************ Creating data_bag \"configs\""
@@ -31,14 +36,14 @@ def init_config
     end rescue nil
     begin
         $dbi = Chef::DataBagItem.load('configs', node.chef_environment)
-        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['encrypt_data_bag']
+        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['enabled']['encrypt_data_bag']
         puts "============ Loaded existing data_bag_item \"configs/#{node.chef_environment}\""
     rescue
         $dbi = Chef::DataBagItem.new
         $dbi.data_bag('configs')
         $dbi.raw_data = { 'id' => node.chef_environment }
         $dbi.save
-        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['encrypt_data_bag']
+        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['enabled']['encrypt_data_bag']
         puts "++++++++++++ Created new data_bag_item \"configs/#{node.chef_environment}\""
     end
 end
@@ -46,21 +51,21 @@ end
 def make_config(key, value)
     init_config if $dbi.nil?
     if $dbi[key].nil?
-        $dbi[key] = (node['bcpc']['encrypt_data_bag']) ? Chef::EncryptedDataBagItem.encrypt_value(value, Chef::EncryptedDataBagItem.load_secret) : value
+        $dbi[key] = (node['bcpc']['enabled']['encrypt_data_bag']) ? Chef::EncryptedDataBagItem.encrypt_value(value, Chef::EncryptedDataBagItem.load_secret) : value
         $dbi.save
-        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['encrypt_data_bag']
+        $edbi = Chef::EncryptedDataBagItem.load('configs', node.chef_environment) if node['bcpc']['enabled']['encrypt_data_bag']
         puts "++++++++++++ Creating new item with key \"#{key}\""
         return value
     else
         puts "============ Loaded existing item with key \"#{key}\""
-        return (node['bcpc']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
+        return (node['bcpc']['enabled']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
     end
 end
 
 def get_config(key)
     init_config if $dbi.nil?
     puts "------------ Fetching value for key \"#{key}\""
-    return (node['bcpc']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
+    return (node['bcpc']['enabled']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
 end
 
 def get_all_nodes
@@ -70,7 +75,7 @@ def get_all_nodes
     else
         results.push(node)
     end
-    return results
+    return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
 def get_ceph_osd_nodes
@@ -80,7 +85,7 @@ def get_ceph_osd_nodes
     else
         results.push(node)
     end
-    return results
+    return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
 def get_head_nodes
@@ -89,7 +94,7 @@ def get_head_nodes
     if not results.include?(node) and node.run_list.roles.include?('BCPC-Headnode')
         results.push(node)
     end
-    return results
+    return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
 def get_cached_head_node_names

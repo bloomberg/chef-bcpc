@@ -69,7 +69,7 @@ apply_command() {
 
 if [[ $(basename "$0") == nodescp ]]; then
     SCPCMD="scp $SSHCOMMON"
-    apply_command sshpass -p $PASSWD $SCPCMD -p "$3" "$4"
+    apply_command sshpass -p $PASSWD $SCPCMD -p "$3" "ubuntu@$2:$4"
 else
     # finally ... run the specified command
     # the -t creates a pty which ensures we see errors if the command fails

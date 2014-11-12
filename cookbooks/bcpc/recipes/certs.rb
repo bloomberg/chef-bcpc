@@ -61,7 +61,7 @@ template "/root/.ssh/authorized_keys" do
     source "authorized_keys.erb"
     owner "root"
     group "root"
-    mode 00644
+    mode 00640
 end
 
 template "/root/.ssh/id_rsa" do
@@ -84,6 +84,19 @@ template "/etc/ssl/certs/ssl-bcpc.pem" do
     owner "root"
     group "root"
     mode 00644
+end
+
+template "/usr/local/share/ca-certificates/ssl-bcpc.crt" do
+    source "ssl-bcpc.pem.erb"
+    owner "root"
+    group "root"
+    mode 00644
+    notifies :run, "execute[reload-ca-certificates]", :immediately
+end
+
+execute "reload-ca-certificates" do
+    action :nothing
+    command "update-ca-certificates"
 end
 
 directory "/etc/ssl/private" do

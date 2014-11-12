@@ -10,7 +10,9 @@ global_defs {
 
 vrrp_script chk_haproxy {
   script "killall -0 haproxy"
-  interval 1
+  interval 5
+  fall 3
+  rise 1
 }
 
 vrrp_script chk_ceph {
@@ -41,8 +43,10 @@ vrrp_instance VI1_<%=node['bcpc']['region_name']%> {
     <%="#{node['bcpc']['management']['vip']}/#{(node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i}"%>
   }
   track_script {
+<% if node['bcpc']['enabled']['keepalived_checks'] then -%>
     chk_haproxy
     chk_ceph
+<% end -%>
   }
   authentication {
     auth_type PASS

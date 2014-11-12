@@ -128,7 +128,7 @@ MEMCACHE_HOSTS = ['<%=node['bcpc']['management']['vip']%>:11211']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '<%=node['bcpc']['graphite_dbname']%>',
+        'NAME': '<%=node['bcpc']['dbname']['graphite']%>',
         'USER': '<%=get_config('mysql-graphite-user')%>',
         'PASSWORD': '<%=get_config('mysql-graphite-password')%>',
         'HOST': '<%=node['bcpc']['management']['vip']%>',

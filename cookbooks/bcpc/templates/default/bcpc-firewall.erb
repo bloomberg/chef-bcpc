@@ -17,7 +17,7 @@ iptables-restore <<EOH
 :OUTPUT ACCEPT [0:0]
 :LOGDROP - [0:0]
 
-<% if node['bcpc']['host_firewall'] -%>
+<% if node['bcpc']['enabled']['host_firewall'] -%>
 
 # Allow all established stuff to keep going
 -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -52,42 +52,31 @@ iptables-restore <<EOH
 # Management network ACLs
 ###########################
 
+# Allow hosts to talk freely to each other on mgmt network
+-A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["cidr"]%> -s <%=@node["bcpc"]["management"]["cidr"]%> -j ACCEPT
+
 # Allow vrrp traffic
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -p vrrp -j ACCEPT
 
 # Allow external access to some mgmt network ports on each hypervisor
-## ssh
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["ip"]%> -p tcp --dport 22 -j ACCEPT
-## nova-novncproxy
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["ip"]%> -p tcp --dport 6080 -j ACCEPT
+## ssh 22
+## nova-novncproxy 6080
+-A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["ip"]%> -p tcp --match multiport --dports 22,6080 -j ACCEPT
 
 # Allow external access to some VIP services
-## apache
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 80 -j ACCEPT
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 443 -j ACCEPT
-## keystone
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 5000 -j ACCEPT
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 35357 -j ACCEPT
-## glance
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 9292 -j ACCEPT
-## cinder
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8776 -j ACCEPT
-## nova-api-ec2
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8773 -j ACCEPT
-## nova-api
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8774 -j ACCEPT
-## heat-api
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8004 -j ACCEPT
-## heat-api-cfn
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8000 -j ACCEPT
-## ceilometer-api
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 8777 -j ACCEPT
-## powerdns
+## apache 80, 443
+## keystone 5000 35357
+## glance 9292
+## cinder 8776
+## nova-api-ec2 8773
+## nova-api 8774
+## heat-api 8004
+## heat-api-cfn 8000
+## ceilometer-api 8777
+-A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --match multiport --dports 80,443,5000,35357,9292,8776,8773,8774,8004,8000,8777 -j ACCEPT
+## powerdns 53
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p udp --dport 53 -j ACCEPT
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 53 -j ACCEPT
-
-# Allow hosts to talk freely to each other on mgmt network
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["cidr"]%> -s <%=@node["bcpc"]["management"]["cidr"]%> -j ACCEPT
 
 # Log and drop everything else
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -j LOGDROP

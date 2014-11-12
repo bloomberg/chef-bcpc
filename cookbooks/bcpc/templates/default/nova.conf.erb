@@ -7,7 +7,7 @@
 [DEFAULT]
 
 # MySQL Connection
-sql_connection=mysql://<%=get_config('mysql-nova-user')%>:<%=get_config('mysql-nova-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['nova_dbname']%>
+sql_connection=mysql://<%=get_config('mysql-nova-user')%>:<%=get_config('mysql-nova-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['dbname']['nova']%>
 sql_idle_timeout=3600
 
 # Rabbit message queue settings
@@ -26,13 +26,17 @@ rabbit_durable_queues=True
 auth_strategy=keystone
 api_paste_config=/etc/nova/api-paste.ini
 s3_host=<%=node['bcpc']['management']['vip']%>
-ec2_listen=<%= (node['bcpc']['protocol']['nova'] == 'https') ? "127.0.0.1" : node['bcpc']['management']['ip'] %>
+ec2_listen=<%= node['bcpc']['management']['ip'] %>
 ec2_host=<%=node['bcpc']['management']['vip']%>
-osapi_compute_listen=<%= (node['bcpc']['protocol']['nova'] == 'https') ? "127.0.0.1" : node['bcpc']['management']['ip'] %>
+osapi_compute_listen=<%= node['bcpc']['management']['ip'] %>
 metadata_listen=169.254.169.254
 metadata_host=169.254.169.254
 dmz_cidr=169.254.169.254/32
+<% if @servers.include?(node) -%>
 enabled_apis=ec2,osapi_compute,metadata
+<% else -%>
+enabled_apis=metadata
+<% end %>
 <% if not node['bcpc']['vms_key'].nil? %>
 osapi_compute_extension=nova.api.openstack.compute.contrib.standard_extensions
 osapi_compute_extension=cobalt.nova.osapi.cobalt_extension.Cobalt_extension
@@ -85,13 +89,11 @@ libvirt_images_rbd_ceph_conf=/etc/ceph/ceph.conf
 rbd_user=admin
 rbd_secret_uuid=<%=get_config('libvirt-secret-uuid')%>
 # do not allow libvirt to try to inject into the local partition
+libvirt_inject_password=false
+libvirt_inject_key=false
 libvirt_inject_partition=-2
-
-# Live migration settings
-# live_migration_uri=qemu+ssh://%s/system
-# live_migration_bandwidth=0
-# live_migration_retry_count=30
-# live_migration_flag=VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE
+# Set flags for libvirt live migration
+libvirt_live_migration_flag="VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST"
 
 # Nova VNC settings
 novnc_enabled=True
@@ -111,11 +113,11 @@ use_project_ca=True
 cnt_vpn_clients=5
 
 # Ceilometer metrics
-instance_usage_audit=True
-instance_usage_audit_period=hour
-notify_on_state_change=vm_and_task_state
-notification_driver=nova.openstack.common.notifier.rpc_notifier
-notification_driver=ceilometer.compute.nova_notifier
+#instance_usage_audit=True
+#instance_usage_audit_period=hour
+#notify_on_state_change=vm_and_task_state
+#notification_driver=nova.openstack.common.notifier.rpc_notifier
+#notification_driver=ceilometer.compute.nova_notifier
 
 # Misc other settings
 logdir=/var/log/nova

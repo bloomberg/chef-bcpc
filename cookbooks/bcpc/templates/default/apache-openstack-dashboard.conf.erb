@@ -4,17 +4,17 @@
 #
 ################################################
 
-NameVirtualHost <%=node['bcpc']['management']['ip']%>:443
+Listen <%=node['bcpc']['management']['ip']%>:9999
 
-WSGIDaemonProcess horizon user=www-data group=www-data processes=3 threads=10
-
-<VirtualHost <%=node['bcpc']['management']['ip']%>:443>
+<VirtualHost <%=node['bcpc']['management']['ip']%>:9999>
     ServerName "openstack.<%=node['bcpc']['domain_name']%>"
 
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
-    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
-
-    Include vhost-root.d/*.conf
-    Include vhost-ssl-root.d/*.conf
+    WSGIScriptAlias /horizon /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi
+    WSGIDaemonProcess horizon user=www-data group=www-data processes=3 threads=10
+    WSGIProcessGroup horizon
+    Alias /static /usr/share/openstack-dashboard/openstack_dashboard/static/
+    <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>
+        Order allow,deny
+        Allow from all
+    </Directory>
 </VirtualHost>

@@ -21,12 +21,12 @@ admin_token = <%=get_config('keystone-admin-token')%>
 # The IP Address of the network interface to for the public
 # service to listen on. (string value)
 # Deprecated group/name - [DEFAULT]/bind_host
-public_bind_host = <%= (node['bcpc']['protocol']['keystone'] == 'https') ? "127.0.0.1" : node['bcpc']['management']['ip'] %>
+public_bind_host = <%= node['bcpc']['management']['ip'] %>
 
 # The IP Address of the network interface to for the admin
 # service to listen on. (string value)
 # Deprecated group/name - [DEFAULT]/bind_host
-admin_bind_host = <%= (node['bcpc']['protocol']['keystone'] == 'https') ? "127.0.0.1" : node['bcpc']['management']['ip'] %>
+admin_bind_host = <%= node['bcpc']['management']['ip'] %>
 
 # The port which the OpenStack Compute service listens on.
 # (integer value)
@@ -93,7 +93,7 @@ admin_endpoint = <%=node['bcpc']['protocol']['keystone']%>://<%=@node["bcpc"]["m
 # user_tenant_membership table with explicit role grants.
 # After migration, member_role_name will be ignored. (string
 # value)
-#member_role_name=_member_
+member_role_name=<%= node['bcpc']['member_role'] %>
 
 # The value passed as the keyword "rounds" to passlib encrypt
 # method. (integer value)
@@ -590,7 +590,7 @@ log_dir = /var/log/keystone
 #template_file=default_catalog.templates
 
 # Keystone catalog backend driver. (string value)
-#driver=keystone.catalog.backends.sql.Catalog
+driver=keystone.catalog.backends.templated.Catalog
 
 # Maximum number of entities that will be returned in a
 # catalog collection. (integer value)
@@ -629,7 +629,7 @@ log_dir = /var/log/keystone
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
 #connection=<None>
-connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql-keystone-password')%>@<%=@node["bcpc"]["management"]["vip"]%>/<%=@node['bcpc']['keystone_dbname']%>
+connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql-keystone-password')%>@<%=@node["bcpc"]["management"]["vip"]%>/<%=@node['bcpc']['dbname']['keystone']%>
 
 # The SQL mode to be used for MySQL sessions. This option,
 # including the default, overrides any server-set SQL mode. To
@@ -778,7 +778,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #domain_config_dir=/etc/keystone/domains
 
 # Keystone Identity backend driver. (string value)
-#driver=keystone.identity.backends.sql.Identity
+driver=keystone.identity.backends.<%=node['bcpc']['keystone']['backend']%>.Identity
 
 # Maximum supported length for user passwords; decrease to
 # improve performance. (integer value)
@@ -823,17 +823,17 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #
 
 # URL for connecting to the LDAP server. (string value)
-#url=ldap://localhost
+url=ldap://<%=@node["bcpc"]["management"]["vip"]%>
 
 # User BindDN to query the LDAP server. (string value)
-#user=<None>
+user=<%=get_config('389ds-rootdn-user')%>
 
 # Password for the BindDN to query the LDAP server. (string
 # value)
-#password=<None>
+password=<%=get_config('389ds-rootdn-password')%>
 
 # LDAP server suffix (string value)
-#suffix=cn=example,cn=com
+suffix=<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # If true, will add a dummy member to groups. This is required
 # if the objectclass for groups requires the "member"
@@ -850,7 +850,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 # The LDAP scope for queries, this can be either "one"
 # (onelevel/singleLevel) or "sub" (subtree/wholeSubtree).
 # (string value)
-#query_scope=one
+query_scope=sub
 
 # Maximum results per page; a value of zero ("0") disables
 # paging. (integer value)
@@ -867,7 +867,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #chase_referrals=<None>
 
 # Search base for users. (string value)
-#user_tree_dn=<None>
+user_tree_dn=ou=People,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # LDAP search filter for users. (string value)
 #user_filter=<None>
@@ -882,7 +882,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #user_name_attribute=sn
 
 # LDAP attribute mapped to user email. (string value)
-#user_mail_attribute=email
+user_mail_attribute=mail
 
 # LDAP attribute mapped to password. (string value)
 #user_pass_attribute=userPassword
@@ -927,11 +927,11 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 # If True, Keystone uses an alternative method to determine if
 # a user is enabled or not by checking if they are a member of
 # the "user_enabled_emulation_dn" group. (boolean value)
-#user_enabled_emulation=false
+user_enabled_emulation=true
 
 # DN of the group entry to hold enabled users when using
 # enabled emulation. (string value)
-#user_enabled_emulation_dn=<None>
+user_enabled_emulation_dn=cn=OpenStack Users,ou=Groups,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # List of additional LDAP attributes used for mapping
 # Additional attribute mappings for users. Attribute mapping
@@ -941,7 +941,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #user_additional_attribute_mapping=
 
 # Search base for projects (string value)
-#tenant_tree_dn=<None>
+tenant_tree_dn=ou=Tenants,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # LDAP search filter for projects. (string value)
 #tenant_filter=<None>
@@ -984,11 +984,11 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 # If True, Keystone uses an alternative method to determine if
 # a project is enabled or not by checking if they are a member
 # of the "tenant_enabled_emulation_dn" group. (boolean value)
-#tenant_enabled_emulation=false
+tenant_enabled_emulation=true
 
 # DN of the group entry to hold enabled projects when using
 # enabled emulation. (string value)
-#tenant_enabled_emulation_dn=<None>
+tenant_enabled_emulation_dn=cn=OpenStack Tenants,ou=Groups,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # Additional attribute mappings for projects. Attribute
 # mapping format is <ldap_attr>:<user_attr>, where ldap_attr
@@ -997,7 +997,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #tenant_additional_attribute_mapping=
 
 # Search base for roles. (string value)
-#role_tree_dn=<None>
+role_tree_dn=ou=Roles,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # LDAP search filter for roles. (string value)
 #role_filter=<None>
@@ -1034,7 +1034,7 @@ connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql
 #role_additional_attribute_mapping=
 
 # Search base for groups. (string value)
-#group_tree_dn=<None>
+group_tree_dn=ou=Groups,<%= node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',') %>
 
 # LDAP search filter for groups. (string value)
 #group_filter=<None>

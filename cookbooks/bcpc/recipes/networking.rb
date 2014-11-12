@@ -18,6 +18,7 @@
 #
 
 include_recipe "bcpc::default"
+include_recipe "bcpc::system"
 include_recipe "bcpc::certs"
 
 template "/etc/hosts" do
@@ -45,36 +46,6 @@ package "vlan"
 
 # Enable LLDP - see https://github.com/bloomberg/chef-bcpc/pull/120
 package "lldpd"
-
-bash "enable-ip-forwarding" do
-    user "root"
-    code <<-EOH
-        echo "1" > /proc/sys/net/ipv4/ip_forward
-        sed --in-place '/^net.ipv4.ip_forward/d' /etc/sysctl.conf
-        echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
-    EOH
-    not_if "grep -e '^net.ipv4.ip_forward=1' /etc/sysctl.conf"
-end
-
-bash "enable-nonlocal-bind" do
-    user "root"
-    code <<-EOH
-        echo "1" > /proc/sys/net/ipv4/ip_nonlocal_bind
-        sed --in-place '/^net.ipv4.ip_nonlocal_bind/d' /etc/sysctl.conf
-        echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
-    EOH
-    not_if "grep -e '^net.ipv4.ip_nonlocal_bind=1' /etc/sysctl.conf"
-end
-
-bash "set-tcp-keepalive-timeout" do
-    user "root"
-    code <<-EOH
-        echo "1800" > /proc/sys/net/ipv4/tcp_keepalive_time
-        sed --in-place '/^net.ipv4.tcp_keepalive_time/d' /etc/sysctl.conf
-        echo 'net.ipv4.tcp_keepalive_time=1800' >> /etc/sysctl.conf
-    EOH
-    not_if "grep -e '^net.ipv4.tcp_keepalive_time=1800' /etc/sysctl.conf"
-end
 
 bash "enable-mellanox" do
     user "root"
@@ -125,9 +96,11 @@ end
             :ip => node['bcpc'][net]['ip'],
             :netmask => node['bcpc'][net]['netmask'],
             :gateway => node['bcpc'][net]['gateway'],
+            :mtu => node['bcpc'][net]['mtu'],
             :metric => metric
         )
     end
+
 end
 
 # set up the DNS resolvers
@@ -149,17 +122,20 @@ template "/etc/network/interfaces.d/iface-#{node['bcpc']['floating']['interface'
         :netmask => node['bcpc']['floating']['netmask'],
         :gateway => node['bcpc']['floating']['gateway'],
         :dns => resolvers,
+        :mtu => node['bcpc']['floating']['mtu'],
         :metric => 200
     )
 end
 
+dhcp_resolvconf_hook="/etc/dhcp/dhclient-enter-hooks.d/resolvconf"
 bash "disable-dhclient-resolvconf-enter-hook" do
     user "root"
     code <<-EOH
-        gzip /etc/dhcp/dhclient-enter-hooks.d/resolvconf
+        gzip #{dhcp_resolvconf_hook}
         resolvconf --enable-updates
         resolvconf -d #{node['bcpc']['management']['interface']}.dhclient
     EOH
+    only_if { ::File.exists?(dhcp_resolvconf_hook) }
 end
 
 bash "interface-mgmt-make-static-if-dhcp" do
@@ -179,6 +155,14 @@ end
         EOH
         not_if "ip link show up | grep #{node['bcpc'][iface]['interface']}"
     end
+
+    if node['bcpc'][iface]['mtu']
+        execute "set-#{iface}-mtu" do
+            command "ifconfig #{node['bcpc'][iface]['interface']} mtu #{node['bcpc'][iface]['mtu']} up"
+            not_if "ifconfig #{node['bcpc'][iface]['interface']} | grep MTU:#{node['bcpc'][iface]['mtu']}"
+        end
+    end
+
 end
 
 bash "routing-management" do

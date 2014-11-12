@@ -41,6 +41,6 @@ if (($TEST>0)); then
 	check_exit
 
 	echo "---- Checking for clean foodcritic scan"
-	$FOODCRITIC -f any -t ~FC014 -t ~FC048 "$COOKBOOKS/bcpc"
+	$FOODCRITIC -f any -t ~FC014 -t ~FC048 -t ~FC023 "$COOKBOOKS/bcpc"
 	check_exit
 fi

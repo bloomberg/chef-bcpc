@@ -17,40 +17,44 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
-include_recipe "bcpc::apache2"
+if node['bcpc']['enabled']['logging'] then
 
-cookbook_file "/tmp/kibana3.tgz" do
-    source "bins/kibana3.tgz"
-    owner "root"
-    mode 00444
-end
+    include_recipe "bcpc::default"
+    include_recipe "bcpc::apache2"
 
-bash "install-kibana" do
-    code <<-EOH
-        tar zxf /tmp/kibana3.tgz -C /opt/
-    EOH
-    not_if "test -d /opt/kibana3"
-end
+    cookbook_file "/tmp/kibana3.tgz" do
+        source "bins/kibana3.tgz"
+        owner "root"
+        mode 00444
+    end
 
-template "/opt/kibana3/config.js" do
-    source "kibana-config.js.erb"
-    user "root"
-    group "root"
-    mode 00644
-end
+    bash "install-kibana" do
+        code <<-EOH
+            tar zxf /tmp/kibana3.tgz -C /opt/
+        EOH
+        not_if "test -d /opt/kibana3"
+    end
 
-template "/etc/apache2/sites-available/kibana-web" do
-    source "apache-kibana-web.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    notifies :restart, "service[apache2]", :delayed
-end
+    template "/opt/kibana3/config.js" do
+        source "kibana-config.js.erb"
+        user "root"
+        group "root"
+        mode 00644
+    end
 
-bash "apache-enable-kibana-web" do
-    user "root"
-    code "a2ensite kibana-web"
-    not_if "test -r /etc/apache2/sites-enabled/kibana-web"
-    notifies :restart, "service[apache2]", :delayed
+    template "/etc/apache2/sites-available/kibana-web" do
+        source "apache-kibana-web.conf.erb"
+        owner "root"
+        group "root"
+        mode 00644
+        notifies :restart, "service[apache2]", :delayed
+    end
+
+    bash "apache-enable-kibana-web" do
+        user "root"
+        code "a2ensite kibana-web"
+        not_if "test -r /etc/apache2/sites-enabled/kibana-web"
+        notifies :restart, "service[apache2]", :delayed
+    end
+
 end

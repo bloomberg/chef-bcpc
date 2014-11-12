@@ -10,17 +10,47 @@ default['bcpc']['organization'] = "Bloomberg"
 default['bcpc']['openstack_release'] = "icehouse"
 # Can be "updates" or "proposed"
 default['bcpc']['openstack_branch'] = "proposed"
-# Should be kvm (or qemu if testing in VMs)
+# Should be kvm (or qemu if testing in VMs that don't support VT-x)
 default['bcpc']['virt_type'] = "kvm"
 # Region name for this cluster
 default['bcpc']['region_name'] = node.chef_environment
-# Domain name that will be used for DNS
+# Domain name for this cluster (used in many configs)
 default['bcpc']['domain_name'] = "bcpc.example.com"
 # Key if Cobalt+VMS is to be used
 default['bcpc']['vms_key'] = nil
 
-default['bcpc']['encrypt_data_bag'] = false
-default['bcpc']['host_firewall'] = true
+###########################################
+#
+#  Flags to enable/disable BCPC cluster features
+#
+###########################################
+# This will enable elasticsearch & kibana on head nodes and fluentd on all nodes
+default['bcpc']['enabled']['logging'] = true
+# This will enable graphite web and carbon on head nodes and diamond on all nodes
+default['bcpc']['enabled']['metrics'] = true
+# This will enable zabbix server on head nodes and zabbix agent on all nodes
+default['bcpc']['enabled']['monitoring'] = true
+# This will enable powerdns on head nodes
+default['bcpc']['enabled']['dns'] = true
+# This will enable iptables firewall on all nodes
+default['bcpc']['enabled']['host_firewall'] = true
+# This will enable of encryption of the chef data bag
+default['bcpc']['enabled']['encrypt_data_bag'] = false
+# This will enable auto-upgrades on all nodes (not recommended for stability)
+default['bcpc']['enabled']['apt_upgrade'] = false
+# This will enable the extra healthchecks for keepalived (VIP management)
+default['bcpc']['enabled']['keepalived_checks'] = true
+# This will enable the networking test scripts
+default['bcpc']['enabled']['network_tests'] = true
+# This will enable httpd disk caching for radosgw
+default['bcpc']['enabled']['radosgw_cache'] = false
+
+# This can be either 'sql' or 'ldap' to either store identities
+# in the mysql DB or the LDAP server
+default['bcpc']['keystone']['backend'] = 'ldap'
+
+# If radosgw_cache is enabled, default to 20MB max file size
+default['bcpc']['radosgw']['cache_max_file_size'] = 20000000
 
 ###########################################
 #
@@ -108,6 +138,7 @@ default['bcpc']['repos']['ceph-el6-x86_64'] = "http://ceph.com/rpm-dumpling/el6/
 default['bcpc']['repos']['ceph-el6-noarch'] = "http://ceph.com/rpm-dumpling/el6/noarch"
 default['bcpc']['repos']['rabbitmq'] = "http://www.rabbitmq.com/debian"
 default['bcpc']['repos']['mysql'] = "http://repo.percona.com/apt"
+default['bcpc']['repos']['haproxy'] = "http://ppa.launchpad.net/vbernat/haproxy-1.5/ubuntu"
 default['bcpc']['repos']['openstack'] = "http://ubuntu-cloud.archive.canonical.com/ubuntu"
 default['bcpc']['repos']['hwraid'] = "http://hwraid.le-vert.net/ubuntu"
 default['bcpc']['repos']['fluentd'] = "http://packages.treasure-data.com/precise"
@@ -130,23 +161,23 @@ default['bcpc']['repos']['gridcentric'] = "http://downloads.gridcentric.com/pack
 default['bcpc']['mirror']['ubuntu'] = "us.archive.ubuntu.com/ubuntu"
 default['bcpc']['mirror']['ubuntu-dist'] = ['precise']
 default['bcpc']['mirror']['ceph-dist'] = ['firefly']
-default['bcpc']['mirror']['os-dist'] = ['havana']
+default['bcpc']['mirror']['os-dist'] = ['icehouse']
 
 ###########################################
 #
 #  Default names for db's, pools, and users
 #
 ###########################################
-default['bcpc']['nova_dbname'] = "nova"
-default['bcpc']['cinder_dbname'] = "cinder"
-default['bcpc']['glance_dbname'] = "glance"
-default['bcpc']['horizon_dbname'] = "horizon"
-default['bcpc']['keystone_dbname'] = "keystone"
-default['bcpc']['heat_dbname'] = "heat"
-default['bcpc']['ceilometer_dbname'] = "ceilometer"
-default['bcpc']['graphite_dbname'] = "graphite"
-default['bcpc']['pdns_dbname'] = "pdns"
-default['bcpc']['zabbix_dbname'] = "zabbix"
+default['bcpc']['dbname']['nova'] = "nova"
+default['bcpc']['dbname']['cinder'] = "cinder"
+default['bcpc']['dbname']['glance'] = "glance"
+default['bcpc']['dbname']['horizon'] = "horizon"
+default['bcpc']['dbname']['keystone'] = "keystone"
+default['bcpc']['dbname']['heat'] = "heat"
+default['bcpc']['dbname']['ceilometer'] = "ceilometer"
+default['bcpc']['dbname']['graphite'] = "graphite"
+default['bcpc']['dbname']['pdns'] = "pdns"
+default['bcpc']['dbname']['zabbix'] = "zabbix"
 
 default['bcpc']['admin_tenant'] = "AdminTenant"
 default['bcpc']['admin_role'] = "Admin"
@@ -156,8 +187,8 @@ default['bcpc']['admin_email'] = "admin@localhost.com"
 default['bcpc']['zabbix']['user'] = "zabbix"
 default['bcpc']['zabbix']['group'] = "adm"
 
-default['bcpc']['ports']['apache']['radosgw'] = 8080
-default['bcpc']['ports']['apache']['radosgw_https'] = 8443
+default['bcpc']['ports']['apache']['radosgw'] = 80
+default['bcpc']['ports']['apache']['radosgw_https'] = 443
 default['bcpc']['ports']['haproxy']['radosgw'] = 80
 default['bcpc']['ports']['haproxy']['radosgw_https'] = 443
 

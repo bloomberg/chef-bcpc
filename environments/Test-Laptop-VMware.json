@@ -2,6 +2,9 @@
   "name": "Test-Laptop-VMware",
   "override_attributes": {
     "bcpc": {
+      "keepalived" : {
+        "checks" : false
+      },
       "ceph": {
         "pgp_auto_adjust" : true,
         "hdd_disks" : [ "sdb", "sdc" ],

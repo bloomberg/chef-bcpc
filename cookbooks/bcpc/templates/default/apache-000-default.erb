@@ -4,20 +4,39 @@
 #
 ################################################
 
+NameVirtualHost <%=node['bcpc']['management']['ip']%>:80
+
 <VirtualHost <%=node['bcpc']['management']['ip']%>:80>
     ServerAdmin webmaster@localhost
-
-    Include vhost-root.d/*.conf
-</VirtualHost>
-
-<VirtualHost <%=node['bcpc']['management']['ip']%>:443>
     ServerAlias <%=node['bcpc']['management']['vip']%>
     ServerAlias <%=node['bcpc']['management']['ip']%>
 
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/ssl-bcpc.pem
-    SSLCertificateKeyFile /etc/ssl/private/ssl-bcpc.key
+    DocumentRoot /var/www
+    <Directory />
+        Options FollowSymLinks
+        AllowOverride None
+    </Directory>
+    <Directory /var/www/>
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride None
+        Order allow,deny
+        allow from all
+    </Directory>
 
-    Include vhost-root.d/*.conf
-    Include vhost-ssl-root.d/*.conf
+    ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+    <Directory "/usr/lib/cgi-bin">
+        AllowOverride None
+        Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+
+    # Possible values include: debug, info, notice, warn, error, crit,
+    # alert, emerg.
+    LogLevel warn
+
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
 </VirtualHost>
