@@ -103,4 +103,4 @@ d-i     preseed/late_command string true && \
         wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ; \
         in-target env no_proxy=$http_server wget "http://$http_server:$http_port/cobbler/pub/scripts/get-ssh-keys" -O /root/get-ssh-keys ; \
 	in-target chmod 0755 /root/get-ssh-keys ; in-target install -d -m0600 /root/.ssh ; \
-	in-target env no_proxy=$http_server /root/get-ssh-keys root > /root/.ssh/authorized_keys
+	in-target env no_proxy=$http_server /root/get-ssh-keys -o /root/.ssh/authorized_keys root
