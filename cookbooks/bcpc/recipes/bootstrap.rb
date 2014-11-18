@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 
-# should extract prefix
+#TODO: should extract prefix
+#TODO: should declare dependency upon cobbler recipe
 
 directory "/var/www/cobbler/pub/scripts" do
     action :create
@@ -31,4 +32,19 @@ cookbook_file "/var/www/cobbler/pub/scripts/get-ssh-keys" do
     owner "root"
     group "root"
     mode 00755
+end
+
+directory "/var/www/cobbler/pub/configs" do
+    action :create
+    owner "root"
+    group "adm"
+    mode 02775
+end
+
+template "/var/www/cobbler/pub/configs/wgetrc" do
+    source "wgetrc.bootstrap.erb"
+    owner "root"
+    group "root"
+    mode 00644
+    variables(:http_proxy => node["bcpc"]["bootstrap"]["proxy"]) #maybe a Proc, what if attribute not defined?
 end
