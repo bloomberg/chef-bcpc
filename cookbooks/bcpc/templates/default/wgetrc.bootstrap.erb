@@ -1,0 +1,6 @@
+<%#TODO: Should guard this somehow with a variable%>
+check_certificate = off
+<% if not @http_proxy.nil? %>
+http_proxy = <%= @http_proxy %>
+https_proxy = <%= @http_proxy %>
+<% end %>
