@@ -115,5 +115,7 @@ echo "Setting up chef environment, roles, and uploading cookbooks"
 $SSH_CMD "cd $BCPC_DIR && knife environment from file environments/${CHEF_ENVIRONMENT}.json && knife role from file roles/*.json && knife cookbook upload -a -o cookbooks"
 echo "Enrolling local bootstrap node into chef"
 $SSH_CMD "cd $BCPC_DIR && ./setup_chef_bootstrap_node.sh ${IP} ${CHEF_ENVIRONMENT}"
+echo "Configuring SSH access keys for boostrap procedure"
+$SSH_CMD "cd $BCPC_DIR && sudo ./install_bootstrap_ssh_key.sh"
 
 popd
