@@ -1,0 +1,28 @@
+#!/bin/bash
+
+hash -r
+PROG=${0##*/}
+
+export PATH=/bin:/usr/bin
+
+usage(){
+    local ret=${1:-0}
+    if [ $ret -eq 0 ] ; then
+        exec 3>&1
+    else
+        exec 3>&2
+    fi
+    cat <<EoF >&3
+${PROG} username
+
+Grabs the public key for the user from somewhere
+EoF
+    exec 3>&-
+    exit ${ret}
+}
+
+baseurl=http://10.0.100.3/cobbler/pub/keys
+username="$1"
+if [ -z "${username}" ] ; then usage 1 ; fi
+
+wget -q -O - "${baseurl}/${username}"
