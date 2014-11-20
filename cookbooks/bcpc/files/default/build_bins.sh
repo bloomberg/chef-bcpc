@@ -32,11 +32,18 @@ if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
 fi
 
 # Fetch chef client and server debs
-CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_10.32.2-1_amd64.deb
+#CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/13.04/x86_64/chef_10.32.2-3_amd64.deb
 #CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.10.4-1.ubuntu.12.04_amd64.deb
+CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/13.04/x86_64/chef_12.0.0-rc.0-1_amd64.deb
+CHEF_CLIENT_BOOTSTRAP_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_10.32.2-1_amd64.deb
 CHEF_SERVER_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.0.12-1.ubuntu.12.04_amd64.deb
+
 if [ ! -f chef-client.deb ]; then
    $CURL -o chef-client.deb ${CHEF_CLIENT_URL}
+fi
+
+if [ ! -f chef-client-bootstrap.deb ]; then
+   $CURL -o chef-client-bootstrap.deb ${CHEF_CLIENT_BOOTSTRAP_URL}
 fi
 
 if [ ! -f chef-server.deb ]; then
@@ -78,13 +85,11 @@ if [ ! -f cirros-0.3.2-x86_64-disk.img ]; then
 fi
 FILES="cirros-0.3.2-x86_64-disk.img $FILES"
 
-# Grab the Ubuntu 12.04 installer image
-if [ ! -f ubuntu-12.04-mini.iso ]; then
-    # Download this ISO to get the latest kernel/X LTS stack installer
-    #$CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/installer-amd64/current/images/raring-netboot/mini.iso
-    $CURL -o ubuntu-12.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/precise/main/installer-amd64/current/images/netboot/mini.iso
+# Grab the Ubuntu 14.04 installer image
+if [ ! -f ubuntu-14.04-mini.iso ]; then
+    $CURL -o ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/mini.iso
 fi
-FILES="ubuntu-12.04-mini.iso $FILES"
+FILES="ubuntu-14.04-mini.iso $FILES"
 
 # Grab the CentOS 6 PXE boot images
 if [ ! -f centos-6-initrd.img ]; then

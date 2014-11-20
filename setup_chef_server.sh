@@ -47,7 +47,7 @@ fi
 if dpkg -s chef 2>/dev/null | grep -q Status.*installed; then
   echo chef is installed
 else
-  dpkg -i cookbooks/bcpc/files/default/bins/chef-client.deb
+  dpkg -i cookbooks/bcpc/files/default/bins/chef-client-bootstrap.deb
 fi
 
 chmod +r /etc/chef-server/admin.pem

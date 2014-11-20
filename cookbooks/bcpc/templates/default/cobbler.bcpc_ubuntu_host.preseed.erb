@@ -69,18 +69,12 @@ d-i     mirror/http/proxy string <%= @node['bcpc']['bootstrap']['proxy'] %>
 <% if @node['bcpc']['bootstrap']['mirror'].nil? %>
 d-i     apt-setup/security_host string security.ubuntu.com
 d-i     apt-setup/security_path string /ubuntu
-d-i     apt-setup/local0/comment string OpsCode Repo
-d-i     apt-setup/local0/repository string \
-          deb http://apt.opscode.com/chef precise-0.10 main
 <% else %>
 d-i     mirror/country string manual
 d-i     mirror/http/hostname string <%= @node['bcpc']['bootstrap']['mirror'] %>
 d-i     mirror/http/directory string /ubuntu
 d-i     apt-setup/security_host <%= @node['bcpc']['bootstrap']['mirror'] %>
 d-i     apt-setup/security_path string /ubuntu
-d-i     apt-setup/local0/comment string OpsCode Repo
-d-i     apt-setup/local0/repository string \
-          deb http://<%= @node['bcpc']['bootstrap']['mirror'] %>/chef precise-0.10 main
 <% end %>
 
 d-i     debian-installer/allow_unauthenticated  string false

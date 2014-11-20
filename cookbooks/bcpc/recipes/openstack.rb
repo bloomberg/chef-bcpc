@@ -19,15 +19,16 @@
 
 include_recipe "bcpc::default"
 
-package "ubuntu-cloud-keyring" do
-    action :upgrade
-end
+# N.B. These are not needed until Juno comes out for trusty
+#package "ubuntu-cloud-keyring" do
+#    action :upgrade
+#end
 
-apt_repository "openstack" do
-    uri node['bcpc']['repos']['openstack']
-    distribution "#{node['lsb']['codename']}-#{node['bcpc']['openstack_branch']}/#{node['bcpc']['openstack_release']}"
-    components ["main"]
-end
+#apt_repository "openstack" do
+#    uri node['bcpc']['repos']['openstack']
+#    distribution "#{node['lsb']['codename']}-#{node['bcpc']['openstack_branch']}/#{node['bcpc']['openstack_release']}"
+#    components ["main"]
+#end
 
 %w{ python-novaclient
     python-cinderclient

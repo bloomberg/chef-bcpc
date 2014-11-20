@@ -37,7 +37,7 @@ apt_repository "percona" do
     key "percona-release.key"
 end
 
-package "percona-xtradb-cluster-server" do
+package "percona-xtradb-cluster-server-5.6" do
     action :upgrade
 end
 

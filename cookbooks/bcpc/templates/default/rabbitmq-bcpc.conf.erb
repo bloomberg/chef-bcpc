@@ -6,4 +6,6 @@
 
 export RABBITMQ_NODE_IP_ADDRESS=<%=node['bcpc']['management']['ip']%>
 export RABBITMQ_SERVER_START_ARGS="-setcookie <%=get_config('rabbitmq-cookie')%>"
-export ERL_EPMD_ADDRESS=<%=node['bcpc']['management']['ip']%>
+# This is currently broken due to erlang issues.
+# See https://github.com/bloomberg/chef-bcpc/issues/377
+#export ERL_EPMD_ADDRESS=<%=node['bcpc']['management']['ip']%>
