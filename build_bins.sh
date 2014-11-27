@@ -273,9 +273,19 @@ chmod -R 755 .
 # but can't upgrade setuptools first as:
 # "/usr/bin/pip install: error: no such option: --no-use-wheel"
 if ! hash dir2pi; then
+  # auto-detect cacert.pem file and use for MITM SSL verification
+  cert="cacert.pem"
+  if [[ -e $cert ]]; then
+      echo "Using $cert as pip cert file"
+      cert="--cert $cert"
+  else
+      echo "Not using a pip cert file. If behind a MITM proxy, put a $cert in `pwd`"
+      cert=""
+  fi
+
   /usr/bin/pip install pip2pi || /bin/true
-  /usr/local/bin/pip install setuptools --no-use-wheel --upgrade
-  /usr/local/bin/pip install pip2pi
+  /usr/local/bin/pip $cert install setuptools --no-use-wheel --upgrade
+  /usr/local/bin/pip $cert install pip2pi
 fi
 
 dir2pi python
