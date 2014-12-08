@@ -34,6 +34,13 @@ if node['bcpc']['enabled']['dns'] then
         end
     end
 
+    # needed for populate_dns.py
+    package "python-mysqldb" do
+        action :upgrade
+    end
+
+
+
     template "/etc/powerdns/pdns.conf" do
         source "pdns.conf.erb"
         owner "root"
@@ -52,6 +59,25 @@ if node['bcpc']['enabled']['dns'] then
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-pdns-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-pdns-password')}';"
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-pdns-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-pdns-password')}';"
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
+                ]
+                self.notifies :restart, "service[pdns]", :delayed
+                self.resolve_notification_references
+            end
+        end
+    end
+
+    ruby_block "powerdns-table-keystone_project" do
+        block do
+
+            system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"#{node['bcpc']['dbname']['pdns']}\" AND TABLE_NAME=\"keystone_project\"' | grep -q \"keystone_project\""
+            if not $?.success? then
+                %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['dbname']['pdns']} <<-EOH
+                    CREATE TABLE IF NOT EXISTS keystone_project (
+                        project_id VARCHAR(255) NOT NULL,
+                        name VARCHAR(255) NOT NULL
+                    );
+                    CREATE UNIQUE INDEX keystone_project_name ON keystone_project(name);
+                    CREATE UNIQUE INDEX keystone_project_project_id on keystone_project(project_id);
                 ]
                 self.notifies :restart, "service[pdns]", :delayed
                 self.resolve_notification_references
