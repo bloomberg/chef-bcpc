@@ -45,7 +45,7 @@ class Keystone:
   def projects(self):
     scope = ldap.SCOPE_ONELEVEL
     filter = "ou=*"
-    retrieve_attributes = ['cn', 'ou'] # Counter-intuitively, means to return *all* attributes.
+    retrieve_attributes = ['cn', 'ou'] # cn = project guid, ou = project name
     timeout = 5 # seconds
 
     result_id = self.conn.search(self.tenant_dn, scope, filter, retrieve_attributes)
@@ -54,7 +54,7 @@ class Keystone:
     for project in result_data:
       yield { 'project': project[1]['ou'][0], 'project_id': project[1]['cn'][0] }
       
-      
+
 class PDNS:
   def __init__(self, ip, username, password):
     print "Would connect to mysql at " + ip + " as " + username
