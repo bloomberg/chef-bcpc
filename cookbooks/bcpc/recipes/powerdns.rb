@@ -84,7 +84,7 @@ if node['bcpc']['enabled']['dns'] then
                         name VARCHAR(255) NOT NULL
                     );
                     CREATE UNIQUE INDEX keystone_project_name ON keystone_project(name);
-                    CREATE UNIQUE INDEX keystone_project_project_id on keystone_project(project_id);
+                    CREATE UNIQUE INDEX keystone_project_id on keystone_project(id);
                 ]
                 self.notifies :restart, "service[pdns]", :delayed
                 self.resolve_notification_references
@@ -389,7 +389,7 @@ if node['bcpc']['enabled']['dns'] then
         minute "*"
         hour "*"
         weekday "*"
-        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then echo \"call populate_records();\" | mysql -updns -p#{get_config('mysql-pdns-password')} #{node['bcpc']['dbname']['pdns']} 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
+        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then /usr/local/bin/populate_dns.py 'ou=Tenants,#{node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',')}' '#{node['bcpc']['management']['vip']}' 'cn=Directory Manager' '#{get_config('389ds-rootdn-password')}' pdns '#{get_config('mysql-pdns-password')}' 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
     end
 
     get_all_nodes.each do |server|
