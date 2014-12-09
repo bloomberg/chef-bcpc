@@ -1,0 +1,62 @@
+#!/bin/bash
+
+hash -r
+PROG=${0##*/}
+
+export PATH=/bin:/usr/bin
+
+usage(){
+    local ret=${1:-0}
+    if [ $ret -eq 0 ] ; then
+        exec 3>&1
+    else
+        exec 3>&2
+    fi
+    cat <<EoF >&3
+${PROG} username
+
+Grabs the SSH public key for the user from a webserver
+EoF
+    exec 3>&-
+    exit ${ret}
+}
+
+error(){
+    echo "$@" >&2
+}
+
+parseopts() {
+    local short_opts="ho:"
+    local long_opts="help,output-file:"
+    local getopt_out getopt_ret
+    getopt_out=$(getopt --name "${PROG}" \
+        --options "${short_opts}" --long "${long_opts}" -- "$@" 2>/dev/null) ||
+        :
+    getopt_ret=$?
+    if [ $getopt_ret -eq 0 ]; then
+        eval set -- "${getopt_out}" ||
+        { error "Unexpected error reading usage"; usage 1; }
+    fi
+
+    local cur="" next=""
+
+    while [ $# -ne 0 ]; do
+        cur="$1" ; next="$2" ;
+        case "$cur" in
+            -h|--help) usage ;;
+            -o|--output-file) outfile="$next" ; shift  ;;
+            --) shift ; break ;;
+            *) error "$PROG: internal parser error." ; exit 2 ;;
+        esac
+        shift;
+    done
+
+    username="$1"
+    if [ -z "${username}" ] ; then usage 1 ; fi
+}
+
+baseurl=http://10.0.100.3/cobbler/pub/keys
+outfile="-"
+parseopts "$@"
+
+wget -q -O "${outfile}" "${baseurl}/${username}"
