@@ -34,6 +34,20 @@ if node['bcpc']['enabled']['dns'] then
         end
     end
 
+    # needed for populate_dns.py
+    package "python-mysqldb" do
+        action :upgrade
+    end
+
+    cookbook_file "populate_dns.py" do
+        action :create_if_missing
+        mode 0755
+        path "/usr/local/bin/populate_dns.py"
+        owner "root"
+        group "root"
+        source "populate_dns.py"
+    end
+
     template "/etc/powerdns/pdns.conf" do
         source "pdns.conf.erb"
         owner "root"
@@ -52,6 +66,25 @@ if node['bcpc']['enabled']['dns'] then
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-pdns-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-pdns-password')}';"
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['nova']}.* TO '#{get_config('mysql-pdns-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-pdns-password')}';"
                     mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
+                ]
+                self.notifies :restart, "service[pdns]", :delayed
+                self.resolve_notification_references
+            end
+        end
+    end
+
+    ruby_block "powerdns-table-keystone_project" do
+        block do
+
+            system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"#{node['bcpc']['dbname']['pdns']}\" AND TABLE_NAME=\"keystone_project\"' | grep -q \"keystone_project\""
+            if not $?.success? then
+                %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['dbname']['pdns']} <<-EOH
+                    CREATE TABLE IF NOT EXISTS keystone_project (
+                        id VARCHAR(255) NOT NULL,
+                        name VARCHAR(255) NOT NULL
+                    );
+                    CREATE UNIQUE INDEX keystone_project_name ON keystone_project(name);
+                    CREATE UNIQUE INDEX keystone_project_id on keystone_project(id);
                 ]
                 self.notifies :restart, "service[pdns]", :delayed
                 self.resolve_notification_references
@@ -178,14 +211,14 @@ if node['bcpc']['enabled']['dns'] then
                         SELECT id,name,master,last_check,type,notified_serial,account FROM domains_static UNION
                         SELECT
                             # rank each project to create an ID and add the maximum ID from the static table
-                            (SELECT COUNT(*) FROM keystone.project WHERE y.id <= id) + (SELECT MAX(id) FROM domains_static) AS id,
+                            (SELECT COUNT(*) FROM keystone_project WHERE y.id <= id) + (SELECT MAX(id) FROM domains_static) AS id,
                             CONCAT(CONCAT(dns_name(y.name), '.'),'#{node['bcpc']['domain_name']}') AS name,
                             NULL AS master,
                             NULL AS last_check,
                             'NATIVE' AS type,
                             NULL AS notified_serial,
                             NULL AS account
-                            FROM keystone.project y;
+                            FROM keystone_project y;
                 ]
                 self.notifies :restart, "service[pdns]", :delayed
                 self.resolve_notification_references
@@ -216,12 +249,12 @@ if node['bcpc']['enabled']['dns'] then
                         # again, assume we only have 250 or less static domains
                         SELECT nova.instances.id+10000 AS id,
                             # query the domain ID from the domains view
-                            (SELECT id FROM domains WHERE name=CONCAT(CONCAT((SELECT dns_name(name) FROM keystone.project WHERE id = nova.instances.project_id),
+                            (SELECT id FROM domains WHERE name=CONCAT(CONCAT((SELECT dns_name(name) FROM keystone_project WHERE id = nova.instances.project_id),
                                                                       '.'),'#{node['bcpc']['domain_name']}')) AS domain_id,
                             # create the FQDN of the record
                             CONCAT(nova.instances.hostname,
                               CONCAT('.',
-                                CONCAT((SELECT dns_name(name) FROM keystone.project WHERE id = nova.instances.project_id),
+                                CONCAT((SELECT dns_name(name) FROM keystone_project WHERE id = nova.instances.project_id),
                                   CONCAT('.','#{node['bcpc']['domain_name']}')))) AS name,
                             'A' AS type,
                             nova.floating_ips.address AS content,
@@ -356,7 +389,7 @@ if node['bcpc']['enabled']['dns'] then
         minute "*"
         hour "*"
         weekday "*"
-        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then echo \"call populate_records();\" | mysql -updns -p#{get_config('mysql-pdns-password')} #{node['bcpc']['dbname']['pdns']} 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
+        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then /usr/local/bin/populate_dns.py -t 'ou=Tenants,#{node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',')}' -v '#{node['bcpc']['management']['vip']}' -u '#{get_config('389ds-rootdn-user')}' -p '#{get_config('389ds-rootdn-password')}' -U #{get_config('mysql-pdns-user')} -P '#{get_config('mysql-pdns-password')}' 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
     end
 
     get_all_nodes.each do |server|
