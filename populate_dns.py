@@ -91,7 +91,7 @@ class PDNS:
     cursor = self.conn.cursor()
 
     self.conn.start_transaction(True, 'READ COMMITTED', False)
-    cursor.execute('update_records()')
+    cursor.execute('populate_records()')
     self.conn.commit()
 
 
