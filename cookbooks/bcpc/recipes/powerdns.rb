@@ -389,7 +389,7 @@ if node['bcpc']['enabled']['dns'] then
         minute "*"
         hour "*"
         weekday "*"
-        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then /usr/local/bin/populate_dns.py 'ou=Tenants,#{node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',')}' '#{node['bcpc']['management']['vip']}' 'cn=Directory Manager' '#{get_config('389ds-rootdn-password')}' pdns '#{get_config('mysql-pdns-password')}' 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
+        command "if [ -n \"$(/usr/local/bin/if_vip echo Y)\" ] ; then /usr/local/bin/populate_dns.py -t 'ou=Tenants,#{node['bcpc']['domain_name'].split('.').collect { |x| 'dc='+x }.join(',')}' -v '#{node['bcpc']['management']['vip']}' -u '#{get_config('389ds-rootdn-user')}' -p '#{get_config('389ds-rootdn-password')}' -U #{get_config('mysql-pdns-user')} -P '#{get_config('mysql-pdns-password')}' 2>&1 > /var/log/pdns_populate_records.last.log ; fi"
     end
 
     get_all_nodes.each do |server|
