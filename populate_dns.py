@@ -71,7 +71,7 @@ class PDNS:
   """
   def update_projects(self, project_source):
 
-    insert = """insert into keystone_project(project_id, name) 
+    insert = """insert into keystone_project(id, name) 
                 values('%s', '%s')"""
     
     cursor = self.conn.cursor()
@@ -93,7 +93,7 @@ class PDNS:
     self.conn.start_transaction(True, 'READ COMMITTED', False)
     cursor.execute('update_records()')
     self.conn.commit()
-    
+
 
 
 keystone = Keystone(tenant_dn, vip, ldap_user, ldap_pass)
