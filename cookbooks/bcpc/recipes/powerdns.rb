@@ -45,7 +45,7 @@ if node['bcpc']['enabled']['dns'] then
         path "/usr/local/bin/populate_dns.py"
         owner "root"
         group "root"
-        source "bins/populate_dns.py"
+        source "populate_dns.py"
     end
 
     template "/etc/powerdns/pdns.conf" do
