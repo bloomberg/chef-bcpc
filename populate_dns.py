@@ -14,7 +14,8 @@ the pdns.records table.
 Usage:
 ./populate_dns.py <tenant_tree_dn> <vip address> <ldap user> <ldap pass> <mysql user> <mysql pass>
 
-"tenant_tree_dn" should equal the value of the tenant_tree_dn setting in /etc/keystone/keystone.conf
+"tenant_tree_dn" should equal the value of the tenant_tree_dn setting 
+in /etc/keystone/keystone.conf
 
 The VIP address is used to connect to both ldap and to mysql. 
 The assumption is that the VIP is managing both of these services. 
@@ -24,6 +25,7 @@ If that changes, this will have to be adjusted as well.
 
 import sys
 import ldap
+import MySQLdb
 
 # Grab command line arguments
 tenant_dn = sys.argv[1]
@@ -57,8 +59,10 @@ class Keystone:
 
 class PDNS:
   def __init__(self, ip, username, password):
-    print "Would connect to mysql at " + ip + " as " + username
-    pass
+    print "Connect to mysql at " + ip + " as " + username
+    self.conn = MySQLdb.connect(ip, username, password, "pdns")
+
+    
 
   """ update_projects(project_source)
 
@@ -66,14 +70,36 @@ class PDNS:
   dicts with keys "project" and "project_id". It doesn't have to be Keystone.
   """
   def update_projects(self, project_source):
+
+    insert = """insert into keystone_project(project_id, name) 
+                values('%s', '%s')"""
+    
+    cursor = self.conn.cursor()
+    
+    self.conn.start_transaction(True, 'READ COMMITTED', False)
+
+    cursor.execute("delete from keystone_project")
+
     for project in project_source.projects():
       print "Adding Project: " + project['project'] + " ID: " + project['project_id']
+      cursor.execute(insert, [ project['project_id'], project['project'] ])
 
+    self.conn.commit()
+
+  def update_records(self):
+
+    cursor = self.conn.cursor()
+
+    self.conn.start_transaction(True, 'READ COMMITTED', False)
+    cursor.execute('update_records()')
+    self.conn.commit()
+    
 
 
 keystone = Keystone(tenant_dn, vip, ldap_user, ldap_pass)
 
 pdns = PDNS(vip, mysql_user, mysql_pass)
 pdns.update_projects(keystone)
+pdns.update_records()
 
 
