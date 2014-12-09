@@ -73,7 +73,7 @@ if node['bcpc']['enabled']['dns'] then
             if not $?.success? then
                 %x[ mysql -uroot -p#{get_config('mysql-root-password')} #{node['bcpc']['dbname']['pdns']} <<-EOH
                     CREATE TABLE IF NOT EXISTS keystone_project (
-                        project_id VARCHAR(255) NOT NULL,
+                        id VARCHAR(255) NOT NULL,
                         name VARCHAR(255) NOT NULL
                     );
                     CREATE UNIQUE INDEX keystone_project_name ON keystone_project(name);
@@ -204,14 +204,14 @@ if node['bcpc']['enabled']['dns'] then
                         SELECT id,name,master,last_check,type,notified_serial,account FROM domains_static UNION
                         SELECT
                             # rank each project to create an ID and add the maximum ID from the static table
-                            (SELECT COUNT(*) FROM keystone.project WHERE y.id <= id) + (SELECT MAX(id) FROM domains_static) AS id,
+                            (SELECT COUNT(*) FROM keystone_project WHERE y.id <= id) + (SELECT MAX(id) FROM domains_static) AS id,
                             CONCAT(CONCAT(dns_name(y.name), '.'),'#{node['bcpc']['domain_name']}') AS name,
                             NULL AS master,
                             NULL AS last_check,
                             'NATIVE' AS type,
                             NULL AS notified_serial,
                             NULL AS account
-                            FROM keystone.project y;
+                            FROM keystone_project y;
                 ]
                 self.notifies :restart, "service[pdns]", :delayed
                 self.resolve_notification_references
@@ -242,12 +242,12 @@ if node['bcpc']['enabled']['dns'] then
                         # again, assume we only have 250 or less static domains
                         SELECT nova.instances.id+10000 AS id,
                             # query the domain ID from the domains view
-                            (SELECT id FROM domains WHERE name=CONCAT(CONCAT((SELECT dns_name(name) FROM keystone.project WHERE id = nova.instances.project_id),
+                            (SELECT id FROM domains WHERE name=CONCAT(CONCAT((SELECT dns_name(name) FROM keystone_project WHERE id = nova.instances.project_id),
                                                                       '.'),'#{node['bcpc']['domain_name']}')) AS domain_id,
                             # create the FQDN of the record
                             CONCAT(nova.instances.hostname,
                               CONCAT('.',
-                                CONCAT((SELECT dns_name(name) FROM keystone.project WHERE id = nova.instances.project_id),
+                                CONCAT((SELECT dns_name(name) FROM keystone_project WHERE id = nova.instances.project_id),
                                   CONCAT('.','#{node['bcpc']['domain_name']}')))) AS name,
                             'A' AS type,
                             nova.floating_ips.address AS content,
