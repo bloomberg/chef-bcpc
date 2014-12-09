@@ -27,22 +27,17 @@ If that changes, this will have to be adjusted as well.
 """
 
 import sys
+import argparse
+
 import ldap
 import MySQLdb
 
-# Grab command line arguments
-tenant_dn = sys.argv[1]
-vip = sys.argv[2] 
 
-ldap_user = sys.argv[3] 
-ldap_pass = sys.argv[4]
 
-mysql_user = sys.argv[5]
-mysql_pass = sys.argv[6]
 
 class Keystone:
 
-  def __init__(self, tenant_dn, ip, bind_dn, password):
+  def __init__(self, vip, tenant_dn, bind_dn, password):
     self.conn = ldap.initialize('ldap://' + vip)
     self.tenant_dn = tenant_dn
     self.conn.bind_s(bind_dn, password, ldap.AUTH_SIMPLE)
@@ -95,9 +90,35 @@ class PDNS:
     self.conn.commit()
 
 
+parser = argparse.ArgumentParser(description="Load Keystone LDAP info " +
+                                 "into PDNS databsae and update A and PTR " +
+                                 "records for VMs with associated floating IPs.")
+parser.add_argument("-t", "--tenant-tree-dn", 
+                  action="store", type=str, dest="tenant_dn", required=True,
+                  help="tenant_tree_dn setting from /etc/keystone/keystone.conf" )
+parser.add_argument("-v", "--vip",
+                  action="store", type=str, dest="vip", required=True,
+                  help="The cluster's management VIP address. Should serve " +
+                      "both LDAP and MySQL.")
+parser.add_argument('-u', "--ldap-user",
+                  action="store", type=str, dest="ldap_user", required=True,
+                  help="User DN to connect to LDAP on VIP (eg value of " +
+                    "'389ds-rootdn-user' from data bag)")
+parser.add_argument("-p", "--ldap-password",
+                  action="store", type=str, dest="ldap_pass", required=True,
+                  help="Password for ldap user")
+parser.add_argument('-U', "--mysql-user", required=True,
+                  action="store", type=str, dest="mysql_user",
+                  help="User to connect to 'pdns' database on VIP")
+parser.add_argument("-P", "--mysql-password", required=True,
+                  action="store", type=str, dest="mysql_pass",
+                  help="Password for mysql user")
 
-keystone = Keystone(tenant_dn, vip, ldap_user, ldap_pass)
+args = parser.parse_args()
 
-pdns = PDNS(vip, mysql_user, mysql_pass)
+keystone = Keystone(args.vip, args.tenant_dn, args.ldap_user, args.ldap_pass)
+pdns = PDNS(args.vip, args.mysql_user, args.mysql_pass)
+
 pdns.update_projects(keystone)
 pdns.update_records()
+
