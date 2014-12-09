@@ -39,7 +39,14 @@ if node['bcpc']['enabled']['dns'] then
         action :upgrade
     end
 
-
+    cookbook_file "populate_dns.py" do
+        action :create_if_missing
+        mode 0755
+        path "/usr/local/bin/populate_dns.py"
+        owner "root"
+        group "root"
+        source "bins/populate_dns.py"
+    end
 
     template "/etc/powerdns/pdns.conf" do
         source "pdns.conf.erb"
