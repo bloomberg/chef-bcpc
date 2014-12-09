@@ -12,6 +12,9 @@
     keyring = /etc/ceph/$cluster.$name.keyring
     mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
     rgw socket path = /var/lib/ceph/radosgw/rgw_fcgi.sock
+<% if @node["bcpc"]["ceph"]["rebalance"] %> 
+    paxos_propose_interval = 60 
+<% end %>
 
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring
@@ -27,6 +30,14 @@
     osd_fs_type = xfs
     osd_fs_mount_options_xfs = noexec,nodev,noatime,nodiratime,barrier=0,discard
     osd_crush_update_on_start = false
+    osd_client_op_priority = 63 
+<% if @node["bcpc"]["ceph"]["rebalance"] %> 
+    osd_recovery_max_active = 1
+    osd_max_backfills  = 1
+    osd_op_threads = 10    
+    osd_recovery_op_priority = 1
+    osd_mon_report_interval_min = 30         
+<% end %>
 
 [client.radosgw.gateway]
     keyring = /var/lib/ceph/radosgw/$cluster-$id/keyring

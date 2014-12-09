@@ -99,6 +99,12 @@ default['bcpc']['ceph']['vms_mem']['name'] = "vmsmem"
 default['bcpc']['ceph']['ssd']['ruleset'] = 1
 default['bcpc']['ceph']['hdd']['ruleset'] = 2
 
+# If you are about to make a big change to the ceph cluster
+# setting to true will reduce the load form the resulting
+# ceph rebalance and keep things operational. 
+# See wiki for further details. 
+default['bcpc']['ceph']['rebalance'] = false
+
 ###########################################
 #
 #  Network settings for the cluster

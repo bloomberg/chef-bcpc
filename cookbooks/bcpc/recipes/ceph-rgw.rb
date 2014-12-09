@@ -113,7 +113,6 @@ end
 service "radosgw-all" do
   provider Chef::Provider::Service::Upstart
   action [ :enable, :start ]
-  subscribes :restart, "template[/etc/ceph/ceph.conf]", :delayed
 end 
 
 ruby_block "initialize-radosgw-admin-user" do

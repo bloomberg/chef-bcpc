@@ -186,4 +186,19 @@ end
     end
 end
 
+%w{noscrub nodeep-scrub}.each do |flag|
+  if node['bcpc']['ceph']['rebalance'] 
+    execute "ceph-osd-set-#{flag}" do
+      command "ceph osd set #{flag}"
+      only_if "ceph health"    
+    end
+  else
+    execute "ceph-osd-unset-#{flag}" do
+      command "ceph osd unset #{flag}"
+      only_if "ceph health"
+    end
+  end
+end
+    
+
 include_recipe "bcpc::ceph-work"
