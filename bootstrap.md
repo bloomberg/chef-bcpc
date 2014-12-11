@@ -240,6 +240,11 @@ have probably recreated the VMs but not updated the SSH key. If this is the
 case you need to manually remove the old key - remove the entry for 
 10.0.100.3 from ~/.ssh/known_hosts
 
+For security of your chef server web interface, for example if it is
+publically accessible, you should immediately change the passwords for
+both admin (see above) and the ubuntu login (default password
+'welcome' - see setup_chef_cookbooks.sh).
+
 Registering VMs for PXE boot
 ============================
 
