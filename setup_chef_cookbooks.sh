@@ -26,8 +26,7 @@ if [[ -f .chef/knife.rb ]]; then
   knife client delete $USER -y || true
   mv .chef/ ".chef_found_$(date +"%m-%d-%Y %H:%M:%S")"
 fi
-#echo -e ".chef/knife.rb\nhttp://$BOOTSTRAP_IP:4000\n\n\n/etc/chef-server/chef-webui.pem\n\n/etc/chef-server/chef-validator.pem\n.\nwelcome\n" | knife configure --initial
-./configure-knife.sh
+./configure-knife.sh http://$BOOTSTRAP_IP:4000 welcome
 
 cp -p .chef/knife.rb .chef/knife-proxy.rb
 
