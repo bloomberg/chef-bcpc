@@ -11,17 +11,3 @@ diff -ru chef-client/files/default/tests/minitest/cron_test.rb chef-client.new/f
      end
    end
  end
-diff -ru chef-client/libraries/helpers.rb chef-client.new/libraries/helpers.rb
---- chef-client/libraries/helpers.rb	2014-03-18 22:54:21.000000000 +0000
-+++ chef-client.new/libraries/helpers.rb	2014-03-25 14:44:56.195907081 +0000
-@@ -25,7 +25,8 @@
-       include Chef::DSL::PlatformIntrospection if Chef::VERSION >= '11.0.0'
- 
-       def chef_server_user
--        Chef::VERSION >= '11.0.0' ? 'chef_server' : 'chef'
-+        #Chef::VERSION >= '11.0.0' ? 'chef_server' : 'chef'
-+        Chef::VERSION >= '11.0.0' ? 'chef_server' : 'chef_server'
-       end
- 
-       def chef_server?
-Only in chef-client.new/: .README.md.swp

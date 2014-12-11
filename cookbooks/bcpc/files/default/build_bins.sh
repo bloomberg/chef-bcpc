@@ -105,8 +105,7 @@ if [ -z `gem list --local fpm | grep fpm | cut -f1 -d" "` ]; then
 fi
 
 # Fetch chef client and server debs
-CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_10.32.2-1_amd64.deb
-#CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.10.4-1.ubuntu.12.04_amd64.deb
+CHEF_CLIENT_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef_11.14.6-1_amd64.deb
 CHEF_SERVER_URL=https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/12.04/x86_64/chef-server_11.0.12-1.ubuntu.12.04_amd64.deb
 if [ ! -f chef-client.deb ]; then
    ccurl  ${CHEF_CLIENT_URL} chef-client.deb
