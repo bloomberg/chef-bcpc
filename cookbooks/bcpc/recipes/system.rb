@@ -43,3 +43,9 @@ bash "set-deadline-io-scheduler" do
     EOH
     not_if "grep 'elevator=deadline' /etc/default/grub"
 end
+
+if node['bcpc']['upgraded_kernel']
+  package node['bcpc']['upgraded_kernel']
+end
+
+  

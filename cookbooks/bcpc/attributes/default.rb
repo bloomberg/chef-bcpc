@@ -23,6 +23,11 @@ default['bcpc']['domain_name'] = "bcpc.example.com"
 # Key if Cobalt+VMS is to be used
 default['bcpc']['vms_key'] = nil
 
+# sometimes installtion of new packages will require restarts
+default['bcpc']['allow_restarts'] = true
+# Set this to 'linux-image-3.13.0-37-generic' to use latest kernel
+default['bcpc']['upgraded_kernel'] = 'linux-image-3.13.0-37-generic'
+
 ###########################################
 #
 #  Flags to enable/disable BCPC cluster features

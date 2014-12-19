@@ -5,7 +5,8 @@
     "ubuntu": ">= 1.1.2",
     "ntp": ">= 1.3.2",
     "cron": ">= 1.2.2",
-    "apt": ">= 1.9.2"
+    "apt": ">= 1.9.2",
+    "chef_handler" : ">1.0.0"  
   },
   "long_description": "Description\n===========\n\nRequirements\n============\n\nAttributes\n==========\n\nUsage\n=====\n\n",
   "recipes": {

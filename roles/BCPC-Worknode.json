@@ -17,7 +17,8 @@
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::zabbix-work]",
-      "recipe[bcpc::checks-work]"
+      "recipe[bcpc::checks-work]",
+      "recipe[bcpc::restart]"
     ],
     "description": "A functional compute node in a BCPC cluster",
     "chef_type": "role",
