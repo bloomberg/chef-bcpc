@@ -61,29 +61,12 @@ rgw_optimal_pg = power_of_2(get_ceph_osd_nodes.length*node['bcpc']['ceph']['pgs_
 rgw_crush_ruleset = (node['bcpc']['ceph']['rgw']['type'] == "ssd") ? node['bcpc']['ceph']['ssd']['ruleset'] : node['bcpc']['ceph']['hdd']['ruleset']
 
 %w{.rgw .rgw.control .rgw.gc .rgw.root .users.uid .users.email .users .usage .log .intent-log .rgw.buckets .rgw.buckets.index}.each do |pool|
-    bash "create-rados-pool-#{pool}" do
-        code <<-EOH
-            ceph osd pool create #{pool} #{rgw_optimal_pg}
-            ceph osd pool set #{pool} crush_ruleset #{rgw_crush_ruleset}
-        EOH
-        not_if "rados lspools | grep ^#{pool}$"
-        notifies :run, "bash[wait-for-pgs-creating]", :immediately
-    end
-    bash "set-#{pool}-rados-pool-replicas" do
-        user "root"
-        replicas = [get_all_nodes.length, node['bcpc']['ceph']['rgw']['replicas']].min
-        code "ceph osd pool set #{pool} size #{replicas}"
-        not_if "ceph osd pool get #{pool} size | grep #{replicas}"
-    end
-end
-
-# check to see if we should up the number of pg's now for the core buckets pool
-(node['bcpc']['ceph']['pgp_auto_adjust'] ? %w{pg_num pgp_num} : %w{pg_num}).each do |pg|
-    bash "update-rgw-buckets-#{pg}" do
-        user "root"
-        code "ceph osd pool set .rgw.buckets #{pg} #{rgw_optimal_pg}"
-        not_if "((`ceph osd pool get .rgw.buckets #{pg} | awk '{print $2}'` >= #{rgw_optimal_pg}))"
-        notifies :run, "bash[wait-for-pgs-creating]", :immediately
+    bcpc_cephpool "#{pool}" do
+        ruleset rgw_crush_ruleset
+        pg_num rgw_optimal_pg
+        replicas [get_all_nodes.length, node['bcpc']['ceph']['rgw']['replicas']].min
+        change_pgp (node['bcpc']['ceph']['pgp_auto_adjust'] and pool == ".rgw.buckets")
+        change_pg (pool == ".rgw.buckets")
     end
 end
 
