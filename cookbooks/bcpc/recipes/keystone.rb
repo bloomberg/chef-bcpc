@@ -133,21 +133,27 @@ ruby_block "initialize-keystone-test-config" do
     end
 end
 
-bash "keystone-create-test-tenants" do
-    code <<-EOH
-        . /root/adminrc
-        export KEYSTONE_ADMIN_TENANT_ID=`keystone tenant-get "#{node['bcpc']['admin_tenant']}" | grep " id " | awk '{print $4}'`
-        keystone user-create --name #{get_config('keystone-test-user')} --tenant-id $KEYSTONE_ADMIN_TENANT_ID --pass  #{get_config('keystone-test-password')} --enabled true
-    EOH
-    only_if ". /root/keystonerc; . /root/adminrc; keystone user-get #{get_config('keystone-test-user')} 2>&1 | grep -e '^No user'"
+ruby_block "keystone-create-test-tenants" do
+    block do
+        system ". /root/keystonerc; . /root/adminrc; keystone user-get #{get_config('keystone-test-user')} 2>&1 | grep -e '^No user'"
+        if $?.success? then
+            %x[ . /root/adminrc
+                export KEYSTONE_ADMIN_TENANT_ID=`keystone tenant-get "#{node['bcpc']['admin_tenant']}" | grep " id " | awk '{print $4}'`
+                keystone user-create --name #{get_config('keystone-test-user')} --tenant-id $KEYSTONE_ADMIN_TENANT_ID --pass  #{get_config('keystone-test-password')} --enabled true
+            ]
+        end
+    end
 end
 
-bash "keystone-add-test-admin-role" do
-    code <<-EOH
-        . /root/adminrc
-        keystone user-role-add --user #{get_config('keystone-test-user')} --role '#{node['bcpc']['admin_role']}' --tenant '#{node['bcpc']['admin_tenant']}'
-    EOH
-    not_if ". /root/keystonerc; . /root/adminrc; keystone user-role-list --user #{get_config('keystone-test-user')} --tenant '#{node['bcpc']['admin_tenant']}' 2>&1 | grep '#{node['bcpc']['admin_role']}'"
+ruby_block "keystone-add-test-admin-role" do
+    block do
+        system ". /root/keystonerc; . /root/adminrc; keystone user-role-list --user #{get_config('keystone-test-user')} --tenant '#{node['bcpc']['admin_tenant']}' 2>&1 | grep '#{node['bcpc']['admin_role']}'"
+        if $?.success? then
+            %x[ . /root/adminrc
+                keystone user-role-add --user #{get_config('keystone-test-user')} --role '#{node['bcpc']['admin_role']}' --tenant '#{node['bcpc']['admin_tenant']}'
+            ]
+        end
+    end
 end
 
 ruby_block "generate-random-time" do
