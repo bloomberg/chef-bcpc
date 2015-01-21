@@ -224,9 +224,16 @@ cookbook_file "/usr/local/bin/nova-service-restart" do
   mode "00755"
 end
 
+template "/usr/local/bin/nova-service-restart-wrapper" do
+    source "nova-service-restart-wrapper.erb"
+    owner "root"
+    group "root"
+    mode 00700
+end
+
 cron "restart-nova-kludge" do
   action :create
-  command "/usr/local/bin/nova-service-restart -i #{node['bcpc']['management']['vip']} -u #{get_config('mysql-nova-user')} -p '#{get_config('mysql-nova-password')}'  > /dev/null 2>&1"
+  command "/usr/local/bin/nova-service-restart-wrapper"
   minute '*/5'   # run this every 5 mins
 end
 

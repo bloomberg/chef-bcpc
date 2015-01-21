@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#
+# Invokes nova-service-restart with the creds for this cluster 
+#
+
+/usr/local/bin/nova-service-restart -i <%=node['bcpc']['management']['vip']%> -u <%=get_config('mysql-nova-user')%> -p '<%=get_config('mysql-nova-password')%>'  > /dev/null 2>&1
