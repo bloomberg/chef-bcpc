@@ -27,6 +27,7 @@ ruby_block "initialize-mysql-config" do
         make_config('mysql-galera-password', secure_password)
         make_config('mysql-check-user', "check")
         make_config('mysql-check-password', secure_password)
+        make_config('mysql-phpmyadmin-password', secure_password)
     end
 end
 
