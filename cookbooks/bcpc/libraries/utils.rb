@@ -65,7 +65,9 @@ end
 def get_config(key)
     init_config if $dbi.nil?
     puts "------------ Fetching value for key \"#{key}\""
-    return (node['bcpc']['enabled']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
+    result = (node['bcpc']['enabled']['encrypt_data_bag']) ? $edbi[key] : $dbi[key]
+    raise "No config found for get_config(#{key})!!!" if result.nil?
+    return result
 end
 
 def get_all_nodes
