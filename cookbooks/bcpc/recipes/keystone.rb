@@ -27,7 +27,9 @@ ruby_block "initialize-keystone-config" do
         make_config('keystone-admin-token', secure_password)
         make_config('keystone-admin-user', "admin")
         make_config('keystone-admin-password', secure_password)
-        if get_config('keystone-pki-certificate').nil? then
+        begin
+            get_config('keystone-pki-certificate')
+        rescue
             temp = %x[openssl req -new -x509 -passout pass:temp_passwd -newkey rsa:2048 -out /dev/stdout -keyout /dev/stdout -days 1095 -subj "/C=#{node['bcpc']['country']}/ST=#{node['bcpc']['state']}/L=#{node['bcpc']['location']}/O=#{node['bcpc']['organization']}/OU=#{node['bcpc']['region_name']}/CN=keystone.#{node['bcpc']['domain_name']}/emailAddress=#{node['bcpc']['admin_email']}"]
             make_config('keystone-pki-private-key', %x[echo "#{temp}" | openssl rsa -passin pass:temp_passwd -out /dev/stdout])
             make_config('keystone-pki-certificate', %x[echo "#{temp}" | openssl x509])
