@@ -156,12 +156,6 @@ ruby_block "keystone-add-test-admin-role" do
     end
 end
 
-ruby_block "generate-random-time" do
-    block do
-        make_config('keystone-token-clean-hour', rand(24))
-    end
-end
-
 template "/usr/local/bin/keystone_token_cleaner" do
     source "keystone.token_cleaner.erb"
     owner "root"
@@ -172,5 +166,5 @@ end
 cron "keystone-token-flush" do
   action :create
   command "/usr/local/bin/keystone_token_cleaner"
-  hour get_config('keystone-token-clean-hour')
+  hour node['bcpc']['keystone_token_clean_hour']
 end
