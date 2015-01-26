@@ -211,6 +211,10 @@ default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
 
+# Hour for the cron job to run keystone_token_cleaner script which
+# runs `keystone-manage token_flush` to clean out stale tokens
+default['bcpc']['keystone_token_clean_hour'] = "2"
+
 ###########################################
 #
 #  Nova Settings
