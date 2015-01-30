@@ -13,7 +13,7 @@
       "recipe[bcpc::networking-gw-test]",
       "recipe[bcpc::networking-route-test]",
       "recipe[bcpc::ceph-head]",
-      "recipe[bcpc::mysql]",
+      "recipe[bcpc::mysql-head]",
       "recipe[bcpc::rabbitmq]",
       "recipe[bcpc::389ds]",
       "recipe[bcpc::haproxy]",

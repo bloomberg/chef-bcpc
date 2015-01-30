@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::mysql"
+include_recipe "bcpc::mysql-head"
 include_recipe "bcpc::nova-common"
 
 %w{nova-scheduler nova-cert nova-consoleauth nova-conductor}.each do |pkg|

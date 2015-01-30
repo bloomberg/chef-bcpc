@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::mysql"
+include_recipe "bcpc::mysql-head"
 include_recipe "bcpc::openstack"
 
 ruby_block "initialize-heat-config" do
