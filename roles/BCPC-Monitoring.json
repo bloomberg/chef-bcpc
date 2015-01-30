@@ -1,0 +1,20 @@
+{
+    "name": "BCPC-Monitoring",
+    "default_attributes": {
+    },
+    "json_class": "Chef::Role",
+    "run_list": [
+      "role[Basic]",
+      "recipe[bcpc]",
+      "recipe[bcpc::system]",
+      "recipe[bcpc::networking]",
+      "recipe[bcpc::networking-link-test]",
+      "recipe[bcpc::networking-gw-test]",
+      "recipe[bcpc::networking-route-test]",
+      "recipe[bcpc::mysql-monitoring]"
+    ],
+    "description": "Monitoring/Metrics/Logging node in a BCPC cluster",
+    "chef_type": "role",
+    "override_attributes": {
+    }
+}
