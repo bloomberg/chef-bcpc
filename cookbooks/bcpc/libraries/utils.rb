@@ -70,8 +70,21 @@ def get_config(key)
     return result
 end
 
+def search_nodes(key, value)
+    if key == "recipe"
+        results = search(:node, "recipes:bcpc\\:\\:#{value} AND chef_environment:#{node.chef_environment}")
+    elsif key == "role"
+        results = search(:node, "role:#{value} AND chef_environment:#{node.chef_environment}")
+    else
+        raise("Invalid search key: #{key}")
+    end
+
+    results.map! { |x| x['hostname'] == node['hostname'] ? node : x }
+    return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
 def get_all_nodes
-    results = search(:node, "(role:BCPC-Headnode OR role:BCPC-Worknode) AND chef_environment:#{node.chef_environment}")
+    results = search(:node, "recipes:bcpc\\:\\:default AND chef_environment:#{node.chef_environment}")
     if results.any? { |x| x['hostname'] == node['hostname'] }
         results.map! { |x| x['hostname'] == node['hostname'] ? node : x }
     else

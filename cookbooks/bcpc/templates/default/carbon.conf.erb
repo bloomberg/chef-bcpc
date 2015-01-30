@@ -171,9 +171,9 @@ WHISPER_AUTOFLUSH = False
 
 
 [relay]
-LINE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['vip']%>
+LINE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['ip']%>
 LINE_RECEIVER_PORT = 2013
-PICKLE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['vip']%>
+PICKLE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['ip']%>
 PICKLE_RECEIVER_PORT = 2014
 
 # To use consistent hashing instead of the user defined relay-rules.conf,
@@ -228,10 +228,10 @@ USE_FLOW_CONTROL = True
 
 
 [aggregator]
-LINE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['vip']%>
+LINE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['ip']%>
 LINE_RECEIVER_PORT = 2023
 
-PICKLE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['vip']%>
+PICKLE_RECEIVER_INTERFACE = <%=node['bcpc']['management']['ip']%>
 PICKLE_RECEIVER_PORT = 2024
 
 # This is a list of carbon daemons we will send any relayed or

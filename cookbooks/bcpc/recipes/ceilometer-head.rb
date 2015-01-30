@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::mysql"
+include_recipe "bcpc::mysql-head"
 include_recipe "bcpc::ceilometer-common"
 
 %w{ceilometer-api ceilometer-collector ceilometer-agent-central}.each do |pkg|

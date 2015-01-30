@@ -7,12 +7,12 @@
 # Automatically generated for Debian scripts. DO NOT TOUCH!
 [client]
 host     = localhost
-user     = <%=get_config('mysql-root-user')%>
-password = <%=get_config('mysql-root-password')%>
+user     = <%=@db_user%>
+password = <%=@db_password%>
 socket   = /var/run/mysqld/mysqld.sock
 [mysql_upgrade]
 host     = localhost
-user     = <%=get_config('mysql-root-user')%>
-password = <%=get_config('mysql-root-password')%>
+user     = <%=@db_user%>
+password = <%=@db_password%>
 socket   = /var/run/mysqld/mysqld.sock
 basedir  = /usr

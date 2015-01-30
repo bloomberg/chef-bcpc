@@ -215,19 +215,19 @@ fi
 FILES="pyrabbit-1.0.1.tar.gz $FILES"
 
 # Build graphite packages
-if [ ! -f python-carbon_0.9.12_all.deb ] || [ ! -f python-whisper_0.9.12_all.deb ] || [ ! -f python-graphite-web_0.9.12_all.deb ]; then
-    ccurl  http://pypi.python.org/packages/source/c/carbon/carbon-0.9.12.tar.gz
-    ccurl  http://pypi.python.org/packages/source/w/whisper/whisper-0.9.12.tar.gz
-    ccurl  http://pypi.python.org/packages/source/g/graphite-web/graphite-web-0.9.12.tar.gz
-    tar zxf carbon-0.9.12.tar.gz
-    tar zxf whisper-0.9.12.tar.gz
-    tar zxf graphite-web-0.9.12.tar.gz
-    fpm --python-install-bin /opt/graphite/bin -s python -t deb carbon-0.9.12/setup.py
-    fpm --python-install-bin /opt/graphite/bin  -s python -t deb whisper-0.9.12/setup.py
-    fpm --python-install-lib /opt/graphite/webapp -s python -t deb graphite-web-0.9.12/setup.py
-    rm -rf carbon-0.9.12 carbon-0.9.12.tar.gz whisper-0.9.12 whisper-0.9.12.tar.gz graphite-web-0.9.12 graphite-web-0.9.12.tar.gz
+if [ ! -f python-carbon_0.9.13_all.deb ] || [ ! -f python-whisper_0.9.13_all.deb ] || [ ! -f python-graphite-web_0.9.13_all.deb ]; then
+    ccurl  http://pypi.python.org/packages/source/c/carbon/carbon-0.9.13.tar.gz
+    ccurl  http://pypi.python.org/packages/source/w/whisper/whisper-0.9.13.tar.gz
+    ccurl  http://pypi.python.org/packages/source/g/graphite-web/graphite-web-0.9.13.tar.gz
+    tar zxf carbon-0.9.13.tar.gz
+    tar zxf whisper-0.9.13.tar.gz
+    tar zxf graphite-web-0.9.13.tar.gz
+    fpm --python-install-bin /opt/graphite/bin -s python -t deb carbon-0.9.13/setup.py
+    fpm --python-install-bin /opt/graphite/bin  -s python -t deb whisper-0.9.13/setup.py
+    fpm --python-install-lib /opt/graphite/webapp -s python -t deb graphite-web-0.9.13/setup.py
+    rm -rf carbon-0.9.13 carbon-0.9.13.tar.gz whisper-0.9.13 whisper-0.9.13.tar.gz graphite-web-0.9.13 graphite-web-0.9.13.tar.gz
 fi
-FILES="python-carbon_0.9.12_all.deb python-whisper_0.9.12_all.deb python-graphite-web_0.9.12_all.deb $FILES"
+FILES="python-carbon_0.9.13_all.deb python-whisper_0.9.13_all.deb python-graphite-web_0.9.13_all.deb $FILES"
 
 # Build the zabbix packages
 if [ ! -f zabbix-agent.tar.gz ] || [ ! -f zabbix-server.tar.gz ]; then

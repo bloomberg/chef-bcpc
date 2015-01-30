@@ -19,7 +19,7 @@
 
 if node['bcpc']['enabled']['monitoring'] then
 
-    include_recipe "bcpc::mysql"
+    include_recipe "bcpc::mysql-head"
     include_recipe "bcpc::horizon"
     include_recipe "bcpc::apache2"
 

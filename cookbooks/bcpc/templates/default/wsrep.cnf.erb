@@ -71,16 +71,16 @@ character-set-server = utf8
 ##
 
 <% @servers.delete(node) -%>
-wsrep_cluster_address=gcomm://<%="#{@servers.collect{|x| x['bcpc']['management']['ip']}.join(',')}"%>
+wsrep_cluster_address=gcomm://<%=@servers.collect{|x| x['bcpc']['management']['ip'] + ':' + @wsrep_port.to_s}.join(',')%>
 
 # Full path to wsrep provider library or 'none'
 wsrep_provider=/usr/lib/libgalera_smm.so
 
 # Provider specific configuration options
-wsrep_provider_options="gmcast.listen_addr=tcp://<%=node['bcpc']['management']['ip']%>:4567"
+wsrep_provider_options="gmcast.listen_addr=tcp://<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 
 # Logical cluster name. Should be the same for all nodes.
-wsrep_cluster_name="<%=node['bcpc']['region_name']%>"
+wsrep_cluster_name="<%=@wsrep_cluster_name%>"
 
 # Human-readable node name (non-unique). Hostname by default.
 #wsrep_node_name=
@@ -88,10 +88,10 @@ wsrep_cluster_name="<%=node['bcpc']['region_name']%>"
 # Base replication <address|hostname>[:port] of the node.
 # The values supplied will be used as defaults for state transfer receiving,
 # listening ports and so on. Default: address of the first network interface.
-wsrep_node_address="<%=node['bcpc']['management']['ip']%>:4567"
+wsrep_node_address="<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 
 # Address for incoming client connections. Autodetect by default.
-wsrep_node_incoming_address="<%=node['bcpc']['management']['ip']%>:4567"
+wsrep_node_incoming_address="<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 
 # How many threads will process writesets from other nodes
 wsrep_slave_threads=4
@@ -145,11 +145,11 @@ wsrep_sst_method=xtrabackup-v2
 
 # Address on THIS node to receive SST at. DON'T SET IT TO DONOR ADDRESS!!!
 # (SST method dependent. Defaults to the first IP of the first interface)
-#wsrep_sst_receive_address="<%=node['bcpc']['management']['ip']%>:4567"
+#wsrep_sst_receive_address="<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 
 # SST authentication string. This will be used to send SST to joining nodes.
 # Depends on SST method. For mysqldump method it is root:<root password>
-wsrep_sst_auth=<%=get_config('mysql-galera-user')%>:<%=get_config('mysql-galera-password')%>
+wsrep_sst_auth=<%=@wsrep_user%>:<%= @wsrep_password%>
 
 # Desired SST donor name.
 #wsrep_sst_donor=

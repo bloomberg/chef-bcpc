@@ -20,8 +20,26 @@
 if node['bcpc']['enabled']['metrics'] then
 
     include_recipe "bcpc::default"
-    include_recipe "bcpc::ceph-head"
     include_recipe "bcpc::apache2"
+
+    # We need python-django >= 1.4, hence pinning to Trusty
+    apt_preference 'python-django' do
+        pin          'release n=trusty'
+        pin_priority '999'
+    end
+
+    template "/etc/apt/apt.conf.d/00defaultrelease" do
+        source "apt-conf-defaultrelease.erb"
+        owner "root"
+        group "root"
+        mode 00644
+    end
+
+    apt_repository "trusty" do
+        uri node['ubuntu']['archive_url']
+        distribution 'trusty'
+        components ["main"]
+    end
 
     ruby_block "initialize-graphite-config" do
         block do
@@ -31,7 +49,7 @@ if node['bcpc']['enabled']['metrics'] then
         end
     end
 
-    %w{python-whisper_0.9.12_all.deb python-carbon_0.9.12_all.deb python-graphite-web_0.9.12_all.deb}.each do |pkg|
+    %w{python-whisper_0.9.13_all.deb python-carbon_0.9.13_all.deb python-graphite-web_0.9.13_all.deb}.each do |pkg|
         cookbook_file "/tmp/#{pkg}" do
             source "bins/#{pkg}"
             owner "root"
@@ -45,7 +63,7 @@ if node['bcpc']['enabled']['metrics'] then
         end
     end
 
-    %w{python-pip python-cairo python-django python-django-tagging python-ldap python-twisted python-memcache}.each do |pkg|
+    %w{python-pip python-cairo python-django python-django-tagging python-ldap python-twisted python-memcache memcached python-mysqldb}.each do |pkg|
         package pkg do
             action :upgrade
         end
@@ -57,8 +75,8 @@ if node['bcpc']['enabled']['metrics'] then
         group "root"
         mode 00644
         variables(
-            :servers => get_head_nodes,
-            :min_quorum => get_head_nodes.length/2 + 1
+            :servers => search_nodes("recipe", "graphite"),
+            :min_quorum => search_nodes("recipe", "graphite").length/2 + 1
         )
         notifies :restart, "service[carbon-cache]", :delayed
         notifies :restart, "service[carbon-relay]", :delayed
@@ -85,7 +103,7 @@ if node['bcpc']['enabled']['metrics'] then
         owner "root"
         group "root"
         mode 00644
-        variables(:servers => get_head_nodes)
+        variables(:servers => search_nodes("recipe", "graphite"))
         notifies :restart, "service[carbon-relay]", :delayed
     end
 
@@ -116,7 +134,7 @@ if node['bcpc']['enabled']['metrics'] then
         owner "root"
         group "root"
         mode 00644
-        variables(:servers => get_head_nodes)
+        variables(:servers => search_nodes("recipe", "graphite"))
         notifies :restart, "service[apache2]", :delayed
     end
 
@@ -134,11 +152,11 @@ if node['bcpc']['enabled']['metrics'] then
 
     ruby_block "graphite-database-creation" do
         block do
-            if not system "mysql -uroot -p#{get_config('mysql-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['graphite']}\"'|grep \"#{node['bcpc']['dbname']['graphite']}\"" then
-                %x[ mysql -uroot -p#{get_config('mysql-root-password')} -e "CREATE DATABASE #{node['bcpc']['dbname']['graphite']};"
-                    mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['graphite']}.* TO '#{get_config('mysql-graphite-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-graphite-password')}';"
-                    mysql -uroot -p#{get_config('mysql-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['graphite']}.* TO '#{get_config('mysql-graphite-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-graphite-password')}';"
-                    mysql -uroot -p#{get_config('mysql-root-password')} -e "FLUSH PRIVILEGES;"
+            if not system "mysql -uroot -p#{get_config('mysql-monitoring-root-password')} -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['graphite']}\"'|grep \"#{node['bcpc']['dbname']['graphite']}\"" then
+                %x[ mysql -uroot -p#{get_config('mysql-monitoring-root-password')} -e "CREATE DATABASE #{node['bcpc']['dbname']['graphite']};"
+                    mysql -uroot -p#{get_config('mysql-monitoring-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['graphite']}.* TO '#{get_config('mysql-graphite-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-graphite-password')}';"
+                    mysql -uroot -p#{get_config('mysql-monitoring-root-password')} -e "GRANT ALL ON #{node['bcpc']['dbname']['graphite']}.* TO '#{get_config('mysql-graphite-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-graphite-password')}';"
+                    mysql -uroot -p#{get_config('mysql-monitoring-root-password')} -e "FLUSH PRIVILEGES;"
                 ]
                 self.notifies :run, "bash[graphite-database-sync]", :immediately
                 self.resolve_notification_references
