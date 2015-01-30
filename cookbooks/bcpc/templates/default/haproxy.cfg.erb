@@ -196,7 +196,7 @@ frontend https
   acl url_zabbix path_beg /zabbix
   use_backend zabbix-backend if url_zabbix
   acl url_graphite path_beg /graphite
-  use_backend graphite-backend if url_graphite
+  use_backend graphite-web-backend if url_graphite
   default_backend http-backend
 
 backend http-backend
@@ -242,20 +242,38 @@ backend zabbix-backend
   <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:7777 check inter 5s rise 1 fall 1" %>
 <% end -%>
 
-backend graphite-backend
+backend graphite-web-backend
   balance source
-  option httpchk GET /
+  option httpchk GET /composer/
   http-check expect status 200
   reqrep ^([^\ :]*)\ /graphite/(.*) \1\ /\2
-<% @servers.each do |server| -%>
+<% @graphite_servers.each do |server| -%>
   <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:8888 check inter 5s rise 1 fall 1" %>
 <% end -%>
 
 # This is temporary until graphite supports being served under /graphite
-frontend graphite
+frontend graphite-web
   bind <%="#{node['bcpc']['management']['vip']}:8888"%> ssl crt /etc/haproxy/haproxy.pem
   option tcplog
-  default_backend graphite-backend
+  default_backend graphite-web-backend
+
+listen graphite-carbon-relay-line <%=node['bcpc']['management']['vip']%>:2013
+  mode tcp
+  balance leastconn
+  option tcplog
+  option tcpka
+<% @graphite_servers.each do |server| -%>
+  <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:2013 check inter 5s rise 1 fall 1 observe layer4" %>
+<% end -%>
+
+listen graphite-carbon-relay-pickle <%=node['bcpc']['management']['vip']%>:2014
+  mode tcp
+  balance leastconn
+  option tcplog
+  option tcpka
+<% @graphite_servers.each do |server| -%>
+  <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:2014 check inter 5s rise 1 fall 1 observe layer4" %>
+<% end -%>
 
 listen elasticsearch <%=node['bcpc']['management']['vip']%>:9200
   balance source

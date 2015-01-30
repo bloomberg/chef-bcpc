@@ -11,7 +11,9 @@
       "recipe[bcpc::networking-link-test]",
       "recipe[bcpc::networking-gw-test]",
       "recipe[bcpc::networking-route-test]",
-      "recipe[bcpc::mysql-monitoring]"
+      "recipe[bcpc::mysql-monitoring]",
+      "recipe[bcpc::graphite]",
+      "recipe[bcpc::diamond]"
     ],
     "description": "Monitoring/Metrics/Logging node in a BCPC cluster",
     "chef_type": "role",

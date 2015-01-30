@@ -59,7 +59,8 @@ template "/etc/haproxy/haproxy.cfg" do
     mode 00644
     variables(
         :servers => get_head_nodes,
-        :all_servers => get_ceph_osd_nodes
+        :all_servers => get_ceph_osd_nodes,
+        :graphite_servers => search_nodes("recipe", "graphite")
     )
     notifies :restart, "service[haproxy]", :immediately
 end
