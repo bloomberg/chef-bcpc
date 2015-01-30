@@ -106,7 +106,7 @@ template "/var/lib/nova/.ssh/known_hosts" do
     owner "nova"
     group "nova"
     mode 00644
-    variables(:servers => get_all_nodes)
+    variables(:servers => search_nodes("recipe", "nova-work"))
 end
 
 template "/var/lib/nova/.ssh/id_rsa" do

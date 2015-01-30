@@ -65,7 +65,7 @@ end
 
 ruby_block "reap-ceph-disks-from-dead-servers" do
     block do
-        storage_ips = get_all_nodes.collect { |x| x['bcpc']['storage']['ip'] }
+        storage_ips = search_nodes("recipe", "ceph-work").collect { |x| x['bcpc']['storage']['ip'] }
         status = JSON.parse(%x[ceph osd dump --format=json])
         status['osds'].select { |x| x['up']==0 && x['in']==0 }.each do |osd|
             osd_ip = osd['public_addr'][/[^:]*/]
