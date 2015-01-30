@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::ceph-common"
+include_recipe "bcpc::ceph-apt"
+
 
 package "apache2" do
     action :upgrade
