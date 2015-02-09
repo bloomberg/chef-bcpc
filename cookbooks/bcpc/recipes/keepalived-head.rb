@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: bcpc
-# Recipe:: keepalived
+# Recipe:: keepalived-head
 #
 # Copyright 2013, Bloomberg Finance L.P.
 #
@@ -18,23 +18,13 @@
 #
 
 include_recipe "bcpc::default"
+include_recipe "bcpc::keepalived-common"
 
 ruby_block "initialize-keepalived-config" do
     block do
-        make_config('keepalived-router-id', (rand * 1000).to_i%254/2*2+1)
+        make_config('keepalived-router-id', generate_vrrp_vrid)
         make_config('keepalived-password', secure_password)
     end
-end
-
-package "keepalived" do
-    action :upgrade
-end
-
-template "/etc/keepalived/keepalived.conf" do
-    source "keepalived.conf.erb"
-    mode 00644
-    notifies :restart, "service[keepalived]", :delayed
-    notifies :restart, "service[keepalived]", :immediately
 end
 
 %w{if_vip if_not_vip vip_change vip_won vip_lost}.each do |script|
@@ -46,6 +36,8 @@ end
     end
 end
 
-service "keepalived" do
-    action [:enable, :start]
+template "/etc/keepalived/keepalived.conf" do
+    source "keepalived-head.conf.erb"
+    mode 00644
+    notifies :restart, "service[keepalived]", :immediately
 end

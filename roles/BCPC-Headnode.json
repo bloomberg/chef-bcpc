@@ -17,7 +17,7 @@
       "recipe[bcpc::rabbitmq]",
       "recipe[bcpc::389ds]",
       "recipe[bcpc::haproxy-head]",
-      "recipe[bcpc::keepalived]",
+      "recipe[bcpc::keepalived-head]",
       "recipe[bcpc::keystone]",
       "recipe[bcpc::glance]",
       "recipe[bcpc::cinder]",
