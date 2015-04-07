@@ -22,6 +22,8 @@ default['bcpc']['region_name'] = node.chef_environment
 default['bcpc']['domain_name'] = "bcpc.example.com"
 # Key if Cobalt+VMS is to be used
 default['bcpc']['vms_key'] = nil
+# Configurable ASN for Contrail
+default['bcpc']['contrail_asn'] = 64510
 
 ###########################################
 #
@@ -34,8 +36,6 @@ default['bcpc']['enabled']['logging'] = true
 default['bcpc']['enabled']['metrics'] = true
 # This will enable zabbix server on head nodes and zabbix agent on all nodes
 default['bcpc']['enabled']['monitoring'] = true
-# This will enable powerdns on head nodes
-default['bcpc']['enabled']['dns'] = true
 # This will enable iptables firewall on all nodes
 default['bcpc']['enabled']['host_firewall'] = true
 # This will enable of encryption of the chef data bag
@@ -50,6 +50,8 @@ default['bcpc']['enabled']['network_tests'] = true
 default['bcpc']['enabled']['radosgw_cache'] = false
 # This will enable using TPM-based hwrngd
 default['bcpc']['enabled']['tpm'] = false
+# This will enable an iptables NAT for Contrail (development ONLY)
+default['bcpc']['enabled']['contrail_dev_nat'] = true
 
 # This can be either 'sql' or 'ldap' to either store identities
 # in the mysql DB or the LDAP server
@@ -69,7 +71,6 @@ default['bcpc']['ceph']['enabled_pools'] = ["ssd", "hdd"]
 default['bcpc']['management']['interface'] = "eth0"
 default['bcpc']['storage']['interface'] = "eth1"
 default['bcpc']['floating']['interface'] = "eth2"
-default['bcpc']['fixed']['vlan_interface'] = node['bcpc']['floating']['interface']
 
 ###########################################
 #
@@ -124,8 +125,6 @@ default['bcpc']['management']['monitoring']['vip'] = "10.17.1.16"
 # to be set properly
 default['bcpc']['management']['interface-parent'] = nil
 
-default['bcpc']['metadata']['ip'] = "169.254.169.254"
-
 default['bcpc']['storage']['netmask'] = "255.255.255.0"
 default['bcpc']['storage']['cidr'] = "100.100.0.0/24"
 default['bcpc']['storage']['gateway'] = "100.100.0.1"
@@ -134,7 +133,6 @@ default['bcpc']['storage']['interface'] = nil
 # to be set properly
 default['bcpc']['storage']['interface-parent'] = nil
 
-default['bcpc']['floating']['vip'] = "192.168.43.15"
 default['bcpc']['floating']['netmask'] = "255.255.255.0"
 default['bcpc']['floating']['cidr'] = "192.168.43.0/24"
 default['bcpc']['floating']['gateway'] = "192.168.43.2"
@@ -143,12 +141,6 @@ default['bcpc']['floating']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
 default['bcpc']['floating']['interface-parent'] = nil
-
-default['bcpc']['fixed']['cidr'] = "1.127.0.0/16"
-default['bcpc']['fixed']['vlan_start'] = "1000"
-default['bcpc']['fixed']['num_networks'] = "100"
-default['bcpc']['fixed']['network_size'] = "256"
-default['bcpc']['fixed']['dhcp_lease_time'] = "120"
 
 default['bcpc']['ntp_servers'] = ["pool.ntp.org"]
 default['bcpc']['dns_servers'] = ["8.8.8.8", "8.8.4.4"]
@@ -171,6 +163,11 @@ default['bcpc']['repos']['fluentd'] = "http://packages.treasure-data.com/precise
 default['bcpc']['repos']['ceph-apache'] = "http://gitbuilder.ceph.com/apache2-deb-precise-x86_64-basic/ref/master"
 default['bcpc']['repos']['ceph-fcgi'] = "http://gitbuilder.ceph.com/libapache-mod-fastcgi-deb-precise-x86_64-basic/ref/master"
 default['bcpc']['repos']['gridcentric'] = "http://downloads.gridcentric.com/packages/%s/%s/ubuntu"
+default['bcpc']['repos']['cassandra'] = "http://www.apache.org/dist/cassandra/debian"
+default['bcpc']['repos']['redis-server'] = "http://ppa.launchpad.net/chris-lea/redis-server/ubuntu"
+default['bcpc']['repos']['python-hiredis'] = "http://ppa.launchpad.net/chris-lea/python-hiredis/ubuntu"
+default['bcpc']['repos']['python-redis'] = "http://ppa.launchpad.net/chris-lea/python-redis/ubuntu"
+default['bcpc']['repos']['contrail'] = "http://ppa.launchpad.net/opencontrail/ppa/ubuntu"
 
 ###########################################
 #
@@ -202,7 +199,6 @@ default['bcpc']['dbname']['keystone'] = "keystone"
 default['bcpc']['dbname']['heat'] = "heat"
 default['bcpc']['dbname']['ceilometer'] = "ceilometer"
 default['bcpc']['dbname']['graphite'] = "graphite"
-default['bcpc']['dbname']['pdns'] = "pdns"
 default['bcpc']['dbname']['zabbix'] = "zabbix"
 
 default['bcpc']['admin_tenant'] = "AdminTenant"
@@ -215,14 +211,15 @@ default['bcpc']['zabbix']['group'] = "adm"
 
 default['bcpc']['ports']['apache']['radosgw'] = 80
 default['bcpc']['ports']['apache']['radosgw_https'] = 443
-default['bcpc']['ports']['haproxy']['radosgw'] = 80
-default['bcpc']['ports']['haproxy']['radosgw_https'] = 443
+default['bcpc']['ports']['haproxy']['radosgw'] = 10080
+default['bcpc']['ports']['haproxy']['radosgw_https'] = 10443
 
 # Can be set to 'http' or 'https'
 default['bcpc']['protocol']['keystone'] = "https"
 default['bcpc']['protocol']['glance'] = "https"
 default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
+default['bcpc']['protocol']['neutron'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
 
 # Hour for the cron job to run keystone_token_cleaner script which

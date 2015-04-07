@@ -7,7 +7,7 @@ import sys
 
 aws_key = '<%=get_config('radosgw-test-access-key')%>'
 secret = '<%=get_config('radosgw-test-secret-key')%>'
-server = '<%=node['bcpc']['floating']['vip']%>:<%=node['bcpc']['ports']['haproxy']['radosgw']%>'
+server = '<%=node['bcpc']['management']['vip']%>:<%=node['bcpc']['ports']['haproxy']['radosgw']%>'
  
 url = 'http://%s/admin/usage?format=json' % server
 r = requests.get(url, auth=S3Auth(aws_key, secret, server))

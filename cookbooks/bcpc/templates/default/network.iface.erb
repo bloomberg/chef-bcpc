@@ -7,9 +7,21 @@
 auto <%= @interface %>
 iface <%= @interface %> inet static
  address <%= @ip %>
+<% if @netmask %>
  netmask <%= @netmask %>
+<% end %>
+<% if @gateway %>
  gateway <%= @gateway %>
+<% end %>
+<% if @metric %>
  metric <%= @metric %>
+<% end %>
+<% if @up %>
+ up <%= @up %>
+<% end %>
+<% if @down %>
+ down <%= @down %>
+<% end %>
 <% if @mtu %>
  mtu <%= @mtu %>
 <% end %>

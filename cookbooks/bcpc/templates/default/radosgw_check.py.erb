@@ -8,7 +8,7 @@ secret_key = '<%=get_config('radosgw-admin-secret-key')%>'
 conn = boto.connect_s3(
  aws_access_key_id = access_key,
  aws_secret_access_key = secret_key,
- host = '<%=node['bcpc']['floating']['vip']%>',
+ host = '<%=node['bcpc']['management']['vip']%>',
  port = <%=node['bcpc']['ports']['haproxy']['radosgw']%>,
  is_secure=False,
  #debug = 10,

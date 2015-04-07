@@ -28,27 +28,6 @@ ip route add <%=@node["bcpc"]["management"]["cidr"]%> \
          scope link src <%=@node["bcpc"]["management"]["ip"]%> \
          table mgmt
 
-# Move the local table ip rule up further in the list
-ip rule add from all lookup local pref 0
-ip rule del pref 1000
-ip rule add from all lookup local pref 1000
-# Intentionally duplicated in case there are two present
-ip rule del pref 0
-ip rule del pref 0
-
-# Prevent any fixed network traffic from seeing our management and storage
-# by skipping past the local table and using the main routing table
-ip rule del pref 100
-ip rule del pref 200
-ip rule add from <%=@node["bcpc"]["fixed"]["cidr"]%> to <%=@node["bcpc"]["management"]["cidr"]%> pref 100 table main
-ip rule add from <%=@node["bcpc"]["fixed"]["cidr"]%> to <%=@node["bcpc"]["storage"]["cidr"]%> pref 200 table main
-
-# Let traffic to/from fixed IPs route via main table
-ip rule del pref 9000
-ip rule del pref 9001
-ip rule add from <%=@node["bcpc"]["fixed"]["cidr"]%> pref 9000 table main
-ip rule add to <%=@node["bcpc"]["fixed"]["cidr"]%> pref 9001 table main
-
 # Activate this routing table for management traffic
 ip rule del pref 10000
 ip rule del pref 10001

@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: bcpc
-# Recipe:: nova-head
+# Recipe:: nova-work
 #
 # Copyright 2013, Bloomberg Finance L.P.
 #
@@ -24,7 +24,7 @@ package "nova-compute-#{node['bcpc']['virt_type']}" do
     action :upgrade
 end
 
-%w{nova-api nova-network nova-compute nova-novncproxy}.each do |pkg|
+%w{nova-api nova-compute nova-novncproxy}.each do |pkg|
     package pkg do
         action :upgrade
     end

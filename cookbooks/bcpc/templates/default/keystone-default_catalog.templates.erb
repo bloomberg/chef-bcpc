@@ -9,9 +9,9 @@ catalog.<%=node['bcpc']['region_name']%>.identity.adminURL = <%=node['bcpc']['pr
 catalog.<%=node['bcpc']['region_name']%>.identity.internalURL = <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0
 catalog.<%=node['bcpc']['region_name']%>.identity.name = Identity Service
 
-catalog.<%=node['bcpc']['region_name']%>.object-store.publicURL = http://<%=node['bcpc']['floating']['vip']%>/swift/v1
-catalog.<%=node['bcpc']['region_name']%>.object-store.adminURL = http://<%=node['bcpc']['floating']['vip']%>/swift/v1
-catalog.<%=node['bcpc']['region_name']%>.object-store.internalURL = http://<%=node['bcpc']['floating']['vip']%>/swift/v1
+catalog.<%=node['bcpc']['region_name']%>.object-store.publicURL = http://<%=node['bcpc']['management']['vip']%>:<%=node['bcpc']['ports']['haproxy']['radosgw']%>/swift/v1
+catalog.<%=node['bcpc']['region_name']%>.object-store.adminURL = http://<%=node['bcpc']['management']['vip']%>:<%=node['bcpc']['ports']['haproxy']['radosgw']%>/swift/v1
+catalog.<%=node['bcpc']['region_name']%>.object-store.internalURL = http://<%=node['bcpc']['management']['vip']%>:<%=node['bcpc']['ports']['haproxy']['radosgw']%>/swift/v1
 catalog.<%=node['bcpc']['region_name']%>.object-store.name = Object Store Service
 
 catalog.<%=node['bcpc']['region_name']%>.image.publicURL = <%=node['bcpc']['protocol']['glance']%>://<%=node['bcpc']['management']['vip']%>:9292/v1
@@ -49,7 +49,7 @@ catalog.<%=node['bcpc']['region_name']%>.cloudformation.name = Cloudformation Se
 # catalog.<%=node['bcpc']['region_name']%>.metering.internalURL = <%=node['bcpc']['protocol']['ceilometer']%>://<%=node['bcpc']['management']['vip']%>:8777/
 # catalog.<%=node['bcpc']['region_name']%>.metering.name = Metering Service
 
-# catalog.<%=node['bcpc']['region_name']%>.network.publicURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
-# catalog.<%=node['bcpc']['region_name']%>.network.adminURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
-# catalog.<%=node['bcpc']['region_name']%>.network.internalURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
-# catalog.<%=node['bcpc']['region_name']%>.network.name = Networking Service
+catalog.<%=node['bcpc']['region_name']%>.network.publicURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
+catalog.<%=node['bcpc']['region_name']%>.network.adminURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
+catalog.<%=node['bcpc']['region_name']%>.network.internalURL = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696/
+catalog.<%=node['bcpc']['region_name']%>.network.name = Networking Service

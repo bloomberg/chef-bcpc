@@ -28,6 +28,7 @@ include_recipe "bcpc::nova-common"
         action [:enable, :start]
         subscribes :restart, "template[/etc/nova/nova.conf]", :delayed
         subscribes :restart, "template[/etc/nova/api-paste.ini]", :delayed
+        subscribes :restart, "template[/etc/nova/policy.json]", :delayed
     end
 end
 
@@ -70,4 +71,3 @@ ruby_block "reap-dead-servers-from-nova" do
 end
 
 include_recipe "bcpc::nova-work"
-include_recipe "bcpc::nova-setup"

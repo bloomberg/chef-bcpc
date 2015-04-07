@@ -29,9 +29,7 @@ s3_host=<%=node['bcpc']['management']['vip']%>
 ec2_listen=<%= node['bcpc']['management']['ip'] %>
 ec2_host=<%=node['bcpc']['management']['vip']%>
 osapi_compute_listen=<%= node['bcpc']['management']['ip'] %>
-metadata_listen=169.254.169.254
-metadata_host=169.254.169.254
-dmz_cidr=169.254.169.254/32
+metadata_listen=127.0.0.1
 <% if @servers.include?(node) -%>
 enabled_apis=ec2,osapi_compute,metadata
 <% else -%>
@@ -48,29 +46,17 @@ ram_allocation_ratio=<%=node['bcpc']['nova']['ram_allocation_ratio']%>
 reserved_host_memory_mb=<%=node['bcpc']['nova']['reserved_host_memory_mb']%>
 cpu_allocation_ratio=<%=node['bcpc']['nova']['cpu_allocation_ratio']%>
 
-# Nova Network settings
-network_manager=nova.network.manager.VlanManager
-firewall_driver=nova.virt.libvirt.firewall.IptablesFirewallDriver
-allow_same_net_traffic=False
-public_interface=<%=node['bcpc']['floating']['interface']%>
-vlan_interface=<%=node['bcpc']['fixed']['vlan_interface']%>
-vlan_start=<%=node['bcpc']['fixed']['vlan_start']%>
-multi_host=True
-fixed_range=<%=node['bcpc']['fixed']['cidr']%>
-floating_range=<%=node['bcpc']['floating']['cidr']%>
-network_size=<%=node['bcpc']['fixed']['network_size']%>
-flat_network_dns=<%=node['bcpc']['management']['vip']%>
-dhcpbridge_flagfile=/etc/nova/nova.conf
-dhcpbridge=/usr/bin/nova-dhcpbridge
-force_dhcp_release=False
-share_dhcp_address=True
-teardown_unused_network_gateway=True
-fixed_ip_disassociate_timeout=30
-dhcp_lease_time=<%=node['bcpc']['fixed']['dhcp_lease_time']%>
-send_arp_for_ha=True
-my_ip=<%=node['bcpc']['management']['ip']%>
-routing_source_ip=<%=node['bcpc']['floating']['ip']%>
-dhcp_domain=<%=node['bcpc']['domain_name']%>
+# Neutron settings
+network_api_class=nova.network.neutronv2.api.API
+libvirt_vif_driver = nova_contrail_vif.contrailvif.VRouterVIFDriver
+neutron_ca_certificates_file = /etc/ssl/certs/ssl-bcpc.pem
+neutron_admin_auth_url = <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0/
+neutron_admin_tenant_name = <%=node['bcpc']['admin_tenant']%>
+neutron_admin_username = <%=get_config('keystone-admin-user')%>
+neutron_admin_password = <%=get_config('keystone-admin-password')%>
+neutron_url = <%=node['bcpc']['protocol']['neutron']%>://<%=node['bcpc']['management']['vip']%>:9696
+service_neutron_metadata_proxy = true
+neutron_metadata_proxy_shared_secret = <%=get_config('contrail-metadata-secret')%>
 default_availability_zone=<%=node['bcpc']['region_name']%>
 
 # Nova Compute settings
