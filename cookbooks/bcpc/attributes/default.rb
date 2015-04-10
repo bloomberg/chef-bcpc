@@ -50,6 +50,8 @@ default['bcpc']['enabled']['network_tests'] = true
 default['bcpc']['enabled']['radosgw_cache'] = false
 # This will enable using TPM-based hwrngd
 default['bcpc']['enabled']['tpm'] = false
+# This will enable using CPU frequency governors
+default['bcpc']['enabled']['cpu_governor'] = false
 
 # This can be either 'sql' or 'ldap' to either store identities
 # in the mysql DB or the LDAP server
