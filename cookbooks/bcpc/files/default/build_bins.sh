@@ -67,6 +67,18 @@ if [[ -f ./proxy_setup.sh ]]; then
   . ./proxy_setup.sh
 fi
 
+PROXY_INFO_FILE="/home/vagrant/proxy_info.sh"
+if [[ -f $PROXY_INFO_FILE ]]; then
+  . $PROXY_INFO_FILE
+fi
+
+# define calling gem with a proxy if necessary
+if [[ -z $http_proxy ]]; then
+    GEM_PROXY=""
+else
+    GEM_PROXY="-p $http_proxy"
+fi
+
 
 # we now define CURL previously in proxy_setup.sh (called from
 # setup_chef_server which calls this script. Default definition is
