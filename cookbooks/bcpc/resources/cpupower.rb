@@ -22,3 +22,10 @@ default_action :set
 
 attribute :name, :name_attribute => true, :kind_of => String, :required => true
 attribute :governor, :kind_of => String, :required => true
+attribute :ondemand_ignore_nice_load, :kind_of => Integer, :default => nil
+attribute :ondemand_io_is_busy, :kind_of => Integer, :default => nil
+attribute :ondemand_powersave_bias, :kind_of => Integer, :default => nil
+attribute :ondemand_sampling_down_factor, :kind_of => Integer, :default => nil
+attribute :ondemand_sampling_rate, :kind_of => Integer, :default => nil
+attribute :ondemand_sampling_rate_min, :kind_of => Integer, :default => nil
+attribute :ondemand_up_threshold, :kind_of => Integer, :default => nil

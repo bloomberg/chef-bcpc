@@ -281,13 +281,15 @@ default['bcpc']['mysql-head']['max_connections'] = 0
 ###########################################
 #
 # Available options: conservative, ondemand, userspace, powersave, performance
-# Different states (cribbed from https://wiki.archlinux.org/index.php/CPU_frequency_scaling):
-# - ondemand: Dynamically switch between CPU(s) available if at 95% cpu load
-# - performance: Run the cpu at max frequency
-# - conservative: Dynamically switch between CPU(s) available if at 75% load
-# - powersave: Run the cpu at the minimum frequency
-# - userspace: Run the cpu at user specified frequencies
+# Review documentation at https://www.kernel.org/doc/Documentation/cpu-freq/governors.txt
 default['bcpc']['cpupower']['governor'] = "ondemand"
+default['bcpc']['cpupower']['ondemand_ignore_nice_load'] = nil
+default['bcpc']['cpupower']['ondemand_io_is_busy'] = nil
+default['bcpc']['cpupower']['ondemand_powersave_bias'] = nil
+default['bcpc']['cpupower']['ondemand_sampling_down_factor'] = nil
+default['bcpc']['cpupower']['ondemand_sampling_rate'] = nil
+default['bcpc']['cpupower']['ondemand_sampling_rate_min'] = nil
+default['bcpc']['cpupower']['ondemand_up_threshold'] = nil
 
 ###########################################
 #

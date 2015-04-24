@@ -34,5 +34,12 @@ service "cpufrequtils" do
 end
 
 bcpc_cpupower "cpu governor" do
-  governor node['bcpc']['cpupower']['governor']
+  governor                      node['bcpc']['cpupower']['governor']
+  ondemand_ignore_nice_load     node['bcpc']['cpupower']['ondemand_ignore_nice_load']
+  ondemand_io_is_busy           node['bcpc']['cpupower']['ondemand_io_is_busy']
+  ondemand_powersave_bias       node['bcpc']['cpupower']['ondemand_powersave_bias']
+  ondemand_sampling_down_factor node['bcpc']['cpupower']['ondemand_sampling_down_factor']
+  ondemand_sampling_rate        node['bcpc']['cpupower']['ondemand_sampling_rate']
+  ondemand_sampling_rate_min    node['bcpc']['cpupower']['ondemand_sampling_rate_min']
+  ondemand_up_threshold         node['bcpc']['cpupower']['ondemand_up_threshold']
 end
