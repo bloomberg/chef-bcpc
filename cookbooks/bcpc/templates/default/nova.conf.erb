@@ -33,6 +33,7 @@ osapi_compute_listen=<%= node['bcpc']['management']['ip'] %>
 osapi_compute_workers=<%=node['bcpc']['nova']['workers']%>
 metadata_listen=169.254.169.254
 metadata_host=169.254.169.254
+vendordata_driver = nova.api.metadata.bcpc_metadata.BcpcMetadata
 metadata_workers=<%=node['bcpc']['nova']['workers']%>
 dmz_cidr=169.254.169.254/32
 <% if @servers.include?(node) -%>

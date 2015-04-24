@@ -233,4 +233,14 @@ cron "restart-nova-kludge" do
   minute '*/5'   # run this every 5 mins
 end
 
+cookbook_file "/usr/share/pyshared/nova/api/metadata/bcpc_metadata.py" do
+  source "bcpc_metadata.py"
+  owner "root"
+  mode 00644
+end
+
+link "/usr/lib/python2.7/dist-packages/nova/api/metadata/bcpc_metadata.py" do
+  to "/usr/share/pyshared/nova/api/metadata/bcpc_metadata.py"
+end
+
 include_recipe "bcpc::cobalt"
