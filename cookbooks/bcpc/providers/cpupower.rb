@@ -44,6 +44,7 @@ action :set do
     Chef::Log.warn("\nThis system is misconfigured and is missing a scaling governor at #{cpu0_gov_file}, please configure the power profile in the BIOS for OS control")
   end
 
+  # TODO: short-circuit out here if ondemand_tunable_dir doesn't exist)
   %w{ondemand_ignore_nice_load
      ondemand_io_is_busy
      ondemand_powersave_bias
@@ -92,6 +93,7 @@ action :set do
     end
 
     # walk through the ondemand tunable attributes, setting any that are provided in the resource and ignoring those that are not
+    # TODO: short-circuit out here if ondemand_tunable_dir doesn't exist)
     %w{ondemand_ignore_nice_load
        ondemand_io_is_busy
        ondemand_powersave_bias
