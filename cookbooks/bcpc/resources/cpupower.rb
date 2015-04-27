@@ -27,5 +27,4 @@ attribute :ondemand_io_is_busy, :kind_of => Integer, :default => nil
 attribute :ondemand_powersave_bias, :kind_of => Integer, :default => nil
 attribute :ondemand_sampling_down_factor, :kind_of => Integer, :default => nil
 attribute :ondemand_sampling_rate, :kind_of => Integer, :default => nil
-attribute :ondemand_sampling_rate_min, :kind_of => Integer, :default => nil
 attribute :ondemand_up_threshold, :kind_of => Integer, :default => nil

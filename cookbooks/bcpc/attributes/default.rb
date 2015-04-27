@@ -288,7 +288,6 @@ default['bcpc']['cpupower']['ondemand_io_is_busy'] = nil
 default['bcpc']['cpupower']['ondemand_powersave_bias'] = nil
 default['bcpc']['cpupower']['ondemand_sampling_down_factor'] = nil
 default['bcpc']['cpupower']['ondemand_sampling_rate'] = nil
-default['bcpc']['cpupower']['ondemand_sampling_rate_min'] = nil
 default['bcpc']['cpupower']['ondemand_up_threshold'] = nil
 
 ###########################################

@@ -40,6 +40,5 @@ bcpc_cpupower "cpu governor" do
   ondemand_powersave_bias       node['bcpc']['cpupower']['ondemand_powersave_bias']
   ondemand_sampling_down_factor node['bcpc']['cpupower']['ondemand_sampling_down_factor']
   ondemand_sampling_rate        node['bcpc']['cpupower']['ondemand_sampling_rate']
-  ondemand_sampling_rate_min    node['bcpc']['cpupower']['ondemand_sampling_rate_min']
   ondemand_up_threshold         node['bcpc']['cpupower']['ondemand_up_threshold']
 end
