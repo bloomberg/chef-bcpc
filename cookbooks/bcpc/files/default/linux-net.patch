@@ -1,0 +1,31 @@
+--- linux_net.py	2015-02-05 23:13:41.500241036 -0500
++++ linux_net_new.py	2015-02-06 00:45:04.073408981 -0500
+@@ -1162,14 +1162,18 @@
+     _execute(*cmd, run_as_root=True)
+ 
+ 
++def _fixed_ip_to_hostname(fixedip):
++    return "ip-" + str(fixedip.address).replace(".", "-")
++    
+ def _host_lease(fixedip):
+     """Return a host string for an address in leasefile format."""
+     timestamp = timeutils.utcnow()
+     seconds_since_epoch = calendar.timegm(timestamp.utctimetuple())
++
+     return '%d %s %s %s *' % (seconds_since_epoch + CONF.dhcp_lease_time,
+                               fixedip.virtual_interface.address,
+                               fixedip.address,
+-                              fixedip.instance.hostname or '*')
++                              _fixed_ip_to_hostname(fixedip) or '*')
+ 
+ 
+ def _host_dhcp_network(data):
+@@ -1186,7 +1190,7 @@
+                                'net:' + _host_dhcp_network(fixedip))
+     else:
+         return '%s,%s.%s,%s' % (fixedip.virtual_interface.address,
+-                               fixedip.instance.hostname,
++                                _fixed_ip_to_hostname(fixedip),
+                                CONF.dhcp_domain,
+                                fixedip.address)
+ 
