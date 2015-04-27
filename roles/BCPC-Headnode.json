@@ -27,7 +27,8 @@
       "recipe[bcpc::heat]",
       "recipe[bcpc::horizon]",
       "role[BCPC-Worknode]",
-      "recipe[bcpc::checks-head]"
+      "recipe[bcpc::checks-head]",
+      "recipe[bcpc::rally-keystone-populate]"
     ],
     "description": "A highly-available head node in a BCPC cluster",
     "chef_type": "role",

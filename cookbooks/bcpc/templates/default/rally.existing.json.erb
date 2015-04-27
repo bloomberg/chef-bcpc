@@ -1,0 +1,13 @@
+{
+    "type": "ExistingCloud",
+    "auth_url": "<%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000/v2.0/",
+    "region_name": "<%=node['bcpc']['region_name']%>",
+    "endpoint_type": "public",
+    "admin": {
+        "username": '<%=get_config('keystone-admin-user')%>',
+        "password": '<%=get_config('keystone-admin-password')%>',
+        "tenant_name": "<%=node['bcpc']['admin_tenant']%>"
+    },
+    "https_insecure": False,
+    "https_cacert": "/etc/ssl/certs/ssl-bcpc.pem",
+}
