@@ -14,6 +14,7 @@
       "recipe[bcpc::networking-route-test]",
       "recipe[bcpc::ceph-head]",
       "recipe[bcpc::mysql-head]",
+      "recipe[bcpc::powerdns]",
       "recipe[bcpc::rabbitmq]",
       "recipe[bcpc::389ds]",
       "recipe[bcpc::haproxy-head]",
@@ -22,9 +23,9 @@
       "recipe[bcpc::glance]",
       "recipe[bcpc::cinder]",
       "recipe[bcpc::nova-head]",
+      "recipe[bcpc::powerdns-nova]",
       "recipe[bcpc::heat]",
       "recipe[bcpc::horizon]",
-      "recipe[bcpc::powerdns]",
       "role[BCPC-Worknode]",
       "recipe[bcpc::checks-head]"
     ],

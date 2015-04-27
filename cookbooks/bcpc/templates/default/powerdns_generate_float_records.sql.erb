@@ -1,0 +1,72 @@
+-- insert A record for the root of the cluster domain
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=@domain_name%>'), '<%=@domain_name%>', 'A', '<%=@management_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM <%=@database_name%>.domains WHERE name='<%=@domain_name%>'), name='<%=@domain_name%>', type='A', content='<%=@management_vip%>', bcpc_record_type='STATIC';
+
+-- insert NS/SOA records for the cluster domain and reverse DNS domains
+-- there is an unfortunate side effect of the update timestamp being included in the content field of the SOA records that causes these INSERTs to circumvent the duplicate detection,
+-- so we must delete the old ones after these are inserted
+-- MySQL does not allow deleting from a table and selecting from that same table in a subquery, so ids of old SOA records are written to a temporary table, records are deleted,
+-- then the temporary table is cleaned up
+CREATE TEMPORARY TABLE soa_records_to_delete_<%=@update_timestamp%> (id int);
+<% [@domain_name, @reverse_float_zone, @reverse_fixed_zone].each do |zone| %>
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'NS', '<%=@management_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), name='<%=zone%>', type='NS', content='<%=@management_vip%>', bcpc_record_type='STATIC';
+
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'SOA', '<%=@domain_name%> root.<%=@domain_name%> <%=@update_timestamp%>', 'static')
+    ON DUPLICATE KEY UPDATE domain_id=(select id from <%=@database_name%>.domains where name='<%=zone%>'), name='<%=zone%>', type='soa', content='<%=@domain_name%> root.<%=@domain_name%> <%=@update_timestamp%>', bcpc_record_type='STATIC';
+
+INSERT INTO soa_records_to_delete_<%=@update_timestamp%> SELECT id FROM <%=@database_name%>.records WHERE type='SOA' AND name='<%=zone%>' AND id < (SELECT max(id) FROM <%=@database_name%>.records WHERE type='SOA' AND name='<%=zone%>');
+<% end %>
+DELETE FROM <%=@database_name%>.records WHERE id IN (SELECT id FROM soa_records_to_delete_<%=@update_timestamp%>);
+
+-- insert A records for all BCPC physical hosts
+<% @all_servers.each do |server| %>
+<% s_hostname = server['hostname'] %>
+<% s_management_ip = server['bcpc']['management']['ip'] %>
+<% s_floating_ip = server['bcpc']['floating']['ip'] %>
+-- insert A records for BCPC host <%=s_hostname%>
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), '<%=s_hostname%>.<%=@domain_name%>', 'A', '<%=s_management_ip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='<%=s_hostname%>.<%=@domain_name%>', type='A', content='<%=s_management_ip%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), '<%=s_hostname%>-shared.<%=@domain_name%>', 'A' , '<%=s_floating_ip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='<%=s_hostname%>-shared.<%=@domain_name%>', type='A', content='<%=s_floating_ip%>', bcpc_record_type='STATIC';
+<% end %>
+
+-- insert A records for certain management/monitoring functions
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), 'openstack.<%=@domain_name%>', 'A', '<%=@management_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='openstack.<%=@domain_name%>', type='A', content='<%=@management_vip%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), 'zabbix.<%=@domain_name%>', 'A', '<%=@management_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='zabbix.<%=@domain_name%>', type='A', content='<%=@management_vip%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), 'graphite.<%=@domain_name%>', 'A', '<%=@management_monitoring_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='graphite.<%=@domain_name%>', type='A', content='<%=@management_monitoring_vip%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), 'kibana.<%=@domain_name%>', 'A', '<%=@management_monitoring_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='kibana.<%=@domain_name%>', type='A', content='<%=@management_monitoring_vip%>', bcpc_record_type='STATIC';
+-- insert A record and CNAME for object storage
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), 's3.<%=@domain_name%>', 'A', '<%=@floating_vip%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='s3.<%=@domain_name%>', type='A', content='<%=@floating_vip%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), '*.s3.<%=@domain_name%>', 'CNAME', 's3.<%=@domain_name%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='*.s3.<%=@domain_name%>', type='CNAME', content='s3.<%=@domain_name%>', bcpc_record_type='STATIC';
+
+-- insert A and PTR records for every floating IP in this cluster's range
+<% @float_cidr.to_range.each do |ip| %>
+<% s_hostname = "public-" + ip.to_s.gsub(".", "-") + "." + @domain_name %>
+<% reverse_name = ip.reverse %>
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@domain_name%>'), '<%=s_hostname%>', 'A', '<%=ip.to_s%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name='<%=s_hostname%>', type='A', content='<%=ip.to_s%>', bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+    ((SELECT id FROM domains WHERE name='<%=@reverse_float_zone%>'), '<%=reverse_name%>', 'PTR', '<%=s_hostname%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@reverse_float_zone%>'), name='<%=reverse_name%>', type='PTR', content='<%=s_hostname%>', bcpc_record_type='STATIC';
+<% end %>
+
+-- fixed IPs are inserted by another template (look at powerdns-nova recipe)

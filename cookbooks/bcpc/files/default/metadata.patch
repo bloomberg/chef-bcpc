@@ -1,0 +1,61 @@
+--- base.py	2015-01-16 16:36:23.678465904 -0500
++++ base_new.py	2015-02-06 00:53:37.868255853 -0500
+@@ -216,7 +216,6 @@
+         if version not in VERSIONS:
+             raise InvalidMetadataVersion(version)
+ 
+-        hostname = self._get_hostname()
+ 
+         floating_ips = self.ip_info['floating_ips']
+         floating_ip = floating_ips and floating_ips[0] or ''
+@@ -231,7 +230,7 @@
+             'ami-launch-index': self.instance['launch_index'],
+             'ami-manifest-path': 'FIXME',
+             'instance-id': self.ec2_ids['instance-id'],
+-            'hostname': hostname,
++            'hostname': self._get_private_hostname(),
+             'local-ipv4': self.address or fixed_ip,
+             'reservation-id': self.instance['reservation_id'],
+             'security-groups': fmt_sgroups}
+@@ -251,8 +250,14 @@
+                       'openssh-key': self.instance['key_data']}}
+ 
+         if self._check_version('2007-01-19', version):
+-            meta_data['local-hostname'] = hostname
+-            meta_data['public-hostname'] = hostname
++            meta_data['local-hostname'] = self._get_private_hostname()
++            if floating_ip:            
++                meta_data['public-hostname'] = "%s%s%s" % ("public-" + (floating_ip.replace(".", "-")),
++                                                           '.' if CONF.dhcp_domain else '',
++                                                           CONF.dhcp_domain)
++            else:
++                meta_data['public-hostname'] = ''
++                                                           
+             meta_data['public-ipv4'] = floating_ip
+ 
+         if False and self._check_version('2007-03-01', version):
+@@ -311,7 +316,7 @@
+             metadata['public_keys'] = {
+                 self.instance['key_name']: self.instance['key_data']
+             }
+-        metadata['hostname'] = self._get_hostname()
++        metadata['hostname'] = self._get_private_hostname()
+         metadata['name'] = self.instance['display_name']
+         metadata['launch_index'] = self.instance['launch_index']
+         metadata['availability_zone'] = self.availability_zone
+@@ -361,10 +366,11 @@
+     def _check_os_version(self, required, requested):
+         return self._check_version(required, requested, OPENSTACK_VERSIONS)
+ 
+-    def _get_hostname(self):
+-        return "%s%s%s" % (self.instance['hostname'],
+-                           '.' if CONF.dhcp_domain else '',
+-                           CONF.dhcp_domain)
++    def _get_private_hostname(self):
++        fixed_ips = self.ip_info['fixed_ips']
++        fixed_ip = fixed_ips and fixed_ips[0] or ''        
++        local_ipv4  = self.address or fixed_ip
++        return "ip-%s" %(local_ipv4.replace(".", "-"))
+ 
+     def lookup(self, path):
+         if path == "" or path[0] != "/":

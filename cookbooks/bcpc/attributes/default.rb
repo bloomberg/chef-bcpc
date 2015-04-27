@@ -273,6 +273,22 @@ default['bcpc']['routemon']['numfixes'] = 0
 # If set to 0, max_connections for MySQL on heads will default to an
 # auto-calculated value.
 default['bcpc']['mysql-head']['max_connections'] = 0
+
+###########################################
+#
+# CPU governor settings
+#
+###########################################
+#
+# Available options: conservative, ondemand, userspace, powersave, performance
+# Different states (cribbed from https://wiki.archlinux.org/index.php/CPU_frequency_scaling):
+# - ondemand: Dynamically switch between CPU(s) available if at 95% cpu load
+# - performance: Run the cpu at max frequency
+# - conservative: Dynamically switch between CPU(s) available if at 75% load
+# - powersave: Run the cpu at the minimum frequency
+# - userspace: Run the cpu at user specified frequencies
+default['bcpc']['cpupower']['governor'] = "ondemand"
+
 ###########################################
 #
 # Elasticsearch settings
@@ -281,3 +297,22 @@ default['bcpc']['mysql-head']['max_connections'] = 0
 #
 # Package version to pin to
 default['bcpc']['elasticsearch']['version'] = '1.5.1'
+
+###########################################
+#
+# Kibana settings
+#
+###########################################
+#
+# Package version to pin to
+default['bcpc']['kibana']['version'] = '4.0.2'
+
+###########################################
+#
+# Graphite settings
+#
+###########################################
+#
+# Default retention rates
+# http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf
+default['bcpc']['graphite']['retention'] = '60s:1d'

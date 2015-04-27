@@ -52,6 +52,8 @@ frontend https
   stats realm Haproxy\ Statistics
   stats auth <%=get_config('haproxy-stats-user')%>:<%=get_config('haproxy-stats-password')%>
   reqadd X-Forwarded-Protocol:\ https
+  acl kibana_missing_slash path_reg ^/kibana[^/]*$
+  redirect code 301 prefix / append-slash if kibana_missing_slash
   acl url_kibana path_beg /kibana
   use_backend kibana-backend if url_kibana
   acl url_elasticsearch path_beg /elasticsearch

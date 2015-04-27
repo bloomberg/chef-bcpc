@@ -233,4 +233,46 @@ cron "restart-nova-kludge" do
   minute '*/5'   # run this every 5 mins
 end
 
+cookbook_file "/tmp/metadata.patch" do
+    source "metadata.patch"
+    owner "root"
+    mode 0644
+end
+
+bash "patch-for-ip-hostnames-metadata" do
+    user "root"
+    code <<-EOH
+        cd /usr/lib/python2.7/dist-packages/nova/api/metadata/
+        patch < /tmp/metadata.patch
+        rv=$?
+        if [ $rv -ne 0 ]; then
+          echo "Error applying patch ($rv) - aborting!"
+          exit $rv
+        fi
+        cp /tmp/metadata.patch .
+    EOH
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/api/metadata/metadata.patch"
+end
+
+cookbook_file "/tmp/linux-net.patch" do
+    source "linux-net.patch"
+    owner "root"
+    mode 0644
+end
+
+bash "patch-for-ip-hostnames-networking" do
+    user "root"
+    code <<-EOH
+        cd /usr/lib/python2.7/dist-packages/nova/network/
+        patch < /tmp/linux-net.patch
+        rv=$?
+        if [ $rv -ne 0 ]; then
+          echo "Error applying patch ($rv) - aborting!"
+          exit $rv
+        fi
+        cp /tmp/linux-net.patch .
+    EOH
+    not_if "test -f /usr/lib/python2.7/dist-packages/nova/network/linux-net.patch"
+end
+
 include_recipe "bcpc::cobalt"

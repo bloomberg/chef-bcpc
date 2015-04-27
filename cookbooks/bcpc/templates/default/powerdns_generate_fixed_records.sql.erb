@@ -1,0 +1,7 @@
+-- insert A and PTR records for every fixed IP in this cluster's range
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) SELECT
+    (SELECT id FROM domains WHERE name='<%=@domain_name%>'), concat('ip-', replace(address, '.', '-'), '.', '<%=@domain_name%>'), 'A', address, 'STATIC' FROM nova.fixed_ips
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@domain_name%>'), name=concat('ip-', replace(address, '.', '-'), '.', '<%=@domain_name%>'), type='A', content=address, bcpc_record_type='STATIC';
+INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) SELECT
+    (SELECT id FROM domains WHERE name='<%=@reverse_fixed_zone%>'), ip4_to_ptr_name(address), 'PTR', concat('ip-', replace(address, '.', '-'), '.', '<%=@domain_name%>'), 'STATIC' FROM nova.fixed_ips
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@reverse_fixed_zone%>'), name=ip4_to_ptr_name(address), type='PTR', content=concat('ip-', replace(address, '.', '-'), '.', '<%=@domain_name%>'), bcpc_record_type='STATIC';

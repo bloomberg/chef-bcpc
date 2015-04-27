@@ -20,41 +20,40 @@
 if node['bcpc']['enabled']['logging'] then
 
     include_recipe "bcpc::default"
-    include_recipe "bcpc::apache2"
 
-    cookbook_file "/tmp/kibana3.tgz" do
-        source "bins/kibana3.tgz"
+    pkg = "kibana_#{node['bcpc']['kibana']['version']}_amd64.deb"
+
+    cookbook_file "/tmp/#{pkg}" do
+        source "bins/#{pkg}"
         owner "root"
         mode 00444
     end
 
-    bash "install-kibana" do
-        code <<-EOH
-            tar zxf /tmp/kibana3.tgz -C /opt/
-        EOH
-        not_if "test -d /opt/kibana3"
+    dpkg_package "kibana" do
+        source "/tmp/#{pkg}"
+        action :install
     end
 
-    template "/opt/kibana3/config.js" do
-        source "kibana-config.js.erb"
+    template "/opt/kibana/config/kibana.yml" do
+        source "kibana-config.yml.erb"
         user "root"
         group "root"
         mode 00644
     end
 
-    template "/etc/apache2/sites-available/kibana-web" do
-        source "apache-kibana-web.conf.erb"
+    cookbook_file "kibana-upstart.conf" do
+        action :create_if_missing
+        mode 0644
+        path "/etc/init/kibana.conf"
         owner "root"
         group "root"
-        mode 00644
-        notifies :restart, "service[apache2]", :delayed
+        source "kibana-upstart.conf"
     end
 
-    bash "apache-enable-kibana-web" do
-        user "root"
-        code "a2ensite kibana-web"
-        not_if "test -r /etc/apache2/sites-enabled/kibana-web"
-        notifies :restart, "service[apache2]", :delayed
+    service "kibana" do
+        provider Chef::Provider::Service::Upstart
+        supports :status => true, :restart => true, :reload => false
+        action [:enable, :start]
     end
 
 end
