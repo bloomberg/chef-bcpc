@@ -250,6 +250,7 @@ default['bcpc']['nova']['cpu_allocation_ratio'] = 2.0
 default['bcpc']['nova']['workers'] = 2
 # Patch toggle for https://github.com/bloomberg/chef-bcpc/pull/493
 default['bcpc']['nova']['live_migration_patch'] = false
+
 ###########################################
 #
 # Routemon settings
@@ -316,3 +317,14 @@ default['bcpc']['kibana']['version'] = '4.0.2'
 # Default retention rates
 # http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf
 default['bcpc']['graphite']['retention'] = '60s:1d'
+
+
+###########################################
+#
+# Rally settings
+#
+###########################################
+#
+# Package versions
+# None needed at this time
+default['bcpc']['rally']['user'] = 'ubuntu'
