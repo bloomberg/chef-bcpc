@@ -144,7 +144,7 @@ default['bcpc']['floating']['available_subnet'] = "192.168.43.128/25"
 default['bcpc']['floating']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
-default['bcpc']['floating']['interface-parent'] = nil
+default['bcpc']['floating']['interface-parent'] nil
 
 default['bcpc']['fixed']['cidr'] = "1.127.0.0/16"
 default['bcpc']['fixed']['vlan_start'] = "1000"
@@ -316,3 +316,23 @@ default['bcpc']['kibana']['version'] = '4.0.2'
 # Default retention rates
 # http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf
 default['bcpc']['graphite']['retention'] = '60s:1d'
+#
+###########################################
+#
+# defaults for the bcpc.bootstrap settings
+#
+###########################################
+#
+# A value of nil means to let the Ubuntu installer work it out - it
+# will try to find the nearest one. However the selected mirror is
+# often slow.
+default['bcpc']['bootstrap']['mirror'] = nil
+#
+# if you do specify a mirror, you can adjust the file path that comes
+# after the hostname in the URL here
+default['bcpc']['bootstrap']['mirror_path'] = "/ubuntu"
+#
+# worked example for the columbia mirror mentioned above which has a
+# non-standard path
+#default['bcpc']['bootstrap']['mirror']      = "mirror.cc.columbia.edu"
+#default['bcpc']['bootstrap']['mirror_path'] = "/pub/linux/ubuntu/archive"
