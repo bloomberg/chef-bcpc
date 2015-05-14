@@ -19,6 +19,33 @@
 
 include_recipe "bcpc::ceph-common"
 
+# Cgroup packages install
+package 'cgroup-bin'
+package 'cgroup-lite' do
+    action :remove
+end
+
+# Cgroup services definition
+service "cgconfig" do
+        action [:enable, :start]
+end
+
+service "cgred" do
+        action [:enable, :start]
+end
+
+# Cgroup configuration
+template "/etc/cgconfig.conf" do
+    source "cgconfig.erb"
+    mode 00644
+    notifies :restart, "service[cgconfig]", :delayed
+end
+template "/etc/cgrules.conf" do
+    source "cgrules.erb"
+    mode 00644
+    notifies :restart, "service[cgred]", :delayed
+end
+
 bash "write-client-admin-key" do
     code <<-EOH
         ADMIN_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.admin`

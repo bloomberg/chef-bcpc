@@ -314,6 +314,44 @@ default['bcpc']['cpupower']['governor'] = "ondemand"
 
 ###########################################
 #
+# Cgroups settings
+#
+###########################################
+#
+# These settings configure the CPU and RAM priority and weight
+# available to OSD processes.  This will help OSD processes maintain
+# some CPU bandwidth and RAM during heavy usage by other processes.
+# Documentation of the different options available can be found here:
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/ch01.html
+# Currently using CFS Tunable parameters to allocate time and frequency of CPU resources
+# - cpu.cfs_period_us
+# --- specifies a period of time in microseconds (µs, represented here as "us")
+#     for how regularly a cgroup's access to CPU resources should be reallocated.
+#     Example: If tasks in a cgroup should be able to access a single CPU
+#              for 0.2 seconds out of every 1 second, set cpu.cfs_quota_us to 200000
+#              and cpu.cfs_period_us to 1000000.
+#     The upper limit of the cpu.cfs_quota_us parameter is
+#     1 second and the lower limit is 1000 microseconds.
+default['bcpc']['cgroups']['cpu_cfs_period_us'] = "1000000"
+# - cpu.cfs_quota_us
+# --- specifies the total amount of time in microseconds (µs, represented here as "us")
+#     for which all tasks in a cgroup can run during one period (as defined by cpu.cfs_period_us).
+#     As soon as tasks in a cgroup use up all the time specified by the quota,
+#     they are throttled for the remainder of the time specified by the period and
+#     not allowed to run until the next period.
+#     Exmple: If tasks in a cgroup should be able to access
+#             a single CPU for 0.2 seconds out of every 1 second,
+#             set cpu.cfs_quota_us to 200000 and cpu.cfs_period_us to 1000000.
+#     * Note that the quota and period parameters operate on a CPU basis.
+#       To allow a process to fully utilize two CPUs, for example,
+#       set cpu.cfs_quota_us to 200000 and cpu.cfs_period_us to 100000.
+#     * Setting the value in cpu.cfs_quota_us to -1 indicates that the cgroup
+#       does not adhere to any CPU time restrictions.
+#       This is also the default value for every cgroup (except the root cgroup).
+default['bcpc']['cgroups']['cpu_cfs_quota_us'] = "200000"
+
+###########################################
+#
 # Graphite settings
 #
 ###########################################
