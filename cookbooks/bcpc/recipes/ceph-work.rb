@@ -81,7 +81,7 @@ ruby_block "reap-ceph-disks-from-dead-servers" do
 end
 
 mount 'cephfs' do
-  fstype 'fuse.ceph-fuse'
-  options %w(rw nosuid nodev noexec noatime noauto)
-  action [:mount, :enable]
+    fstype 'fuse.ceph-fuse'
+    options %w(rw nosuid nodev noexec noatime noauto)
+    action [:mount, :enable]
 end
