@@ -13,3 +13,7 @@
 *chef-client.deb
 *.box
 *.vdi
+
+# IntelliJ
+*.iml
+.idea/

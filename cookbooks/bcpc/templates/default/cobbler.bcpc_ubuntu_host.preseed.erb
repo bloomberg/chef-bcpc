@@ -12,28 +12,28 @@ d-i     debian-installer/locale string en_US.UTF-8
 d-i     debian-installer/splash boolean false
 d-i     console-setup/ask_detect        boolean false
 d-i     console-setup/layoutcode        string us
-d-i     console-setup/variantcode       string 
+d-i     console-setup/variantcode       string
 d-i     netcfg/get_nameservers  string <%= @node['bcpc']['dns_servers'].join(' ') %>
-d-i     netcfg/get_ipaddress    string 
+d-i     netcfg/get_ipaddress    string
 d-i     netcfg/get_netmask      string 255.255.255.0
-d-i     netcfg/get_gateway      string 
+d-i     netcfg/get_gateway      string
 d-i     netcfg/confirm_static   boolean true
 
 d-i     partman/early_command string \
-          udevadm trigger; udevadm settle --timeout=30 \
-          for d in $(ls /dev/sd[a-z]); do \
-            dd if=/dev/zero of=$d bs=4M count=16 || echo "Write to $d failed" \
-          done
+udevadm trigger; udevadm settle --timeout=30 \
+for d in $(ls /dev/sd[a-z]); do \
+dd if=/dev/zero of=$d bs=4M count=16 || echo "Write to $d failed" \
+done
 d-i     partman-auto/disk string /dev/sda
 d-i     partman-auto/method string regular
 d-i     partman-auto/expert_recipe string root :: 5000 100000 10000000000 ext4 \
-          $primary{ } $bootable{ } method{ format } \
-          format{ } use_filesystem{ } filesystem{ ext4 } \
-          mountpoint{ / } \
-        . \
-        8192 8192 8192 linux-swap \
-          $primary{ } method{ swap } format{ } \
-        .
+$primary{ } $bootable{ } method{ format } \
+format{ } use_filesystem{ } filesystem{ ext4 } \
+mountpoint{ / } \
+. \
+8192 8192 8192 linux-swap \
+$primary{ } method{ swap } format{ } \
+.
 d-i     partman-auto/choose_recipe select root
 d-i     partman-partitioning/confirm_write_new_label boolean true
 d-i     partman/choose_partition select Finish partitioning and write changes to disk
@@ -56,31 +56,31 @@ d-i     passwd/make-user        boolean true
 d-i     passwd/user-fullname    string ubuntu
 d-i     passwd/username string ubuntu
 d-i     passwd/user-password-crypted    password <%=get_config('cobbler-root-password-salted')%>
-d-i     passwd/user-uid string 
+d-i     passwd/user-uid string
 d-i     user-setup/allow-password-weak  boolean false
 d-i     user-setup/encrypt-home boolean false
 d-i     passwd/user-default-groups      string adm cdrom dialout lpadmin plugdev sambashare
 d-i     apt-setup/services-select       multiselect security
 <% if @node['bcpc']['bootstrap']['proxy'].nil? %>
-d-i     mirror/http/proxy string
+    d-i     mirror/http/proxy string
 <% else %>
-d-i     mirror/http/proxy string <%= @node['bcpc']['bootstrap']['proxy'] %>
+    d-i     mirror/http/proxy string <%= @node['bcpc']['bootstrap']['proxy'] %>
 <% end %>
 <% if @node['bcpc']['bootstrap']['mirror'].nil? %>
-d-i     apt-setup/security_host string security.ubuntu.com
-d-i     apt-setup/security_path string /ubuntu
-d-i     apt-setup/local0/comment string OpsCode Repo
-d-i     apt-setup/local0/repository string \
-          deb http://apt.opscode.com/chef precise-0.10 main
+    d-i     apt-setup/security_host string security.ubuntu.com
+    d-i     apt-setup/security_path string /ubuntu
+    d-i     apt-setup/local0/comment string OpsCode Repo
+    d-i     apt-setup/local0/repository string \
+    deb http://apt.opscode.com/chef precise-0.10 main
 <% else %>
-d-i     mirror/country string manual
-d-i     mirror/http/hostname string    <%= @node['bcpc']['bootstrap']['mirror'] %>
-d-i     mirror/http/directory string   <%= @node['bcpc']['bootstrap']['mirror_path'] %>
-d-i     apt-setup/security_host        <%= @node['bcpc']['bootstrap']['mirror'] %>
-d-i     apt-setup/security_path string <%= @node['bcpc']['bootstrap']['mirror_path'] %>
-d-i     apt-setup/local0/comment string OpsCode Repo
-d-i     apt-setup/local0/repository string \
-          deb http://<%= @node['bcpc']['bootstrap']['mirror'] %>/chef precise-0.10 main
+    d-i     mirror/country string manual
+    d-i     mirror/http/hostname string    <%= @node['bcpc']['bootstrap']['mirror'] %>
+    d-i     mirror/http/directory string   <%= @node['bcpc']['bootstrap']['mirror_path'] %>
+    d-i     apt-setup/security_host        <%= @node['bcpc']['bootstrap']['mirror'] %>
+    d-i     apt-setup/security_path string <%= @node['bcpc']['bootstrap']['mirror_path'] %>
+    d-i     apt-setup/local0/comment string OpsCode Repo
+    d-i     apt-setup/local0/repository string \
+    deb http://<%= @node['bcpc']['bootstrap']['mirror'] %>/chef precise-0.10 main
 <% end %>
 
 d-i     debian-installer/allow_unauthenticated  string false
@@ -100,13 +100,13 @@ d-i     debian-installer/exit/poweroff  boolean false
 d-i     pkgsel/include string openssh-server
 
 d-i     preseed/late_command string true && \
-        wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ;\
-        <% if @node['bcpc']['preseed'] && @node['bcpc']['preseed']['kernel'] %>
-        in-target apt-get install -y <%= @node['bcpc']['preseed']['kernel'] %> ;\
-        <% else %>
-        true ;\
-        <% end %>
-        wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ;\
-        in-target env no_proxy=$http_server wget "http://$http_server:$http_port/cobbler/pub/scripts/get-ssh-keys" -O /root/get-ssh-keys ;\
-        in-target chmod 0755 /root/get-ssh-keys ; in-target install -d -m0600 /root/.ssh ;\
-        in-target env no_proxy=$http_server /root/get-ssh-keys root -o /root/.ssh/authorized_keys
+wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ;\
+<% if @node['bcpc']['preseed'] && @node['bcpc']['preseed']['kernel'] %>
+    in-target apt-get install -y <%= @node['bcpc']['preseed']['kernel'] %> ;\
+<% else %>
+    true ;\
+<% end %>
+wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ;\
+in-target env no_proxy=$http_server wget "http://$http_server:$http_port/cobbler/pub/scripts/get-ssh-keys" -O /root/get-ssh-keys ;\
+in-target chmod 0755 /root/get-ssh-keys ; in-target install -d -m0600 /root/.ssh ;\
+in-target env no_proxy=$http_server /root/get-ssh-keys root -o /root/.ssh/authorized_keys
