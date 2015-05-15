@@ -30,9 +30,12 @@ fi
 
 cp -p .chef/knife.rb .chef/knife-proxy.rb
 
+. $HOME/proxy_info.sh
+
 if [[ ! -z "$http_proxy" ]]; then
-  echo  "http_proxy  \"${http_proxy}\"" >> .chef/knife-proxy.rb
-  echo "https_proxy \"${https_proxy}\"" >> .chef/knife-proxy.rb
+  echo "http_proxy  '${http_proxy}'" >> .chef/knife-proxy.rb
+  echo "https_proxy '${https_proxy}'" >> .chef/knife-proxy.rb
+  echo "no_proxy 'localhost, 127.0.0.1, bcpc-bootstrap'" >> .chef/knife-proxy.rb
 fi
 
 cd cookbooks

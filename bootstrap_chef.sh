@@ -13,6 +13,10 @@ if [[ $OSTYPE == msys || $OSTYPE == cygwin ]]; then
   RSYNCEXTRA="--perms --chmod=a=rwx,Da+x"
 fi
 
+if [[ -f ./proxy_setup.sh ]]; then
+  . ./proxy_setup.sh
+fi
+
 set -e
 
 DIR=`dirname $0`

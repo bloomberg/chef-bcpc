@@ -4,6 +4,7 @@
 *.iml
 id_rsa
 secret_file
+cacerts/
 cookbooks/apt/
 cookbooks/chef-client/
 cookbooks/chef-solo-search/
