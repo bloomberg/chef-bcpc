@@ -250,6 +250,11 @@ default['bcpc']['nova']['cpu_allocation_ratio'] = 2.0
 default['bcpc']['nova']['workers'] = 2
 # Patch toggle for https://github.com/bloomberg/chef-bcpc/pull/493
 default['bcpc']['nova']['live_migration_patch'] = false
+# load a custom vendor driver, 
+# e.g. "nova.api.metadata.bcpc_metadata.BcpcMetadata", 
+# comment out to use default
+#default['bcpc']['vendordata_driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
+
 ###########################################
 #
 # Routemon settings

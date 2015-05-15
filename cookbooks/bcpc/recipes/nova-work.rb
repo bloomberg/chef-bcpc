@@ -275,4 +275,15 @@ bash "patch-for-ip-hostnames-networking" do
     not_if "test -f /usr/lib/python2.7/dist-packages/nova/network/linux-net.patch"
 end
 
+cookbook_file "/usr/share/pyshared/nova/api/metadata/bcpc_metadata.py" do
+  source "bcpc_metadata.py"
+  owner "root"
+  mode 00644
+end
+
+link "/usr/lib/python2.7/dist-packages/nova/api/metadata/bcpc_metadata.py" do
+  to "/usr/share/pyshared/nova/api/metadata/bcpc_metadata.py"
+end
+
+
 include_recipe "bcpc::cobalt"
