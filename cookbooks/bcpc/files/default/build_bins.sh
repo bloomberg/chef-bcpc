@@ -300,6 +300,48 @@ if [ ! -f rally-pip.tar.gz ] || [ ! -f rally-bin.tar.gz ]; then
     set -x
 fi
 
+# Rally has a number of dependencies. Some of the dependencies are in apt by default but some are not. Those that
+# are not are built here.
+RALLY_VER="0.0.4"
+
+# We build a package for rally here but we also get the tar file of the source because it includes the samples
+# directory that we want and we need a good place to run our tests from.
+
+if [ ! -f rally.tar.gz ]; then
+    ccurl https://pypi.python.org/packages/source/r/rally/rally-${RALLY_VER}.tar.gz
+    tar xvf rally-${RALLY_VER}.tar.gz
+    tar zcf rally.tar.gz -C rally-${RALLY_VER}/ .
+    rm rally-${RALLY_VER}.tar.gz
+fi
+
+if [ ! -f rally-pip.tar.gz ] || [ ! -f rally-bin.tar.gz ]; then
+    # Rally has a very large number of version specific dependencies!!
+    # The latest version of PIP is installed instead of the distro version. We don't want this to block to exit on error
+    # so it is changed here and reset at the end. Several apt packages must be present since easy_install builds
+    # some of the dependencies.
+    # Note: Once we fully switch to trusty/kilo then we should not have to patch this (hopefully).
+    echo "Processing Rally setup..."
+    set +x
+    apt-get -y install libxml2-dev libxslt1-dev libpq-dev build-essential libssl-dev libffi-dev python-dev python-pip
+
+    # Note: This will create a pip package with the newest version
+    fpm -s python -t deb -f -v 6.1.1 pip
+
+    # We don't need the newest version installed here at this time but if we need other pip options then we may.
+    # dpkg -i python-pip_6.1.1_all.deb
+
+    # We install rally and a few other items here. Since fpm does not resolve dependencies but only lists them, we
+    # have to force an install and then tar up the dist-packages and local/bin
+    pip install rally --default-timeout 60 -I
+    pip install python-openstackclient --default-timeout 60
+    pip install -U argparse
+    pip install -U setuptools
+
+    tar zcf rally-pip.tar.gz -C /usr/local/lib/python2.7/dist-packages .
+    tar zcf rally-bin.tar.gz --exclude="fpm" --exclude="ruby*" -C /usr/local/bin .
+    set -x
+fi
+
 FILES="rally.tar.gz rally-pip.tar.gz rally-bin.tar.gz python-pip_6.1.1_all.deb $FILES"
 
 # End of Rally
