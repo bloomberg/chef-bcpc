@@ -1,0 +1,90 @@
+#
+#  Copyright IBM Corporation. 2007
+#
+#  Authors:	Balbir Singh <balbir@linux.vnet.ibm.com>
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of version 2.1 of the GNU Lesser General Public License
+#  as published by the Free Software Foundation.
+#
+#  This program is distributed in the hope that it would be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#group daemons/www {
+#	perm {
+#		task {
+#			uid = root;
+#			gid = webmaster;
+#		}
+#		admin {
+#			uid = root;
+#			gid = root;
+#		}
+#	}
+#	cpu {
+#		cpu.shares = 1000;
+#	}
+#}
+#
+#group daemons/ftp {
+#	perm {
+#		task {
+#			uid = root;
+#			gid = ftpmaster;
+#		}
+#		admin {
+#			uid = root;
+#			gid = root;
+#		}
+#	}
+#	cpu {
+#		cpu.shares = 500;
+#	}
+#}
+#
+
+group ceph {
+	perm {
+		task {
+			uid = root;
+			gid = root;
+		}
+		admin {
+			uid = root;
+			gid = root;
+		}
+	}
+	cpu {
+		cpu.cfs_period_us = <%=node['bcpc']['cgroups']['cpu_cfs_period_us']%>;
+		cpu.cpu.cfs_quota_us = <%=node['bcpc']['cgroups']['cpu_cfs_quota_us']%>;
+	}
+}
+
+group ceph/osds {
+	perm {
+		task {
+			uid = root;
+			gid = root;
+		}
+		admin {
+			uid = root;
+			gid = root;
+		}
+	}
+	cpu {
+		cpu.cfs_period_us = <%=node['bcpc']['cgroups']['cpu_cfs_period_us']%>;
+		cpu.cpu.cfs_quota_us = <%=node['bcpc']['cgroups']['cpu_cfs_quota_us']%>;
+	}
+}
+
+
+mount {
+	blkio = /sys/fs/cgroup/blkio;
+	cpu = /sys/fs/cgroup/cpu;
+	cpuacct = /sys/fs/cgroup/cpuacct;
+	cpuset = /sys/fs/cgroup/cpuset;
+	devices = /sys/fs/cgroup/devices;
+	freezer = /sys/fs/cgroup/freezer;
+	memory = /sys/fs/cgroup/memory;
+}
+

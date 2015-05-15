@@ -19,6 +19,48 @@
 
 include_recipe "bcpc::ceph-common"
 
+# Cgroup packages install
+package 'cgroup-bin' do
+    action :install
+end
+
+# Cgroup service (cgconfig) creation (Removed in 14.04)
+cookbook_file "/etc/init/cgconfig.conf" do
+  source "cgconfig.init"
+  owner "root"
+  group "root"
+  mode "0644"
+end
+
+# Cgroup service (cgred) creation (Removed in 14.04)
+cookbook_file "/etc/init/cgred.conf" do
+  source "cgred.init"
+  owner "root"
+  group "root"
+  mode "0644"
+end
+
+# Cgroup services definition
+service "cgconfig" do
+        action [:enable, :start]
+end
+
+service "cgred" do
+        action [:enable, :start]
+end
+
+# Cgroup configuration
+template "/etc/cgconfig.conf" do
+    source "cgconfig.erb"
+    mode 00644
+    notifies :restart, "service[cgconfig]", :delayed
+end
+template "/etc/cgrules.conf" do
+    source "cgrules.erb"
+    mode 00644
+    notifies :restart, "service[cgred]", :delayed
+end
+
 bash "write-client-admin-key" do
     code <<-EOH
         ADMIN_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.admin`
