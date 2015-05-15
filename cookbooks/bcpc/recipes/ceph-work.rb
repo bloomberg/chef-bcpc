@@ -20,9 +20,24 @@
 include_recipe "bcpc::ceph-common"
 
 # Cgroup packages install
-package 'cgroup-bin'
-package 'cgroup-lite' do
-    action :remove
+package 'cgroup-bin' do
+    action :install
+end
+
+# Cgroup service (cgconfig) creation (Removed in 14.04)
+cookbook_file "/etc/init/cgconfig.conf" do
+  source "cgconfig.init"
+  owner "root"
+  group "root"
+  mode "0644"
+end
+
+# Cgroup service (cgred) creation (Removed in 14.04)
+cookbook_file "/etc/init/cgred.conf" do
+  source "cgred.init"
+  owner "root"
+  group "root"
+  mode "0644"
 end
 
 # Cgroup services definition
