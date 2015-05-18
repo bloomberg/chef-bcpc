@@ -21,7 +21,7 @@
         "cpu_allocation_ratio": "20.0",
         "nova_single_cpu": true
       },
-      "domain_name" : "bcpc.example.com",
+      "domain_name" : "local.lan",
       "management": {
         "vip" : "10.0.100.5",
         "interface" : "eth0",
