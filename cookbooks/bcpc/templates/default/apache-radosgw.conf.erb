@@ -4,6 +4,19 @@
 #
 ################################################
 
+# Changed MaxKeepAliveRequest from 100 to 0 to allow for maximum limit.
+MaxKeepAliveRequests 0
+
+# The below mpm_prefork_module settings can change based on environment resources/needs.
+<IfModule mpm_prefork_module>
+    ServerLimit          500
+    StartServers         250
+    MinSpareServers       50
+    MaxSpareServers      200
+    MaxClients           500
+    MaxRequestsPerChild    0
+</IfModule>
+
 NameVirtualHost <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']}"%>
 
 
