@@ -119,6 +119,15 @@ def get_head_nodes
     return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
+def get_monitoring_nodes
+    results = search(:node, "role:BCPC-Monitoring AND chef_environment:#{node.chef_environment}")
+    results.map! { |x| x['hostname'] == node['hostname'] ? node : x }
+    if not results.include?(node) and node.run_list.roles.include?('BCPC-Monitoring')
+        results.push(node)
+    end
+    return results.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
 def get_bootstrap_node
     results = search(:node, "role:BCPC-Bootstrap AND chef_environment:#{node.chef_environment}")
     raise 'There is not exactly one bootstrap node found.' if results.size != 1
