@@ -1,5 +1,5 @@
 {
-    "name": "BCPC-Worknode",
+    "name": "BCPC-Worknode-Ephemeral",
     "default_attributes": {
     },
     "json_class": "Chef::Role",
@@ -14,15 +14,20 @@
       "recipe[bcpc::ceph-work]",
       "role[BCPC-Rgwnode]",
       "recipe[bcpc::nova-work]",
-      "recipe[bcpc::nova-persistent]",
+      "recipe[bcpc::nova-ephemeral]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::tpm]",
       "recipe[bcpc::checks-work]",
       "recipe[bcpc::zabbix-agent]"
     ],
-    "description": "A functional compute node in a BCPC cluster with persistent storage",
+    "description": "A functional compute node in a BCPC cluster with ephemeral storage",
     "chef_type": "role",
     "override_attributes": {
+      "bcpc": {
+        "nova": {
+          "persistent": false
+        }
+      }
     }
 }
