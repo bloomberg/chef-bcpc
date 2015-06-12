@@ -75,6 +75,7 @@ default_availability_zone=<%=node['bcpc']['region_name']%>
 
 # Nova Compute settings
 compute_driver=libvirt.LibvirtDriver
+
 use_cow_images=True
 #snapshot_image_format=qcow2
 #start_guests_on_host_boot=True
@@ -182,7 +183,7 @@ inject_partition=-2
 live_migration_flag="VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST,VIR_MIGRATE_TUNNELLED"
 virt_type=<%=node['bcpc']['virt_type']%>
 use_virtio_for_bridges=True
-
+hw_disk_discard=unmap
 
 <% unless node["bcpc"]["vendordata_config"].nil? %>
 [metadata]
@@ -190,4 +191,3 @@ use_virtio_for_bridges=True
 <%=k %>=<%=v %>
 <% end %>
 <% end %>
-

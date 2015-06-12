@@ -151,12 +151,28 @@ package "qemu-utils" do
     action :upgrade
 end
 
+# Added --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi
+# Needs to be applied to all images for fstrim
+# Allows for fstrim to be used to free RBD size so that it shrinks back down
+# nova.conf - [libvirt] hw_disk_discard=unmap
+# nova.conf entry unmaps aligned groups of sectors
 bash "glance-cirros-image" do
     user "root"
     code <<-EOH
         . /root/adminrc
         qemu-img convert -f qcow2 -O raw /tmp/cirros-0.3.4-x86_64-disk.img /tmp/cirros-0.3.4-x86_64-disk.raw
-        glance image-create --name='Cirros 0.3.4 x86_64' --is-public=True --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw
+        glance image-create --name='Cirros 0.3.4 x86_64' --is-public=True --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi
     EOH
     not_if ". /root/adminrc; glance image-list | grep 'Cirros 0.3.4 x86_64'"
 end
+
+# Allows for fstrim to be used to free RBD size so that it shrinks back down
+# nova.conf - [libvirt] hw_disk_discard=unmap
+# nova.conf entry unmaps aligned groups of sectors
+#bash "glance-image-update-scsi" do
+#    user "root"
+#    code <<-EOH
+#        . /root/adminrc
+#        glance image-update <img-uuid> --property hw_scsi_model=virtio-scsi --property hw_disk_bus=scsi
+#    EOH
+#end
