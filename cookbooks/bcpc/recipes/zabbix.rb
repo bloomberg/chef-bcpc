@@ -144,6 +144,44 @@ if node['bcpc']['enabled']['monitoring'] then
         notifies :restart, "service[apache2]", :immediate
     end
 
+    directory "/usr/local/lib/python2.7/dist-packages/pyzabbix" do
+        owner "root"
+        mode 00775
+    end
+
+    cookbook_file "/usr/local/lib/python2.7/dist-packages/pyzabbix/__init__.py" do
+        source "pyzabbix.py"
+        owner "root"
+        mode 00755
+    end
+
+    cookbook_file "/tmp/zabbix_linux_active_template.xml" do
+        source "zabbix_linux_active_template.xml"
+        owner "root"
+        mode 00644
+    end
+
+    cookbook_file "/tmp/zabbix_bcpc_templates.xml" do
+        source "zabbix_bcpc_templates.xml"
+        owner "root"
+        mode 00644
+    end
+
+    cookbook_file "/usr/local/bin/zabbix_config" do
+        source "zabbix_config"
+        owner "root"
+        mode 00755
+    end
+
+    ruby_block "configure_zabbix_templates" do
+        block do
+            # Ensures no proxy is ever used locally
+            %x[export no_proxy="#{node['bcpc']['management']['monitoring']['vip']}";
+               zabbix_config https://#{node['bcpc']['management']['monitoring']['vip']}/zabbix #{get_config('zabbix-admin-user')} #{get_config('zabbix-admin-password')}
+            ]
+        end
+    end
+
     template "/usr/local/share/zabbix/zabbix-api-auto-discovery" do
         source "zabbix_api_auto_discovery.erb"
         owner "root"
@@ -153,7 +191,7 @@ if node['bcpc']['enabled']['monitoring'] then
 
     ruby_block "zabbix-api-auto-discovery-register" do
         block do
-            system "/usr/local/share/zabbix/zabbix-api-auto-discovery"
+           system "/usr/local/share/zabbix/zabbix-api-auto-discovery"
         end
     end
 
