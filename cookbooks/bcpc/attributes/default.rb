@@ -91,8 +91,6 @@ default['bcpc']['fixed']['vlan_interface'] = node['bcpc']['floating']['interface
 #  Ceph settings for the cluster
 #
 ###########################################
-# Trusty is not available at this time for ceph-extras
-default['bcpc']['ceph']['extras']['dist'] = "precise"
 # To use apache instead of civetweb, make the following value anything but 'civetweb'
 default['bcpc']['ceph']['frontend'] = "civetweb"
 default['bcpc']['ceph']['chooseleaf'] = "rack"
@@ -131,6 +129,8 @@ default['bcpc']['ceph']['vms_mem']['portion'] = 10
 default['bcpc']['ceph']['vms_mem']['type'] = 'ssd'
 default['bcpc']['ceph']['vms_mem']['name'] = "vmsmem"
 # End cobalt
+
+# Ruleset for CRUSH map
 default['bcpc']['ceph']['ssd']['ruleset'] = 1
 default['bcpc']['ceph']['hdd']['ruleset'] = 2
 
@@ -274,7 +274,6 @@ default['bcpc']['protocol']['glance'] = "https"
 default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
-
 
 ###########################################
 #
@@ -529,6 +528,7 @@ default['bcpc']['nova']['quota'] = {
   "instances" => 10,
   "ram" => 51200
 }
+
 # load a custom vendor driver, 
 # e.g. "nova.api.metadata.bcpc_metadata.BcpcMetadata", 
 # comment out to use default
@@ -1303,6 +1303,7 @@ default['bcpc']['rally']['user'] = 'ubuntu'
 
 default['bcpc']['flavors']['deleted'] = []
 default['bcpc']['flavors']['enabled'] = {}
+
 ###########################################
 #
 # Zabbix settings
