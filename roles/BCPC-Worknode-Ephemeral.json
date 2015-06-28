@@ -15,6 +15,7 @@
       "role[BCPC-Rgwnode]",
       "recipe[bcpc::nova-work]",
       "recipe[bcpc::nova-ephemeral]",
+      "recipe[bcpc::nova-ephemeral-lvm]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::tpm]",
@@ -26,7 +27,8 @@
     "override_attributes": {
       "bcpc": {
         "nova": {
-          "persistent": false
+          "persistent": false,
+          "ssd_disks": ["/dev/sdf", "/dev/sdg", "/dev/sdh"]
         }
       }
     }

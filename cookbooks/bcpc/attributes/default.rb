@@ -521,6 +521,11 @@ default['bcpc']['nova']['live_migration_patch'] = false
 default['bcpc']['nova']['debug'] = false
 # Nova ephemeral - used to include or exclude rbd settings in nova.conf
 default['bcpc']['nova']['persistent'] = true
+# LVM names for ephemeral storage on each compute host
+# Volume group name
+default['bcpc']['nova']['volgroup'] = "vg_nova_local"
+# Logical group name
+default['bcpc']['nova']['loggroup'] = "lg_nova_local"
 
 # Nova scheduler default filters
 default['bcpc']['nova']['scheduler_default_filters'] = ['AggregateInstanceExtraSpecsFilter', 'AvailabilityZoneFilter', 'RamFilter', 'ComputeFilter', 'DifferentHostFilter', 'SameHostFilter']
