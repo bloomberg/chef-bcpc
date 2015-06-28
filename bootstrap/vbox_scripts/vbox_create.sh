@@ -140,6 +140,14 @@ function create_cluster_VMs {
         $VBM storageattach $vm --storagectl "SATA Controller" --device 0 --port $port --type hdd --medium $BCPC_VM_DIR/$vm/$vm-$disk.vdi
         port=$((port+1))
       done
+      # If head node then add 3 more drives for ephemeral lvm storage
+      if [ vm == "bcpc-vm1" ]; then
+        for disk in f g h; do
+          $VBM createhd --filename $BCPC_VM_DIR/$vm/$vm-$disk.vdi --size $CLUSTER_VM_DRIVE_SIZE
+          $VBM storageattach $vm --storagectl "SATA Controller" --device 0 --port $port --type hdd --medium $BCPC_VM_DIR/$vm/$vm-$disk.vdi
+          port=$((port+1))
+        done
+      fi
       # Add the network interfaces
       $VBM modifyvm $vm --nic1 hostonly --hostonlyadapter1 "$VBN0" --nictype1 82543GC
       $VBM setextradata $vm VBoxInternal/Devices/pcbios/0/Config/LanBootRom $P/gpxe-1.0.1-80861004.rom
