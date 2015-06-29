@@ -98,7 +98,7 @@ default['bcpc']['ceph']['pgp_auto_adjust'] = false
 # Need to review...
 default['bcpc']['ceph']['pgs_per_node'] = 1024
 # Journal size could be 10GB or higher in some cases
-default['bcpc']['ceph']['journal_size'] = 2048
+default['bcpc']['ceph']['journal_size'] = 10000
 # The 'portion' parameters should add up to ~100 across all pools
 default['bcpc']['ceph']['default']['replicas'] = 3
 default['bcpc']['ceph']['default']['type'] = 'hdd'

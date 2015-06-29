@@ -42,6 +42,7 @@ end
 bash "nova-ephemeral-create" do
   user "root"
   code <<-EOH
+    . /root/adminrc
     /tmp/nova-ephemeral.sh
   EOH
 end
