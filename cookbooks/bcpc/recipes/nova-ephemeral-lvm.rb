@@ -19,8 +19,8 @@
 
 # This recipe should be ran after nova-ephemeral has run
 
-package lvm2 do
-  action :upgrade
+package 'lvm2' do
+  action :install
 end
 
 # Devices must match and be available
@@ -59,16 +59,18 @@ end
 bash "mkfs-xfs" do
   user "root"
   code <<-EOH
-    mkfs.xfs /dev/mapper/#{node['bcpc']['nova']['volgroup']}/#{node['bcpc']['nova']['loggroup']}
+    mkfs.xfs -f /dev/#{node['bcpc']['nova']['volgroup']}/#{node['bcpc']['nova']['loggroup']}
   EOH
   not_if "df | grep '/var/lib/nova/instances'"
 end
 
-mount "/var/lib/nova/instances" do
-  device "#{node['bcpc']['nova']['volgroup']}/#{node['bcpc']['nova']['loggroup']}"
-  fstype "xfs"
-  action[:mount, :enable]
-  not_if mounted
+bash "mount" do
+  user "root"
+  code <<-EOH
+    mount -t xfs /dev/#{node['bcpc']['nova']['volgroup']}/#{node['bcpc']['nova']['loggroup']} /var/lib/nova/instances
+    echo "#{node['bcpc']['nova']['volgroup']}/#{node['bcpc']['nova']['loggroup']} /var/lib/nova/instances xfs defaults 0 0" >> /etc/fstab
+  EOH
+  not_if "mountpoint -q -- /var/lib/nova/instances"
 end
 
 execute "set-permissions" do

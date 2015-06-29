@@ -28,7 +28,7 @@
       "bcpc": {
         "nova": {
           "persistent": false,
-          "ssd_disks": ["/dev/sdf", "/dev/sdg", "/dev/sdh"]
+          "ssd_disks": ["sdf", "sdg", "sdh"]
         }
       }
     }

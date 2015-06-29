@@ -34,7 +34,7 @@ default['bcpc']['ceph']['version_number'] = '0.94.2'
 # Ceph.com version number '0.94.2-1trusty'
 # Ubuntu cloud version number '0.94.1-0ubuntu1~cloud0'
 default['bcpc']['erlang']['version'] = '1:17.5.3'
-default['bcpc']['haproxy']['version'] = '1.5.12-1ppa1~trusty'
+default['bcpc']['haproxy']['version'] = '1.5.13-1ppa1~trusty'
 default['bcpc']['kibana']['version'] = '4.0.2'
 default['bcpc']['rabbitmq']['version'] = '3.5.3-1'
 
@@ -98,7 +98,7 @@ default['bcpc']['ceph']['pgp_auto_adjust'] = false
 # Need to review...
 default['bcpc']['ceph']['pgs_per_node'] = 1024
 # Journal size could be 10GB or higher in some cases
-default['bcpc']['ceph']['journal_size'] = 2048
+default['bcpc']['ceph']['journal_size'] = 10000
 # The 'portion' parameters should add up to ~100 across all pools
 default['bcpc']['ceph']['default']['replicas'] = 3
 default['bcpc']['ceph']['default']['type'] = 'hdd'
