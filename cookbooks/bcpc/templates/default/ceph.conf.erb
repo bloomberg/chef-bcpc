@@ -11,6 +11,7 @@
     cluster network = <%= @node["bcpc"]["storage"]["cidr"] %>
     keyring = /etc/ceph/$cluster.$name.keyring
     mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
+    mon_pg_warn_max_per_osd=0
 <% if @node["bcpc"]["ceph"]["rebalance"] %>
     paxos_propose_interval = 60 
 <% end %>
@@ -18,10 +19,6 @@
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring
     debug paxos = 0/5
-
-# Not using CephFS but mds remains until it's removed at some later point.
-#[mds]
-#    keyring = /var/lib/ceph/mds/$cluster-$id/keyring
 
 [osd]
     keyring = /var/lib/ceph/osd/$cluster-$id/keyring
@@ -43,6 +40,7 @@
 [client]
     rbd cache = true
     rbd cache writethrough until flush = true
+    rbd concurrent management ops = 20
     admin socket = /var/run/ceph/$cluster-$type.$id.$pid.$cctid.asok # must be writable by QEMU and allowed by SELinux or AppArmor
     log file = /var/log/qemu/qemu-guest-$pid.log
 
