@@ -24,12 +24,5 @@
     ],
     "description": "A functional compute node in a BCPC cluster with ephemeral storage",
     "chef_type": "role",
-    "override_attributes": {
-      "bcpc": {
-        "nova": {
-          "persistent": false,
-          "ssd_disks": ["sdf", "sdg", "sdh"]
-        }
-      }
-    }
+    "override_attributes": {}
 }
