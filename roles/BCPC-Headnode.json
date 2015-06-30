@@ -27,6 +27,7 @@
       "recipe[bcpc::powerdns-nova]",
       "recipe[bcpc::heat]",
       "recipe[bcpc::horizon]",
+      "role[BCPC-Worknode]",
       "recipe[bcpc::checks-head]",
       "recipe[bcpc::rally-keystone-populate]",
       "recipe[bcpc::flavors]"
