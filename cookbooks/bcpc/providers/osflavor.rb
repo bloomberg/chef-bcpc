@@ -89,28 +89,12 @@ action :create do
 end
 
 action :delete do
-  stdout, stderr, status = Open3.capture3("openstack",
-                                          "--os-tenant-name", node['bcpc']['admin_tenant'], 
-                                          "--os-username",  get_config('keystone-admin-user'),
-                                          "--os-auth-url",  
-                                          "#{node['bcpc']['protocol']['keystone']}://#{node['bcpc']['management']['vip']}:5000/v2.0/",
-                                          "--os-region-name", node['bcpc']['region_name'],
-                                          "--os-password" , get_config('keystone-admin-password'),
-                                          "--os-cacert" , "/etc/ssl/certs/ssl-bcpc.pem",
-                                          "flavor", "show", @new_resource.name , "-f", "json")
+  stdout, stderr, status = Open3.capture3(*(openstack_cli + 
+                                          ["flavor", "show", @new_resource.name]))
   if status.success? 
     converge_by("deleting #{new_resource.name}") do
-      stdout, status = Open3.capture2("openstack",
-                                      "--os-tenant-name", node['bcpc']['admin_tenant'], 
-                                      "--os-username",  get_config('keystone-admin-user'),
-                                      "--os-auth-url",  
-                                      "#{node['bcpc']['protocol']['keystone']}://#{node['bcpc']['management']['vip']}:5000/v2.0/",
-                                      "--os-region-name", node['bcpc']['region_name'],
-                                      "--os-password" , get_config('keystone-admin-password'),
-                                      "--os-cacert" , "/etc/ssl/certs/ssl-bcpc.pem",
-                                      "flavor", "delete", @new_resource.name )
-
-
+      stdout, status = Open3.capture2(*(openstack_cli + 
+        ["flavor", "delete", @new_resource.name ] ))
       Chef::Log.error "Failed to delete to flavor" unless status.success?
     end
   end
