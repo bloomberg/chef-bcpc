@@ -1,4 +1,4 @@
-#
+ #
 # Cookbook Name:: bcpc
 # Resource:: osflavor
 #
@@ -29,3 +29,4 @@ attribute :ephemeral_gb, :kind_of => Fixnum, :required => false, :default => 0
 attribute :swap_gb, :kind_of => Fixnum, :required => false, :default => 0
 attribute :vcpus, :kind_of => Fixnum, :required => false, :default => 1
 attribute :is_public, :kind_of => [ TrueClass, FalseClass ], :required => false, :default => true
+attribute :extra_specs, :kind_of => Hash, :required => false, :default => {}

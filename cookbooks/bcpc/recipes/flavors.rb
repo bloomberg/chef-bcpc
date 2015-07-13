@@ -25,5 +25,6 @@ node['bcpc']['flavors'].each do |name, flavor|
     swap_gb flavor['swap_gb']
     is_public flavor['is_public']
     flavor_id flavor['id']
+    extra_specs flavor["extra_specs"]
   end
 end 
