@@ -1313,8 +1313,7 @@ default['bcpc']['rally']['user'] = 'ubuntu'
 #
 ###########################################
 
-default['bcpc']['flavors']['deleted'] = []
-default['bcpc']['flavors']['enabled'] = {}
+default['bcpc']['flavors'] = {}
 ###########################################
 #
 # Zabbix settings
