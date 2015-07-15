@@ -266,8 +266,9 @@ Vagrant.configure("2") do |config|
         rescue
           fail "Unable to locate VM #{vm_name} on disk, terminating"
         end        
-        
-        ('b'..'e').each_with_index do |disk, idx|
+
+        disk_range = case i; when 1 then ('b'..'h'); when 2..3 then ('b'..'e'); else []; end
+        disk_range.each_with_index do |disk, idx|
           disk_file = File.join(vm_dir, "vm#{i}-#{disk}.vdi")
           unless File.exist?(disk_file)
             vb.customize ["createhd", "--filename", disk_file, "--size", disk_size]
