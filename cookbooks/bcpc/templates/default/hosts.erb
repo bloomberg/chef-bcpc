@@ -13,6 +13,7 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
+<%=node['bcpc']['management']['vip']%> openstack.<%=node['bcpc']['cluster_domain']%>
 <% @servers.each do |server| -%>
 <%= "#{server['bcpc']['management']['ip']}\t#{server['hostname']}.#{node['bcpc']['hypervisor_domain']} #{server['fqdn']} #{server['hostname']}" %>
 <% end -%>
