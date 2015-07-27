@@ -20,7 +20,11 @@ fi
 
 if [ ! -z "$BOOTSTRAP_HTTPS_PROXY" ]; then
   export https_proxy=https://${BOOTSTRAP_HTTPS_PROXY}
-  curl -s --connect-timeout 10 https://github.com > /dev/null && true
+  if [ ! -z "$BOOTSTRAP_ADDITIONAL_CACERTS_DIR" ] ; then
+    # avoid polluting global cert store
+    cert_args="$(find "$BOOTSTRAP_ADDITIONAL_CACERTS_DIR" \( -name '*.crt' -o -name '*.pem' \) -printf ' --cacert %p')"
+  fi
+  curl -s $cert_args --connect-timeout 10 https://github.com > /dev/null && true
   if [[ $? != 0 ]]; then
     echo "Error: proxy $BOOTSTRAP_HTTPS_PROXY non-functional for HTTPS requests" >&2
     exit 1
