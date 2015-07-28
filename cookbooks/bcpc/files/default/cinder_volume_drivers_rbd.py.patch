@@ -1,0 +1,89 @@
+diff --git a/cinder/volume/drivers/rbd.py b/cinder/volume/drivers/rbd.py
+index 7dae2ec..d129daf 100644
+--- a/cinder/volume/drivers/rbd.py
++++ b/cinder/volume/drivers/rbd.py
+@@ -13,6 +13,8 @@
+ #    under the License.
+ """RADOS Block Device Driver"""
+ 
++# THIS FILE PATCHED BY BCPC
++
+ from __future__ import absolute_import
+ import io
+ import json
+@@ -44,6 +46,9 @@ except ImportError:
+ LOG = logging.getLogger(__name__)
+ 
+ rbd_opts = [
++    cfg.StrOpt('images_pool',
++               default='images',
++               help='The RADOS pool where rbd images are stored'),
+     cfg.StrOpt('rbd_pool',
+                default='rbd',
+                help='The RADOS pool where rbd volumes are stored'),
+@@ -848,28 +853,46 @@ class RBDDriver(driver.VolumeDriver):
+         return tmpdir
+ 
+     def copy_image_to_volume(self, context, volume, image_service, image_id):
++        image_meta = image_service.show(context, image_id)
+ 
+-        tmp_dir = self._image_conversion_dir()
+-
+-        with tempfile.NamedTemporaryFile(dir=tmp_dir) as tmp:
+-            image_utils.fetch_to_raw(context, image_service, image_id,
+-                                     tmp.name,
+-                                     self.configuration.volume_dd_blocksize,
+-                                     size=volume['size'])
++        chunk_size = CONF.rbd_store_chunk_size * units.Mi
++        order = int(math.log(chunk_size, 2))
+ 
++        if image_meta['disk_format'] == 'raw':
+             self.delete_volume(volume)
+-
+-            chunk_size = CONF.rbd_store_chunk_size * units.Mi
+-            order = int(math.log(chunk_size, 2))
+-            # keep using the command line import instead of librbd since it
+-            # detects zeroes to preserve sparseness in the image
+-            args = ['rbd', 'import',
+-                    '--pool', self.configuration.rbd_pool,
+-                    '--order', order,
+-                    tmp.name, volume['name'],
+-                    '--new-format']
+-            args.extend(self._ceph_args())
+-            self._try_execute(*args)
++            clone_cmd = [
++                'rbd', 'clone', '--order', order,
++                '%s/%s@snap' % (self.configuration.images_pool, image_id),
++                '%s/volume-%s' % (self.configuration.rbd_pool, volume['id'])
++            ]
++            clone_cmd.extend(self._ceph_args())
++            self._try_execute(*clone_cmd)
++            flatten_cmd = [
++                'rbd', 'flatten', '%s/volume-%s' %
++                (self.configuration.rbd_pool, volume['id'])
++            ]
++            flatten_cmd.extend(self._ceph_args())
++            self._try_execute(*flatten_cmd)
++        else:
++            tmp_dir = self._image_conversion_dir()
++            with tempfile.NamedTemporaryFile(dir=tmp_dir) as tmp:
++                image_utils.fetch_to_raw(
++                    context, image_service, image_id, tmp.name,
++                    self.configuration.volume_dd_blocksize,
++                    size=volume['size']
++                )
++
++                self.delete_volume(volume)
++
++                # keep using the command line import instead of librbd since it
++                # detects zeroes to preserve sparseness in the image
++                args = ['rbd', 'import',
++                        '--pool', self.configuration.rbd_pool,
++                        '--order', order,
++                        tmp.name, volume['name'],
++                        '--new-format']
++                args.extend(self._ceph_args())
++                self._try_execute(*args)
+         self._resize(volume)
+ 
+     def copy_volume_to_image(self, context, volume, image_service, image_meta):

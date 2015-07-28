@@ -42,6 +42,31 @@ service "cinder-api" do
     restart_command "service cinder-api restart; sleep 5"
 end
 
+cookbook_file "/tmp/cinder_volume_drivers_rbd.py.patch" do
+  source "cinder_volume_drivers_rbd.py.patch"
+  owner "root"
+  mode 0644
+end 
+
+bash "patch-cinder-rbd-driver-for-clone" do
+  user "root"
+  code <<-EOH
+    cd /usr/lib/python2.7/dist-packages/
+    cp cinder/volume/drivers/rbd.py cinder/volume/drivers/rbd.py.prepatch
+    patch -p1 < /tmp/cinder_volume_drivers_rbd.py.patch
+    rv=$?
+    if [ $rv -ne 0 ]; then
+      echo "Error applying patch ($rv) - aborting!"
+      exit $rv
+    fi
+  EOH
+  not_if "grep -q 'THIS FILE PATCHED BY BCPC' /usr/lib/python2.7/dist-packages/cinder/volume/drivers/rbd.py"
+  notifies :restart, "service[cinder-api]", :immediately
+  notifies :restart, "service[cinder-volume]", :immediately
+  notifies :restart, "service[cinder-scheduler]", :immediately
+end 
+
+
 template "/etc/cinder/cinder.conf" do
     source "cinder.conf.erb"
     owner "cinder"

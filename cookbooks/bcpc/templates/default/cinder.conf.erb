@@ -85,6 +85,7 @@ signing_dir = /var/lib/cinder
 volume_driver=cinder.volume.drivers.rbd.RBDDriver
 volume_backend_name=<%= type.upcase %>
 rbd_user=cinder
+images_pool=<%=node['bcpc']['ceph']['images']['name']%>
 rbd_pool=<%="#{node['bcpc']['ceph']['volumes']['name']}-#{type}"%>
 rbd_secret_uuid=<%=get_config('libvirt-secret-uuid')%>
 rbd_flatten_volume_from_snapshot=False
