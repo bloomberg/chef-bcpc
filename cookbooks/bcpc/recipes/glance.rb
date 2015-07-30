@@ -182,7 +182,7 @@ bash "glance-cirros-image" do
     code <<-EOH
         . /root/adminrc
         qemu-img convert -f qcow2 -O raw /tmp/cirros-0.3.4-x86_64-disk.img /tmp/cirros-0.3.4-x86_64-disk.raw
-        glance image-create --name='Cirros 0.3.4 x86_64' --is-public=True --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw
+        glance image-create --name='Cirros 0.3.4 x86_64' --is-public=True --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw --property hw_rng_model=virtio
     EOH
     not_if ". /root/adminrc; glance image-list | grep 'Cirros 0.3.4 x86_64'"
 end

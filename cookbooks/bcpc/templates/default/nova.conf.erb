@@ -179,7 +179,7 @@ live_migration_flag="VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRA
 virt_type=<%=node['bcpc']['virt_type']%>
 use_virtio_for_bridges=True
 hw_disk_discard = unmap
-
+rng_dev_path = <%= node['bcpc']['rng_source'] %>
 
 <% unless node["bcpc"]["vendordata_config"].nil? %>
 [metadata]

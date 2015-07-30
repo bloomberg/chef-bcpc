@@ -540,6 +540,8 @@ default['bcpc']['nova']['quota'] = {
 # comment out to use default
 #default['bcpc']['vendordata_driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
 
+default['bcpc']['nova']['rng_source'] = "/dev/random"
+
 ###########################################
 #
 #  Nova policy Settings
@@ -1318,20 +1320,30 @@ default['bcpc']['rally']['user'] = 'ubuntu'
 ###########################################
 
 default['bcpc']['flavors'] = {
-    "m1.tiny"  => {
-      "extra_specs" => { "aggregate_instance_extra_specs:general_compute" => "yes"}
+    "m1.tiny"  => { "extra_specs" => {
+                      "aggregate_instance_extra_specs:general_compute" => "yes",
+                      "hw_rng:allowed" => true
+                    }
+                  },
+    "m1.small"  => { "extra_specs" => {
+                       "aggregate_instance_extra_specs:general_compute" => "yes",
+                       "hw_rng:allowed" => true
+                     }
     },
-    "m1.small"  => {
-      "extra_specs" => { "aggregate_instance_extra_specs:general_compute" => "yes"}
+    "m1.medium"  => { "extra_specs" => {
+                        "aggregate_instance_extra_specs:general_compute" => "yes",
+                        "hw_rng:allowed" => true
+                      }
     },
-    "m1.medium"  => {
-      "extra_specs" => { "aggregate_instance_extra_specs:general_compute" => "yes"}
+    "m1.large"  => { "extra_specs" => {
+                        "aggregate_instance_extra_specs:general_compute" => "yes",
+                        "hw_rng:allowed" => true
+                      }
     },
-    "m1.large"  => {
-      "extra_specs" => { "aggregate_instance_extra_specs:general_compute" => "yes"}
-    },
-    "m1.xlarge"  => {
-      "extra_specs" => { "aggregate_instance_extra_specs:general_compute" => "yes"}
+    "m1.xlarge"  => { "extra_specs" => {
+                        "aggregate_instance_extra_specs:general_compute" => "yes",
+                        "hw_rng:allowed" => true
+                      }
     }
 }
 
