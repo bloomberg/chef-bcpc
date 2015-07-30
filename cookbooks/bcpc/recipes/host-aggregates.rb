@@ -16,6 +16,9 @@
 # limitations under the License.
 #
 
+az_number = (node['hostname'] =~ /bcpc\-vm/) ? node['bcpc']['node_number'] : node['bcpc']['rack']
+availability_zone = (node['bcpc']['availability_zone'].nil? ) ? node['bcpc']['region_name'] + "-" + az_number : node['bcpc']['availability_zone']
+
 node['bcpc']['host_aggregates'].each do |name, properties| 
   bcpc_host_aggregate name do
     metadata properties
@@ -25,7 +28,15 @@ end
 node['bcpc']['aggregate_membership'].each do |name| 
     bcpc_host_aggregate name do
         action :member 
-        zone  node['bcpc']['region_name']
     end
 end 
+
+bcpc_host_aggregate availability_zone do
+  action :create
+  zone availability_zone
+end
+
+bcpc_host_aggregate availability_zone do
+  action :member
+end
 
