@@ -16,8 +16,12 @@
 # limitations under the License.
 #
 
-az_number = (node['hostname'] =~ /bcpc\-vm/) ? node['bcpc']['node_number'] : node['bcpc']['rack']
-availability_zone = (node['bcpc']['availability_zone'].nil? ) ? node['bcpc']['region_name'] + "-" + az_number : node['bcpc']['availability_zone']
+az_number = if node['hostname'] =~ /bcpc\-vm/
+  node['bcpc']['node_number']
+else
+  node['bcpc']['rack'].nil? ? 1 : node['bcpc']['rack']
+end 
+availability_zone = (node['bcpc']['availability_zone'].nil? ) ? node['bcpc']['region_name'] + "-" + az_number.to_s : node['bcpc']['availability_zone'].to_s
 
 node['bcpc']['host_aggregates'].each do |name, properties| 
   bcpc_host_aggregate name do
