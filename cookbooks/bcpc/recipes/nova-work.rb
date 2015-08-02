@@ -282,3 +282,17 @@ bash "patch-for-ip-hostnames-networking" do
     notifies :restart, "service[nova-compute]", :immediately
     notifies :restart, "service[nova-network]", :immediately
 end 
+
+#
+# Pin all host processes (including OSDs) to the following cpus
+#
+if not node['bcpc']['nova']['host_cpus'].nil?
+bash "set-cpu-isolation" do
+    user "root"
+    code <<-EOH
+        echo GRUB_CMDLINE_LINUX_DEFAULT=\\\"\\$GRUB_CMDLINE_LINUX_DEFAULT isolcpus=#{ node['bcpc']['nova']['host_cpus'].join(',')}\\\" >> /etc/default/grub
+        update-grub
+    EOH
+    not_if "grep 'isolcpus=#{ node['bcpc']['nova']['host_cpus'].join(',')}' /etc/default/grub"
+end
+end

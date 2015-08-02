@@ -76,6 +76,11 @@ use_cow_images=True
 #start_guests_on_host_boot=True
 #resume_guests_state_on_host_boot=True
 
+<% if not node['bcpc']['nova']['vm_cpus'].nil? %>
+# pin vcpus to cpus
+vcpu_pin_set=<%=node['bcpc']['nova']['vm_cpus'].join(',')%>
+<% end %>
+
 # Nova Volume settings
 volume_api_class=nova.volume.cinder.API
 
