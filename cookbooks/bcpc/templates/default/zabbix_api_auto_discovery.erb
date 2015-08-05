@@ -5,6 +5,7 @@ import json
 
 headers = {'content-type': 'application/json'}
 roles = ['BCPC-Headnode', 'BCPC-Worknode', 'BCPC-Monitoring']
+zabbix_url = 'http://<%= node['bcpc']['management']['ip'] %>:7777/api_jsonrpc.php'
 
 login_api = {
     "jsonrpc": "2.0", "method": "user.login",
@@ -14,7 +15,7 @@ login_api = {
     },
     "id": 1 }
 
-status = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(login_api), verify=False, headers=headers)
+status = requests.post(zabbix_url, data=json.dumps(login_api), verify=False, headers=headers)
 api_login = status.json()['result']
 
 for role in roles:
@@ -28,7 +29,7 @@ for role in roles:
         "auth": api_login,
         "id": 1 }
 
-    status = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(exists_api), verify=False, headers=headers)
+    status = requests.post(zabbix_url, data=json.dumps(exists_api), verify=False, headers=headers)
 
     if not status.json()['result']:
         # Determine if template exists
@@ -45,7 +46,7 @@ for role in roles:
             "auth": api_login,
             "id": 1
         }
-        response = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(template_api), verify=False, headers=headers)
+        response = requests.post(zabbix_url, data=json.dumps(template_api), verify=False, headers=headers)
         if not response.json()['result']:
             raise Exception("Missing template: " + role)
         templateid = response.json()['result'][0]['templateid']
@@ -64,7 +65,7 @@ for role in roles:
             "auth": api_login,
             "id": 1
         }
-        response = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(hostgroup_api), verify=False, headers=headers)
+        response = requests.post(zabbix_url, data=json.dumps(hostgroup_api), verify=False, headers=headers)
         if not response.json()['result']:
             raise Exception("Missing hostgroup: " + role)
         hostgroupid = response.json()['result'][0]['groupid']
@@ -107,7 +108,7 @@ for role in roles:
             "id": 1
         }
 
-        status = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(create_api), verify=False, headers=headers)
+        status = requests.post(zabbix_url, data=json.dumps(create_api), verify=False, headers=headers)
         if not status.json()['result']:
             raise Exception("Unable to create discovery action: " + role)
 
@@ -123,7 +124,7 @@ for drule in <%=node['bcpc']['zabbix']['discovery']['ip_ranges']%>:
         "id": 1
     }
 
-    response = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(drule_exists_api), verify=False, headers=headers)
+    response = requests.post(zabbix_url, data=json.dumps(drule_exists_api), verify=False, headers=headers)
     if not response.json()['result']:
         drule_create_api = {
             "jsonrpc": "2.0",
@@ -144,7 +145,7 @@ for drule in <%=node['bcpc']['zabbix']['discovery']['ip_ranges']%>:
             "auth": api_login,
             "id": 1
         }
-        status = requests.post("https://<%=node['bcpc']['management']['monitoring']['vip']%>/zabbix/api_jsonrpc.php", data=json.dumps(drule_create_api), verify=False, headers=headers)
+        status = requests.post(zabbix_url, data=json.dumps(drule_create_api), verify=False, headers=headers)
         if not status.json()['result']:
             raise Exception("Unable to create discovery rule: " + drule)
 

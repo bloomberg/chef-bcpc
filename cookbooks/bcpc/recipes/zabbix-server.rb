@@ -185,7 +185,7 @@ if node['bcpc']['enabled']['monitoring'] then
         code <<-EOH
              a2ensite zabbix-web
         EOH
-        not_if "test -r /etc/apache2/sites-enabled/zabbix-web"
+        not_if "test -r /etc/apache2/sites-enabled/zabbix-web.conf"
         notifies :restart, "service[apache2]", :immediate
     end
 
@@ -221,8 +221,8 @@ if node['bcpc']['enabled']['monitoring'] then
     ruby_block "configure_zabbix_templates" do
         block do
             # Ensures no proxy is ever used locally
-            %x[export no_proxy="#{node['bcpc']['management']['monitoring']['vip']}";
-               zabbix_config https://#{node['bcpc']['management']['monitoring']['vip']}/zabbix #{get_config('zabbix-admin-user')} #{get_config('zabbix-admin-password')}
+            %x[export no_proxy="#{node['bcpc']['management']['ip']}";
+               zabbix_config http://#{node['bcpc']['management']['ip']}:7777/ #{get_config('zabbix-admin-user')} #{get_config('zabbix-admin-password')}
             ]
         end
     end
@@ -237,7 +237,7 @@ if node['bcpc']['enabled']['monitoring'] then
     ruby_block "zabbix-api-auto-discovery-register" do
         block do
             # Ensures no proxy is ever used locally
-            %x[export no_proxy="#{node['bcpc']['management']['monitoring']['vip']}";
+            %x[export no_proxy="#{node['bcpc']['management']['ip']}";
                /usr/share/zabbix/zabbix-api-auto-discovery
             ]
         end
