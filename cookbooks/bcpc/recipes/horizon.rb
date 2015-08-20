@@ -64,34 +64,6 @@ bash "patch-for-horizon-swift-content-length" do
     notifies :restart, "service[apache2]", :delayed
 end
 
-#  _   _  ____ _  __   __  ____   _  _____ ____ _   _
-# | | | |/ ___| | \ \ / / |  _ \ / \|_   _/ ___| | | |
-# | | | | |  _| |  \ V /  | |_) / _ \ | || |   | |_| |
-# | |_| | |_| | |___| |   |  __/ ___ \| || |___|  _  |
-#  \___/ \____|_____|_|   |_| /_/   \_\_| \____|_| |_|
-# this patch backports the fix for OpenStack issue #1451429 to enable
-# image uploading from Horizon
-cookbook_file "/tmp/horizon_glance_image_upload.patch" do
-    source "horizon_glance_image_upload.patch"
-    owner "root"
-    mode 00644
-end
-
-bash "patch-for-horizon-glance-image-upload" do
-    user "root"
-    code <<-EOH
-       cd /usr/share/openstack-dashboard
-       patch -p1 < /tmp/horizon_glance_image_upload.patch
-       rv=$?
-       if [ $rv -ne 0 ]; then
-         echo "Error applying patch ($rv) - aborting!"
-         exit $rv
-       fi
-    EOH
-    not_if "grep -q 'THIS FILE PATCHED BY BCPC' /usr/share/openstack-dashboard/openstack_dashboard/api/glance.py"
-    notifies :restart, "service[apache2]", :delayed
-end
-
 # this adds a way to override and customize Horizon's behavior
 horizon_customize_dir = ::File.join('/', 'usr', 'local', 'bcpc-horizon', 'bcpc')
 directory horizon_customize_dir do
