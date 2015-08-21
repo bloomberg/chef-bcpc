@@ -88,7 +88,7 @@ bash "patch-for-horizon-glance-image-upload" do
          exit $rv
        fi
     EOH
-    not_if "grep -q 'THIS FILE PATCHED BY BCPC' /usr/share/openstack-dashboard/openstack_dashboard/api/glance.py"
+    only_if "shasum /usr/share/openstack-dashboard/openstack_dashboard/api/glance.py | grep -q '^81fea34940da24d9c8e8c62da8f71e9a211729b3'"
     notifies :restart, "service[apache2]", :delayed
 end
 

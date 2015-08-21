@@ -66,7 +66,7 @@ bash "patch-for-nova-network-dhcp-server" do
        fi
        cp /tmp/nova-network-dhcp-server.patch .
     EOH
-    not_if "test -f /usr/lib/python2.7/dist-packages/nova-network-dhcp-server.patch"
+    only_if "shasum /usr/lib/python2.7/dist-packages/nova/network/manager.py | grep -q '^1da5cc12bc28f97e15e5f0e152d37b548766ee04'"
     notifies :restart, "service[nova-api]", :immediately
 end
 
