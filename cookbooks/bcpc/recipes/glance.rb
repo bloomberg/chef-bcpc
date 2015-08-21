@@ -60,7 +60,7 @@ bash "patch-backport-for-glance-v2-null-description" do
       exit $rv
     fi
   EOH
-  only_if "shasum /usr/lib/python2.7/dist-packages/glance/schema.py | grep -q e397f917f21e2067721336c5913e0151ed99bb0c"
+  only_if "shasum /usr/lib/python2.7/dist-packages/glance/schema.py | grep -q '^e397f917f21e2067721336c5913e0151ed99bb0c'"
   notifies :restart, "service[glance-api]", :immediately
   notifies :restart, "service[glance-registry]", :immediately
 end 
