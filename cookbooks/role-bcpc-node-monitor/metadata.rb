@@ -1,0 +1,18 @@
+name             'role-bcpc-node-monitor'
+maintainer       'Bloomberg Finance L.P.'
+maintainer_email 'bcpc@bloomberg.net'
+license          'Apache 2.0'
+description      'Installs/Configures role-bcpc-node-monitor'
+long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+version          '6.0.0'
+
+depends          'component-bcpc-common',      '>= 6.0.0'
+depends          'component-bcpc-node-common', '>= 6.0.0'
+depends          'bcpc-foundation',       '>= 6.0.0'
+depends          'bcpc-mysql',            '>= 6.0.0'
+depends          'bcpc-haproxy',          '>= 6.0.0'
+depends          'bcpc-keepalived',       '>= 6.0.0'
+depends          'bcpc-graphite',         '>= 6.0.0'
+depends          'bcpc-elasticsearch',    '>= 6.0.0'
+depends          'bcpc-kibana',           '>= 6.0.0'
+depends          'bcpc-zabbix',           '>= 6.0.0'

@@ -34,10 +34,10 @@ if [[ ! -f $BOOTSTRAP_CACHE_DIR/$ROM && ! -f $BOOTSTRAP_CACHE_DIR/${ROM}_downloa
 fi
 
 # Obtain an Ubuntu netboot image to be used for PXE booting.
-download_file ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/mini.iso 
+download_file ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/mini.iso
 
 # Obtain a Vagrant Trusty box.
-BOX=trusty-server-cloudimg-amd64-vagrant-disk1.box 
+BOX=trusty-server-cloudimg-amd64-vagrant-disk1.box
 download_file $BOX http://cloud-images.ubuntu.com/vagrant/trusty/current/$BOX
 
 # Obtain Chef client and server DEBs.
@@ -46,20 +46,22 @@ CHEF_SERVER_DEB=chef-server-core_12.0.8-1_amd64.deb
 download_file $CHEF_CLIENT_DEB https://opscode-omnibus-packages.s3.amazonaws.com/ubuntu/10.04/x86_64/$CHEF_CLIENT_DEB
 download_file $CHEF_SERVER_DEB https://web-dl.packagecloud.io/chef/stable/packages/ubuntu/trusty/$CHEF_SERVER_DEB
 
-# Pull needed cookbooks from the Chef Supermarket.
-mkdir -p $BOOTSTRAP_CACHE_DIR/cookbooks
-download_file cookbooks/apt-1.10.0.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/1.10.0/download
-download_file cookbooks/cron-1.6.1.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/cron/versions/1.6.1/download
-download_file cookbooks/logrotate-1.6.0.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/logrotate/versions/1.6.0/download
-download_file cookbooks/ntp-1.8.6.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/ntp/versions/1.8.6/download
-download_file cookbooks/ubuntu-1.1.8.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/ubuntu/versions/1.1.8/download
-download_file cookbooks/yum-3.2.2.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/yum/versions/3.2.2/download
+# Get newer cookbooks for R6 from the Chef Supermarket.
+mkdir -p $BOOTSTRAP_CACHE_DIR/cookbooks-r6
+download_file cookbooks-r6/ntp-1.8.6.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/ntp/versions/1.8.6/download
+download_file cookbooks-r6/chef-client-4.3.1.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/chef-client/versions/4.3.1/download
+download_file cookbooks-r6/apt-2.7.0.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/apt/versions/2.7.0/download
+download_file cookbooks-r6/logrotate-1.9.2.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/logrotate/versions/1.9.2/download
+download_file cookbooks-r6/cron-1.6.1.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/cron/versions/1.6.1/download
+download_file cookbooks-r6/windows-1.38.1.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/windows/versions/1.38.1/download
+download_file cookbooks-r6/chef_handler-1.2.0.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/chef_handler/versions/1.2.0/download
+download_file cookbooks-r6/ubuntu-1.1.8.tar.gz http://cookbooks.opscode.com/api/v1/cookbooks/ubuntu/versions/1.1.8/download
 
 # Pull knife-acl gem.
 download_file knife-acl-0.0.12.gem https://rubygems.global.ssl.fastly.net/gems/knife-acl-0.0.12.gem
 
 # Pull needed gems for fpm.
-GEMS=( arr-pm-0.0.10 backports-3.6.4 cabin-0.7.1 childprocess-0.5.6 clamp-0.6.5 ffi-1.9.8 
+GEMS=( arr-pm-0.0.10 backports-3.6.4 cabin-0.7.1 childprocess-0.5.6 clamp-0.6.5 ffi-1.9.8
        fpm-1.3.3 json-1.8.2 )
 mkdir -p $BOOTSTRAP_CACHE_DIR/fpm_gems
 for GEM in ${GEMS[@]}; do
@@ -103,7 +105,7 @@ download_file whisper-0.9.13.tar.gz http://pypi.python.org/packages/source/w/whi
 download_file graphite-web-0.9.13.tar.gz http://pypi.python.org/packages/source/g/graphite-web/graphite-web-0.9.13.tar.gz
 
 # Obtain packages for Rally. There are a lot.
-# for future reference, to install files from this cache use pip install --no-index -f file:///path/to/files rally 
+# for future reference, to install files from this cache use pip install --no-index -f file:///path/to/files rally
 RALLY_PACKAGES=( Babel-1.3.tar.gz
 Jinja2-2.7.3.tar.gz
 Mako-1.0.1.tar.gz

@@ -47,11 +47,11 @@ if [ $MONITORING_NODES -gt 0 ]; then
   done
 fi
 
-# install the knife-acl plugin into embedded knife, rsync the Chef repository into the non-root user 
+# install the knife-acl plugin into embedded knife, rsync the Chef repository into the non-root user
 # (vagrant)'s home directory, and add the dependency cookbooks from the file cache
 do_on_node bootstrap "sudo /opt/opscode/embedded/bin/gem install $FILECACHE_MOUNT_POINT/knife-acl-0.0.12.gem \
   && rsync -a $REPO_MOUNT_POINT/* \$HOME/chef-bcpc \
-  && cp $FILECACHE_MOUNT_POINT/cookbooks/*.tar.gz \$HOME/chef-bcpc/cookbooks \
+  && cp $FILECACHE_MOUNT_POINT/cookbooks-r6/*.tar.gz \$HOME/chef-bcpc/cookbooks \
   && cd \$HOME/chef-bcpc/cookbooks && ls -1 *.tar.gz | xargs -I% tar xvzf %"
 
 # build binaries before uploading the bcpc cookbook
@@ -61,11 +61,10 @@ do_on_node bootstrap "sudo apt-get update \
   && sudo bash -c 'export FILECACHE_MOUNT_POINT=$FILECACHE_MOUNT_POINT \
   && source \$HOME/proxy_config.sh && bootstrap/shared/shared_build_bins.sh'"
 
-# upload all cookbooks, roles and our chosen environment to the Chef server
+# upload all cookbooks and our chosen environment to the Chef server
 # (cookbook upload uses the cookbook_path set when configuring knife on the bootstrap node)
-do_on_node bootstrap "$KNIFE cookbook upload apt bcpc chef-client cron logrotate ntp ubuntu yum \
-  && cd \$HOME/chef-bcpc/roles && $KNIFE role from file *.json \
-  && cd \$HOME/chef-bcpc/environments && $KNIFE environment from file $BOOTSTRAP_CHEF_ENV.json"
+do_on_node bootstrap "$KNIFE cookbook upload -a"
+do_on_node bootstrap "cd \$HOME/chef-bcpc/environments && $KNIFE environment from file $BOOTSTRAP_CHEF_ENV.json"
 
 # install and bootstrap Chef on cluster nodes
 i=1
@@ -83,10 +82,10 @@ done
 ENVIRONMENT_SET="$ENVIRONMENT_SET :"
 do_on_node bootstrap $ENVIRONMENT_SET
 
-do_on_node bootstrap "$KNIFE node run_list set bcpc-bootstrap.$BCPC_HYPERVISOR_DOMAIN 'role[BCPC-Bootstrap]' \
-  && $KNIFE node run_list set bcpc-vm1.$BCPC_HYPERVISOR_DOMAIN 'role[BCPC-Headnode]' \
-  && $KNIFE node run_list set bcpc-vm2.$BCPC_HYPERVISOR_DOMAIN 'role[BCPC-Worknode]' \
-  && $KNIFE node run_list set bcpc-vm3.$BCPC_HYPERVISOR_DOMAIN 'role[BCPC-EphemeralWorknode]'"
+do_on_node bootstrap "$KNIFE node run_list set bcpc-bootstrap.$BCPC_HYPERVISOR_DOMAIN 'recipe[role-bcpc-bootstrap]' \
+  && $KNIFE node run_list set bcpc-vm1.$BCPC_HYPERVISOR_DOMAIN 'recipe[role-bcpc-node-head]' \
+  && $KNIFE node run_list set bcpc-vm2.$BCPC_HYPERVISOR_DOMAIN 'recipe[role-bcpc-node-work-osd]' \
+  && $KNIFE node run_list set bcpc-vm3.$BCPC_HYPERVISOR_DOMAIN 'recipe[role-bcpc-node-work-ephemeral]'"
 
 # generate actor map and set bootstrap, vm1 and mon vms (if any) as admins so that they can write into the data bag
 ADMIN_SET="cd \$HOME && $KNIFE actor map && "

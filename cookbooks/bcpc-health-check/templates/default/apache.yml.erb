@@ -1,0 +1,9 @@
+---
+stats_url:
+ips:
+  - name: mgmt
+    ip: http://<%= node['bcpc']['management']['ip'] %>
+<% if @node['bcpc']['ceph']['frontend'] != "civetweb" %>
+  - name: rgw
+    ip: http://<%= node['bcpc']['floating']['ip'] %>:<%= node['bcpc']['ports']['apache']['radosgw'] %>
+<% end %>

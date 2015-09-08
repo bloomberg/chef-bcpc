@@ -1,8 +1,0 @@
----
-tenant: <%=@node['bcpc']['admin_tenant']%>
-user: '<%="#{get_config('keystone-admin-user')}"%>'
-password: '<%="#{get_config('keystone-admin-password')}"%>'
-auth_url: https://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
-timeout: 300
-cluster: <%=@node['bcpc']['region_name']%>
-host: <%=@node['hostname']%>

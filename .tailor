@@ -1,18 +1,127 @@
+#------------------------------------------------------------------------------
+# Horizontal Whitespace
+#------------------------------------------------------------------------------
+# allow_hard_tabs         True to let hard tabs be considered a single space.
+#                         Default:      false
+#
+# allow_trailing_line_spaces
+#                         True to skip detecting extra spaces at the ends of
+#                         lines.
+#                         Default:      false
+#
+# indentation_spaces      The number of spaces to consider a proper indent.
+#                         Default:      2
+#
+#                         Option: line_continuations
+#                         Indicates that a statement that spans multiple lines
+#                         should indent the second and subsequent lines.  Ex.:
+#                         style.indentation_spaces 2, level: :error, line_continuations: true
+#
+#                         Option: argument_align
+#                         Allowing you to specify that method declarations and
+#                         calls should indent to the first argument on
+#                         subsequent lines.  Ex.:
+#                         style.indentation_spaces 2, level: :error, argument_alignment: true
+#
+# max_line_length         The maximum number of characters in a line before
+#                         tailor complains.
+#                         Default:      80
+# spaces_after_comma      Number of spaces to expect after a comma.
+#                         Default:      1
+#
+# spaces_before_comma     Number of spaces to expect before a comma.
+#                         Default:      0
+#
+# spaces_after_lbrace     The number of spaces to expect after an lbrace ('{').
+#                         Default:      1
+#
+# spaces_before_lbrace    The number of spaces to expect before an lbrace ('{').
+#                         Default:      1
+#
+# spaces_before_rbrace    The number of spaces to expect before an rbrace ('}').
+#                         Default:      1
+#
+# spaces_in_empty_braces  The number of spaces to expect between braces when
+#                         there's nothing in the braces (i.e. {}).
+#                         Default:      0
+#
+# spaces_after_lbracket   The number of spaces to expect after an
+#                         lbracket ('[').
+#                         Default:      0
+#
+# spaces_before_rbracket  The number of spaces to expect before an
+#                         rbracket (']').
+#                         Default:      0
+#
+# spaces_after_lparen     The number of spaces to expect after an
+#                         lparen ('(').
+#                         Default:      0
+#
+# spaces_before_rparen    The number of spaces to expect before an
+#                         rbracket (')').
+#                         Default:      0
+#
+#------------------------------------------------------------------------------
+# Naming
+#------------------------------------------------------------------------------
+# allow_camel_case_methods
+#                         Setting to true skips detection of camel-case method
+#                         names (i.e. def myMethod).
+#                         Default:      false
+#
+# allow_screaming_snake_case_classes
+#                         Setting to true skips detection of screaming
+#                         snake-case class names (i.e. My_Class).
+#                         Default:      false
+#
+#------------------------------------------------------------------------------
+# Vertical Whitespace
+#------------------------------------------------------------------------------
+# max_code_lines_in_class The number of lines of code in a class to allow before
+#                         tailor will warn you.
+#                         Default:      300
+#
+# max_code_lines_in_method
+#                         The number of lines of code in a method to allow
+#                         before tailor will warn you.
+#                         Default:      30
+#
+# trailing_newlines       The number of newlines that should be at the end of
+#                         the file.
+#                         Default:      1
+#
+#------------------------------------------------------------------------------
+# Common Syntax
+#------------------------------------------------------------------------------
+# allow_conditional_parentheses
+#                         Checks to see if a conditional is unnecessarily
+#                         wrapped in parentheses.
+#                         Default:      true
+#
+# allow_unnecessary_double_quotes
+#                         Checks for use of double-quotes when no interpolation
+#                         is used.
+#                         Default:      false
+#
+# allow_unnecessary_interpolation
+#                         Checks for unnecessary interpolation in strings.
+#                         Default:      false
+#
 Tailor.config do |config|
   config.formatters "text"
-  config.file_set 'cookbooks/bcpc/**/*.rb' do |style|
+  config.file_set 'cookbooks/**/*.rb' do |style|
     style.allow_camel_case_methods false, level: :error
-    style.allow_conditional_parentheses false, level: :error
+    style.allow_conditional_parentheses false, level: :warn
     style.allow_hard_tabs false, level: :error
     style.allow_screaming_snake_case_classes false, level: :error
     style.allow_trailing_line_spaces false, level: :error
-    style.allow_unnecessary_interpolation false, level: :error
-    style.allow_unnecessary_double_quotes false, level: :off
-    style.allow_invalid_ruby false, level: :error
-    style.indentation_spaces 4, level: :error
+    style.allow_unnecessary_interpolation false, level: :warn
+    style.allow_unnecessary_double_quotes false, level: :warn
+    style.allow_invalid_ruby false, level: :warn
+    style.indentation_spaces 2, level: :error
     style.max_code_lines_in_class 300, level: :error
     style.max_code_lines_in_method 30, level: :error
-    style.max_line_length 999, level: :error
+    style.max_line_length 80, level: :error
     style.spaces_after_comma 1, level: :error
     style.spaces_after_conditional 1, level: :error
     style.spaces_after_lbrace 1, level: :error

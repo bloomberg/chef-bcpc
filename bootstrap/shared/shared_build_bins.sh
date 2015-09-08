@@ -12,7 +12,9 @@ if [[ -z $FILECACHE_MOUNT_POINT ]]; then
   echo "FILECACHE_MOUNT_POINT must be set to proceed! Exiting." >&2
   exit 1
 fi
-if [[ -z $BUILD_DEST ]]; then BUILD_DEST=cookbooks/bcpc/files/default/bins; fi
+if [[ -z $BUILD_DEST ]]; then
+  BUILD_DEST=cookbooks/bcpc-binary-files/files/default
+fi
 
 pushd $BUILD_DEST
 # Define the appropriate version of each binary to grab/build
@@ -165,7 +167,7 @@ if [ ! -f rally-pip.tar.gz ] || [ ! -f rally-bin.tar.gz ] || [ ! -f python-pip_$
   # install any packages listed there; this forces easy_install to use
   # the same mechanism as we are telling pip to use in $PIP_INSTALL
   echo -e "[easy_install]\nallow_hosts = ''\nfind_links = file://$FILECACHE_MOUNT_POINT/rally/" > $HOME/.pydistutils.cfg
-  $PIP_INSTALL --default-timeout 60 -I rally 
+  $PIP_INSTALL --default-timeout 60 -I rally
   $PIP_INSTALL --default-timeout 60 python-openstackclient
   $PIP_INSTALL -U argparse
   $PIP_INSTALL -U setuptools
@@ -177,4 +179,4 @@ fi
 FILES="rally.tar.gz rally-pip.tar.gz rally-bin.tar.gz python-pip_${VER_PIP}_all.deb $FILES"
 
 # End of Rally
-popd # $BUILD_DEST 
+popd # $BUILD_DEST
