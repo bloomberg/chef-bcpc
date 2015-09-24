@@ -97,6 +97,9 @@ iptables-restore <<EOH
 -A INPUT-monitoring -m set --match-set monitoring-clients src -j ACCEPT
 <% end -%>
 
+# safety valve rules appear below here
+<%= @node['bcpc']['management']['iptables_safety_valve'] %>
+
 # Log and drop everything else
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -j LOGDROP
 
