@@ -166,6 +166,10 @@ default['bcpc']['management']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
 default['bcpc']['management']['interface-parent'] = nil
+# the safety valve allows the appending of arbitrary firewall rules to the
+# bottom of the iptables chain immediately before LOGDROP
+# USE WITH EXTREME CARE
+default['bcpc']['management']['iptables_safety_valve'] = nil
 
 default['bcpc']['metadata']['ip'] = "169.254.169.254"
 
