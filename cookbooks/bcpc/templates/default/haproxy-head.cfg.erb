@@ -151,6 +151,16 @@ listen ceilometer-api
   <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:8777 check inter 5s rise 1 fall 1" %>
 <% end -%>
 
+listen integrations-server
+  bind <%=node['bcpc']['management']['vip']%>:8443 <%= (node['bcpc']['protocol']['ext_integration'] == 'https') ? "ssl crt /etc/haproxy/haproxy.pem" : "" %>
+  balance source
+  option tcplog
+  option httpchk GET /
+  http-check expect status 200
+<% @servers.each do |server| -%>
+  <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:8443 check inter 5s rise 1 fall 1" %>
+<% end -%>
+
 frontend http
   bind <%=node['bcpc']['management']['vip']%>:80
   option tcplog
