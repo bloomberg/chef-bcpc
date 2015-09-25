@@ -31,6 +31,9 @@ defaults
   timeout client 30m
   timeout server 30m
 
+userlist ext_integration
+  user <%= @ext_integration_username %> password <%= salt=secure_password_alphanum_upper(2); @ext_integration_password.crypt('$6$'+salt) %>
+
 listen mysql-galera <%=node['bcpc']['management']['vip']%>:3306
   timeout client 24h
   timeout server 24h
@@ -149,6 +152,18 @@ listen ceilometer-api
   http-check expect status 401
 <% @servers.each do |server| -%>
   <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:8777 check inter 5s rise 1 fall 1" %>
+<% end -%>
+
+listen ext_integration_server
+  bind <%=node['bcpc']['management']['vip']%>:8443 <%= (node['bcpc']['protocol']['ext_integration'] == 'https') ? "ssl crt /etc/haproxy/haproxy.pem" : "" %>
+  balance source
+  option tcplog
+  option httpchk GET /
+  http-check expect status 200
+  acl AuthOkay_ext_integration http_auth(ext_integration)
+  http-request auth realm openstack.<%= node['bcpc']['cluster_domain'] %> if !AuthOkay_ext_integration
+<% @servers.each do |server| -%>
+  <%= "server #{server['hostname']} #{server['bcpc']['management']['ip']}:8443 check inter 5s rise 1 fall 1" %>
 <% end -%>
 
 frontend http

@@ -67,6 +67,7 @@ iptables-restore <<EOH
 
 # Allow external access to some VIP services
 ## apache 80, 443
+## radosgw 8088 7480
 ## keystone 5000 35357
 ## glance 9292
 ## cinder 8776
@@ -75,7 +76,8 @@ iptables-restore <<EOH
 ## heat-api 8004
 ## heat-api-cfn 8000
 ## ceilometer-api 8777
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --match multiport --dports 80,443,8088,7480,5000,35357,9292,8776,8773,8774,8004,8000,8777 -j ACCEPT
+## extra integrations web server 8443
+-A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --match multiport --dports 80,443,8088,7480,5000,35357,9292,8776,8773,8774,8004,8000,8777,8443 -j ACCEPT
 ## powerdns 53
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p udp --dport 53 -j ACCEPT
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 53 -j ACCEPT

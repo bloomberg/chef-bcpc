@@ -274,6 +274,7 @@ default['bcpc']['protocol']['glance'] = "https"
 default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
+default['bcpc']['protocol']['ext_integration'] = "https"
 
 
 ###########################################

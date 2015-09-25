@@ -20,12 +20,25 @@
 include_recipe "bcpc::default"
 include_recipe "bcpc::haproxy-common"
 
+ruby_block "initialize-haproxy-integrations-config" do
+    block do
+        make_config('ext-integration-user', 'integration')
+        make_config('ext-integration-password', secure_password)
+    end
+end
+
 template "/etc/haproxy/haproxy.cfg" do
     source "haproxy-head.cfg.erb"
     mode 00644
     variables(
-        :servers => get_head_nodes,
-        :all_servers => get_ceph_osd_nodes
+        lazy {
+            {
+                :servers                  => get_head_nodes,
+                :all_servers              => get_ceph_osd_nodes,
+                :ext_integration_username => get_config('ext-integration-user'),
+                :ext_integration_password => get_config('ext-integration-password'),
+            }
+        }
     )
     notifies :restart, "service[haproxy]", :immediately
     notifies :restart, "service[xinetd]", :immediately
