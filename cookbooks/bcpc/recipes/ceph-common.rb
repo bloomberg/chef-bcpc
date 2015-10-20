@@ -24,6 +24,15 @@ apt_repository "ceph" do
   distribution node['lsb']['codename']
   components ["main"]
   key "ceph-release.key"
+  notifies :run, "execute[apt-get update]", :immediately
+end
+
+# delete the compromised Ceph signing key from existing systems
+bash "remove-old-ceph-key" do
+  code <<-EOH
+    apt-key del 17ED316D
+  EOH
+  only_if "apt-key list | grep -q 17ED316D"
 end
 
 if platform?("debian", "ubuntu")

@@ -29,9 +29,20 @@ ruby_block "initialize-horizon-config" do
     end
 end
 
+# this cretinous split of the resource is done to accommodate the fact
+# that if you upgrade the package, static asset regeneration will bomb out,
+# so ignore_failure is set when doing an upgrade
+package "openstack-dashboard" do
+    action :install
+    notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
+    not_if "dpkg -S openstack-dashboard >/dev/null 2>&1"
+end
+
 package "openstack-dashboard" do
     action :upgrade
+    ignore_failure true
     notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
+    only_if "dpkg -S openstack-dashboard >/dev/null 2>&1"
 end
 
 #  _   _  ____ _  __   __  ____   _  _____ ____ _   _
