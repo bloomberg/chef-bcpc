@@ -29,20 +29,9 @@ ruby_block "initialize-horizon-config" do
     end
 end
 
-# this cretinous split of the resource is done to accommodate the fact
-# that if you upgrade the package, static asset regeneration will bomb out,
-# so ignore_failure is set when doing an upgrade
-package "openstack-dashboard" do
-    action :install
-    notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
-    not_if "dpkg -S openstack-dashboard >/dev/null 2>&1"
-end
-
 package "openstack-dashboard" do
     action :upgrade
-    ignore_failure true
     notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
-    only_if "dpkg -S openstack-dashboard >/dev/null 2>&1"
 end
 
 #  _   _  ____ _  __   __  ____   _  _____ ____ _   _
@@ -124,17 +113,7 @@ package "openstack-dashboard-ubuntu-theme" do
     notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
 end
 
-# This may be better served by a2disconf
-file "/etc/apache2/conf-enabled/openstack-dashboard.conf" do
-    action :delete
-    notifies :restart, "service[apache2]", :delayed
-end
-file "/etc/apache2/conf-available/openstack-dashboard.conf" do
-    action :delete
-    notifies :restart, "service[apache2]", :delayed
-end
-
-template "/etc/apache2/sites-available/openstack-dashboard.conf" do
+template "/etc/apache2/conf-available/openstack-dashboard.conf" do
     source "apache-openstack-dashboard.conf.erb"
     owner "root"
     group "root"
@@ -142,10 +121,23 @@ template "/etc/apache2/sites-available/openstack-dashboard.conf" do
     notifies :restart, "service[apache2]", :delayed
 end
 
+# we used to remove the Horizon config from conf-* and move it to sites-*
+# but this broke the package postinst, so it is now moved back and
+# these resources clean it up
+file "/etc/apache2/sites-enabled/openstack-dashboard.conf" do
+  action :delete
+  notifies :restart, "service[apache2]", :delayed
+end
+
+file "/etc/apache2/sites-available/openstack-dashboard.conf" do
+  action :delete
+  notifies :restart, "service[apache2]", :delayed
+end
+
 bash "apache-enable-openstack-dashboard" do
     user "root"
-    code "a2ensite openstack-dashboard"
-    not_if "test -r /etc/apache2/sites-enabled/openstack-dashboard"
+    code "a2enconf openstack-dashboard"
+    not_if "test -r /etc/apache2/conf-enabled/openstack-dashboard.conf"
     notifies :restart, "service[apache2]", :delayed
 end
 
@@ -229,6 +221,5 @@ bash "dpkg-reconfigure-openstack-dashboard" do
     action :nothing
     user "root"
     code "dpkg-reconfigure openstack-dashboard"
-    returns [0, 1]
     notifies :restart, "service[apache2]", :immediately
 end
