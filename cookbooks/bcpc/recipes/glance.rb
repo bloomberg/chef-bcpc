@@ -28,8 +28,11 @@ ruby_block "initialize-glance-config" do
     end
 end
 
-package "glance" do
+%w{glance glance-api glance-registry}.each do |pkg|
+  package pkg do 
     action :upgrade
+    options "-o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold'"
+  end
 end
 
 %w{glance-api glance-registry}.each do |svc|

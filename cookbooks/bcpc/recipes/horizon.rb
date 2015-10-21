@@ -113,17 +113,7 @@ package "openstack-dashboard-ubuntu-theme" do
     notifies :run, "bash[dpkg-reconfigure-openstack-dashboard]", :delayed
 end
 
-# This may be better served by a2disconf
-file "/etc/apache2/conf-enabled/openstack-dashboard.conf" do
-    action :delete
-    notifies :restart, "service[apache2]", :delayed
-end
-file "/etc/apache2/conf-available/openstack-dashboard.conf" do
-    action :delete
-    notifies :restart, "service[apache2]", :delayed
-end
-
-template "/etc/apache2/sites-available/openstack-dashboard.conf" do
+template "/etc/apache2/conf-available/openstack-dashboard.conf" do
     source "apache-openstack-dashboard.conf.erb"
     owner "root"
     group "root"
@@ -131,10 +121,23 @@ template "/etc/apache2/sites-available/openstack-dashboard.conf" do
     notifies :restart, "service[apache2]", :delayed
 end
 
+# we used to remove the Horizon config from conf-* and move it to sites-*
+# but this broke the package postinst, so it is now moved back and
+# these resources clean it up
+file "/etc/apache2/sites-enabled/openstack-dashboard.conf" do
+  action :delete
+  notifies :restart, "service[apache2]", :delayed
+end
+
+file "/etc/apache2/sites-available/openstack-dashboard.conf" do
+  action :delete
+  notifies :restart, "service[apache2]", :delayed
+end
+
 bash "apache-enable-openstack-dashboard" do
     user "root"
-    code "a2ensite openstack-dashboard"
-    not_if "test -r /etc/apache2/sites-enabled/openstack-dashboard"
+    code "a2enconf openstack-dashboard"
+    not_if "test -r /etc/apache2/conf-enabled/openstack-dashboard.conf"
     notifies :restart, "service[apache2]", :delayed
 end
 
@@ -218,6 +221,5 @@ bash "dpkg-reconfigure-openstack-dashboard" do
     action :nothing
     user "root"
     code "dpkg-reconfigure openstack-dashboard"
-    returns [0, 1]
     notifies :restart, "service[apache2]", :immediately
 end
