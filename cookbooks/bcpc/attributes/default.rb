@@ -213,6 +213,21 @@ default['bcpc']['proxy_server_url'] = nil
 
 ###########################################
 #
+#  PowerDNS master/slave hosting
+#
+###########################################
+# If another cluster is acting as slave NS server, set these up.
+# IP address/full hostname KV pair of slave NS server(s)
+# i.e. '10.0.100.5' => 'openstack.bcpc.example.com'
+default['bcpc']['dns']['slave'] = {}
+#
+# If this cluster hosts slave zones for another cluster, set up supermasters.
+# IP address/full hostname KV pair of master NS server(s)
+# i.e. '10.0.100.5' => 'openstack.bcpc.example.com'
+default['bcpc']['dns']['master'] = {}
+
+###########################################
+#
 #  Repos for things we rely on
 #
 ###########################################

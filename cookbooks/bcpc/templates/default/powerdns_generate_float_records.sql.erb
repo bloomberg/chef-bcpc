@@ -11,16 +11,27 @@ INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_re
 CREATE TEMPORARY TABLE soa_records_to_delete_<%=get_config('powerdns-update-timestamp')%> (id int);
 <% [@cluster_domain, @reverse_float_zone, @reverse_fixed_zone].each do |zone| %>
 INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
-    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'NS', '<%=@management_vip%>', 'STATIC')
-    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), name='<%=zone%>', type='NS', content='<%=@management_vip%>', bcpc_record_type='STATIC';
+    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'NS', 'openstack.<%=@cluster_domain%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), name='<%=zone%>', type='NS', content='openstack.<%=@cluster_domain%>', bcpc_record_type='STATIC';
+    <% if not node['bcpc']['dns']['slave'].empty? %>
+        <% node['bcpc']['dns']['slave'].sort.each do |ip, nameserver| %>
+            INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
+                ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'NS', '<%=nameserver%>', 'STATIC')
+                ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), name='<%=zone%>', type='NS', content='<%=nameserver%>', bcpc_record_type='STATIC';
+        <% end %>
+    <% end %>
 
 INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
-    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'SOA', '<%=@cluster_domain%> root.<%=@cluster_domain%> <%=get_config('powerdns-update-timestamp')%>', 'static')
-    ON DUPLICATE KEY UPDATE domain_id=(select id from <%=@database_name%>.domains where name='<%=zone%>'), name='<%=zone%>', type='soa', content='<%=@cluster_domain%> root.<%=@cluster_domain%> <%=get_config('powerdns-update-timestamp')%>', bcpc_record_type='STATIC';
+    ((SELECT id FROM <%=@database_name%>.domains WHERE name='<%=zone%>'), '<%=zone%>', 'SOA', 'openstack.<%=@cluster_domain%> root.<%=@cluster_domain%> <%=get_config('powerdns-update-timestamp')%>', 'static')
+    ON DUPLICATE KEY UPDATE domain_id=(select id from <%=@database_name%>.domains where name='<%=zone%>'), name='<%=zone%>', type='soa', content='openstack.<%=@cluster_domain%> root.<%=@cluster_domain%> <%=get_config('powerdns-update-timestamp')%>', bcpc_record_type='STATIC';
 
 INSERT INTO soa_records_to_delete_<%=get_config('powerdns-update-timestamp')%> SELECT id FROM <%=@database_name%>.records WHERE type='SOA' AND name='<%=zone%>' AND id < (SELECT max(id) FROM <%=@database_name%>.records WHERE type='SOA' AND name='<%=zone%>');
 <% end %>
 DELETE FROM <%=@database_name%>.records WHERE id IN (SELECT id FROM soa_records_to_delete_<%=get_config('powerdns-update-timestamp')%>);
+-- Delete old NS/SOA records
+DELETE FROM <%=@database_name%>.records WHERE type = 'NS' AND content = '<%=@management_vip%>';
+DELETE FROM <%=@database_name%>.records WHERE type = 'SOA' AND content LIKE '<%=@cluster_domain%>%';
+
 
 -- insert A records for all BCPC physical hosts
 <% @all_servers.each do |server| %>

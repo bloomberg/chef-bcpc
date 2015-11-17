@@ -79,6 +79,10 @@ iptables-restore <<EOH
 ## powerdns 53
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p udp --dport 53 -j ACCEPT
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 53 -j ACCEPT
+<% node['bcpc']['dns']['slave'].merge(node['bcpc']['dns']['master']).sort.each do |ip, nameserver| %>
+-A INPUT -i <%= @node["bcpc"]["management"]["interface"] %> -d <%= ip %> -p udp --dport 53 -j ACCEPT
+-A INPUT -i <%= @node["bcpc"]["management"]["interface"] %> -d <%= ip %> -p tcp --dport 53 -j ACCEPT
+<% end %>
 
 <% if node["roles"].include? "BCPC-Monitoring" -%>
 ## kibana 443

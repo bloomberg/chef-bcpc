@@ -98,9 +98,9 @@ if node['bcpc']['enabled']['dns'] then
               account VARCHAR(40) DEFAULT NULL,
               primary key (id)
           );
-          INSERT INTO domains (name, type) values ('#{node['bcpc']['cluster_domain']}', 'NATIVE');
-          INSERT INTO domains (name, type) values ('#{reverse_float_zone}', 'NATIVE');
-          INSERT INTO domains (name, type) values ('#{reverse_fixed_zone}', 'NATIVE');
+          INSERT INTO domains (name, type) values ('#{node['bcpc']['cluster_domain']}', 'MASTER');
+          INSERT INTO domains (name, type) values ('#{reverse_float_zone}', 'MASTER');
+          INSERT INTO domains (name, type) values ('#{reverse_fixed_zone}', 'MASTER');
           CREATE UNIQUE INDEX dom_name_index ON domains(name);
       ]
       self.notifies :restart, resources(:service => "pdns"), :delayed
@@ -180,6 +180,44 @@ end
       self.resolve_notification_references
     end
     not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"#{node['bcpc']['dbname']['pdns']}\" AND TABLE_NAME=\"records\"' | grep -q \"records\" >/dev/null" }
+  end
+
+  ruby_block "powerdns-table-supermasters" do
+    block do
+      %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
+          mysql -uroot #{node['bcpc']['dbname']['pdns']} <<-EOH
+          CREATE TABLE IF NOT EXISTS supermasters (
+              ip VARCHAR(64) NOT NULL,
+              nameserver VARCHAR(255) NOT NULL,
+              account VARCHAR(40) DEFAULT NULL
+          );
+          CREATE UNIQUE INDEX ip_nameserver ON supermasters(ip, nameserver);
+      ]
+      self.notifies :restart, resources(:service => "pdns"), :delayed
+      self.resolve_notification_references
+    end
+    not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"#{node['bcpc']['dbname']['pdns']}\" AND TABLE_NAME=\"supermasters\"' | grep -q \"supermasters\" >/dev/null" }
+  end
+
+  # Setup PowerDNS supermaster if we are a slave
+  supermaster_records_file = "/tmp/powerdns_generate_supermaster_records.sql"
+  template supermaster_records_file do
+    source 'powerdns_generate_supermaster_records.sql.erb'
+    owner 'root'
+    group 'root'
+    mode 00644
+    variables({
+      :database_name => node['bcpc']['dbname']['pdns'],
+      :master        => node['bcpc']['dns']['master']
+    })
+    notifies :run, 'ruby_block[powerdns-load-supermaster-records]', :immediately
+  end
+
+  ruby_block "powerdns-load-supermaster-records" do
+    block do
+      system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot #{node['bcpc']['dbname']['pdns']} < #{supermaster_records_file}"
+    end
+    action :nothing
   end
 
   # this template replaces several old ruby_block resources and pre-seeds static and float entries into a template file to be loaded into MySQL

@@ -1,0 +1,7 @@
+-- create supermaster records
+<% @master.sort.each do |ip, nameserver| %>
+    INSERT IGNORE INTO <%= @database_name %>.supermasters (ip, nameserver) VALUES ('<%= ip %>', '<%= nameserver %>');
+<% end %>
+
+-- convert PowerDNS natives zones to master
+UPDATE <%= @database_name %>.domains SET type = 'MASTER' WHERE type = 'NATIVE';

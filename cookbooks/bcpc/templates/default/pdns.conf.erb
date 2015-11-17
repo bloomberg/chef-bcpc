@@ -94,7 +94,7 @@ guardian=yes
 #################################
 # local-address Local IP address to which we bind
 #
-local-address=<%=node['bcpc']['management']['vip']%>
+local-address=<%= node['bcpc']['management']['vip'] %>,<%= node['bcpc']['management']['ip'] %>
 
 #################################
 # local-ipv6    Local IP address to which we bind
@@ -135,6 +135,7 @@ local-port=53
 # master    Act as a master
 #
 # master=no
+master=yes
 
 #################################
 # max-queue-length  Maximum queuelength before considering situation lost
@@ -215,6 +216,7 @@ setuid=pdns
 # slave Act as a slave
 #
 # slave=no
+slave=yes
 
 #################################
 # slave-cycle-interval  Reschedule failed SOA serial checks once every .. seconds
