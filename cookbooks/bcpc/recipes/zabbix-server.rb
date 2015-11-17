@@ -61,7 +61,9 @@ if node['bcpc']['enabled']['monitoring'] then
         action :upgrade
         # no-install-recommends used here because zabbix-server-mysql wants to remove
         # Percona packages in favor of non-clustered Oracle MySQL otherwise
-        options "--no-install-recommends"
+        if node['bcpc']['apt']['dpkgopts'][zabbix_package]
+          options node['bcpc']['apt']['dpkgopts'][zabbix_package]
+        end
       end
     end
     

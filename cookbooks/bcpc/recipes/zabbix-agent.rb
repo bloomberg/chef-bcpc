@@ -48,6 +48,9 @@ if node['bcpc']['enabled']['monitoring'] then
     %w{zabbix-agent zabbix-get zabbix-sender}.each do |zabbix_package|
       package zabbix_package do
         action :upgrade
+        if node['bcpc']['apt']['dpkgopts'][zabbix_package]
+           options node['bcpc']['apt']['dpkgopts'][zabbix_package]
+        end
       end
     end
 

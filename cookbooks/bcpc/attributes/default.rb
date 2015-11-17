@@ -46,6 +46,20 @@ default['bcpc']['erlang']['version'] = '1:17.5.3'
 default['bcpc']['haproxy']['version'] = '1.5.15-1ppa1~trusty'
 default['bcpc']['kibana']['version'] = '4.0.2'
 default['bcpc']['rabbitmq']['version'] = '3.5.6-1'
+#
+###########################################
+#
+# Package install options
+#
+###########################################
+# These are Dpkg::Options values, organized by package name
+default['bcpc']['apt']['dpkgopts'] = {
+   "zabbix-agent" => "--confnew",
+   "zabbix-frontend-php" => "--no-install-recommends --confnew",
+   "zabbix-get" => "--confnew",
+   "zabbix-sender" => "--confnew",
+   "zabbix-server-mysql" => "--no-install-recommends"
+}
 
 ###########################################
 #
