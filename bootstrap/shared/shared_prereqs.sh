@@ -33,6 +33,9 @@ if [[ ! -f $BOOTSTRAP_CACHE_DIR/$ROM && ! -f $BOOTSTRAP_CACHE_DIR/${ROM}_downloa
   touch $BOOTSTRAP_CACHE_DIR/${ROM}_downloaded
 fi
 
+# Obtain latest syslinux
+download_file syslinux-6.03.tar.gz https://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03.tar.gz
+
 # Obtain an Ubuntu netboot image to be used for PXE booting.
 download_file ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/mini.iso
 

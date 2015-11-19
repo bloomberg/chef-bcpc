@@ -5,9 +5,14 @@ set -e
 # bootstrap/shared/shared_build_bins.sh). It expects to run INSIDE the
 # bootstrap VM, so it does not have access to environment variables or bootstrap
 # functions. This script is invoked by shared/shared_configure_chef.sh.
-
-# FILECACHE_MOUNT_POINT is exported in shared/shared_configure_chef.sh when invoking
-# this script.
+#
+# Some binary files are simply copied from the mounted download_file_cache
+# whereas others are actual build artificats. *Both* types end up in
+# BUILD_DEST.
+#
+# CWD is set to BUILD_DEST.
+# FILECACHE_MOUNT_POINT is exported in shared/shared_configure_chef.sh
+# when invoking this script.
 if [[ -z $FILECACHE_MOUNT_POINT ]]; then
   echo "FILECACHE_MOUNT_POINT must be set to proceed! Exiting." >&2
   exit 1
@@ -18,16 +23,17 @@ if [[ -z $BUILD_DEST ]]; then BUILD_DEST=cookbooks/bcpc/files/default/bins; fi
 BUILD_CACHE_DIR=$FILECACHE_MOUNT_POINT/build_bins_cache
 
 # Define the appropriate version of each binary to grab/build
-VER_KIBANA=4.0.2
-VER_PIP=7.0.3
-VER_RALLY=0.0.4
-VER_REQUESTS_AWS=0.1.6
-VER_PYZABBIX=0.7.3
-VER_GRAPHITE_CARBON=0.9.13
-VER_GRAPHITE_WHISPER=0.9.13
-VER_GRAPHITE_WEB=0.9.13
 VER_DIAMOND=d6dbab7e9be05201f9109d83157c496dcab7c68b
 VER_ESPLUGIN=9c032b7c628d8da7745fbb1939dcd2db52629943
+VER_GRAPHITE_CARBON=0.9.13
+VER_GRAPHITE_WEB=0.9.13
+VER_GRAPHITE_WHISPER=0.9.13
+VER_KIBANA=4.0.2
+VER_PIP=7.0.3
+VER_PYZABBIX=0.7.3
+VER_RALLY=0.0.4
+VER_REQUESTS_AWS=0.1.6
+VER_SYSLINUX=6.03
 
 pushd $BUILD_DEST
 
@@ -70,6 +76,12 @@ if [ ! -f ubuntu-14.04-mini.iso ]; then
 fi
 FILES="ubuntu-14.04-mini.iso $FILES"
 
+# Grab the syslinux tarball
+if [ ! -f syslinux-${VER_SYSLINUX}.tar.gz ]; then
+  cp -v $FILECACHE_MOUNT_POINT/syslinux-${VER_SYSLINUX}.tar.gz syslinux-${VER_SYSLINUX}.tar.gz
+fi
+
+FILES="syslinux-${VER_SYSLINUX}.tar.gz $FILES"
 # Test if diamond package version is <= 3.x, which implies a BrightCoveOS source
 if [ -f diamond.deb ]; then
     if [ `dpkg-deb -f diamond.deb Version | cut -b1` -le 3 ]; then
