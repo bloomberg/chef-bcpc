@@ -1,72 +1,84 @@
 ---
-  # leave / on the end of src path so rsync doesn't put the mirror dir inside the dest dir!
-  - name: Perform synchronization of local apt mirror (can take a long while)
-    synchronize: src={{ controlnode_apt_mirror_dir }}/ dest={{ bootstrap_apt_mirror_dir }}
-    tags:
-      - synchronize
+- name: Re-chown synchronized apt-mirror directory
+  command: chown -R {{ ansible_ssh_user }} {{ bootstrap_apt_mirror_dir }}
+  tags:
+    - synchronize
 
-  - name: Perform synchronization of local bootstrap files
-    synchronize: src={{ controlnode_files_dir }}/ dest={{ bootstrap_files_dir }}/
-    tags:
-      - synchronize
+# leave / on the end of src path so rsync doesn't put the mirror dir inside the dest dir!
+- name: Perform synchronization of local apt mirror (can take a long while)
+  synchronize: src={{ controlnode_apt_mirror_dir }}/ dest={{ bootstrap_apt_mirror_dir }} archive=no recursive=yes links=yes perms=yes times=yes rsync_path="sudo rsync"
+  become: no
+  tags:
+    - synchronize
 
-  - name: Move default Ubuntu sources.list away
-    command: mv /etc/apt/sources.list /etc/apt/sources.list.orig creates=/etc/apt/sources.list.orig
+- name: Re-chown synchronized local bootstrap files directory
+  command: chown -R {{ ansible_ssh_user }} {{ bootstrap_files_dir }}
+  tags:
+    - synchronize
 
-  - name: Bootstrap local apt with local filesystem fragment
-    template: src=templates/sources.list.j2 dest=/etc/apt/sources.list.d/localfile_sources.list owner=root group=root mode=0644
-    tags:
-      - configure_apt
+- name: Perform synchronization of local bootstrap files
+  synchronize: src={{ controlnode_files_dir }}/ dest={{ bootstrap_files_dir }}/ archive=no recursive=yes links=yes perms=yes times=yes rsync_path="sudo rsync"
+  become: no
+  tags:
+    - synchronize
 
-  - name: Drop multi-arch support
-    file: path=/etc/dpkg/dpkg.cfg.d/multiarch state=absent
-    tags:
-      - configure_apt
+- name: Move default Ubuntu sources.list away
+  command: mv /etc/apt/sources.list /etc/apt/sources.list.orig creates=/etc/apt/sources.list.orig
 
-  - name: Run apt-get update
-    apt: update_cache=yes
-    tags:
-      - configure_apt
+- name: Bootstrap local apt with local filesystem fragment
+  template: src=templates/sources.list.j2 dest=/etc/apt/sources.list.d/localfile_sources.list owner=root group=root mode=0644
+  tags:
+    - configure_apt
 
-  - name: Install packages
-    apt: name={{ item }} state=present
-    with_items:
-      - git
-      - sshpass
-      - emacs23
-      - vim
-      - unzip
-    tags:
-      - configure_apt
+- name: Drop multi-arch support
+  file: path=/etc/dpkg/dpkg.cfg.d/multiarch state=absent
+  tags:
+    - configure_apt
 
-  - name: Install Apache web server to serve package mirrors
-    apt: name=apache2 state=present
+- name: Run apt-get update
+  apt: update_cache=yes
+  tags:
+    - configure_apt
 
-  - name: Create directory to serve package mirrors from for Apache
-    file: path={{ bootstrap_mirror_root_dir }} state=directory owner=root group=root mode=0755
+- name: Install packages
+  apt: name={{ item }} state=present
+  with_items:
+    - git
+    - sshpass
+    - emacs23
+    - vim
+    - unzip
+  tags:
+    - configure_apt
 
-  - name: Create Apache web site
-    template: src=templates/apache_apt_mirror.j2 dest=/etc/apache2/sites-available/apt-mirror.conf owner=root group=root mode=0644
+- name: Install Apache web server to serve package mirrors
+  apt: name=apache2 state=present
 
-  - name: Disable Apache2 default web site
-    command: a2dissite 000-default removes=/etc/apache2/sites-enabled/000-default.conf
+- name: Create directory to serve package mirrors from for Apache
+  file: path={{ bootstrap_mirror_root_dir }} state=directory owner=root group=root mode=0755
 
-  - name: Enable Apache2 apt-mirror web site
-    command: a2ensite apt-mirror creates=/etc/apache2/sites-enabled/apt-mirror.conf
+- name: Create Apache web site
+  template: src=templates/apache_apt_mirror.j2 dest=/etc/apache2/sites-available/apt-mirror.conf owner=root group=root mode=0644
 
-  - name: Optimistically map mirror paths into serving directory (some may not exist, but don't freak out)
-    file: path={{ bootstrap_mirror_root_dir }}/{{ item.key }} state=link src={{ bootstrap_apt_mirror_dir }}/mirror/{{ item.value }} force=yes
-    with_dict: "{{ mirror_path_map }}"
+- name: Disable Apache2 default web site
+  command: a2dissite 000-default removes=/etc/apache2/sites-enabled/000-default.conf
 
-  - name: Restart Apache
-    service: name=apache2 state=restarted
+- name: Enable Apache2 apt-mirror web site
+  command: a2ensite apt-mirror creates=/etc/apache2/sites-enabled/apt-mirror.conf
 
-    # Ubuntu installer writes proxy information into /etc/apt/apt.conf, overwrite it here
-  - name: Ensure local apt mirror can be reached directly
-    template: src=templates/apt.conf.j2 dest=/etc/apt/apt.conf owner=root group=root mode=0644
+- name: Optimistically map mirror paths into serving directory (some may not exist, but don't freak out)
+  file: path={{ bootstrap_mirror_root_dir }}/{{ item.key }} state=link src={{ bootstrap_apt_mirror_dir }}/mirror/{{ item.value }} force=yes
+  with_dict: "{{ mirror_path_map }}"
 
-  - name: Create directory under mirror root to hold Chef client packages
-    file: path={{ bootstrap_mirror_root_dir }}/chef-client state=directory owner=root group=root mode=0755
+- name: Restart Apache
+  service: name=apache2 state=restarted
 
-  - name: Copy Chef client package to web-accessible directory
-    command: cp {{ bootstrap_files_dir }}/{{ chef_bcpc_version }}/{{ chef_client_deb }} {{ bootstrap_mirror_root_dir }}/chef-client/ creates={{ bootstrap_mirror_root_dir }}/chef-client/{{ chef_client_deb }}
+# Ubuntu installer writes proxy information into /etc/apt/apt.conf, overwrite it here
+- name: Ensure local apt mirror can be reached directly
+  template: src=templates/apt.conf.j2 dest=/etc/apt/apt.conf owner=root group=root mode=0644
+
+- name: Create directory under mirror root to hold Chef client packages
+  file: path={{ bootstrap_mirror_root_dir }}/chef-client state=directory owner=root group=root mode=0755
+
+- name: Copy Chef client package to web-accessible directory
+  command: cp {{ bootstrap_files_dir }}/{{ chef_bcpc_version }}/{{ chef_client_deb }} {{ bootstrap_mirror_root_dir }}/chef-client/ creates={{ bootstrap_mirror_root_dir }}/chef-client/{{ chef_client_deb }}
