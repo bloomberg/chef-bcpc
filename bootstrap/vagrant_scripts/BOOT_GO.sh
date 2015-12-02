@@ -11,7 +11,7 @@ echo "|  _ \| |   | |_) | |    "
 echo "| |_) | |___|  __/| |___ "
 echo "|____/ \____|_|    \____|"
 echo
-echo "BCPC Vagrant BootstrapV2 0.2"
+echo "BCPC Vagrant BootstrapV2 0.3"
 echo "--------------------------------------------"
 echo "Bootstrapping local Vagrant environment..."
 

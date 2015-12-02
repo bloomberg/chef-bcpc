@@ -12,7 +12,9 @@ if [[ -z $FILECACHE_MOUNT_POINT ]]; then
   echo "FILECACHE_MOUNT_POINT must be set to proceed! Exiting." >&2
   exit 1
 fi
-if [[ -z $BUILD_DEST ]]; then BUILD_DEST=cookbooks/bcpc/files/default/bins; fi
+if [[ -z $BUILD_DEST ]]; then
+  BUILD_DEST=cookbooks/bcpc-binary-files/files/default
+fi
 
 # directory used for storing build cache products
 BUILD_CACHE_DIR=$FILECACHE_MOUNT_POINT/build_bins_cache
@@ -133,7 +135,7 @@ if [ ! -f python-carbon_${VER_GRAPHITE_CARBON}_all.deb ]; then
   cp -v $FILECACHE_MOUNT_POINT/carbon-${VER_GRAPHITE_CARBON}.tar.gz .
   tar zxf carbon-${VER_GRAPHITE_CARBON}.tar.gz
   fpm --python-install-bin /opt/graphite/bin -s python -t deb -f carbon-${VER_GRAPHITE_CARBON}/setup.py
-  rm -rf carbon-${VER_GRAPHITE_CARBON} carbon-${VER_GRAPHITE_CARBON}.tar.gz 
+  rm -rf carbon-${VER_GRAPHITE_CARBON} carbon-${VER_GRAPHITE_CARBON}.tar.gz
 fi
 FILES="python-carbon_${VER_GRAPHITE_CARBON}_all.deb $FILES"
 
@@ -141,7 +143,7 @@ if [ ! -f python-whisper_${VER_GRAPHITE_WHISPER}_all.deb ]; then
   cp -v $FILECACHE_MOUNT_POINT/whisper-${VER_GRAPHITE_WHISPER}.tar.gz .
   tar zxf whisper-${VER_GRAPHITE_WHISPER}.tar.gz
   fpm --python-install-bin /opt/graphite/bin -s python -t deb -f whisper-${VER_GRAPHITE_WHISPER}/setup.py
-  rm -rf whisper-${VER_GRAPHITE_WHISPER} whisper-${VER_GRAPHITE_WHISPER}.tar.gz 
+  rm -rf whisper-${VER_GRAPHITE_WHISPER} whisper-${VER_GRAPHITE_WHISPER}.tar.gz
 fi
 FILES="python-whisper_${VER_GRAPHITE_WHISPER}_all.deb $FILES"
 
@@ -194,7 +196,7 @@ if [ ! -f rally-pip.tar.gz ] || [ ! -f rally-bin.tar.gz ] || [ ! -f python-pip_$
   # install any packages listed there; this forces easy_install to use
   # the same mechanism as we are telling pip to use in $PIP_INSTALL
   echo -e "[easy_install]\nallow_hosts = ''\nfind_links = file://$FILECACHE_MOUNT_POINT/rally/" > $HOME/.pydistutils.cfg
-  $PIP_INSTALL --default-timeout 60 -I rally 
+  $PIP_INSTALL --default-timeout 60 -I rally
   $PIP_INSTALL --default-timeout 60 python-openstackclient
   $PIP_INSTALL -U argparse
   $PIP_INSTALL -U setuptools
@@ -208,4 +210,4 @@ FILES="rally.tar.gz rally-pip.tar.gz rally-bin.tar.gz python-pip_${VER_PIP}_all.
 # rsync build products with cache directory
 mkdir -p $BUILD_CACHE_DIR && rsync -avxSH $(pwd -P)/* $BUILD_CACHE_DIR
 
-popd # $BUILD_DEST 
+popd # $BUILD_DEST
