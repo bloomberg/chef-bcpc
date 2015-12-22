@@ -214,5 +214,10 @@ backend radosgw-http-backend
   http-check expect status 200
   source <%=node['bcpc']['floating']['vip']%>
 <% @all_servers.each do |server| -%>
-  <%= "server #{server['hostname']} #{server['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['radosgw']} check inter 5s rise 1 fall 1 observe layer7" %>
+  <% case node['bcpc']['ceph']['frontend'] %>
+  <%   when "civitweb" %>
+  <%=    "server #{server['hostname']} #{server['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['radosgw']} check inter 5s rise 1 fall 1 observe layer7" %>
+  <%   else %>
+  <%=    "server #{server['hostname']} #{server['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']} check inter 5s rise 1 fall 1 observe layer7" %>
+  <% end %>
 <% end -%>

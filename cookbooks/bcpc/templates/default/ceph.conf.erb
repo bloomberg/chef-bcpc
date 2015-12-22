@@ -70,8 +70,9 @@
     rgw enable ops log = false
     rgw enable usage log = false
     rgw print continue = false
+<% case @node['bcpc']['ceph']['frontend'] %>
+<% when "civetweb" %>
     rgw socket path = /var/lib/ceph/radosgw/rgw.sock
-<% if @node['bcpc']['ceph']['frontend'] %>
     rgw frontends = civetweb port=<%=node['bcpc']['ports']['civetweb']['radosgw']%>
 <% else %>
     # For Apache

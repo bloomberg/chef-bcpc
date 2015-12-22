@@ -111,11 +111,22 @@ template "/etc/apache2/sites-available/radosgw.conf" do
     notifies :restart, "service[apache2]", :delayed
 end
 
-bash "apache-enable-radosgw" do
-    user "root"
-    code "a2ensite radosgw"
-    not_if "test -r /etc/apache2/sites-enabled/radosgw"
-    notifies :restart, "service[apache2]", :immediately
+# Handle radosgw apache site
+case node['bcpc']['ceph']['frontend']
+when "civitweb"
+    bash "apache-disable-radosgw" do
+        user "root"
+        code "a2dissite radosgw"
+        only_if "test -r /etc/apache2/sites-enabled/radosgw.conf"
+        notifies :restart, "service[apache2]", :immediately
+    end
+else
+    bash "apache-enable-radosgw" do
+        user "root"
+        code "a2ensite radosgw"
+        not_if "test -r /etc/apache2/sites-enabled/radosgw.conf"
+        notifies :restart, "service[apache2]", :immediately
+    end
 end
 # End apache configs
 

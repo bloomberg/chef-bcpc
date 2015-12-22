@@ -4,9 +4,6 @@
 #
 ################################################
 
-NameVirtualHost <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']}"%>
-
-
 Listen <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']}"%>
 Listen <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw_https']}"%>
 
@@ -14,7 +11,7 @@ FastCgiExternalServer /var/www/s3gw.fcgi -socket /var/lib/ceph/radosgw/rgw_fcgi.
 
 <VirtualHost  <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']}"%> >
         ServerName <%="s3.#{node['bcpc']['cluster_domain']}"%>
-        ServerAlias <%=node['hostname']%>
+        ServerAlias <%=node['fqdn']%>
         ServerAlias <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw']}"%>
         ServerAdmin <%=node['bcpc']['admin_email']%>
         DocumentRoot /var/www
@@ -42,11 +39,9 @@ FastCgiExternalServer /var/www/s3gw.fcgi -socket /var/lib/ceph/radosgw/rgw_fcgi.
         ServerSignature Off
 </VirtualHost>
 
-NameVirtualHost <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw_https']}"%>
-
 <VirtualHost  <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw_https']}"%> >
         ServerName <%="s3.#{node['bcpc']['cluster_domain']}"%>
-        ServerAlias <%=node['hostname']%>
+        ServerAlias <%=node['fqdn']%>
         ServerAlias <%="#{node['bcpc']['floating']['ip']}:#{node['bcpc']['ports']['apache']['radosgw_https']}"%>
         ServerAdmin <%=node['bcpc']['admin_email']%>
         DocumentRoot /var/www
