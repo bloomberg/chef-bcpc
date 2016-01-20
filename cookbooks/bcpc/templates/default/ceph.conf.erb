@@ -14,8 +14,9 @@
     keyring = /etc/ceph/$cluster.$name.keyring
     mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
     mon_pg_warn_max_per_osd = <%= @node['bcpc']['ceph']['max_pgs_per_osd'] %>
+    mon pg warn max object skew = <%= @node['bcpc']['ceph']['pg_warn_max_obj_skew'] %>
 <% if @node["bcpc"]["ceph"]["rebalance"] %>
-    paxos_propose_interval = 60 
+    paxos_propose_interval = 60
 <% end %>
 
 [mon]
@@ -35,7 +36,7 @@
     osd mount options xfs = noexec,nodev,noatime,nodiratime,barrier=0,discard
     osd crush update on start = false
     osd client op priority = 63
-<% if @node["bcpc"]["ceph"]["rebalance"] %> 
+<% if @node["bcpc"]["ceph"]["rebalance"] %>
     osd recovery max active = 1
     osd max backfills  = 1
     osd op threads = 10
@@ -45,9 +46,9 @@
 
 [client.admin]
     # dont want the admin client creating sockets/logs
-    admin socket = 
+    admin socket =
     log file =
-    
+
 [client.cinder]
     rbd cache = true
     rbd cache writethrough until flush = true
@@ -61,7 +62,7 @@
     admin socket = /var/run/ceph/guests/$cluster-$type.$id.$pid.$cctid.asok # must be writable by QEMU and allowed by SELinux or AppArmor
     log file = /var/log/qemu/qemu-guest-$pid.log
     rbd concurrent management ops = 20
-    
+
 [client.radosgw.gateway]
     host = <%=node['hostname']%>
     keyring = /var/lib/ceph/radosgw/$cluster-$id/keyring
