@@ -370,7 +370,7 @@ default['bcpc']['keystone']['wait_for_keystone_timeout'] = 120
 # Set the number of Keystone WSGI processes and threads to use by default on the
 # public API (experimentally threads > 1 may cause problems with the service
 # catalog, for now we recommend scaling only in the processes dimension)
-default['bcpc']['keystone']['wsgi']['processes'] = 5
+default['bcpc']['keystone']['wsgi']['processes'] = 20
 default['bcpc']['keystone']['wsgi']['threads'] = 1
 # The driver section below allows either 'sql' or 'ldap' (or 'templated' for catalog)
 # Note that not all drivers may support SQL/LDAP, only tinker if you know what you're getting into
