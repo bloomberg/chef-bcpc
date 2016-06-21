@@ -9,6 +9,7 @@
       "recipe[bcpc::packages-debugging]",
       "recipe[bcpc::apport]",
       "recipe[bcpc::developer]",
+      "recipe[bcpc::crashkernel]",
       "recipe[bcpc::cpupower]",
       "recipe[bcpc::getty]",
       "recipe[ntp]",
