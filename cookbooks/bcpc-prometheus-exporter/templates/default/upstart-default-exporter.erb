@@ -1,0 +1,10 @@
+##############################################
+#
+# Created by bcpc-prometheus-exporter cookbook
+#
+##############################################
+
+DAEMON_ARGS="\
+<% @params.sort.each do |key, val| %>
+-<%= key %>=<%= val %> \
+<% end %>"

@@ -1,44 +1,47 @@
 {
-    "name": "BCPC-Headnode",
-    "default_attributes": {
-    },
-    "json_class": "Chef::Role",
-    "run_list": [
-      "role[Basic]",
-      "recipe[bcpc]",
-      "recipe[bcpc::check_cluster]",
-      "recipe[bcpc::networking]",
-      "recipe[bcpc::networking-link-test]",
-      "recipe[bcpc::networking-gw-test]",
-      "recipe[bcpc::networking-route-test]",
-      "recipe[bcpc::system]",
-      "recipe[bcpc::apache2]",
-      "recipe[bcpc::ceph-head]",
-      "recipe[bcpc::mysql-head]",
-      "recipe[bcpc::mysql-backup]",
-      "recipe[bcpc::powerdns]",
-      "recipe[bcpc::rabbitmq]",
-      "recipe[bcpc::memcached]",
-      "recipe[bcpc::haproxy-head]",
-      "recipe[bcpc::keepalived-head]",
-      "recipe[bcpc::keystone]",
-      "recipe[bcpc::glance]",
-      "recipe[bcpc::cinder]",
-      "recipe[bcpc::nova-head]",
-      "recipe[bcpc::powerdns-nova]",
-      "recipe[bcpc::heat]",
-      "recipe[bcpc::horizon]",
-      "role[BCPC-Compute]",
-      "recipe[bcpc::checks-head]",
-      "recipe[bcpc::flavors]",
-      "recipe[bcpc::rgw-quota]",
-      "recipe[bcpc::os-quota]"
-    ],
-    "description": "A highly-available head node in a BCPC cluster",
-    "chef_type": "role",
-    "override_attributes": {
-      "bcpc" : {
-            "aggregate_membership" : [ ]
+  "name": "BCPC-Headnode",
+  "default_attributes": {
+  },
+  "json_class": "Chef::Role",
+  "run_list": [
+    "role[Basic]",
+    "recipe[bcpc]",
+    "recipe[bcpc::check_cluster]",
+    "recipe[bcpc::networking]",
+    "recipe[bcpc::networking-link-test]",
+    "recipe[bcpc::networking-gw-test]",
+    "recipe[bcpc::networking-route-test]",
+    "recipe[bcpc::system]",
+    "recipe[bcpc::apache2]",
+    "recipe[bcpc::ceph-head]",
+    "recipe[bcpc::mysql-head]",
+    "recipe[bcpc::mysql-backup]",
+    "recipe[bcpc::powerdns]",
+    "recipe[bcpc::rabbitmq]",
+    "recipe[bcpc::memcached]",
+    "recipe[bcpc::haproxy-head]",
+    "recipe[bcpc::keepalived-head]",
+    "recipe[bcpc::keystone]",
+    "recipe[bcpc::glance]",
+    "recipe[bcpc::cinder]",
+    "recipe[bcpc::nova-head]",
+    "recipe[bcpc::powerdns-nova]",
+    "recipe[bcpc::heat]",
+    "recipe[bcpc::horizon]",
+    "role[BCPC-Compute]",
+    "recipe[bcpc::checks-head]",
+    "recipe[bcpc::flavors]",
+    "recipe[bcpc::rgw-quota]",
+    "recipe[bcpc::os-quota]"
+  ],
+  "description": "A highly-available head node in a BCPC cluster",
+  "chef_type": "role",
+  "override_attributes": {
+    "bcpc" : {
+      "aggregate_membership" : [ ],
+      "monitoring": {
+        "prometheus_exporter": true
       }
     }
+  }
 }

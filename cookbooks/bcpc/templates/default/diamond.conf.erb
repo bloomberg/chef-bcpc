@@ -13,7 +13,11 @@
 [server]
 
 # Handlers for published metrics.
+<% if node['bcpc']['monitoring']['prometheus_exporter'] -%>
+handlers = diamond.handler.multigraphite.MultiGraphiteHandler
+<% else -%>
 handlers = diamond.handler.graphitepickle.GraphitePickleHandler
+<% end -%>
 
 # User diamond will run as
 # Leave empty to use the current user
@@ -55,6 +59,14 @@ log_file = /var/log/diamond/archive.log
 
 # Number of days to keep archive log files
 days = 7
+
+<% if node['bcpc']['monitoring']['prometheus_exporter']-%>
+[[MultiGraphiteHandler]]
+host = <%= node['bcpc']['management']['ip'] %>,<%= node['bcpc']['monitoring']['ips'].sort.join(',') %>
+port = 2013
+timeout = 15
+batch = 512
+<% end -%>
 
 [[GraphiteHandler]]
 ### Options for GraphiteHandler

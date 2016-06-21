@@ -273,3 +273,9 @@ done
 # ..and for the one package that has to be a special snowflake and not fit into
 # the above scheme because of capitalization weirdness
 download_file rally/prettytable-0.7.2.tar.gz https://pypi.python.org/packages/source/P/PrettyTable/prettytable-0.7.2.tar.gz
+
+# Download Go package
+download_file go${VER_GOLANG}.linux-amd64.tar.gz https://storage.googleapis.com/golang/go${VER_GOLANG}.linux-amd64.tar.gz
+
+# Download Prometheus Graphite exporter
+clone_repo https://github.com/prometheus/graphite_exporter graphite_exporter $VER_GRAPHITE_EXPORTER

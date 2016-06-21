@@ -1,16 +1,19 @@
 {
-    "name": "BCPC-Worknode",
-    "default_attributes": {
-    },
-    "json_class": "Chef::Role",
-    "run_list": [
-      "role[BCPC-Compute]"
-    ],
-    "description": "A functional compute node in a BCPC cluster",
-    "chef_type": "role",
-    "override_attributes": {
-      "bcpc" : {
-            "aggregate_membership" : ["general_compute"]
+  "name": "BCPC-Worknode",
+  "default_attributes": {
+  },
+  "json_class": "Chef::Role",
+  "run_list": [
+    "role[BCPC-Compute]"
+  ],
+  "description": "A functional compute node in a BCPC cluster",
+  "chef_type": "role",
+  "override_attributes": {
+    "bcpc" : {
+      "aggregate_membership" : ["general_compute"],
+      "monitoring": {
+        "prometheus_exporter": true
       }
     }
+  }
 }

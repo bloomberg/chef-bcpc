@@ -15,7 +15,10 @@
       },
   	  "nova": {
   	    "ephemeral": true
-  	  }
+  	  },
+      "monitoring": {
+        "prometheus_exporter": true
+      }
     }
   }
 }

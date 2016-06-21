@@ -54,7 +54,9 @@
         "ubuntu": "http://10.0.100.3/ubuntu"
       },
       "monitoring": {
-        "vip": "10.0.100.6"
+        "vip": "10.0.100.6",
+        "ips"  : [ "10.0.100.6" ],
+        "cidrs": [ "10.0.100.0/24" ]
       },
       "nova": {
         "cpu_allocation_ratio": "20.0",

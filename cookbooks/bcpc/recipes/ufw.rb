@@ -39,6 +39,17 @@ template "/etc/ufw/before.rules" do
     notifies :restart, "service[ufw]", :delayed
 end
 
+node["bcpc"]["monitoring"]["cidrs"].each do |cidr|
+  node['bcpc']['monitoring']['agent_tcp_ports'].each do |port|
+    bash "setup-allow-rules-ufw-#{cidr}-#{port}" do
+      user 'root'
+        code <<-EOH
+          ufw allow from #{cidr} to #{node['bcpc']['bootstrap']['server']} port #{port} proto tcp
+        EOH
+    end
+  end
+end
+
 bash "setup-allow-rules-ufw" do
     user "root"
     code <<-EOH
@@ -49,7 +60,6 @@ bash "setup-allow-rules-ufw" do
         ufw allow 4040/tcp
         ufw allow in on #{node['bcpc']['bootstrap']['pxe_interface']} from any port 68 to any port 67 proto udp
         ufw allow in on #{node['bcpc']['bootstrap']['pxe_interface']} from any to #{node['bcpc']['bootstrap']['server']} port tftp
-        ufw allow 10050/tcp
         ufw --force enable
     EOH
 end

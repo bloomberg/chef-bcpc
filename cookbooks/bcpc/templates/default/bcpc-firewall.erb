@@ -62,8 +62,10 @@ iptables-restore <<EOH
 ## ssh 22
 ## nova-novncproxy 6080
 -A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["ip"]%> -p tcp --match multiport --dports 22,6080 -j ACCEPT
-## Fallback rule in case node is monitored by out-of-cluster Zabbix
--A INPUT -i <%= @node["bcpc"]["management"]["interface"] %> -s <%= @node["bcpc"]["monitoring"]["vip"] %> -d <%= @node["bcpc"]["management"]["ip"] %> -p tcp --dport 10050 -j ACCEPT
+## Fallback rules in case node is monitored by out-of-cluster monitoring services
+<% node["bcpc"]["monitoring"]["cidrs"].each do |cidr| -%>
+-A INPUT -i <%= @node["bcpc"]["management"]["interface"] %> -s <%= cidr %> -d <%= @node["bcpc"]["management"]["ip"] %> -p tcp -m multiport --dports <%= @node['bcpc']['monitoring']['agent_tcp_ports'].join(',') %> -j ACCEPT
+<% end -%>
 
 # Allow external access to some VIP services
 ## apache 80, 443

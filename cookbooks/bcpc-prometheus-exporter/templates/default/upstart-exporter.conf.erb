@@ -1,0 +1,17 @@
+##############################################
+#
+# Created by bcpc-prometheus-exporter cookbook
+#
+##############################################
+
+description '<%= @exporter %>'
+respawn
+setuid <%= @user %>
+
+script
+  DAEMON_ARGS=""
+  LOGFILE=<%= @log_file %>
+  [ -r /etc/default/$UPSTART_JOB ] && . /etc/default/$UPSTART_JOB
+  exec >> $LOGFILE 2>&1
+  exec <%= @executable %> $DAEMON_ARGS
+end script

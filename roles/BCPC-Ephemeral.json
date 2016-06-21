@@ -18,7 +18,8 @@
       "recipe[bcpc::tpm]",
       "recipe[bcpc::host-aggregates]",
       "recipe[bcpc::checks-work]",
-      "recipe[bcpc::zabbix-agent]"
+      "recipe[bcpc::zabbix-agent]",
+      "recipe[bcpc-prometheus-exporter]"
     ],
     "description": "Run list for a general ephemeral compute function. Building block, not designed as an applied role.",
     "chef_type": "role"

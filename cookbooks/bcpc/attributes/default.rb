@@ -52,11 +52,11 @@ default['bcpc']['in_maintenance'] = false
 #  Flags to enable/disable BCPC cluster features
 #
 ###########################################
-# This will enable elasticsearch & kibana on head nodes and fluentd on all nodes
+# This will enable elasticsearch & kibana on monitoring nodes and fluentd on all nodes
 default['bcpc']['enabled']['logging'] = true
-# This will enable graphite web and carbon on head nodes and diamond on all nodes
+# This will enable graphite web and carbon on monitoring nodes and diamond on all nodes
 default['bcpc']['enabled']['metrics'] = true
-# This will enable zabbix server on head nodes and zabbix agent on all nodes
+# This will enable zabbix server on monitoring nodes and zabbix agent on all nodes
 default['bcpc']['enabled']['monitoring'] = true
 # This will enable powerdns on head nodes
 default['bcpc']['enabled']['dns'] = true
