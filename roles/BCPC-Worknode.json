@@ -4,7 +4,8 @@
     },
     "json_class": "Chef::Role",
     "run_list": [
-      "role[BCPC-Compute]"
+      "role[BCPC-Compute]",
+      "recipe[bcpc::packages-upgrade]"
     ],
     "description": "A functional compute node in a BCPC cluster",
     "chef_type": "role",
