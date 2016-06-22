@@ -35,19 +35,3 @@ package 'logtail'
 package "powernap" do
   action :remove
 end
-
-if node['bcpc']['enabled']['apt_dist_upgrade']
-  include_recipe "apt::default"
-  bash "perform-dist-upgrade" do
-    user "root"
-    code "DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=\"--force-confdef\" -o Dpkg::Options::=\"--force-confold\" dist-upgrade"
-  end
-end
-
-if node['bcpc']['enabled']['apt_upgrade']
-  include_recipe "apt::default"
-  bash "perform-upgrade" do
-    user "root"
-    code "DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=\"--force-confdef\" -o Dpkg::Options::=\"--force-confold\" upgrade"
-  end
-end

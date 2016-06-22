@@ -6,7 +6,8 @@
     "run_list": [
       "role[BCPC-Alerting]",
       "role[BCPC-Metrics]",
-      "role[BCPC-Logging]"
+      "role[BCPC-Logging]",
+      "recipe[bcpc::packages-upgrade]"
     ],
     "description": "Monitoring head node in a BCPC cluster",
     "chef_type": "role",

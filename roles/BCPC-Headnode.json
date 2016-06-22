@@ -32,7 +32,8 @@
       "recipe[bcpc::checks-head]",
       "recipe[bcpc::flavors]",
       "recipe[bcpc::rgw-quota]",
-      "recipe[bcpc::os-quota]"
+      "recipe[bcpc::os-quota]",
+      "recipe[bcpc::packages-upgrade]"
     ],
     "description": "A highly-available head node in a BCPC cluster",
     "chef_type": "role",

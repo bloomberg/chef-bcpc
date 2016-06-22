@@ -64,8 +64,8 @@ default['bcpc']['enabled']['dns'] = true
 default['bcpc']['enabled']['host_firewall'] = true
 # This will enable of encryption of the chef data bag
 default['bcpc']['enabled']['encrypt_data_bag'] = false
-# These will enable automatic dist-upgrade/upgrade at the start of a Chef run
-# (not recommended for stability)
+# These will enable automatic dist-upgrade/upgrade at the end of a Chef run
+# (recommended for scenarios where package versions are managed via frozen mirror)
 default['bcpc']['enabled']['apt_dist_upgrade'] = false
 default['bcpc']['enabled']['apt_upgrade'] = false
 # This will enable running apt-get update at the start of every Chef run
