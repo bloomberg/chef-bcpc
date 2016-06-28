@@ -339,9 +339,9 @@ default['bcpc']['catalog'] = {
       'public' => 9292
     },
     'uris' => {
-      'admin' => 'v2',
-      'internal' => 'v2',
-      'public' => 'v2'
+      'admin' => '',
+      'internal' => '',
+      'public' => ''
     }
   }
 }
