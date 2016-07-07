@@ -3,7 +3,7 @@
 # first validate local environment aspects
 - include: ../common_playbooks/validate_environment.yml
 
-- hosts: bootstraps
+- hosts: "{{ target }}"
   gather_facts: no
   remote_user: operations
   become: yes
@@ -13,23 +13,38 @@
     - name: check that cluster.yaml is present
       stat: path=/bcpc/deployed/cluster.yaml
       register: cluster_yaml_stat
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: check that cluster.yml is present
       stat: path=/bcpc/deployed/cluster.yml
       register: cluster_yml_stat
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: fail if cluster YAML (.yaml or .yml) is not present
       fail: msg="Please provide a cluster.yaml or cluster.yml in /bcpc/deployed on the bootstrap node"
       when: not cluster_yaml_stat.stat.exists and not cluster_yml_stat.stat.exists
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: register head nodes from cluster YAML
       command: ./bootstrap/ansible_scripts/scripts/enroll_cobbler.py add_role -t head chdir={{ bootstrap_deployed_dir }}
+      when: "'headnodes' in group_names"
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: register OSD work nodes from cluster YAML
       command: ./bootstrap/ansible_scripts/scripts/enroll_cobbler.py add_role -t work chdir={{ bootstrap_deployed_dir }}
+      when: "'worknodes' in group_names"
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: register ephemeral work nodes from cluster YAML
       command: ./bootstrap/ansible_scripts/scripts/enroll_cobbler.py add_role -t work-ephemeral chdir={{ bootstrap_deployed_dir }}
+      when: "'ephemeral-worknodes' in group_names"
+      delegate_to: "{{ groups['bootstraps'][0] }}"
+
+    - name: register monitoring work nodes from cluster YAML
+      command: ./bootstrap/ansible_scripts/scripts/enroll_cobbler.py add_role -t monitoring chdir={{ bootstrap_deployed_dir }}
+      when: "'monitoring' in group_names"
+      delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: sync Cobbler
       command: cobbler sync
+      delegate_to: "{{ groups['bootstraps'][0] }}"
