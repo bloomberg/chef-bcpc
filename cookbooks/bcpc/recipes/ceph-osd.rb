@@ -21,16 +21,30 @@ execute "trigger-osd-startup" do
     command "udevadm trigger --subsystem-match=block --action=add"
 end
 
+ruby_block "set-primary-anti-affinity" do
+    block do
+        system "ceph tell mon.\* injectargs --mon_osd_allow_primary_affinity=true > /dev/null 2>&1"
+        osds_tree = JSON.parse( %x[ceph osd tree --format json] )
+        osds = osds_tree['nodes'].select{ |v| v["name"] == "#{node["hostname"]}-ssd" || v["name"] == "#{node["hostname"]}-hdd" }.collect{ |x| x["children"] }.flatten
+        osds.each do |osd|
+            system "ceph osd primary-affinity osd.#{osd} 0 > /dev/null 2>&1"
+        end
+    end
+    only_if { node['bcpc']['ceph']['set_headnode_affinity'] and get_head_nodes.include?(node) }
+end
+
 template '/etc/init/ceph-osd-renice.conf' do
   source 'ceph-upstart.ceph-osd-renice.conf.erb'
   mode 00644
   notifies :restart, "service[ceph-osd-renice]", :immediately
+  not_if { get_head_nodes.include?(node) }
 end
 
 service 'ceph-osd-renice' do
   provider Chef::Provider::Service::Upstart
   action [:enable, :start]
   restart_command 'service ceph-osd-renice restart'
+  not_if { get_head_nodes.include?(node) }
 end
 
 # this resource is to clean up leftovers from the CephFS resources that used to be here
