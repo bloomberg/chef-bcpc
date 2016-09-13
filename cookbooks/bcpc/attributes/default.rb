@@ -64,12 +64,6 @@ default['bcpc']['enabled']['dns'] = true
 default['bcpc']['enabled']['host_firewall'] = true
 # This will enable of encryption of the chef data bag
 default['bcpc']['enabled']['encrypt_data_bag'] = false
-# These will enable automatic dist-upgrade/upgrade at the start of a Chef run
-# (not recommended for stability)
-default['bcpc']['enabled']['apt_dist_upgrade'] = false
-default['bcpc']['enabled']['apt_upgrade'] = false
-# This will enable running apt-get update at the start of every Chef run
-default['bcpc']['enabled']['always_update_package_lists'] = true
 # This will enable the extra healthchecks for keepalived (VIP management)
 default['bcpc']['enabled']['keepalived_checks'] = true
 # This will enable the networking test scripts
@@ -80,8 +74,6 @@ default['bcpc']['enabled']['tpm'] = false
 default['bcpc']['enabled']['secure_fixed_networks'] = true
 # Toggle to enable/disable swap memory
 default['bcpc']['enabled']['swap'] = true
-# Toggle to enable apport for debugging process crashes
-default['bcpc']['enabled']['apport'] = true
 # Toggle to enable/disable Heat (OpenStack Cloud Formation)
 default['bcpc']['enabled']['heat'] = false
 
@@ -462,22 +454,6 @@ default['bcpc']['hardware']['io_scheduler'] = 'deadline'
 
 ###########################################
 #
-# CPU governor settings
-#
-###########################################
-#
-# Available options: conservative, ondemand, userspace, powersave, performance
-# Review documentation at https://www.kernel.org/doc/Documentation/cpu-freq/governors.txt
-default['bcpc']['cpupower']['governor'] = "ondemand"
-default['bcpc']['cpupower']['ondemand_ignore_nice_load'] = nil
-default['bcpc']['cpupower']['ondemand_io_is_busy'] = nil
-default['bcpc']['cpupower']['ondemand_powersave_bias'] = nil
-default['bcpc']['cpupower']['ondemand_sampling_down_factor'] = nil
-default['bcpc']['cpupower']['ondemand_sampling_rate'] = nil
-default['bcpc']['cpupower']['ondemand_up_threshold'] = nil
-
-###########################################
-#
 # defaults for the bcpc.bootstrap settings
 #
 ###########################################
@@ -683,12 +659,6 @@ default['bcpc']['quota'] = {
     }
 }
 
-###########################################
-#
-#  Getty settings
-#
-###########################################
-default['bcpc']['getty']['ttys'] = %w( ttyS0 ttyS1 )
 ###########################################
 #
 #  VNC settings

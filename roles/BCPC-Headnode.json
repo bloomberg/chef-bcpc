@@ -4,7 +4,7 @@
     },
     "json_class": "Chef::Role",
     "run_list": [
-      "role[Basic]",
+      "recipe[bcpc_common]",
       "recipe[bcpc]",
       "recipe[bcpc::check_cluster]",
       "recipe[bcpc::networking]",
@@ -33,13 +33,14 @@
       "recipe[bcpc::flavors]",
       "recipe[bcpc::rgw-quota]",
       "recipe[bcpc::os-quota]",
-      "recipe[bcpc::kilo-to-liberty-upgrade-cleanup]"
+      "recipe[bcpc::kilo-to-liberty-upgrade-cleanup]",
+      "recipe[bcpc_common::apt_upgrade]"
     ],
     "description": "A highly-available head node in a BCPC cluster",
     "chef_type": "role",
     "override_attributes": {
-      "bcpc" : {
-            "aggregate_membership" : [ ]
-      }
+        "bcpc" : {
+            "aggregate_membership" : []
+        }
     }
 }

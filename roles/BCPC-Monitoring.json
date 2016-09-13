@@ -4,9 +4,10 @@
     },
     "json_class": "Chef::Role",
     "run_list": [
-      "role[BCPC-Alerting]",
-      "role[BCPC-Metrics]",
-      "role[BCPC-Logging]"
+        "role[BCPC-Alerting]",
+        "role[BCPC-Metrics]",
+        "role[BCPC-Logging]",
+        "recipe[bcpc_common::apt_upgrade]"
     ],
     "description": "Monitoring head node in a BCPC cluster",
     "chef_type": "role",

@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: bcpc
-# Recipe::developer
+# Cookbook Name:: bcpc_common
+# Recipe:: apport
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2016, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Tools and setup useful when your doing dev on BCPC
-# but dont want them to go into a production system.
-#
 
-package "emacs24-nox"
-package "vim"
+package 'apport' do
+  action :upgrade
+end
+
+template '/etc/default/apport' do
+  source 'apport/etc_default_apport.erb'
+  owner  'root'
+  group  'root'
+  mode   00644
+  notifies :restart, 'service[apport]', :immediately
+end
+
+service 'apport' do
+  action [:enable, :start]
+end

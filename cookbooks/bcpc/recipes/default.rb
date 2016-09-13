@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+include_recipe 'bcpc_common'
+
 require 'ipaddr'
 
 begin

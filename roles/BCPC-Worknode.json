@@ -4,13 +4,14 @@
     },
     "json_class": "Chef::Role",
     "run_list": [
-      "role[BCPC-Compute]"
+        "role[BCPC-Compute]",
+        "recipe[bcpc_common::apt_upgrade]"
     ],
     "description": "A functional compute node in a BCPC cluster",
     "chef_type": "role",
     "override_attributes": {
-      "bcpc" : {
+        "bcpc" : {
             "aggregate_membership" : ["general_compute"]
-      }
+        }
     }
 }

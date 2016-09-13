@@ -1,21 +1,22 @@
 {
-  "name": "BCPC-EphemeralWorknode",
-  "default_attributes": {},
-  "json_class": "Chef::Role",
-  "run_list": [
-    "role[BCPC-Ephemeral]"
-  ],
-  "description": "An ephemeral compute node in a BCPC cluster",
-  "chef_type": "role",
-  "override_attributes": {
-    "bcpc" : {
-      "aggregate_membership": ["ephemeral_compute"],
-      "software_raid": {
-        "enabled": true
-      },
-  	  "nova": {
-  	    "ephemeral": true
-  	  }
+    "name": "BCPC-EphemeralWorknode",
+    "default_attributes": {},
+    "json_class": "Chef::Role",
+    "run_list": [
+        "role[BCPC-Ephemeral]",
+        "recipe[bcpc_common::apt_upgrade]"
+    ],
+    "description": "An ephemeral compute node in a BCPC cluster",
+    "chef_type": "role",
+    "override_attributes": {
+        "bcpc" : {
+            "aggregate_membership": ["ephemeral_compute"],
+            "software_raid": {
+                "enabled": true
+            },
+            "nova": {
+                "ephemeral": true
+            }
+        }
     }
-  }
 }

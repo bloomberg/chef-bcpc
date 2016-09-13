@@ -1,6 +1,6 @@
 #
-# Cookbook Name:: bcpc
-# Recipe:: apport
+# Cookbook Name:: bcpc_common
+# Recipe:: apt_upgrade
 #
 # Copyright 2016, Bloomberg Finance L.P.
 #
@@ -17,18 +17,24 @@
 # limitations under the License.
 #
 
-package "apport" do
-  action :upgrade
+include_recipe 'apt'
+
+bash 'perform-dist-upgrade' do
+  user 'root'
+  code <<-EOH
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" dist-upgrade
+  EOH
+  only_if { node['bcpc']['enabled']['apt_dist_upgrade'] }
 end
 
-template "/etc/default/apport" do
-  source "etc_default_apport.erb"
-  owner  "root"
-  group  "root"
-  mode   00644
-  notifies :restart, "service[apport]", :delayed
-end
-
-service "apport" do
-  action [:enable, :start]
+bash 'perform-upgrade' do
+  user 'root'
+  code <<-EOH
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" upgrade
+  EOH
+  only_if { node['bcpc']['enabled']['apt_upgrade'] }
 end
