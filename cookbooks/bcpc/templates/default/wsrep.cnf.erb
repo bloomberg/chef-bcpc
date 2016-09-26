@@ -38,6 +38,11 @@ innodb_buffer_pool_size=<%= @innodb_buffer_pool_size %>
 # Number of buffer pool instances. Only takes effect if pool size is 1GB+.
 innodb_buffer_pool_instances=<%= @innodb_buffer_pool_instances %>
 
+<% if not @node['bcpc']['mysql-head']['thread_cache_size'].nil? %>
+thread_cache_size=<%= @thread_cache_size %>
+<% end %>
+innodb_io_capacity=<%= @innodb_io_capacity %>
+
 # Less thrash on restarts by dumping and loading buffer pools
 innodb_buffer_pool_dump_at_shutdown=ON
 innodb_buffer_pool_load_at_startup=ON
@@ -52,10 +57,11 @@ innodb_file_per_table=1
 innodb_log_file_size=64M
 
 # Set memory buffer size for the log
-innodb_log_buffer_size=8M
+innodb_log_buffer_size=<%= @innodb_log_buffer_size %>
 
 # Use direct I/O to avoid double buffering writes
-innodb_flush_method=O_DIRECT
+# note: 'O_DIRECT_NO_FSYNC' should not be used with XFS file system
+innodb_flush_method=<%= @innodb_flush_method %>
 
 # Query Cache is not supported with wsrep
 query_cache_size=0
@@ -100,7 +106,7 @@ wsrep_node_address="<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 wsrep_node_incoming_address="<%=node['bcpc']['management']['ip']%>:<%=@wsrep_port%>"
 
 # How many threads will process writesets from other nodes
-wsrep_slave_threads=4
+wsrep_slave_threads=<%= @wsrep_slave_threads %>
 
 # DBUG options for wsrep provider
 #wsrep_dbug_option

@@ -436,6 +436,11 @@ default['bcpc']['mysql-head']['max_connections'] = 0
 # pools of at least 1GB in size each
 default['bcpc']['mysql-head']['innodb_buffer_pool_instances'] = 1
 default['bcpc']['mysql-head']['innodb_buffer_pool_size'] = '128M'
+default['bcpc']['mysql-head']['thread_cache_size'] = nil
+default['bcpc']['mysql-head']['innodb_io_capacity'] = 200
+default['bcpc']['mysql-head']['innodb_log_buffer_size'] = '8M'
+default['bcpc']['mysql-head']['innodb_flush_method'] = 'O_DIRECT'
+default['bcpc']['mysql-head']['wsrep_slave_threads'] = 4
 
 ###########################################
 #
