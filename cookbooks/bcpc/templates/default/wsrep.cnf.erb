@@ -38,7 +38,7 @@ innodb_buffer_pool_size=<%= @innodb_buffer_pool_size %>
 # Number of buffer pool instances. Only takes effect if pool size is 1GB+.
 innodb_buffer_pool_instances=<%= @innodb_buffer_pool_instances %>
 
-<% if not @node['bcpc']['mysql-head']['thread_cache_size'].nil? %>
+<% if not @thread_cache_size.nil? %>
 thread_cache_size=<%= @thread_cache_size %>
 <% end %>
 innodb_io_capacity=<%= @innodb_io_capacity %>
