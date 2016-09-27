@@ -13,6 +13,11 @@ default['bcpc']['monitoring']['external_clients'] = []
 # Monitoring database settings
 default['bcpc']['monitoring']['mysql']['innodb_buffer_pool_size'] = '128M'
 default['bcpc']['monitoring']['mysql']['innodb_buffer_pool_instances'] = 1
+default['bcpc']['monitoring']['mysql']['thread_cache_size'] = nil
+default['bcpc']['monitoring']['mysql']['innodb_io_capacity'] = 200
+default['bcpc']['monitoring']['mysql']['innodb_log_buffer_size'] = '8M'
+default['bcpc']['monitoring']['mysql']['innodb_flush_method'] = 'O_DIRECT'
+default['bcpc']['monitoring']['mysql']['wsrep_slave_threads'] = 4
 # Pagerduty integration
 default['bcpc']['monitoring']['pagerduty']['enabled'] = false
 # Pagerduty service key

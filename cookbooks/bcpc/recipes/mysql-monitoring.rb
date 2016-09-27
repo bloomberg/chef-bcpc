@@ -68,7 +68,12 @@ template "/etc/mysql/conf.d/wsrep.cnf" do
         :galera_user_key => "mysql-monitoring-galera-user",
         :galera_pass_key => "mysql-monitoring-galera-password",
         :innodb_buffer_pool_size => node['bcpc']['monitoring']['mysql']['innodb_buffer_pool_size'],
-        :innodb_buffer_pool_instances => node['bcpc']['monitoring']['mysql']['innodb_buffer_pool_instances']
+        :innodb_buffer_pool_instances => node['bcpc']['monitoring']['mysql']['innodb_buffer_pool_instances'],
+        :thread_cache_size => node['bcpc']['monitoring']['mysql']['thread_cache_size'],
+        :innodb_io_capacity => node['bcpc']['monitoring']['mysql']['innodb_io_capacity'],
+        :innodb_log_buffer_size => node['bcpc']['monitoring']['mysql']['innodb_log_buffer_size'],
+        :innodb_flush_method => node['bcpc']['monitoring']['mysql']['innodb_flush_method'],
+        :wsrep_slave_threads => node['bcpc']['monitoring']['mysql']['wsrep_slave_threads']
     )
     notifies :restart, "service[mysql]", :immediately
 end
