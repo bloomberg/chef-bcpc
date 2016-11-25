@@ -20,6 +20,11 @@ parsed_rack_number = node['bcpc']['rack_name'].match(/^rack-(\d+)/)
 az_number = parsed_rack_number.nil? ? 1 : parsed_rack_number.captures[0].to_i
 availability_zone = (node['bcpc']['availability_zone'].nil? ) ? node['bcpc']['region_name'] + "-" + az_number.to_s : node['bcpc']['availability_zone'].to_s
 
+bash "wait-for-aggregates-to-become-operational" do
+  code ". /root/adminrc; until openstack aggregate list >/dev/null 2>&1; do sleep 1; done"
+  timeout 60
+end
+
 # create aggregates
 node['bcpc']['host_aggregates'].each do |name, properties|
   bcpc_host_aggregate name do
