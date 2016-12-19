@@ -50,6 +50,11 @@ default['bcpc']['ceph']['rebalance'] = false
 default['bcpc']['ceph']['osd_niceness'] = -10
 default['bcpc']['ceph']['mon_niceness'] = -10
 
+# set the following 2 parameters to true to reduce
+# osds primary affinity to 0 on headnodes
+default['bcpc']['ceph']['allow_primary_affinity'] = true
+default['bcpc']['ceph']['set_headnode_affinity'] = true
+
 # expected tunables when running ceph osd crush show-tunables
 # any deviation from these settings will stop the recipe from
 # reapplying optimal tunables

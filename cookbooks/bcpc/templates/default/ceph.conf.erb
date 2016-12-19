@@ -22,6 +22,7 @@
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring
     debug paxos = 0/5
+    mon osd allow primary affinity = <%= @node['bcpc']['ceph']['allow_primary_affinity'] %>
 
 # Not using CephFS but mds remains until it's removed at some later point.
 #[mds]
