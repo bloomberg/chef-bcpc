@@ -710,3 +710,16 @@ default['bcpc']['vnc']['proxy_use_vip'] = false
 #
 # Address and port to listen
 default['bcpc']['tftpd']['address'] = ':69'
+
+###########################################
+#
+#  PowerDNS settings
+#
+###########################################
+#
+# Authority for DNS zones
+default['bcpc']['pdns']['authority']['reverse'] = {
+  'management' => true,
+  'fixed'      => true,
+  'float'      => true
+}

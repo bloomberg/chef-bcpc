@@ -122,13 +122,13 @@ if node['bcpc']['enabled']['dns'] then
     block do
       %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
           mysql -uroot #{node['bcpc']['dbname']['pdns']} <<-EOH
-          INSERT INTO domains (name, type) values ('#{ reverse_fixed_zone }', 'NATIVE');
+          INSERT INTO domains (name, type) values ('#{ reverse_fixed_zone }', 'NATIVE') ON DUPLICATE KEY UPDATE id = id;
       ]
       self.notifies :restart, resources(:service => "pdns"), :delayed
       self.resolve_notification_references
     end
     only_if {
-      %x[ MYSQL_PWD=#{get_config('mysql-root-password')} mysql -B --skip-column-names -uroot -e 'SELECT count(*) FROM pdns.domains WHERE name = \"#{ reverse_fixed_zone }\"' ].to_i.zero?
+      node['bcpc']['pdns']['authority']['reverse']['fixed']
     }
   end
 
@@ -136,13 +136,13 @@ if node['bcpc']['enabled']['dns'] then
     block do
       %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
           mysql -uroot #{node['bcpc']['dbname']['pdns']} <<-EOH
-          INSERT INTO domains (name, type) values ('#{ reverse_float_zone }', 'NATIVE');
+          INSERT INTO domains (name, type) values ('#{ reverse_float_zone }', 'NATIVE') ON DUPLICATE KEY UPDATE id = id;
       ]
       self.notifies :restart, resources(:service => "pdns"), :delayed
       self.resolve_notification_references
     end
     only_if {
-      %x[ MYSQL_PWD=#{get_config('mysql-root-password')} mysql -B --skip-column-names -uroot -e 'SELECT count(*) FROM pdns.domains WHERE name = \"#{ reverse_float_zone }\"' ].to_i.zero?
+      node['bcpc']['pdns']['authority']['reverse']['float']
     }
   end
 
@@ -150,13 +150,13 @@ if node['bcpc']['enabled']['dns'] then
     block do
       %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
           mysql -uroot #{node['bcpc']['dbname']['pdns']} <<-EOH
-          INSERT INTO domains (name, type) values ('#{management_zone}', 'NATIVE');
+          INSERT INTO domains (name, type) values ('#{management_zone}', 'NATIVE') ON DUPLICATE KEY UPDATE id = id;
       ]
       self.notifies :restart, resources(:service => "pdns"), :delayed
       self.resolve_notification_references
     end
     only_if {
-      %x[ MYSQL_PWD=#{get_config('mysql-root-password')} mysql -B --skip-column-names -uroot -e 'SELECT count(*) FROM pdns.domains WHERE name = \"#{ management_zone }\"' ].to_i.zero?
+      node['bcpc']['pdns']['authority']['reverse']['management']
     }
   end
 
@@ -244,6 +244,7 @@ if node['bcpc']['enabled']['dns'] then
     mode 00644
     # result of get_all_nodes is passed in here because Chef can't get context for running Chef::Search::Query#search inside the template generator
     variables({
+      :authority           => node['bcpc']['pdns']['authority'],
       :all_servers         => get_all_nodes,
       :float_cidr          => IPAddr.new(node['bcpc']['floating']['available_subnet']),
       :database_name       => node['bcpc']['dbname']['pdns'],
