@@ -20,6 +20,9 @@
 
 datadir=/var/lib/mysql
 
+<% if not @sql_mode.nil? %>
+sql_mode=<%= @sql_mode %>
+<% end %>
 # (This must be substituted by wsrep_format)
 binlog_format=ROW
 

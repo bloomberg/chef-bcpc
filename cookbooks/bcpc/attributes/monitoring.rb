@@ -15,6 +15,7 @@ default['bcpc']['monitoring']['agent_tcp_ports'] = [10050]
 # List of monitoring clients external to cluster that we are monitoring
 default['bcpc']['monitoring']['external_clients'] = []
 # Monitoring database settings
+default['bcpc']['monitoring']['mysql']['sql_mode'] = nil
 default['bcpc']['monitoring']['mysql']['innodb_buffer_pool_size'] = '128M'
 default['bcpc']['monitoring']['mysql']['innodb_buffer_pool_instances'] = 1
 default['bcpc']['monitoring']['mysql']['thread_cache_size'] = nil

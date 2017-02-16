@@ -61,6 +61,7 @@ template "/etc/mysql/conf.d/wsrep.cnf" do
     source "wsrep.cnf.erb"
     mode 00644
     variables(
+        :sql_mode => node['bcpc']['monitoring']['mysql']['sql_mode'],
         :max_connections => [search_nodes("recipe", "mysql-monitoring").length*150, 200].max,
         :servers => search_nodes("recipe", "mysql-monitoring"),
         :wsrep_cluster_name => "#{node['bcpc']['region_name']}-Monitoring",

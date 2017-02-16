@@ -134,7 +134,7 @@ driver = <%= node['bcpc']['keystone']['drivers']['credential'] %>
 #sqlite_db = oslo.sqlite
 #sqlite_synchronous = true
 #backend = sqlalchemy
-connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql-keystone-password')%>@<%=@node["bcpc"]["management"]["vip"]%>/<%=@node['bcpc']['dbname']['keystone']%>
+connection = mysql://<%=get_config('mysql-keystone-user')%>:<%=get_config('mysql-keystone-password')%>@<%=@node["bcpc"]["management"]["vip"]%>:<%=node['bcpc']['ports']['mysql']%>/<%=@node['bcpc']['dbname']['keystone']%>
 #slave_connection = <None>
 #mysql_sql_mode = TRADITIONAL
 #idle_timeout = 3600

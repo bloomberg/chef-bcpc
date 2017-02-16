@@ -37,6 +37,12 @@
       "monitoring": {
         "vip" : "10.0.100.6"
       },
+      "mysql-head": {
+        "sql_mode": "TRADITIONAL"
+      },
+      "ports": {
+        "mysql": 6033
+      },
       "storage": {
         "interface" : "eth2",
         "netmask" : "255.255.255.0",

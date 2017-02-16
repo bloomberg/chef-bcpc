@@ -102,7 +102,7 @@ backend = sqlalchemy
 # Deprecated group/name - [DEFAULT]/sql_connection
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
-connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-glance-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['dbname']['glance']%>
+connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-glance-password')%>@<%=node['bcpc']['management']['vip']%>:<%=node['bcpc']['ports']['mysql']%>/<%=node['bcpc']['dbname']['glance']%>
 
 # The SQL mode to be used for MySQL sessions. This option,
 # including the default, overrides any server-set SQL mode. To

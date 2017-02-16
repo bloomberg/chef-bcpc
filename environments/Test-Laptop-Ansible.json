@@ -56,6 +56,12 @@
       "monitoring": {
         "vip": "10.0.100.6"
       },
+      "mysql-head": {
+        "sql_mode": "TRADITIONAL"
+      },
+      "ports": {
+        "mysql": 6033
+      },
       "nova": {
         "cpu_allocation_ratio": "20.0",
         "ram_allocation_ratio": "20.0",

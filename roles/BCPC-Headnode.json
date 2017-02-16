@@ -15,6 +15,7 @@
       "recipe[bcpc::apache2]",
       "recipe[bcpc::ceph-head]",
       "recipe[bcpc::mysql-head]",
+      "recipe[bcpc-proxysql]",
       "recipe[bcpc::mysql-backup]",
       "recipe[bcpc::powerdns]",
       "recipe[bcpc::rabbitmq]",

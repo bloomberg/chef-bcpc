@@ -207,11 +207,12 @@ default['bcpc']['admin_email'] = "admin@localhost.com"
 default['bcpc']['zabbix']['user'] = "zabbix"
 default['bcpc']['zabbix']['group'] = "adm"
 
-# General ports for Civetweb backend and HAProxy frontend
+# General ports for services
 default['bcpc']['ports']['radosgw'] = 8088
 default['bcpc']['ports']['radosgw_https'] = 443
 default['bcpc']['ports']['haproxy']['radosgw'] = 80
 default['bcpc']['ports']['haproxy']['radosgw_https'] = 443
+default['bcpc']['ports']['mysql'] = 3306
 
 # Can be set to 'http' or 'https'
 default['bcpc']['protocol']['keystone'] = "https"
@@ -430,6 +431,7 @@ default['bcpc']['routemon']['numfixes'] = 0
 #
 ###########################################
 #
+default['bcpc']['mysql-head']['sql_mode'] = nil
 # If set to 0, max_connections for MySQL on heads will default to an
 # auto-calculated value.
 default['bcpc']['mysql-head']['max_connections'] = 0

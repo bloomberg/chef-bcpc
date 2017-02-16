@@ -65,6 +65,7 @@ template "/etc/mysql/conf.d/wsrep.cnf" do
     source "wsrep.cnf.erb"
     mode 00644
     variables(
+        :sql_mode => node['bcpc']['mysql-head']['sql_mode'],
         :max_connections => node['bcpc']['mysql-head']['max_connections'],
         :servers => get_head_nodes,
         :wsrep_cluster_name => node['bcpc']['region_name'],

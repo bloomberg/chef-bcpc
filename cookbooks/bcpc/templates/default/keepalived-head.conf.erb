@@ -15,6 +15,13 @@ vrrp_script chk_haproxy {
   rise 1
 }
 
+vrrp_script chk_proxysql {
+  script "pkill -U proxysql -0 -f /usr/bin/proxysql"
+  interval 5
+  fall 3
+  rise 1
+}
+
 vrrp_script chk_ceph {
   script "/usr/local/bin/if_not_quorum false"
   interval 5
@@ -45,6 +52,7 @@ vrrp_instance VI1_<%=node['bcpc']['region_name']%> {
   track_script {
 <% if node['bcpc']['enabled']['keepalived_checks'] then -%>
     chk_haproxy
+    chk_proxysql
     chk_ceph
 <% end -%>
   }

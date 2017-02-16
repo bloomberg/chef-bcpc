@@ -35,7 +35,8 @@ class dns_popper(object):
 
         dbc = self.config["db"]
         self.db_con = mdb.connect(
-            dbc["host"], dbc["user"], dbc["password"], db=dbc["name"])
+            host=dbc["host"], port=dbc["port"], user=dbc["user"],
+            passwd=dbc["password"], db=dbc["name"])
 
         c = self.db_con.cursor()
         c.execute("select id, name from domains where name=%s",

@@ -80,6 +80,7 @@ template '/root/.my.main.cnf' do
     lazy {
       {
         :host         => node['bcpc']['management']['vip'],
+        :port         => node['bcpc']['ports']['mysql'],
         :user_key     => 'mysql-backup-user',
         :password_key => 'mysql-backup-password'
       }
@@ -96,6 +97,7 @@ template '/root/.my.monitoring.cnf' do
     lazy {
       {
         :host         => node['bcpc']['monitoring']['vip'],
+        :port         => 3306,
         :user_key     => 'mysql-backup-user',
         :password_key => 'mysql-backup-password'
       }
