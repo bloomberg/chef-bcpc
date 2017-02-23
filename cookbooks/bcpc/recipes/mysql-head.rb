@@ -118,6 +118,7 @@ template '/root/.my.cnf' do
   )
 end
 
+# nova-network virtual interfaces cleanup
 vifs_cleanup_script = '/usr/local/bin/vifs_cleanup.sh'
 cookbook_file vifs_cleanup_script do
   source 'vifs_cleanup.sh'
@@ -134,6 +135,23 @@ cron 'vifs-cleanup-daily' do
   command "/usr/local/bin/if_vip #{vifs_cleanup_script}"
 end
 
+# secgroup-instance association cleanup
+secgroups_cleanup_script = '/usr/local/bin/secgroups_cleanup.sh'
+cookbook_file secgroups_cleanup_script do
+  source 'secgroups_cleanup.sh'
+  mode   '00755'
+  owner  'root'
+  group  'root'
+end
+
+cron 'secgroups-cleanup-daily' do
+  home    '/root'
+  user    'root'
+  minute  '5'
+  hour    '3'
+  command "/usr/local/bin/if_vip #{secgroups_cleanup_script}"
+end
+
 template '/usr/local/bin/mysql_slow_query_check.sh' do
   source 'mysql_slow_query_check.sh.erb'
   mode  '00755'
@@ -143,3 +161,4 @@ template '/usr/local/bin/mysql_slow_query_check.sh' do
     slow_query_log_file: node['bcpc']['mysql-head']['slow_query_log_file']
   )
 end
+
