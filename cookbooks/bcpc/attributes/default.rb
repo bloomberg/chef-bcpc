@@ -81,6 +81,8 @@ default['bcpc']['enabled']['tpm'] = false
 default['bcpc']['enabled']['hwrng'] = false
 # This will block VMs from talking to the management network
 default['bcpc']['enabled']['secure_fixed_networks'] = true
+# enable sysstat/sar
+default['bcpc']['enabled']['sysstat'] = true
 # Toggle to enable/disable swap memory
 default['bcpc']['enabled']['swap'] = true
 # Toggle to enable apport for debugging process crashes

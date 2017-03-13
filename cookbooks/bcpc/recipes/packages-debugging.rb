@@ -40,7 +40,16 @@ package "iotop"
 
 # System troubleshooting tools
 package "htop"
+
 package "sysstat"
+
+if node['bcpc']['enabled']['sysstat']
+  bash "enable-sysstat" do
+    user 'root'
+    code 'sed -i "s|^ENABLED=\"false\"|ENABLED=\"true\"|" /etc/default/sysstat'
+  end
+end
+
 package "linux-tools-common"
 package "linux-tools-#{node['kernel']['release']}"
 
