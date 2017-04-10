@@ -9,6 +9,7 @@
 # 'cobbler.bcpc_ubuntu_host.preseed.erb', for example)
 default['bcpc']['cobbler']['kickstarts'] = %w(
   bcpc_ubuntu_host.preseed
+  bcpc_ubuntu_host_uefi.preseed
 )
 
 # hash of distributions in bcpc-binary-files to import into Cobbler
@@ -42,6 +43,10 @@ default['bcpc']['cobbler']['profiles'] = {
   'bcpc_host' => {
     'distro' => 'ubuntu-14.04-mini-x86_64',
     'kickstart' => 'bcpc_ubuntu_host.preseed',
+  },
+  'bcpc_host_uefi' => {
+    'distro' => 'ubuntu-14.04-mini-x86_64',
+    'kickstart' => 'bcpc_ubuntu_host_uefi.preseed'
   }
 }
 

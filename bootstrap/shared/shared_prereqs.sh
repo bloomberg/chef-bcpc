@@ -96,6 +96,9 @@ fi
 # Obtain an Ubuntu netboot image to be used for PXE booting.
 download_file ubuntu-14.04-mini.iso http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/mini.iso
 
+# Obtain the Xenial version of grubnetx64.efi (can be used with Trusty still)
+download_file grubnetx64.efi http://archive.ubuntu.com/ubuntu/dists/xenial/main/uefi/grub2-amd64/current/grubnetx64.efi
+
 # Obtain the VirtualBox guest additions ISO for use with Ansible.
 VBOX_VERSION=5.0.10
 VBOX_ADDITIONS=VBoxGuestAdditions_$VBOX_VERSION.iso

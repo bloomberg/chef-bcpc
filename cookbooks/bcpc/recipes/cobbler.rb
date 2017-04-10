@@ -58,6 +58,28 @@ template "/etc/cobbler/dhcp.template" do
     notifies :run, "bash[run-cobbler-sync]", :immediately
 end
 
+# insert grubnetx64.efi into TFTP root by hand
+cookbook_file '/var/lib/tftpboot/grubnetx64.efi' do
+  source   'grubnetx64.efi'
+  cookbook 'bcpc-binary-files'
+  owner    'root'
+  mode     '00444'
+end
+
+# add post-sync trigger to create grub/grub.cfg for UEFI bootstraps
+template '/var/lib/cobbler/triggers/sync/post/create_grub_cfg.sh' do
+  source 'cobbler.create_grub_cfg.sh.erb'
+  owner  'root'
+  group  'root'
+  mode   '00755'
+  variables(
+    :bootstrap_node => get_bootstrap_node,
+    :profile        => node['bcpc']['bootstrap']['uefi_profile'],
+    :profile_distro => node['bcpc']['cobbler']['profiles'][node['bcpc']['bootstrap']['uefi_profile']]['distro']
+  )
+  notifies :run, "bash[run-cobbler-sync]", :delayed
+end
+
 node['bcpc']['cobbler']['kickstarts'].each do |kickstart|
   template "/var/lib/cobbler/kickstarts/#{kickstart}" do
     source "cobbler.#{kickstart}.erb"
@@ -142,6 +164,7 @@ end
 
 service "cobbler" do
     action [:enable, :start]
+    restart_command "service cobbler restart; sleep 5"
 end
 
 bash "run-cobbler-sync" do

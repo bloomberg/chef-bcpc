@@ -12,8 +12,6 @@ default['bcpc']['openstack_release'] = "liberty"
 default['bcpc']['openstack_branch'] = "proposed"
 # Should be kvm (or qemu if testing in VMs that don't support VT-x)
 default['bcpc']['virt_type'] = "kvm"
-# Define the kernel to be installed. By default, track latest LTS kernel
-default['bcpc']['preseed']['kernel'] = "linux-image-generic-lts-trusty"
 # Define a specific kernel version to have GRUB default to (if non-nil)
 # - specify kernel like pattern "3.13.0-61-generic"
 # - a wrong pattern here will result in Chef convergence failure
@@ -480,26 +478,6 @@ default['bcpc']['hardware']['powersave'] = false
 
 ###########################################
 #
-# defaults for the bcpc.bootstrap settings
-#
-###########################################
-#
-# A value of nil means to let the Ubuntu installer work it out - it
-# will try to find the nearest one. However the selected mirror is
-# often slow.
-default['bcpc']['bootstrap']['mirror'] = nil
-#
-# if you do specify a mirror, you can adjust the file path that comes
-# after the hostname in the URL here
-default['bcpc']['bootstrap']['mirror_path'] = "/ubuntu"
-#
-# worked example for the columbia mirror mentioned above which has a
-# non-standard path
-#default['bcpc']['bootstrap']['mirror']      = "mirror.cc.columbia.edu"
-#default['bcpc']['bootstrap']['mirror_path'] = "/pub/linux/ubuntu/archive"
-
-###########################################
-#
 # Rally settings
 #
 ###########################################
@@ -797,12 +775,3 @@ default['bcpc']['getty']['ttys'] = %w( ttyS0 ttyS1 )
 # VNC uses cluster domain name by default
 # for proxy base url. Set to 'true' to use vip
 default['bcpc']['vnc']['proxy_use_vip'] = false
-
-###########################################
-#
-#  Bootstrap tftpd settings
-#
-###########################################
-#
-# Address and port to listen
-default['bcpc']['tftpd']['address'] = ':69'

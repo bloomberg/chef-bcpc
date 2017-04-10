@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# write out grub/grub.cfg for EFI GRUB to find
+
+GRUB_CFG="set timeout=2
+
+menuentry \"Install <%= @profile_distro %>\" {
+    linux /images/<%= @profile_distro %>/linux ksdevice=bootif locale=en_US text interface=auto auto-install/enable=true priority=critical url=http://<%= @bootstrap_node['bcpc']['bootstrap']['server'] %>/cblr/svc/op/ks/profile/<%= @profile %>
+    initrd /images/<%= @profile_distro %>/initrd.gz
+}"
+
+echo "$GRUB_CFG" > /var/lib/tftpboot/grub/grub.cfg

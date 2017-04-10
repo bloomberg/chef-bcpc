@@ -20,22 +20,17 @@ d-i     netcfg/get_gateway      string
 d-i     netcfg/confirm_static   boolean true
 
 d-i     partman/early_command string \
-udevadm trigger; udevadm settle --timeout=30 \
-for d in $(ls /dev/sd[a-z]); do \
-dd if=/dev/zero of=$d bs=4M count=16 || echo "Write to $d failed" \
-done
-d-i     partman-auto/disk string <%= @node['bcpc']['bootstrap']['bios_boot_device'] %>
+        udevadm trigger; udevadm settle --timeout=30 \
+        for d in \$(ls /dev/sd[a-z]) \$(ls /dev/nvme*n*); do \
+            dd if=/dev/zero of=\$d bs=4M count=16 || echo "Write to \$d failed" \
+        done
+d-i     partman-auto/disk string <%= @node['bcpc']['bootstrap']['uefi_boot_device'] %>
 d-i     partman-auto/method string regular
 d-i     partman-auto/expert_recipe string root :: \
-                1 1 1 free method{ biosgrub } . \
-                5000 100000 10000000000 ext4 \
-                $primary{ } $bootable{ } method{ format } \
-                format{ } use_filesystem{ } filesystem{ ext4 } \
-                mountpoint{ / } \
-                . \
-                8192 8192 8192 linux-swap \
-                $primary{ } method{ swap } format{ } \
-                .
+        1 1 1 free \$gptonly{ } \$primary{ } \$lvmignore{ } \$bios_boot{ } method{ biosgrub } . \
+        512 2 512 fat32 \$gptonly{ } \$primary{ } \$lvmignore{ } method{ efi } format{ } . \
+        8192 3 8192 linux-swap \$gptonly{ } \$primary{ } method{ swap } format{ } . \
+        40000 4 100000000000000 ext4 \$gptonly{ } \$primary{ } method{ format } format{ } use_filesystem{ } filesystem{ ext4 } mountpoint{ / } .
 d-i     partman-auto/choose_recipe select root
 d-i     partman-partitioning/confirm_write_new_label boolean true
 d-i     partman/choose_partition select Finish partitioning and write changes to disk
@@ -104,4 +99,4 @@ d-i     preseed/late_command string true && \
         in-target chmod 0755 /root/get-ssh-keys ; in-target install -d -m0600 /root/.ssh ;\
         in-target env no_proxy=$http_server /root/get-ssh-keys root -o /root/.ssh/authorized_keys ;\
         echo -e "\n<%=@bootstrap_node['bcpc']['bootstrap'] && @bootstrap_node['bcpc']['bootstrap']['server']%>\t<%=@bootstrap_node['fqdn']%>\n" >> /target/etc/hosts ;\
-        wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/$system_name" -O /dev/null ;
+        wget "http://$http_server:$http_port/cblr/svc/op/nopxe/system/\$(hostname)" -O /dev/null ;

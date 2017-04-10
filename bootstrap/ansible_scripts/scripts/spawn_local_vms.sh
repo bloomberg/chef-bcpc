@@ -171,6 +171,12 @@ function get_node_ip {
     echo '10.0.100.12'
   elif [[ $1 == "ansible-bcpc-vm3" ]]; then
     echo '10.0.100.13'
+  elif [[ $1 == "ansible-bcpc-vm4" ]]; then
+    echo '10.0.100.14'
+  elif [[ $1 == "ansible-bcpc-vm5" ]]; then
+    echo '10.0.100.15'
+  elif [[ $1 == "ansible-bcpc-vm6" ]]; then
+    echo '10.0.100.16'
   else
     echo '169.254.1.1'
   fi
@@ -191,10 +197,13 @@ for VM in ansible-bcpc-bootstrap $VMS; do
   MAC_ADDRESS=$(VBoxManage showvminfo --machinereadable $VM | pcregrep -o1 -M '^hostonlyadapter\d="vboxnet0"$\n*^macaddress\d="(.+)"' | $SED 's/^(..)(..)(..)(..)(..)(..)$/\1:\2:\3:\4:\5:\6/')
   cat << EoF
   $VM:
+    cobbler_profile: bcpc_host
     domain: bcpc.example.com
     hardware_type: Virtual
     ip_address: $(get_node_ip $VM)
     ipmi_address:
+    ipmi_password: none
+    ipmi_username: none
     mac_address: $MAC_ADDRESS
     role: $(get_node_role $VM)
 EoF

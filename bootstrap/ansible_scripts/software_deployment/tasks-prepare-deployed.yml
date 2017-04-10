@@ -103,6 +103,9 @@
     DEBIAN_FRONTEND: noninteractive
     FILECACHE_MOUNT_POINT: "{{ bootstrap_files_dir }}/{{ chef_bcpc_version }}"
 
+- name: Fix permissions on {{ bootstrap_files_dir }}
+  file: path={{ bootstrap_files_dir }} owner=operations group=operators recurse=yes
+
 - name: Fix permissions on {{ bootstrap_deployed_dir }}
   file: path={{ bootstrap_deployed_dir }} owner=operations group=operators recurse=yes
 

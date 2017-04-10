@@ -61,6 +61,12 @@ if [ ! -f ubuntu-14.04-mini.iso ]; then
 fi
 FILES="ubuntu-14.04-mini.iso $FILES"
 
+# Fetch grubnetx64.efi
+if [ ! -f grubnetx64.efi ]; then
+  cp -v $FILECACHE_MOUNT_POINT/grubnetx64.efi grubnetx64.efi
+fi
+FILES="grubnetx64.efi $FILES"
+
 # Test if diamond package version is <= 3.x, which implies a BrightCoveOS source
 if [ -f diamond.deb ]; then
     if [ `dpkg-deb -f diamond.deb Version | cut -b1` -le 3 ]; then

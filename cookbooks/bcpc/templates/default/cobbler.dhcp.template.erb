@@ -21,17 +21,26 @@ allow bootp;
 
 ignore client-updates;
 set vendorclass = option vendor-class-identifier;
+option pxe-system-type code 93 = unsigned integer 16;
+set pxetype = option pxe-system-type;
 
 subnet <%= @subnet %> netmask <%=node['bcpc']['management']['netmask']%> {
-     option routers             <%=node['bcpc']['management']['gateway']%>;
-     option domain-name-servers <%=@node['bcpc']['dns_servers'].join(', ') %>;
-     option subnet-mask         <%=node['bcpc']['management']['netmask']%>;
-     range dynamic-bootp        <%= @range %>;
-     filename                   "/pxelinux.0";
-     default-lease-time         21600;
-     max-lease-time             43200;
-     next-server                $next_server;
-     deny                       unknown-clients;
+    option routers             <%=node['bcpc']['management']['gateway']%>;
+    option domain-name-servers <%=@node['bcpc']['dns_servers'].join(', ') %>;
+    option subnet-mask         <%=node['bcpc']['management']['netmask']%>;
+    range dynamic-bootp        <%= @range %>;
+    default-lease-time         21600;
+    max-lease-time             43200;
+    next-server                $next_server;
+    deny                       unknown-clients;
+    class "pxeclients" {
+        match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+        if option pxe-system-type = 00:07 {
+            filename "/grubnetx64.efi";
+        } else {
+            filename "/pxelinux.0";
+        }
+    }
 }
 
 #for dhcp_tag in $dhcp_tags.keys():
@@ -57,7 +66,6 @@ group {
         #if $iface.gateway:
         option routers $iface.gateway;
         #end if
-        filename "$iface.filename";
         ## Cobbler defaults to $next_server, but some users
         ## may like to use $iface.system.server for proxied setups
         next-server $next_server;

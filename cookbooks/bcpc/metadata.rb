@@ -13,4 +13,4 @@ depends "cron", ">= 1.2.2"
 depends "ntp", ">= 1.3.2"
 depends "hostsfile", ">= 2.4.5"
 depends "concat", ">= 0.3.0"
-depends 'bcpc-binary-files', '>= 6.0.0'
+depends 'bcpc-binary-files', '>= 6.1.1'
