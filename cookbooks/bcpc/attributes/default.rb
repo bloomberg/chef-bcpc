@@ -7,6 +7,7 @@ default['bcpc']['country'] = "US"
 default['bcpc']['state'] = "NY"
 default['bcpc']['location'] = "New York"
 default['bcpc']['organization'] = "Bloomberg"
+default['bcpc']['time_zone'] = 'UTC'
 default['bcpc']['openstack_release'] = "liberty"
 # Can be "updates" or "proposed"
 default['bcpc']['openstack_branch'] = "proposed"

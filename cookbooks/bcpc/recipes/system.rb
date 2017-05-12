@@ -131,3 +131,9 @@ ruby_block 'converge-io-scheduler' do
     devices_to_converge.length.zero?
   end
 end
+
+# set timezone (note that to ensure this takes full effect, you should reboot afterward)
+bash "set timezone to #{node['bcpc']['time_zone']}" do
+  code "timedatectl set-timezone #{node['bcpc']['time_zone']}"
+  not_if { %x[timedatectl status | awk '/Timezone/{ print $2 }'].strip == node['bcpc']['time_zone'] }
+end
