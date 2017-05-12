@@ -5,6 +5,6 @@
 #
 ################################################
 
-if ! ip addr show dev <%=node['bcpc']['management']['interface']%> | grep " <%=node['bcpc']['management']['vip']%>/" > /dev/null; then
-    $*
-fi
+PATH=${PATH:-/bin:/sbin}:/usr/local/bin
+
+has_vip || $*

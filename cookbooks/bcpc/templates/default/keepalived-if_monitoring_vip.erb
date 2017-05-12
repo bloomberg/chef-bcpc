@@ -5,6 +5,12 @@
 #
 ################################################
 
-if ip addr show dev <%=node['bcpc']['management']['interface']%> | grep " <%=node['bcpc']['monitoring']['vip']%>/" > /dev/null; then
+PATH=${PATH:-/bin:/sbin}:/usr/local/bin
+
+has_monitoring_vip
+ret=$?
+if [[ $ret != 0 ]]; then
+    exit 1
+else
     $*
 fi

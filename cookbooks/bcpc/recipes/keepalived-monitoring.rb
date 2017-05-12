@@ -27,7 +27,7 @@ ruby_block "initialize-keepalived-config" do
     end
 end
 
-%w{if_monitoring_vip if_not_monitoring_vip}.each do |script|
+%w{has_monitoring_vip if_monitoring_vip if_not_monitoring_vip}.each do |script|
     template "/usr/local/bin/#{script}" do
         source "keepalived-#{script}.erb"
         mode 0755

@@ -27,7 +27,7 @@ ruby_block "initialize-keepalived-config" do
     end
 end
 
-%w{if_vip if_not_vip vip_change}.each do |script|
+%w{has_vip if_vip if_not_vip vip_change}.each do |script|
     template "/usr/local/bin/#{script}" do
         source "keepalived-#{script}.erb"
         mode 0755
