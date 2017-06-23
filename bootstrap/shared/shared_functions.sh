@@ -9,7 +9,7 @@ if [[ "$BOOTSTRAP_METHOD" == "vagrant" ]]; then
     NODE="$1"
     shift
     COMMAND="${*}"
-    echo "EXECUTING on $NODE"
+    echo "EXECUTING $COMMAND on $NODE"
     vagrant ssh "$NODE" -c "$COMMAND"
   }
 else
@@ -43,8 +43,8 @@ load_configs(){
     fi
   fi
 
-  BOOTSTRAP_CONFIG_DEFAULTS="$REPO_ROOT/bootstrap/config/bootstrap_config.sh.defaults"
-  BOOTSTRAP_CONFIG_OVERRIDES="$REPO_ROOT/bootstrap/config/bootstrap_config.sh.overrides"
+  BOOTSTRAP_CONFIG_DEFAULTS="$REPO_ROOT"/bootstrap/config/bootstrap_config.sh.defaults
+  BOOTSTRAP_CONFIG_OVERRIDES="$REPO_ROOT"/bootstrap/config/bootstrap_config.sh.overrides
   if [[ ! -f "$BOOTSTRAP_CONFIG_DEFAULTS" ]]; then
     echo "Bootstrap configuration defaults are missing! Your repository is corrupt; please restore $REPO_ROOT/bootstrap/config/bootstrap_config.sh.defaults." >&2
     exit 1
