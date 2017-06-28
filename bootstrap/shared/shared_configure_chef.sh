@@ -2,7 +2,7 @@
 # Exit immediately if anything goes wrong, instead of making things worse.
 set -e
 
-. "$REPO_ROOT"/bootstrap/shared/shared_functions.sh
+. "$REPO_ROOT"/bootstrap/shared/shared_functions
 
 REQUIRED_VARS=( BOOTSTRAP_CHEF_DO_CONVERGE BOOTSTRAP_CHEF_ENV BCPC_HYPERVISOR_DOMAIN FILECACHE_MOUNT_POINT REPO_MOUNT_POINT REPO_ROOT )
 check_for_envvars "${REQUIRED_VARS[@]}"

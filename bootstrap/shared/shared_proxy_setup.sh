@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "$REPO_ROOT"/bootstrap/shared/shared_functions.sh
+source "$REPO_ROOT"/bootstrap/shared/shared_functions
 load_configs
 
 [ -n "$SHARED_PROXY_SETUP" ] || {
