@@ -118,11 +118,6 @@ download_file "$cloud_img_box" "$cloud_img_url/$cloud_img_box"
 ####################################################################
 # Obtain Chef client and server DEBs.
 download_file "$CHEF_CLIENT_DEB" "$chef_url/chef/$chef_client_ver/ubuntu/14.04/$CHEF_CLIENT_DEB"
-
-echo "$CHEF_SERVER_DEB" "$chef_url/chef-server-core/$chef_server_ver/ubuntu/14.04/$CHEF_SERVER_DEB"
-
-exit
-
 download_file "$CHEF_SERVER_DEB" "$chef_url/chef-server-core/$chef_server_ver/ubuntu/14.04/$CHEF_SERVER_DEB"
 
 ####################################################################
