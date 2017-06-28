@@ -7,7 +7,7 @@
 ##############################################
 
 # Sets the amount of memory (in MB) given to the bootstrap VM.
-export BOOTSTRAP_VM_MEM=16384
+export BOOTSTRAP_VM_MEM=2048
 
 # Sets the number of vCPUs given to the bootstrap VM.
 export BOOTSTRAP_VM_CPUS=2
