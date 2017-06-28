@@ -273,7 +273,7 @@ Vagrant.configure("2") do |config|
       m.vm.box_url = "#{ENV['BOOTSTRAP_CACHE_DIR']}/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
       if vm == 'vm-bootstrap'
-        memory = ( ENV["BOOTSTRAP_VM_MEM"] or "16384" )
+        memory = ( ENV["BOOTSTRAP_VM_MEM"] or "2048" )
         cpus = ( ENV["BOOTSTRAP_VM_CPUS"] or "2" )
       else
         memory = ( ENV["CLUSTER_VM_MEM"] or "2560" )

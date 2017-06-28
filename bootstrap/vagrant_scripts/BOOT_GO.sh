@@ -2,7 +2,7 @@
 # Exit immediately if anything goes wrong, instead of making things worse.
 set -e
 
-# set a flag to tell shared_functions.sh how to SSH to machines
+# set a flag to tell shared_functions how to SSH to machines
 export BOOTSTRAP_METHOD=vagrant
 # build a converged cluster by default
 export CLUSTER_TYPE=converged

@@ -2,7 +2,7 @@
 # Exit immediately if anything goes wrong, instead of making things worse.
 set -e
 
-. $REPO_ROOT/bootstrap/shared/shared_functions.sh
+. $REPO_ROOT/bootstrap/shared/shared_functions
 
 ################################################################################
 # Function to remove VirtualBox DHCP servers
