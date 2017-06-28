@@ -55,16 +55,6 @@ load_configs(){
 curl_cmd() { curl -f --progress -L -H 'Accept-encoding: gzip,deflate' "$@"; }
 # wget_cmd() { wget --show-progress --no-check-certificate -nc -c -nd --header='Accept-Encoding: gzip,deflate' "$@"; }
 
-check_bins() {
-	required_bins=("$@")
-
-	for binary in "${required_bins[@]}"; do
-	    if ! [ -x "$(command -v $binary)" ]; then
-	        echo "Error: Necessary program '$binary' is not installed or available on your path. Please fix! Aborting now." >&2
-	        exit 1
-	    fi
-	done
-}
 
 ####################################################################
 # download_file wraps the usual behavior of curling a remote URL to a local file
