@@ -14,7 +14,6 @@ cirros_url="http://download.cirros-cloud.net"
 cirros_version="0.3.4"
 
 cloud_img_url="https://cloud-images.ubuntu.com/vagrant/trusty/current"
-# cloud_img_url="https://mirrors.tuna.tsinghua.edu.cn/ubuntu-cloud-images/vagrant/trusty/current"
 
 cloud_img_box="trusty-server-cloudimg-amd64-vagrant-disk1.box"
 netboot_iso="ubuntu-14.04-mini.iso"
@@ -22,13 +21,9 @@ pypi_url="https://pypi.python.org/packages/source"
 pxe_rom="gpxe-1.0.1-80861004.rom"
 ruby_gem_url="https://rubygems.global.ssl.fastly.net/gems"
 
-vbox_version="5.0.36"
+vbox_version="5.0.40"
 vbox_additions="VBoxGuestAdditions_$vbox_version.iso"
 vbox_url="http://download.virtualbox.org/virtualbox"
-
-curl_cmd() { curl -f --progress -L -H 'Accept-encoding: gzip,deflate' "$@"; }
-# wget_cmd() { wget --show-progress --no-check-certificate -nc -c -nd --header='Accept-Encoding: gzip,deflate' "$@"; }
-####################################################################
 
 if [[ ! -z "$BOOTSTRAP_HTTP_PROXY_URL" ]] || [[ ! -z "$BOOTSTRAP_HTTPS_PROXY_URL" ]] ; then
   echo "Testing configured proxies..."
@@ -44,23 +39,6 @@ source "$REPO_ROOT/bootstrap/config/build_bins_versions.sh"
 # Create directory for download cache.
 mkdir -p "$BOOTSTRAP_CACHE_DIR"
 
-
-####################################################################
-# download_file wraps the usual behavior of curling a remote URL to a local file
-download_file() {
-  input_file="$1"
-  remote_url="$2"
-
-  if [[ ! -f "$BOOTSTRAP_CACHE_DIR/$input_file" && ! -f "$BOOTSTRAP_CACHE_DIR/${input_file}_downloaded" ]]; then
-    trap 'echo && echo Download interrupted, cleaning up partial download of "$BOOTSTRAP_CACHE_DIR"/"$input_file" && rm -f "$BOOTSTRAP_CACHE_DIR"/"$input_file"' INT
-    echo "Downloading $input_file..."
-    curl_cmd -o "$BOOTSTRAP_CACHE_DIR/$input_file" "$remote_url" -Sw '[%{http_code}]\n'
-    if [[ $? != 0 ]]; then
-      echo "Received error when attempting to download from ${remote_url}."
-    fi
-
-  fi
-}
 
 ####################################################################
 # cleanup_cookbook removes all but the specified cookbook version so that we
@@ -140,6 +118,11 @@ download_file "$cloud_img_box" "$cloud_img_url/$cloud_img_box"
 ####################################################################
 # Obtain Chef client and server DEBs.
 download_file "$CHEF_CLIENT_DEB" "$chef_url/chef/$chef_client_ver/ubuntu/14.04/$CHEF_CLIENT_DEB"
+
+echo "$CHEF_SERVER_DEB" "$chef_url/chef-server-core/$chef_server_ver/ubuntu/14.04/$CHEF_SERVER_DEB"
+
+exit
+
 download_file "$CHEF_SERVER_DEB" "$chef_url/chef-server-core/$chef_server_ver/ubuntu/14.04/$CHEF_SERVER_DEB"
 
 ####################################################################
