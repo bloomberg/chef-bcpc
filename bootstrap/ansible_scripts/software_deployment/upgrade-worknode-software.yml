@@ -2,6 +2,7 @@
 - include: ../common_playbooks/validate_environment.yml
 
 - hosts: bootstraps
+  accelerate: true
   gather_facts: no
   vars_prompt:
     - name: "upgraded_bootstrap"
@@ -17,6 +18,7 @@
 # set Ceph noout prior to allowing Chef to run to avoid rebalance flapping while
 # Ceph is upgraded
 - hosts: headnodes[0]
+  accelerate: true
   become: yes
   gather_facts: no
   tasks:
@@ -24,6 +26,7 @@
       command: ceph osd set noout
 
 - hosts: "{{ target }}"
+  accelerate: true
   become: yes
   gather_facts: no
   serial: "{{ serial|default(3) }}"
@@ -41,6 +44,7 @@
 
 # unset noout (reboot playbook will set it again)
 - hosts: headnodes[0]
+  accelerate: true
   become: yes
   gather_facts: no
   tasks:
@@ -50,6 +54,7 @@
 # restart OpenStack services on each node to avoid service issues in gap
 # between software upgrade and restarting the head nodes
 - hosts: "{{ target }}"
+  accelerate: true
   become: yes
   gather_facts: no
   serial: "{{ serial|default(3) }}"

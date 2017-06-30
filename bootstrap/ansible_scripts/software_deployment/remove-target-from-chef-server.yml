@@ -3,6 +3,7 @@
 - include: ../common_playbooks/destructive_warning.yml
 
 - hosts: "{{ target }}"
+  accelerate: true
   become: yes
   gather_facts: no
 

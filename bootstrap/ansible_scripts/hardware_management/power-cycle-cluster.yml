@@ -3,6 +3,7 @@
 - include: ../common_playbooks/destructive_warning.yml
 
 - hosts: headnodes
+  accelerate: true
   become: yes
   serial: 1
   tasks:

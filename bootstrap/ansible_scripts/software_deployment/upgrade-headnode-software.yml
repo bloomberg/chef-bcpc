@@ -11,6 +11,7 @@
 - include: ../common_playbooks/validate_environment.yml
 
 - hosts: bootstraps
+  accelerate: true
   gather_facts: no
   vars_prompt:
     - name: "upgraded_bootstrap"
@@ -29,6 +30,7 @@
 
 # first walk through all head nodes and stop RabbitMQ on all but the VIP holder
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -51,6 +53,7 @@
 # now walk through head nodes again and this time stop RabbitMQ on the VIP
 # holder and upgrade it
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -104,6 +107,7 @@
 
 # now walk through head nodes a third time and upgrade remaining nodes
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -150,6 +154,7 @@
 
 # first walk through all head nodes and stop RabbitMQ on all but the VIP holder
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -172,6 +177,7 @@
 # now walk through head nodes again and this time stop RabbitMQ on the VIP
 # holder and upgrade Erlang
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -219,6 +225,7 @@
 
 # now walk through head nodes a third time and upgrade remaining nodes
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -258,6 +265,7 @@
 # set Ceph noout prior to allowing Chef to run to avoid rebalance flapping while
 # Ceph is upgraded on headnodes
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -275,6 +283,7 @@
 
 # now each head node can be recheffed and have the rest of its software upgraded
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -292,6 +301,7 @@
 
 # unset noout (reboot playbook will set it again)
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1
@@ -310,6 +320,7 @@
 # restart OpenStack services on each node to avoid service issues in gap
 # between software upgrade and restarting the head nodes
 - hosts: headnodes
+  accelerate: true
   become: yes
   gather_facts: no
   serial: 1

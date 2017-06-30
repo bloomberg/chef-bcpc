@@ -1,6 +1,7 @@
 # sneakily actually an independent playbook, but without the environment checker
 ---
 - hosts: "{{ target }}"
+  accelerate: true
   become: yes
   gather_facts: no
   serial: "{{ serial }}"

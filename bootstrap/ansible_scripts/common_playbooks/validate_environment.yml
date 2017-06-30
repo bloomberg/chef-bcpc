@@ -3,6 +3,7 @@
 # the cluster_name variable is picked up from the cluster group_vars correctly)
 ---
 - hosts: bootstraps
+  accelerate: true
   gather_facts: no
   vars_prompt:
     - name: "validate_cluster_name"

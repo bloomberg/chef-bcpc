@@ -3,6 +3,7 @@
 - include: ../common_playbooks/validate_environment.yml
 
 - hosts: bootstraps
+  accelerate: true
   gather_facts: no
   become: yes
   tags:

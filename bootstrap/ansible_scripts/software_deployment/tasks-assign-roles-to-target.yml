@@ -1,5 +1,6 @@
 ---
 - hosts: "{{ target }}"
+  accelerate: true
   become: yes
   gather_facts: no
   serial: "{{ serial }}"

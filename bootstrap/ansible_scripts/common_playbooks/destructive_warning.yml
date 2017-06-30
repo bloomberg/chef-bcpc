@@ -1,6 +1,7 @@
 # this playbook puts up an ominous warning that a requested operation is destructive
 ---
 - hosts: localhost
+  accelerate: true
   gather_facts: no
   vars:
     information_on_target: |
