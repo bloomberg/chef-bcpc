@@ -128,7 +128,7 @@ for vm in $VMS; do
 done
 
 # common changes to execute on all VMs
-for VM in ansible-bcpc-bootstrap $VMS; do
+for VM in ansible-bcpc-bootstrap "$VMS"; do
   VBoxManage modifyvm "$vm" --vram 16
   VBoxManage modifyvm "$vm" --largepages on
   VBoxManage modifyvm "$vm" --nestedpaging on
