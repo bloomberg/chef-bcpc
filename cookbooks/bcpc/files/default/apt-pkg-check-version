@@ -10,7 +10,6 @@
 #
 package="$1"
 minversion="$2"
-# version=$(apt-cache madison "$package" | awk '{print $3;exit}')
 
 while read -r _ _ version _; do 
 	dpkg --compare-versions "$version" gt "$newest" && newest=$version; 
