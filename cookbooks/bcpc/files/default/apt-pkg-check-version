@@ -8,13 +8,14 @@
 # If the available version of the named package is less than the
 # specified minimum version, then return 1 (check failed).
 #
-PKG="$1"
-MINVERS="$2"
-VERS=`apt-cache madison $PKG | grep $PKG | head -1 | cut -f2 -d\| | cut -f1 -d-`
-if [ $(echo "$VERS >= $MINVERS" | bc -l ) ]; then
-    echo "$PKG is too old ($VERS)"
-    exit 1;
+package="$1"
+minversion="$2"
+version=$(apt-cache madison "$package" | awk '{print $3;exit}')
+
+if dpkg --compare-versions "$version" ge "$minversion"; then
+	echo "$package version acceptable ($version)"
+	exit 0;
 else
-    echo "$PKG version acceptable ($VERS)"
-    exit 0;
+	echo "$package is too old ($version)"
+	exit 1;
 fi
