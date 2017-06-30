@@ -4,6 +4,7 @@
 
 # now run through everything up to and including Chef Server installation and basic configuration
 - hosts: bootstraps
+  accelerate: true
   gather_facts: no
   become: yes
 
