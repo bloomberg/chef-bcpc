@@ -10,12 +10,16 @@
 #
 package="$1"
 minversion="$2"
-version=$(apt-cache madison "$package" | awk '{print $3;exit}')
+# version=$(apt-cache madison "$package" | awk '{print $3;exit}')
 
-if dpkg --compare-versions "$version" ge "$minversion"; then
-	echo "$package version acceptable ($version)"
+while read -r _ _ version _; do 
+	dpkg --compare-versions "$version" gt "$newest" && newest=$version; 
+done < <(apt-cache madison "$package")
+
+if dpkg --compare-versions "$newest" ge "$minversion"; then
+	echo "$package version acceptable ($newest)"
 	exit 0;
 else
-	echo "$package is too old ($version)"
+	echo "$package is too old ($newest)"
 	exit 1;
 fi
