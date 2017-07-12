@@ -115,6 +115,7 @@ firewall_driver = nova.virt.firewall.NoopFirewallDriver
 vif_plugging_is_fatal = False
 vif_plugging_timeout = 0
 
+<% if is_liberty? %>
 [neutron]
 url = <%= node['bcpc']['protocol']['neutron'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:9696
 admin_tenant_name = <%= node['bcpc']['admin_tenant'] %>
@@ -122,6 +123,15 @@ auth_strategy = keystone
 admin_auth_url = <%= node['bcpc']['protocol']['keystone'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:35357/v2.0/
 admin_username = <%= get_config('keystone-admin-user') %>
 admin_password = <%= get_config('keystone-admin-password') %>
+<% else %>
+[neutron]
+url = <%= node['bcpc']['protocol']['neutron'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:9696
+project_name = <%= node['bcpc']['admin_tenant'] %>
+auth_type = password
+auth_url = <%= node['bcpc']['protocol']['keystone'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:35357/v2.0/
+username = <%= get_config('keystone-admin-user') %>
+password = <%= get_config('keystone-admin-password') %>
+<% end %>
 <% else %>
 network_manager=nova.network.manager.VlanManager
 firewall_driver=nova.virt.libvirt.firewall.IptablesFirewallDriver
