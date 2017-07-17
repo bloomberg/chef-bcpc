@@ -27,6 +27,7 @@ allow-axfr-ips=<%= node['bcpc']['pdns']['allow-axfr-ips'].sort.join(',') %>
 # cache-ttl Seconds to store packets in the PacketCache
 #
 # cache-ttl=20
+cache-ttl=20
 
 #################################
 # chroot    If set, chroot to this directory for more security
@@ -72,6 +73,7 @@ disable-axfr=no
 # distributor-threads   Default number of Distributor (backend) threads to start
 #
 # distributor-threads=3
+distributor-threads=20
 
 #################################
 # fancy-records Process URL and MBOXFW records
@@ -168,6 +170,7 @@ module-dir=/usr/lib/powerdns
 # query-cache-ttl   Seconds to store packets in the PacketCache
 #
 # query-cache-ttl=20
+query-cache-ttl=20
 
 #################################
 # query-logging Hint backends that queries should be logged
