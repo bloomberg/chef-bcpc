@@ -41,28 +41,35 @@ server 127.127.1.1
 fudge 127.127.1.1 stratum 8
 restrict 10.0.0.0 mask 255.0.0.0 nomodify notrap
 ```
-Restart ntp with `sudo kill $(pgrep ntpd)` (launchd will automatically restart the process) and do a debug time synchronization from the bootstrap VM with `ntpdate -d 10.0.100.2`. If everything is working, you should see a message with `adjust time server` after a few seconds. If things are not working, you will see `no server suitable for synchronization found`.
+Restart ntp with: `sudo kill $(pgrep ntpd)` 
 
-For Linux the process is nearly identical; on Ubuntu, install the `ntp` package to install the ntp daemon, then configure it as above and restart with `sudo service ntp restart`.
+On Mac, launchd will automatically restart the ntp process. 
+
+For Linux the process is nearly identical; on a modern Ubuntu, install the `ntp` and `ntpdate` packages to install the ntp daemon and client utilities, then configure it as described above and restart the ntp daemon with: `sudo service ntp restart`.
+
+Now execute a debug time synchronization from the bootstrap VM with `ntpdate -d 10.0.100.2` 
+
+If everything is working, you should see a message similar to `adjust time server 10.0.100.2 offset -0.000032 sec` after a few seconds. If things are not working correctly, you will see `no server suitable for synchronization found`.
+
 
 apt mirror
 ---
-A sample apt-mirror configuration is provided [here](https://github.com/bloomberg/chef-bcpc/blob/master/docs/example_apt_mirror_config.list), annotated with comments indicating what each repo is named in the BCPC configuration. Mirroring everything here will require a very large amount of disk space (currently about 128GB), so be sure you have enough disk space on hand.
+A sample apt-mirror configuration is provided [here](https://github.com/bloomberg/chef-bcpc/blob/master/docs/example_apt_mirror_config.list), annotated with comments indicating what each repo is named in the BCPC configuration. Mirroring everything here will require a very large amount of disk space (currently about 188GB), so be sure you have enough local or attached disk space on hand.
 
-You will need to have a web server like Apache or nginx installed to serve up a content root. The easiest way to set up the content root is to symlink the root of each individual repository (the location with the `dists` and `pool` directories) into a single location, then serve that up, like so:
+You will need to have a web server like Apache or nginx installed on the host to serve up the mirrored content root. The easiest way to set up the content root is to symlink the root of each individual repository (the location with the `dists` and `pool` directories) into a single location, then serve that up, like so:
 
 ```
 ➜  mirror-root  ls -l
 total 80
-lrwxr-xr-x  1 user  staff  66 Jun 21 01:07 ceph -> /usr/local/var/spool/apt-mirror/mirror/www.ceph.com/debian-hammer/
-lrwxr-xr-x  1 user  staff  91 May 28 10:18 elasticsearch -> /usr/local/var/spool/apt-mirror/mirror/packages.elasticsearch.org/elasticsearch/1.5/debian/
-lrwxr-xr-x  1 user  staff  76 May 28 10:16 erlang -> /usr/local/var/spool/apt-mirror/mirror/packages.erlang-solutions.com/ubuntu/
-lrwxr-xr-x  1 user  staff  74 May 28 10:17 fluentd -> /usr/local/var/spool/apt-mirror/mirror/packages.treasure-data.com/precise/
-lrwxr-xr-x  1 user  staff  84 May 28 10:07 haproxy -> /usr/local/var/spool/apt-mirror/mirror/ppa.launchpad.net/vbernat/haproxy-1.5/ubuntu/
-lrwxr-xr-x  1 user  staff  60 May 28 10:17 mysql -> /usr/local/var/spool/apt-mirror/mirror/repo.percona.com/apt/
-lrwxr-xr-x  1 user  staff  81 May 28 10:17 openstack -> /usr/local/var/spool/apt-mirror/mirror/ubuntu-cloud.archive.canonical.com/ubuntu/
-lrwxr-xr-x  1 user  staff  63 May 28 10:08 rabbitmq -> /usr/local/var/spool/apt-mirror/mirror/www.rabbitmq.com/debian/
-lrwxr-xr-x  1 user  staff  61 Jun  3 09:07 ubuntu -> /usr/local/var/spool/apt-mirror/mirror/mirror.pnl.gov/ubuntu/
+lrwxr-xr-x  1 user  staff  66 Jun 21 01:07 ceph -> /var/apt-mirror/mirror/www.ceph.com/debian-hammer/
+lrwxr-xr-x  1 user  staff  91 May 28 10:18 elasticsearch -> /var/spool/apt-mirror/mirror/packages.elasticsearch.org/elasticsearch/1.5/debian/
+lrwxr-xr-x  1 user  staff  76 May 28 10:16 erlang -> /var/spool/apt-mirror/mirror/packages.erlang-solutions.com/ubuntu/
+lrwxr-xr-x  1 user  staff  74 May 28 10:17 fluentd -> /var/spool/apt-mirror/mirror/packages.treasure-data.com/2/
+lrwxr-xr-x  1 user  staff  84 May 28 10:07 haproxy -> /var/spool/apt-mirror/mirror/ppa.launchpad.net/vbernat/haproxy-1.5/ubuntu/
+lrwxr-xr-x  1 user  staff  60 May 28 10:17 mysql -> /var/spool/apt-mirror/mirror/repo.percona.com/apt/
+lrwxr-xr-x  1 user  staff  81 May 28 10:17 openstack -> /var/spool/apt-mirror/mirror/ubuntu-cloud.archive.canonical.com/ubuntu/
+lrwxr-xr-x  1 user  staff  63 May 28 10:08 rabbitmq -> /var/spool/apt-mirror/mirror/www.rabbitmq.com/debian/
+lrwxr-xr-x  1 user  staff  61 Jun  3 09:07 ubuntu -> /var/spool/apt-mirror/mirror/mirror.pnl.gov/ubuntu/
 ```
 
 ...and then serve this location up from your web server.
@@ -71,4 +78,4 @@ You will need to configure the Chef environment appropriately to use all these r
 
 build_bins source files
 ---
-You will need all the files downloaded by `bootstrap/shared/shared_prereqs.sh`. By default, these files are downloaded to `$HOME/.bcpc-cache` on your system, which can be overridden by setting the `BOOTSTRAP_CACHE_DIR` environment variable. These are used by the `bootstrap/shared/shared_build_bins.sh` script, which is invoked inside the bootstrap VM to build various binary packages. The source location can be set via the `FILES_ROOT` environment variable, and the destination for the build products can be set with the `BUILD_DEST` environment variable. The build products must go into the `cookbooks/bcpc/files/default/bins` directory and be uploaded to the Chef server with `knife`.
+You will also need all of the files downloaded by `bootstrap/shared/shared_prereqs.sh` in your local cache. By default, these files are downloaded to `$HOME/.bcpc-cache` on your system, which can be overridden by setting the `BOOTSTRAP_CACHE_DIR` environment variable. These are used by the `bootstrap/shared/shared_build_bins.sh` script, which is invoked inside the bootstrap VM to build various binary packages. The source location can be set via the `FILES_ROOT` environment variable, and the destination for the build products can be set with the `BUILD_DEST` environment variable. The build products must go into the `cookbooks/bcpc/files/default/bins` directory and be uploaded to the Chef server using the `knife` command and upload workflow.
