@@ -85,3 +85,7 @@ export FILECACHE_MOUNT_POINT=/chef-bcpc-files
 # Leave empty for sensible defaults in shared_prereqs.sh
 export CHEF_CLIENT_DEB=
 export CHEF_SERVER_DEB=
+
+# Specify your custom rally scenarios directory so that they can be
+# copied to the bootstrap node for further rally runs
+# export RALLY_SCENARIOS_DIR=
