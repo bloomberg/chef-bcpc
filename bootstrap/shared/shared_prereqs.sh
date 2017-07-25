@@ -220,21 +220,4 @@ download_file "calicoctl-${VER_CALICOCTL}" "https://github.com/projectcalico/cal
 ####################################################################
 # Obtain packages for Rally. There are a lot.
 # for future reference, to install files from this cache use pip install --no-index -f file:///path/to/files rally
-declare -a rally_packages
-
-# Bash 4.x
-# readarray -t rally_packages < "$REPO_ROOT/bootstrap/shared/packages.rally"
-
-rally_packages=(); while IFS= read -r; do 
-        [[ $REPLY ]] && rally_packages+=("$REPLY"); done < "$REPO_ROOT/bootstrap/shared/packages.rally"
-
-mkdir -p "$BOOTSTRAP_CACHE_DIR/rally"
-for package in "${!rally_packages[@]}"; do 
-        pypi_dir="${rally_packages[package]:0:1}"
-        base_package_name="${rally_packages[package]%-*}"
-        download_file "rally/${rally_packages[package]}" "$pypi_url/$pypi_dir/$base_package_name/${rally_packages[package]}"
-done
-
-# ..and for the one package that has to be a special snowflake and not fit into
-# the above scheme because of capitalization weirdness
-download_file rally/prettytable-0.7.2.tar.gz "$pypi_url/P/PrettyTable/prettytable-0.7.2.tar.gz"
+pip install -d "$BOOTSTRAP_CACHE_DIR/rally/ cffi rally
