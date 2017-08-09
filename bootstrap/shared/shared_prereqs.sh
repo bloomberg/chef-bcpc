@@ -233,5 +233,13 @@ else
   RALLY_SCENARIOS_DIR="${RALLY_SCENARIOS_DIR%/}"
   rsync -avz --delete --exclude=.git "$RALLY_SCENARIOS_DIR" "$BOOTSTRAP_CACHE_DIR/rally/"
 fi
-pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" --no-binary cffi,cryptography virtualenv rally==0.9.1
-pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" pyinotify || true
+# On mac download some non-binary packages to work on Linux bootstrap node
+# Also downlaod pyinotify which doesn't get downloaded on mac but required for Linux. Ignore the failure
+if [ `uname` = "Darwin" ]; then
+  no_binary="MarkupSafe,PyYAML,cffi,cryptography,greenlet,msgpack_python,netifaces,pycrypto,simplejson,wrapt"
+  pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" pyinotify 2> /dev/null || true
+else
+  no_binary=":none:"
+fi
+
+pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" --no-binary $no_binary virtualenv rally==0.9.1
