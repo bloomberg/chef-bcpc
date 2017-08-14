@@ -224,21 +224,22 @@ download_file "calicoctl-${VER_CALICOCTL}" "https://github.com/projectcalico/cal
 ####################################################################
 # Obtain packages for Rally. There are a lot.
 # for future reference, to install files from this cache use pip install --no-index -f file:///path/to/files rally
-declare -a rally_packages
+if [ -z "$RALLY_SCENARIOS_DIR" ]; then
+  echo "Not copying RALLY scenario files, set RALLY_SCENARIOS_DIR pointing to your custom rally scenarios repo"
+  echo "Pause 5 seconds...."
+  sleep 5
+else
+  # Remove / at the end
+  RALLY_SCENARIOS_DIR="${RALLY_SCENARIOS_DIR%/}"
+  rsync -avz --delete --exclude=.git "$RALLY_SCENARIOS_DIR" "$BOOTSTRAP_CACHE_DIR/rally/"
+fi
+# On mac download some non-binary packages to work on Linux bootstrap node
+# Also downlaod pyinotify which doesn't get downloaded on mac but required for Linux. Ignore the failure
+if [ `uname` = "Darwin" ]; then
+  no_binary="MarkupSafe,PyYAML,cffi,cryptography,greenlet,msgpack_python,netifaces,pycrypto,simplejson,wrapt"
+  pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" pyinotify 2> /dev/null || true
+else
+  no_binary=":none:"
+fi
 
-# Bash 4.x
-# readarray -t rally_packages < "$REPO_ROOT/bootstrap/shared/packages.rally"
-
-rally_packages=(); while IFS= read -r; do 
-        [[ $REPLY ]] && rally_packages+=("$REPLY"); done < "$REPO_ROOT/bootstrap/shared/packages.rally"
-
-mkdir -p "$BOOTSTRAP_CACHE_DIR/rally"
-for package in "${!rally_packages[@]}"; do 
-        pypi_dir="${rally_packages[package]:0:1}"
-        base_package_name="${rally_packages[package]%-*}"
-        download_file "rally/${rally_packages[package]}" "$pypi_url/$pypi_dir/$base_package_name/${rally_packages[package]}"
-done
-
-# ..and for the one package that has to be a special snowflake and not fit into
-# the above scheme because of capitalization weirdness
-download_file rally/prettytable-0.7.2.tar.gz "$pypi_url/P/PrettyTable/prettytable-0.7.2.tar.gz"
+pip install -d "$BOOTSTRAP_CACHE_DIR/rally/" --no-binary $no_binary virtualenv rally==0.9.1
