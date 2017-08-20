@@ -12,8 +12,7 @@
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::zabbix-agent]",
-      "recipe[bcpc::extra-bootstrap]",
-      "recipe[bcpc::rally]"
+      "recipe[bcpc::extra-bootstrap]"
     ],
     "description": "A bootstrap node in a BCPC cluster",
     "chef_type": "role",
