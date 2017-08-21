@@ -1,8 +1,7 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: rally
 #
-# Copyright 2015, Bloomberg Finance L.P.
+# Copyright 2017, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,39 +16,78 @@
 # limitations under the License.
 #
 
-# This recipe simply installs rally on the given node (bootstrap by default). The rally-setup.rb will set rally
-# up to be able to be ran.
-apt_repository 'mitaka-staging-rally' do
-  uri node['bcpc']['repos']['mitaka-staging']
-  distribution node['lsb']['codename']
-  components ['main']
-  key 'ubuntu-cloud-archive-mitaka-staging-trusty.key'
+include_recipe "bcpc::certs"
+
+rally_user = node['bcpc']['rally']['user']
+rally_home_dir = node['etc']['passwd'][rally_user]['dir']
+rally_install_dir = "#{rally_home_dir}/rally"
+rally_venv_dir = "#{rally_install_dir}/venv"
+rally_conf_dir = "#{rally_venv_dir}/etc/rally"
+rally_database_dir = "#{rally_venv_dir}/database"
+
+%w{
+     wget
+     build-essential
+     libssl-dev
+     libffi-dev
+     python-dev
+     libpq-dev
+     libxml2-dev
+     libxslt1-dev
+}.each do |pkg|
+    package pkg do
+        action :upgrade
+    end
 end
 
-package 'rally' do
-  action :upgrade
+bash 'create virtual env for rally' do
+  code <<-EOH
+    mkdir "#{rally_install_dir}"
+    pip install --user --upgrade virtualenv
+    #{rally_home_dir}/.local/bin/virtualenv "#{rally_venv_dir}"
+  EOH
+  user rally_user
 end
 
-template "/etc/rally/rally.conf" do
+bash 'install-rally' do
+  code <<-EOH
+    #{rally_venv_dir}/bin/pip install pbr cffi
+    #{rally_venv_dir}/bin/pip install rally==0.9.1
+  EOH
+  user rally_user
+end
+
+directory "#{rally_conf_dir}" do
+    user rally_user
+    owner rally_user
+    group rally_user
+    mode "0755"
+    action :create
+end
+
+template "#{rally_conf_dir}/rally.conf" do
     source "rally.conf.erb"
-    owner node['bcpc']['rally']['user']
-    group node['bcpc']['rally']['user']
+    user rally_user
+    owner rally_user
+    group rally_user
     mode 0664
+    variables(
+      db_location: "#{rally_database_dir}"
+    )
 end
 
-# Remove old local rally installation remnants
-#  - just leave stuff in /opt/rally.. it's in /opt!
-bins = %w{ rally-manage rally }
-install_dir = '/usr/local/bin'
-lib_dir = '/usr/local/lib/python2.7/dist-packages/rally'
-bins.each do |bin|
-  path = File.join(install_dir, bin)
-  file path do
-    action :delete
-  end
+directory "#{rally_database_dir}" do
+    user rally_user
+    owner rally_user
+    group rally_user
+    mode "0755"
+    action :create
 end
 
-directory lib_dir do
-  recursive true
-  action :delete
+bash "setup rally database" do
+  code <<-EOH
+    source #{rally_venv_dir}/bin/activate
+    rally-manage db recreate
+  EOH
+  user rally_user
 end

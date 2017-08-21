@@ -9,7 +9,6 @@
       "recipe[bcpc::bootstrap]",
       "recipe[bcpc::ufw]",
       "recipe[bcpc::backup-cluster]",
-      "recipe[bcpc::rally]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::zabbix-agent]",

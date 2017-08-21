@@ -29,3 +29,5 @@ Getting started
 1. From the root of the chef-bcpc Git repository, change directory to `bootstrap/vagrant_scripts`.
 2. Run `./BOOT_GO.sh`.
 3. Watch the magic! (The build process usually takes 45-60 minutes to complete, depending on the speed of your computer and Internet connection.)
+4. If you are re-cheffing for testing a PR for migration, make sure you run `vagrant provision` before running chef
+   cookbooks

@@ -21,17 +21,35 @@
 
 KEYSTONE_API_VERSIONS = %w{ v2.0 v3 }
 rally_user = node['bcpc']['rally']['user']
+rally_home_dir = node['etc']['passwd'][rally_user]['dir']
+rally_install_dir = "#{rally_home_dir}/rally"
+rally_venv_dir = "#{rally_install_dir}/venv"
+rally_deployment = "v2.0"
+
+directory "/tmp/rally" do
+  owner rally_user
+  group rally_user
+  mode 00755
+  action :create
+end
+# Have the image file ready for image based tests
+cookbook_file "/tmp/rally/cirros-0.3.4-x86_64-disk.img" do
+    source "cirros-0.3.4-x86_64-disk.img"
+    cookbook 'bcpc-binary-files'
+    owner rally_user
+    mode 00444
+end
 
 # This json file represents the current deployment of OpenStack. It is read in a later section and then
 # the information from the json file is created in Rally's database to be used for tests.
 KEYSTONE_API_VERSIONS.each do |version|
   infile = File.join(Chef::Config[:file_cache_path], "rally-existing-#{version}.json")
-  template "/var/chef/cache/rally-existing-#{version}.json" do
-      user 'root'
+  template "#{infile}" do
+      user rally_user
       source "rally.existing.json.erb"
       owner rally_user
       group rally_user
-      mode 0660
+      mode 0600
       variables(
         api_version: version,
         region_name:  node.chef_environment,
@@ -40,20 +58,6 @@ KEYSTONE_API_VERSIONS.each do |version|
         project_name: node['bcpc']['admin_tenant'],
       )
   end
-end
-
-# Inits the db. If a db already exists then this command will init back to an empty-clean state
-directory "/var/lib/rally/database" do
-      owner rally_user
-      group rally_user
-      mode 0761
-end
-
-bash "rally-db-recreate" do
-    user rally_user
-    code <<-EOH
-        rally-manage db recreate
-    EOH
 end
 
 # Also required is a hostsfile (or DNS) entry for API endpoint hostname
@@ -69,11 +73,9 @@ KEYSTONE_API_VERSIONS.each do |version|
       user rally_user
       code <<-EOH
           # Another approach is to use --fromenv...
-          rally deployment create --file="#{infile}" --name=#{version}
-          unlink "#{infile}"
+          source #{rally_venv_dir}/bin/activate
+          rally deployment create --filename="#{infile}" --name=#{version}
+          sudo unlink "#{infile}"
       EOH
   end
 end
-
-# This will also setup keys that are probably not necessary...
-include_recipe "bcpc::certs"

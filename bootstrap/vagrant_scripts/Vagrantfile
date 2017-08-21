@@ -100,6 +100,8 @@ unless BOOTSTRAP_HTTPS_PROXY_URL.host.nil?
   $proxy_configuration_script << <<-EOH
     echo 'Acquire::https::Proxy "#{BOOTSTRAP_HTTPS_PROXY_URL.to_s}";' | sudo tee -a /etc/apt/apt.conf
     echo 'export https_proxy=#{BOOTSTRAP_HTTPS_PROXY_URL.to_s}' | tee -a $HOME/proxy_config.sh
+    mkdir -p $HOME/.pip
+    printf "[global]\nproxy = #{BOOTSTRAP_HTTPS_PROXY_URL.to_s}\n" > $HOME/.pip/pip.conf
   EOH
 end
 

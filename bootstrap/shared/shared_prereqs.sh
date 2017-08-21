@@ -261,15 +261,3 @@ traceback2-1.4.0.tar.gz
 unittest2-1.0.1.tar.gz
 warlock-1.1.0.tar.gz
 wrapt-1.10.4.tar.gz )
-
-# if on OS X, use BSD sed, otherwise assume GNU sed
-if [[ $(uname) == "Darwin" ]]; then SED="sed -E"; else SED="sed -r"; fi
-mkdir -p $BOOTSTRAP_CACHE_DIR/rally
-for RALLY_PACKAGE in ${RALLY_PACKAGES[@]}; do
-  BARE_PACKAGE_NAME=$(echo $RALLY_PACKAGE | $SED 's/^(.+)-.+$/\1/')
-  download_file rally/$RALLY_PACKAGE https://pypi.python.org/packages/source/$(echo $RALLY_PACKAGE | cut -c1 -)/$BARE_PACKAGE_NAME/$RALLY_PACKAGE
-done
-
-# ..and for the one package that has to be a special snowflake and not fit into
-# the above scheme because of capitalization weirdness
-download_file rally/prettytable-0.7.2.tar.gz https://pypi.python.org/packages/source/P/PrettyTable/prettytable-0.7.2.tar.gz

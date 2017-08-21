@@ -144,57 +144,12 @@ if [ ! -f python-graphite-web_${VER_GRAPHITE_WEB}_all.deb ]; then
 fi
 FILES="python-graphite-web_${VER_GRAPHITE_WEB}_all.deb $FILES"
 
-# Rally has a number of dependencies. Some of the dependencies are in apt by default but some are not. Those that
-# are not are built here.
-
-# We build a package for rally here but we also get the tar file of the source because it includes the samples
-# directory that we want and we need a good place to run our tests from.
-
-if [ ! -f rally.tar.gz ]; then
-  cp $FILECACHE_MOUNT_POINT/rally/rally-${VER_RALLY}.tar.gz .
-  tar xvf rally-${VER_RALLY}.tar.gz
-  tar zcf rally.tar.gz -C rally-${VER_RALLY}/ .
-  rm -rf rally-${VER_RALLY}.tar.gz rally-${VER_RALLY}
+# add calicoctl binary
+CALICOCTL_BINARY=calicoctl-"${VER_CALICOCTL}"
+if [[ ! -f "$CALICOCTL_BINARY" ]]; then
+  cp -v "$FILECACHE_MOUNT_POINT/$CALICOCTL_BINARY" .
 fi
-
-# TODO FOR erhudy: fix up these Rally packages to be built like the Graphite stuff
-
-# Also test for deb if migrating from 5.1.x
-if [ ! -f rally-pip.tar.gz ] || [ ! -f rally-bin.tar.gz ] || [ ! -f python-pip_${VER_PIP}_all.deb ]; then
-  # Rally has a very large number of version specific dependencies!!
-  # The latest version of PIP is installed instead of the distro version. We don't want this to block to exit on error
-  # so it is changed here and reset at the end. Several apt packages must be present since easy_install builds
-  # some of the dependencies.
-  # Note: Once we fully switch to trusty/kilo then we should not have to patch this (hopefully).
-  echo "Processing Rally setup..."
-
-  # Create a deb for pip to replace really old upstream pip
-  if [[ ! -f python-pip_${VER_PIP}_all.deb ]]; then
-    cp $FILECACHE_MOUNT_POINT/rally/pip-${VER_PIP}.tar.gz .
-    tar xvzf pip-${VER_PIP}.tar.gz
-    fpm -s python -t deb pip-${VER_PIP}/setup.py
-    dpkg -i python-pip_${VER_PIP}_all.deb
-    rm -rf pip-${VER_PIP} pip-${VER_PIP}.tar.gz
-  fi
-
-  # We install rally and a few other items here. Since fpm does not resolve dependencies but only lists them, we
-  # have to force an install and then tar up the dist-packages and local/bin
-  PIP_INSTALL="pip install --no-cache-dir --disable-pip-version-check --no-index -f $FILECACHE_MOUNT_POINT/rally"
-  # this kludge is to prevent easy_install from trying to go out to PyPI:
-  # rally calls setuptools.setup_requires(), which uses easy_install to
-  # install any packages listed there; this forces easy_install to use
-  # the same mechanism as we are telling pip to use in $PIP_INSTALL
-  echo -e "[easy_install]\nallow_hosts = ''\nfind_links = file://$FILECACHE_MOUNT_POINT/rally/" > $HOME/.pydistutils.cfg
-  $PIP_INSTALL --default-timeout 60 -I rally
-  $PIP_INSTALL --default-timeout 60 python-openstackclient
-  $PIP_INSTALL -U argparse
-  $PIP_INSTALL -U setuptools
-
-  tar zcf rally-pip.tar.gz -C /usr/local/lib/python2.7/dist-packages .
-  tar zcf rally-bin.tar.gz --exclude="fpm" --exclude="ruby*" -C /usr/local/bin .
-fi
-FILES="rally.tar.gz rally-pip.tar.gz rally-bin.tar.gz python-pip_${VER_PIP}_all.deb $FILES"
-# End of Rally
+FILES="$CALICOCTL_BINARY $FILES"
 
 # rsync build products with cache directory
 mkdir -p $BUILD_CACHE_DIR && rsync -avxSH $(pwd -P)/* $BUILD_CACHE_DIR
