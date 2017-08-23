@@ -144,13 +144,6 @@ if [ ! -f python-graphite-web_${VER_GRAPHITE_WEB}_all.deb ]; then
 fi
 FILES="python-graphite-web_${VER_GRAPHITE_WEB}_all.deb $FILES"
 
-# add calicoctl binary
-CALICOCTL_BINARY=calicoctl-"${VER_CALICOCTL}"
-if [[ ! -f "$CALICOCTL_BINARY" ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT/$CALICOCTL_BINARY" .
-fi
-FILES="$CALICOCTL_BINARY $FILES"
-
 # rsync build products with cache directory
 mkdir -p $BUILD_CACHE_DIR && rsync -avxSH $(pwd -P)/* $BUILD_CACHE_DIR
 
