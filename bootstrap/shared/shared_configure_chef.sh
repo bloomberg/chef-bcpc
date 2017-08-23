@@ -183,8 +183,6 @@ else
   do_on_node vm-bootstrap "sudo chef-client -o bcpc::rally,bcpc::rally-deployments"
   if [ -z "$RALLY_SCENARIOS_DIR" ]; then
     echo "Not copying RALLY scenario files, set RALLY_SCENARIOS_DIR pointing to your custom rally scenarios repo"
-    echo "Pause 5 seconds...."
-    sleep 5
   else
     OPTIONS=$(vagrant ssh-config vm-bootstrap | awk -v ORS=' ' 'NF && !/Host / {print "-o " $1 "=" $2}')
     # Remove / at the end
