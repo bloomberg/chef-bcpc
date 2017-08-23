@@ -24,6 +24,7 @@ rally_install_dir = "#{rally_home_dir}/rally"
 rally_venv_dir = "#{rally_install_dir}/venv"
 rally_conf_dir = "#{rally_venv_dir}/etc/rally"
 rally_database_dir = "#{rally_venv_dir}/database"
+rally_version = node['bcpc']['rally']['version']
 
 %w{
      wget
@@ -52,7 +53,7 @@ end
 bash 'install-rally' do
   code <<-EOH
     #{rally_venv_dir}/bin/pip install pbr cffi
-    #{rally_venv_dir}/bin/pip install rally==0.9.1
+    #{rally_venv_dir}/bin/pip install rally==#{rally_version}
   EOH
   user rally_user
 end
