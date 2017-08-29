@@ -5,6 +5,7 @@
     "json_class": "Chef::Role",
     "run_list": [
       "recipe[ubuntu]",
+      "recipe[bcpc::etckeeper]",
       "recipe[bcpc::packages-common]",
       "recipe[bcpc::packages-debugging]",
       "recipe[bcpc::apport]",
