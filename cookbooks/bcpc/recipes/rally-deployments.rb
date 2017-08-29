@@ -75,7 +75,6 @@ KEYSTONE_API_VERSIONS.each do |version|
           # Another approach is to use --fromenv...
           source #{rally_venv_dir}/bin/activate
           rally deployment create --filename="#{infile}" --name=#{version}
-          sudo unlink "#{infile}"
       EOH
   end
 end

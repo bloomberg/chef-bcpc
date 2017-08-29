@@ -16,8 +16,6 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::certs"
-
 rally_user = node['bcpc']['rally']['user']
 rally_home_dir = node['etc']['passwd'][rally_user]['dir']
 rally_install_dir = "#{rally_home_dir}/rally"
