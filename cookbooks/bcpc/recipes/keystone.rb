@@ -397,8 +397,8 @@ ruby_block "wait-for-keystone-to-become-operational" do
   delay = 1
   retries = (node['bcpc']['keystone']['wait_for_keystone_timeout']/delay).ceil
   block do
-    r = execute_in_keystone_admin_context("openstack user list --domain #{node['bcpc']['keystone']['default_domain']}")
-    raise Exception('Still waiting for keystone') if r.strip.empty?
+    r = execute_in_keystone_admin_context("openstack region list -fvalue")
+    raise Exception.new('Still waiting for keystone') if r.strip.empty? 
   end
   retry_delay delay
   retries retries
