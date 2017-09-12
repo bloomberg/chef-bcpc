@@ -411,13 +411,14 @@ def generate_service_catalog_uri(svcprops, access_level)
   "#{node['bcpc']['protocol'][svcprops['project']]}://openstack.#{node['bcpc']['cluster_domain']}:#{svcprops['ports'][access_level]}/#{svcprops['uris'][access_level]}"
 end
 
-def execute_in_keystone_admin_context(cmd, debug=false)
-  script = <<-EoS
-    . /root/api_versionsrc ;
-    export OS_TOKEN="#{get_config('keystone-admin-token')}";
-    export OS_URL="#{node['bcpc']['protocol']['keystone']}://openstack.#{node['bcpc']['cluster_domain']}:#{node['bcpc']['catalog']['identity']['ports']['admin']}/#{node['bcpc']['catalog']['identity']['uris']['admin']}/";
-    #{cmd}
-  EoS
-  script = "set -x;\n" + script if debug
-  %x[ #{script} ]
+# Run temporarily with specified environment
+def env(env={}, &block)
+  if not block_given?
+    return ENV.to_h
+  end
+  old_env = ENV.to_h
+  ENV.replace env
+  res = yield
+  ENV.replace old_env
+  res
 end
