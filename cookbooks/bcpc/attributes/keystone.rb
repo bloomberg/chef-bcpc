@@ -57,12 +57,16 @@ default['bcpc']['keystone']['notification_format'] = 'cadf'
 # Understand the implications: https://docs.openstack.org/developer/keystone/configuration.html#domain-specific-drivers
 default['bcpc']['keystone']['identity']['domain_configurations_from_database'] = true
 default['bcpc']['keystone']['admin_tenant'] = "AdminTenant"
-default['bcpc']['keystone']['admin_role'] = "Admin"
-default['bcpc']['keystone']['admin_email'] = "admin@localhost.com"
-default['bcpc']['keystone']['member_role'] = "Member"
+default['bcpc']['keystone']['admin_role'] = 'Admin'
+default['bcpc']['keystone']['admin_email'] = 'admin@bcpc.example.com'
+default['bcpc']['keystone']['member_role'] = 'Member'
 
-default['bcpc']['keystone']['admin_username'] = "admin"
-default['bcpc']['keystone']['admin']['user_domain'] = "local"
+#default['bcpc']['keystone']['admin_username'] = 'admin' # legacy
+default['bcpc']['keystone']['admin']['username'] = 'admin'
+default['bcpc']['keystone']['admin']['user_domain'] = 'local'
+default['bcpc']['keystone']['admin']['project_domain'] = 'local'
+default['bcpc']['keystone']['admin']['project_name'] = 'admin'
+
 default['bcpc']['keystone']['service_project']['name'] = 'service'
 default['bcpc']['keystone']['service_project']['domain'] = 'local'
 
@@ -71,10 +75,13 @@ default['bcpc']['keystone']['default_domain'] = 'default'
 # LDAP credentials used by Keystone
 default['bcpc']['ldap']['admin_user'] = nil
 default['bcpc']['ldap']['admin_pass'] = nil
+default['bcpc']['ldap']['admin_user_domain'] = 'default'
+default['bcpc']['ldap']['admin_project_domain'] = 'default'
+default['bcpc']['ldap']['admin_project_name'] = default['bcpc']['keystone']['admin_tenant']
 default['bcpc']['ldap']['config'] = {}
 
 # Domain configs
-# <Name> => config => {}
+# <Name> => { description => {}, config => {} }
 default['bcpc']['keystone']['domain_config_dir'] = '/etc/keystone/domains'
 default['bcpc']['keystone']['domains'] = {
   'local' => {
