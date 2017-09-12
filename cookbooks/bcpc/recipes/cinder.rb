@@ -152,6 +152,7 @@ end
 domain = node['bcpc']['keystone']['service_project']['domain']
 cinder_username = node['bcpc']['cinder']['user']
 cinder_project_name = node['bcpc']['keystone']['service_project']['name']
+admin_role_name = node['bcpc']['keystone']['admin_role']
 
 ruby_block "keystone-create-cinder-user" do
   block do
@@ -162,12 +163,12 @@ end
 
 ruby_block "keystone-assign-cinder-admin-role" do
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{cinder_project_name} --user #{cinder_username} #{node['bcpc']['keystone']['admin_role']}")
+    execute_in_keystone_admin_context("openstack role add --project-domain #{domain} --user-domain #{domain} --project #{cinder_project_name} --user #{cinder_username} #{admin_role_name}")
   end
   # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
   only_if {
     begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{node['bcpc']['keystone']['admin_role']} --project #{cinder_project_name} --user #{cinder_username} -fjson")
+      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --project-domain #{domain} --user-domain #{domain} --project #{cinder_project_name} --user #{cinder_username} -fjson")
       r.empty?
     rescue JSON::ParserError
       true

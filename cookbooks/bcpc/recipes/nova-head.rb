@@ -94,6 +94,7 @@ end
 domain = node['bcpc']['keystone']['service_project']['domain']
 nova_username = node['bcpc']['nova']['user']
 nova_project_name = node['bcpc']['keystone']['service_project']['name']
+admin_role_name = node['bcpc']['keystone']['admin_role']
 
 ruby_block "keystone-create-nova-user" do
   block do
@@ -104,12 +105,12 @@ end
 
 ruby_block "keystone-assign-nova-admin-role" do
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{nova_project_name} --user #{nova_username} #{node['bcpc']['keystone']['admin_role']}")
+    execute_in_keystone_admin_context("openstack role add --project-domain #{domain} --user-domain #{domain} --project #{nova_project_name} --user #{nova_username} #{admin_role_name}")
   end
   # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
   only_if {
     begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{node['bcpc']['keystone']['admin_role']} --project #{nova_project_name} --user #{nova_username} -fjson")
+      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --project-domain #{domain} --user-domain #{domain} --project #{nova_project_name} --user #{nova_username} -fjson")
       r.empty?
     rescue JSON::ParserError
       true

@@ -1,0 +1,7 @@
+<% @domain['config'].sort.each do |section, opts| %>
+[<%= section %>]
+<%  opts.each do |k, v| %>
+<%=   k %> = <%= v %>
+<%  end %>
+
+<% end %>

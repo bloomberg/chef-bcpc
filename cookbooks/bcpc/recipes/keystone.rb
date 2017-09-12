@@ -31,12 +31,13 @@ end
 
 ruby_block "initialize-keystone-config" do
     block do
+	# TODO(kamidzi): this is all suspect now...
         make_config('mysql-keystone-user', "keystone")
         make_config('mysql-keystone-password', secure_password)
         make_config('keystone-admin-token', secure_password)
         make_config('keystone-admin-user',  node["bcpc"]["ldap"]["admin_user"] || node["bcpc"]["keystone"]["admin_username"])
         make_config('keystone-admin-password',node["bcpc"]["ldap"]["admin_pass"]  ||  secure_password)
-        make_config('keystone-admin-user-domain', node['bcpc']['default_domain'] || 'default')
+        make_config('keystone-admin-user-domain', node['bcpc']['keystone']['default_domain'] || 'default')
         begin
             get_config('keystone-pki-certificate')
         rescue
@@ -232,6 +233,13 @@ file "/var/log/keystone/keystone.log" do
   notifies :restart, "service[apache2]", :immediately
 end
 
+domain_config_dir = node['bcpc']['keystone']['domain_config_dir']
+directory domain_config_dir do
+    owner "keystone"
+    group "keystone"
+    mode "2700"
+end
+
 template "/etc/keystone/keystone.conf" do
     source "keystone/keystone.conf.erb"
     owner "keystone"
@@ -245,6 +253,21 @@ template "/etc/keystone/keystone.conf" do
       }
     )
     notifies :restart, "service[apache2]", :immediately
+end
+
+node['bcpc']['keystone']['domains'].each do |domain, config|
+  config_file = File.join domain_config_dir, "keystone.#{domain}.conf"
+  template config_file do
+      source "keystone/keystone.domain.conf.erb"
+      owner "keystone"
+      group "keystone"
+      mode "0600"
+      variables(
+        :domain => config
+      )
+      # should this be here..?
+      notifies :restart, "service[apache2]", :delayed
+  end
 end
 
 template "/etc/keystone/default_catalog.templates" do
@@ -370,9 +393,15 @@ end
 
 # this is a synchronization resource that polls Keystone on the VIP to verify that it's not returning 503s,
 # if something above has restarted Apache and Keystone isn't ready to play yet
-bash "wait-for-keystone-to-become-operational" do
-  code ". /root/keystonerc; until keystone user-list >/dev/null 2>&1; do sleep 1; done"
-  timeout node['bcpc']['keystone']['wait_for_keystone_timeout']
+ruby_block "wait-for-keystone-to-become-operational" do
+  delay = 1
+  retries = (node['bcpc']['keystone']['wait_for_keystone_timeout']/delay).ceil
+  block do
+    r = execute_in_keystone_admin_context("openstack user list --domain #{node['bcpc']['keystone']['default_domain']}")
+    raise Exception('Still waiting for keystone') if r.strip.empty?
+  end
+  retry_delay delay
+  retries retries
 end
 
 # TODO(kamidzi): each service should create its *own* catalog entry
@@ -484,11 +513,24 @@ service_project_domain = node['bcpc']['keystone']['service_project']['domain']
 default_domain = node['bcpc']['keystone']['default_domain']
 
 
-ruby_block "keystone-create-default-domain" do
+# Create the domains
+ruby_block "keystone-create-domains" do
   block do
-    execute_in_keystone_admin_context("openstack domain create --description 'Default Domain' #{default_domain}")
+    node['bcpc']['keystone']['domains'].each do |domain, attrs|
+      name = "keystone-create-domain::#{domain}"
+      desc = attrs['description'] || ''
+      run_context.resource_collection << dom_create = Chef::Resource::RubyBlock.new(name, run_context)
+      dom_create.block  { execute_in_keystone_admin_context("openstack domain create --description '#{desc}' #{domain}") }
+      dom_create.not_if { execute_in_keystone_admin_context("openstack domain show #{domain}") ; $?.success? }
+
+      # Configure them
+      name = "keystone-configure-domain::#{domain}"
+      # Use domain_config_upload for now
+      run_context.resource_collection << dom_configure = Chef::Resource::RubyBlock.new(name, run_context)
+      dom_configure.block  { %x{ keystone-manage domain_config_upload --domain "#{domain}"} }
+      # TODO(kamidzi): need a conditional...
+    end
   end
-  not_if { execute_in_keystone_admin_context("openstack domain show #{default_domain}") ; $?.success? }
 end
 
 ruby_block "keystone-create-admin-project" do
@@ -516,12 +558,12 @@ end
 
 ruby_block "keystone-assign-admin-role" do
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{admin_project_name} --user admin #{admin_role_name}")
+    execute_in_keystone_admin_context("openstack role add --project-domain #{default_domain} --user-domain #{default_domain} --project #{admin_project_name} --user #{admin_username} #{admin_role_name}")
   end
-  # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
+  # NOTE(kamidzi): below command always returns, so check for valid json output; break pattern with only_if
   only_if {
     begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --project #{admin_project_name} --user #{admin_username} -fjson")
+      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --project-domain #{default_domain} --user-domain #{default_domain} --project #{admin_project_name} --user #{admin_username} -fjson")
       r.empty?
     rescue JSON::ParserError
       true
