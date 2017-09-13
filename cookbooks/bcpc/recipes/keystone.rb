@@ -263,6 +263,14 @@ template "/etc/keystone/keystone.conf" do
     notifies :restart, "service[apache2]", :immediately
 end
 
+cookbook_file "/etc/keystone/keystone-paste.ini" do
+    source "keystone/keystone-paste.ini"
+    owner "keystone"
+    group "keystone"
+    mode "0600"
+    notifies :restart, "service[apache2]", :immediately
+end
+
 node['bcpc']['keystone']['domains'].each do |domain, config|
   config_file = File.join domain_config_dir, "keystone.#{domain}.conf"
   template config_file do
