@@ -562,7 +562,7 @@ end
 ruby_block "keystone-create-admin-user" do
   block do
     # TODO(kamidzi): debatable whether to prefer get_config('keystone-admin-user')..
-    execute_in_keystone_admin_context("openstack user create --domain #{admin_project_domain} --password #{get_config('keystone-admin-password')} #{admin_username}")
+    execute_in_keystone_admin_context("openstack user create --domain #{admin_project_domain} --password #{get_config('keystone-local-admin-password')} #{admin_username}")
   end
   not_if { execute_in_keystone_admin_context("openstack user show --domain #{admin_project_domain} #{admin_username}") ; $?.success? }
 end
@@ -575,14 +575,14 @@ ruby_block "keystone-create-admin-role" do
   not_if { execute_in_keystone_admin_context("openstack role show #{admin_role_name}") ; $?.success? }
 end
 
-ruby_block "keystone-assign-admin-role" do
+ruby_block "keystone-assign-domain-admin-role" do
   block do
-    execute_in_keystone_admin_context("openstack role add --project-domain #{admin_project_domain} --user-domain #{admin_user_domain} --project #{admin_project_name} --user #{admin_username} #{admin_role_name}")
+    execute_in_keystone_admin_context("openstack role add --domain #{admin_project_domain} --user-domain #{admin_user_domain} --user #{admin_username} #{admin_role_name}")
   end
   # NOTE(kamidzi): below command always returns, so check for valid json output; break pattern with only_if
   only_if {
     begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --project-domain #{admin_project_domain} --user-domain #{admin_user_domain} --project #{admin_project_name} --user #{admin_username} -fjson")
+      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --domain #{admin_project_domain} --user-domain #{admin_user_domain} --user #{admin_username} -fjson")
       r.empty?
     rescue JSON::ParserError
       true
@@ -624,11 +624,11 @@ template "/root/adminrc" do
     )
 end
 
-# This is admin in separate domain along with service accounts
+# This is a *domain* admin in separate domain along with service accounts
 template "/root/admin-openrc" do
     source "keystone/openrc.erb"
-    owner "root"
-    group "root"
+    owner "keystone"
+    group "keystone"
     mode "0600"
     variables(
       lazy {
@@ -647,4 +647,25 @@ end
 #
 file "/var/lib/keystone/keystone.db" do
   action :delete
+end
+
+# Migration for user ids
+# This is necessary when existing admin user is a member of an ldap-backed domain
+# in single-domain deployment which then migrates to multi-domain deployment. Even
+# if domain name remains the same, the user is re-issued an id. This new id needs to
+# be permissioned
+cookbook_file "/usr/lib/python2.7/dist-packages/keystone/common/sql/migrate_repo/versions/098_migrate_single_to_multi_domain_user_ids.py" do
+  source "keystone/098_migrate_single_to_multi_domain_user_ids.py"
+  owner "root"
+  group "root"
+  mode  "0644"
+end
+
+# User records need to be accessed to populate database with new, stable public IDs
+ruby_block "keystone-list-admin-domain-users" do
+  block do
+    execute_in_keystone_admin_context("openstack user list --domain #{get_config('keystone-admin-user-domain')}")
+  end
+  notifies :run, "bash[keystone-database-sync]", :immediately
+  not_if { %x[bash -c '. /root/adminrc && openstack token issue'] ; $?.success? and keystone_db_version == '98' }
 end

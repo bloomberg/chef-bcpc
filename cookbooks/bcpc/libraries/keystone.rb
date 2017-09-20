@@ -11,3 +11,7 @@ def execute_in_keystone_admin_context(cmd, debug=false)
   # Call script with new environment
   env(new_env){ %x[ #{script} ] }
 end
+
+def keystone_db_version
+  %x[keystone-manage db_version].strip
+end
