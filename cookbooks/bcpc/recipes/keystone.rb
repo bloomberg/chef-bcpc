@@ -636,9 +636,7 @@ template "/root/admin-openrc" do
           username: admin_username,
           # TODO(kamidzi): below breaks naming pattern
           password: get_config('keystone-local-admin-password'),
-          project_name: admin_project_name,
-          user_domain: admin_user_domain,
-          project_domain: admin_project_domain
+          domain: admin_user_domain,
         }
       }
     )
