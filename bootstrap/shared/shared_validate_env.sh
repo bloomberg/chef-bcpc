@@ -1,17 +1,10 @@
 #!/bin/bash
-NEEDED_PROGRAMS=( curl git rsync ssh )
-FAILED=0
-for binary in "${NEEDED_PROGRAMS[@]}"; do
-  if ! which "$binary" >/dev/null; then
-    FAILED=1
-    echo "ERROR: Unable to locate $binary in this environment's PATH." >&2
-  fi
-done
+required_bins=( curl git rsync ssh )
 
-if [[ $FAILED != 0 ]]; then
-  printf "
-       Please see above error output to determine which program(s) you may
-       need to install or expose into this environment's PATH. Aborting.\n" >&2
-  exit 1
-fi
+for binary in "${required_bins[@]}"; do
+	if ! [ -x "$(command -v $binary)" ]; then
+		printf "\n\nError: Necessary program '$binary' is not installed or available on your path.\nPlease fix by installing or correcting your PATH. Aborting now.\n\n" >&2
+		exit 1
+	fi
+done
 
