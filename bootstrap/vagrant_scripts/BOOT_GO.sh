@@ -44,24 +44,24 @@ load_configs
 
 # Perform preflight checks to validate environment sanity as much as possible.
 echo "Performing preflight environment validation..."
-source "$REPO_ROOT"/bootstrap/shared/shared_validate_env.sh
+source "$REPO_ROOT"/bootstrap/shared/shared_validate_env.sh || exit 1
 
 # Test that Vagrant is really installed and of an appropriate version.
 echo "Checking VirtualBox and Vagrant..."
-source "$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_test.sh
+source "$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_test.sh || exit 1
 
 # Do prerequisite work prior to starting build, downloading files and
 # creating local directories. Proxy configuration is handled there as well.
 echo "Downloading necessary files to local cache..."
-source "$REPO_ROOT"/bootstrap/shared/shared_prereqs.sh
+source "$REPO_ROOT"/bootstrap/shared/shared_prereqs.sh || exit 1
 
 # Terminate existing BCPC VMs.
 echo "Shutting down and unregistering VMs from VirtualBox..."
-"$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_clean.sh
+"$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_clean.sh || exit 1
 
 # Create VMs in Vagrant and start them.
 echo "Starting local Vagrant cluster..."
-"$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_create.sh
+"$REPO_ROOT"/bootstrap/vagrant_scripts/vagrant_create.sh || exit 1
 
 # Install and configure Chef on all Vagrant hosts.
 echo "Installing and configuring Chef on all nodes..."
