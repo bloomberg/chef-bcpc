@@ -2,19 +2,23 @@
 # A tool to check the available version of an apt package
 # Usage : apt-pkg-check-version <pkg> <version>
 #
-# where <pkg> is the name of the package and
-#       <version> is the minimum acceptable version
+# where <package> is the name of the package and
+#       <minversion> is the minimum acceptable version
 #
 # If the available version of the named package is less than the
 # specified minimum version, then return 1 (check failed).
 #
-PKG="$1"
-MINVERS="$2"
-VERS=`apt-cache madison $PKG | grep $PKG | head -1 | cut -f2 -d\| | cut -f1 -d-`
-if [ $(echo "$VERS >= $MINVERS" | bc -l ) ]; then
-    echo "$PKG is too old ($VERS)"
-    exit 1;
+package="$1"
+minversion="$2"
+
+while read -r _ _ version _; do 
+	dpkg --compare-versions "$version" gt "$newest" && newest=$version; 
+done < <(apt-cache madison "$package")
+
+if dpkg --compare-versions "$newest" ge "$minversion"; then
+	echo "$package version acceptable ($newest)"
+	exit 0;
 else
-    echo "$PKG version acceptable ($VERS)"
-    exit 0;
+	echo "$package is too old ($newest)"
+	exit 1;
 fi
