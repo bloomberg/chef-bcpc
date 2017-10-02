@@ -55,7 +55,8 @@ do_on_node vm-bootstrap "$CHEF_SERVER_INSTALL_CMD \
 # configure knife on the bootstrap node and perform a knife bootstrap to create the bootstrap node in Chef
 echo "Configuring Knife on bootstrap node..."
 
-do_on_node vm-bootstrap "mkdir -p \$HOME/.chef && echo -e \"chef_server_url 'https://bcpc-vm-bootstrap.$BCPC_HYPERVISOR_DOMAIN/organizations/bcpc'\\\nvalidation_client_name 'bcpc-validator'\\\nvalidation_key '/etc/opscode/bcpc-validator.pem'\\\nnode_name 'admin'\\\nclient_key '/etc/opscode/admin.pem'\\\nknife['editor'] = 'vim'\\\ncookbook_path [ \\\"#{ENV['HOME']}/chef-bcpc/cookbooks\\\" ]\" > \$HOME/.chef/knife.rb \
+do_on_node vm-bootstrap "mkdir -p \$HOME/.chef \
+  && echo -e \"chef_server_url 'https://bcpc-vm-bootstrap.$BCPC_HYPERVISOR_DOMAIN/organizations/bcpc'\\\nvalidation_client_name 'bcpc-validator'\\\nvalidation_key '/etc/opscode/bcpc-validator.pem'\\\nnode_name 'admin'\\\nclient_key '/etc/opscode/admin.pem'\\\nknife['editor'] = 'vim'\\\ncookbook_path [ \\\"#{ENV['HOME']}/chef-bcpc/cookbooks\\\" ]\" > \$HOME/.chef/knife.rb \
   && $KNIFE ssl fetch \
   && $KNIFE bootstrap -x vagrant -P vagrant --sudo 10.0.100.3"
 
@@ -73,7 +74,8 @@ echo "Installing knife-acl plugin..."
 do_on_node vm-bootstrap "sudo /opt/opscode/embedded/bin/gem install -l $FILECACHE_MOUNT_POINT/knife-acl-1.0.2.gem \
   && rsync -a $REPO_MOUNT_POINT/* \$HOME/chef-bcpc \
   && cp $FILECACHE_MOUNT_POINT/cookbooks/*.tar.gz \$HOME/chef-bcpc/cookbooks \
-  && cd \$HOME/chef-bcpc/cookbooks && ls -1 *.tar.gz | xargs -I% tar xvzf %"
+  && cd \$HOME/chef-bcpc/cookbooks \
+  && ls -1 *.tar.gz | xargs -I% tar xvzf %"
 
 # build binaries before uploading the bcpc cookbook
 # (this step will change later but using the existing build_bins script for now)
@@ -83,13 +85,16 @@ do_on_node vm-bootstrap "sudo apt-get update \
   && sudo apt-get -y autoremove \
   && cd \$HOME/chef-bcpc \
   && sudo bash -c 'export FILECACHE_MOUNT_POINT=$FILECACHE_MOUNT_POINT \
-  && source \$HOME/proxy_config.sh && bootstrap/shared/shared_build_bins.sh'"
+  && source \$HOME/proxy_config.sh \
+  && bootstrap/shared/shared_build_bins.sh'"
 
 # upload all cookbooks, roles and our chosen environment to the Chef server
 # (cookbook upload uses the cookbook_path set when configuring knife on the bootstrap node)
 do_on_node vm-bootstrap "$KNIFE cookbook upload -a \
-  && cd \$HOME/chef-bcpc/roles && $KNIFE role from file *.json \
-  && cd \$HOME/chef-bcpc/environments && $KNIFE environment from file $BOOTSTRAP_CHEF_ENV.json"
+  && cd \$HOME/chef-bcpc/roles \
+  && $KNIFE role from file *.json \
+  && cd \$HOME/chef-bcpc/environments \
+  && $KNIFE environment from file $BOOTSTRAP_CHEF_ENV.json"
 
 # install and bootstrap Chef on cluster nodes
 echo "Installing Chef client on cluster nodes..."
