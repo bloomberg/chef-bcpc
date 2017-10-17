@@ -388,7 +388,9 @@ ruby_block 'update-keystone-db-schema' do
     self.notifies :run, "bash[keystone-database-sync]", :immediately
     self.resolve_notification_references
   end
-  only_if { ::File.exist?('/usr/local/etc/openstack_upgrade') }
+  only_if {
+    ::File.exist?('/usr/local/etc/openstack_upgrade') and not has_unregistered_migration?
+  }
 end
 
 bash "keystone-database-sync" do
