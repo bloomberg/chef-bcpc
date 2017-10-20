@@ -41,7 +41,7 @@ end
 
 bash 'create virtual env for rally' do
   code <<-EOH
-    mkdir "#{rally_install_dir}"
+    mkdir -p "#{rally_install_dir}"
     pip install --user --upgrade virtualenv
     #{rally_home_dir}/.local/bin/virtualenv "#{rally_venv_dir}"
   EOH
