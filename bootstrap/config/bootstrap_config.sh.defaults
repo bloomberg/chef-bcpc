@@ -88,5 +88,3 @@ export FILECACHE_MOUNT_POINT=/chef-bcpc-files
 # Leave empty for sensible defaults in shared_prereqs.sh
 export CHEF_CLIENT_DEB=
 export CHEF_SERVER_DEB=
-
-export VERIFY_CLUSTER=0

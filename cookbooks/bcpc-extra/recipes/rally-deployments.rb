@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: bcpc
+# Cookbook Name:: bcpc-extra
 # Recipe:: rally-deployments
 #
 # Copyright 2017, Bloomberg Finance L.P.
@@ -20,7 +20,7 @@
 # IMPORTANT: The head nodes MUST have already been installed and the keystone endpoints working. Rally verifies.
 
 KEYSTONE_API_VERSIONS = %w{ v2.0 v3 }
-rally_user = node['bcpc']['rally']['user']
+rally_user = node['bcpc-extra']['rally']['user']
 rally_home_dir = node['etc']['passwd'][rally_user]['dir']
 rally_install_dir = "#{rally_home_dir}/rally"
 rally_venv_dir = "#{rally_install_dir}/venv"
