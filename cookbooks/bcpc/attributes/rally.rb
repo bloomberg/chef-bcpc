@@ -8,4 +8,4 @@ if node.chef_environment == "Test-Laptop-Vagrant"
 else
    default['bcpc']['rally']['user'] = 'operations'
 end
-default['bcpc']['rally']['version'] = '0.9.1'
+default['bcpc']['rally']['version'] = '0.9.2'
