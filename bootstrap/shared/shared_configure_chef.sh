@@ -180,7 +180,7 @@ else
   if [ "$VERIFY_CLUSTER" = "1" ]; then
     # Do rally setup at the end without polluting the main run lists
     # also this will make sure the cluster is fully provisioned and ready for sanity checks
-    do_on_node vm-bootstrap "sudo chef-client -o bcpc::rally,bcpc::rally-deployments"
+    do_on_node vm-bootstrap "sudo chef-client -o bcpc-extra::rally,bcpc-extra::rally-deployments"
     if [ -z "$RALLY_SCENARIOS_DIR" ]; then
       echo "Not copying RALLY scenario files, set RALLY_SCENARIOS_DIR pointing to your custom rally scenarios repo"
     else
@@ -188,7 +188,7 @@ else
       # Remove / at the end
       RALLY_SCENARIOS_DIR="${RALLY_SCENARIOS_DIR%/}"
       rsync -avz --delete --exclude=.git -e "ssh $OPTIONS" "$RALLY_SCENARIOS_DIR" vm-bootstrap:rally
-      do_on_node vm-bootstrap "sudo chef-client -o bcpc::rally-run"
+      do_on_node vm-bootstrap "sudo chef-client -o bcpc-extra::rally-run"
     fi
   fi
 fi

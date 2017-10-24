@@ -1,4 +1,4 @@
-# Cookbook Name:: bcpc
+# Cookbook Name:: bcpc-extra
 # Recipe:: rally
 #
 # Copyright 2017, Bloomberg Finance L.P.
@@ -16,13 +16,13 @@
 # limitations under the License.
 #
 
-rally_user = node['bcpc']['rally']['user']
+rally_user = node['bcpc-extra']['rally']['user']
 rally_home_dir = node['etc']['passwd'][rally_user]['dir']
 rally_install_dir = "#{rally_home_dir}/rally"
 rally_venv_dir = "#{rally_install_dir}/venv"
 rally_conf_dir = "#{rally_venv_dir}/etc/rally"
 rally_database_dir = "#{rally_venv_dir}/database"
-rally_version = node['bcpc']['rally']['version']
+rally_version = node['bcpc-extra']['rally']['version']
 
 %w{
      wget
