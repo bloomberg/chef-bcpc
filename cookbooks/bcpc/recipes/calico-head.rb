@@ -16,23 +16,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-return unless node['bcpc']['enabled']['neutron']
-
 include_recipe 'bcpc::packages-calico'
-include_recipe 'bcpc::neutron-head'
 
-%w(dnsmasq-base dnsmasq-utils calico-control).each do |pkg|
+%w(calico-control calico-common).each do |pkg|
   package pkg do
-    action :install
-    notifies :restart, 'service[neutron-server]', :delayed
+    action :upgrade
   end
 end
 
-cookbook_file '/usr/local/bin/calicoctl' do
-  source   'calicoctl-v1.1.1'
-  cookbook 'bcpc-binary-files'
-  mode     '00755'
-  owner    'root'
-  group    'root'
+directory '/etc/calico'
+
+template '/etc/calico/calicoctl.cfg' do
+  source 'calico/calicoctl.cfg.erb'
+
+  etcd_nodes = get_head_nodes().map{|h|
+    "http://#{h['bcpc']['management']['ip']}:2379"
+  }
+
+  variables(:etcd_nodes => etcd_nodes)
 end
+

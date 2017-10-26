@@ -8,7 +8,7 @@ include_attribute "bcpc::keystone"
 
 default['bcpc']['keystone']['policy'] = {
     "admin_required" => "role:admin",
-    "cloud_admin" => "role:admin and (token.is_admin_project:True or domain_name:#{default['bcpc']['keystone']['admin']['domain']})",
+    "cloud_admin" => "role:admin and (is_admin_project:True or domain_id:admin_domain_id)",
     "service_role" => "role:service",
     "service_or_admin" => "rule:admin_required or rule:service_role",
     "owner" =>  "user_id:%(user_id)s or user_id:%(target.token.user_id)s",

@@ -1,0 +1,5 @@
+server:
+<% @config.each_pair do |k, v| %>
+  <%= k %>: <%= v %>
+<% end %>
+include: "/etc/unbound/unbound.conf.d/*.conf"

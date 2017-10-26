@@ -28,7 +28,7 @@
       tags: ntp
 
     - name: Set system time
-      command: ntpdate -u 10.10.10.10
+      command: ntpdate -u 8.8.8.8
       tags: ntp
 
     - name: Start ntp
@@ -67,7 +67,7 @@
       tags: ntp
 
     - name: Set system time
-      command: ntpdate -u 10.10.10.10
+      command: ntpdate -u 8.8.8.8
       tags: ntp
 
     - name: Start ntp

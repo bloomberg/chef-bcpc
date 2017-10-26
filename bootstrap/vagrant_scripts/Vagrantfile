@@ -202,24 +202,10 @@ EOH
 Vagrant.configure("2") do |config|
   cluster_config = File.join(config_path, ENV['CLUSTER'] + '.json')
   cluster = JSON.parse(File.read(cluster_config))
-  bootstrap_node = cluster['nodes']['bcpc-dev-bootstrap']['ip_address']
-  # Define the network names (random) here. There will be 3 classes of networks:
-  #   - management
-  #   - storage
-  #   - tenant
-  # Attempt to get from cluster configuration file or generate if absent
-  netname = Proc.new {|label|
-    begin
-      cluster['networks'][label]['name']
-    rescue
-      nil
-    end
-  }
-  networks = {
-    management: netname['management'] || generate_network_name('management'),
-    storage: netname['storage'] || generate_network_name('storage'),
-    tenant: netname['tenant'] || generate_network_name('tenant'),
-  }
+
+  bs_node = cluster['nodes']['bcpc-dev-bootstrap']
+  bs_ip = bs_node['networks'].find{ |n| n['type'] == 'management' }['ip']
+
   cluster['nodes'].each do |node, key|
     vm = node
     # Remove name prefix for shorter Vagrant hostnames
@@ -230,19 +216,36 @@ Vagrant.configure("2") do |config|
       m.vm.hostname = "bcpc-dev-#{vm}.#{bootstrap_domain}"
       m.vm.network :private_network,
                    virtualbox__intnet: networks[:management],
+                   nic_type: '82543GC',
                    ip: cluster['nodes'][node]['ip_address'],
                    netmask: '255.255.255.224'
       [networks[:storage], networks[:tenant]].each do |network|
         m.vm.network :private_network,
                      virtualbox__intnet: network,
+                     nic_type: '82543GC',
                      auto_config: false
       end
 
-      # reconfigure eth0 as static to remove default route via Virtualbox NAT
-      config.vm.provision "delete-default-gw-on-eth0", type: "shell",
+      # Configure management interface temporarily to bootstrap Chef
+      config.vm.provision "configure-management-interface",
+        type: "shell",
         run: "always",
-        path: 'reconfigure-eth0-on-vms.sh',
+        inline: <<-EOH
+          ip=#{key['networks'].find{|n| n['type'] == 'management'}['ip']}
+          ifconfig enp0s8 ${ip} netmask 255.255.255.240 up
+        EOH
+      # reconfigure eth0 as static to remove default route via Virtualbox NAT
+      config.vm.provision "delete-default-gw-on-enp0s3", type: "shell",
+        run: "always",
+        path: 'reconfigure-enp0s3-on-vms.sh',
         privileged: true
+
+      # replace VirtualBox DNS resolver with a real resolver during build time
+      config.vm.provision 'replace-dns-resolver', type: 'shell',
+        run: 'always',
+        inline: 'resolvconf -d enp0s3.dhclient && echo ' +
+                "\"nameserver #{ENV['BOOTSTRAP_DNS_RESOLVER']}\" " +
+                ' > /etc/resolv.conf'
 
       # add temporary default router to faciliate convergence without virtual
       # router
@@ -302,7 +305,7 @@ Vagrant.configure("2") do |config|
 
       # configure a hostfile entry with the IP of the bootstrap node (for Chef)
       m.vm.provision "configure-bootstrap-hostfile-entry", type: "shell" do |s|
-        s.inline = "echo -e '#{bootstrap_node}\tbcpc-dev-bootstrap.#{bootstrap_domain}\n' >> /etc/hosts"
+        s.inline = "echo -e '#{bs_ip}\tbcpc-dev-bootstrap.#{bootstrap_domain}\n' >> /etc/hosts"
       end
 
       # clean up some packages installed in this image by default
@@ -315,8 +318,9 @@ Vagrant.configure("2") do |config|
         s.inline = $add_swap_script
       end
 
-      m.vm.box = "trusty64"
-      m.vm.box_url = "#{ENV['BOOTSTRAP_CACHE_DIR']}/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+      m.vm.box_download_insecure = true
+      m.vm.box = 'bento/ubuntu-16.04'
+      m.vm.box_url = "#{ENV['BOOTSTRAP_CACHE_DIR']}/virtualbox.box"
 
       if vm == 'bootstrap'
         memory = ( ENV["BOOTSTRAP_VM_MEM"] or "2048" )
@@ -328,11 +332,10 @@ Vagrant.configure("2") do |config|
       end
 
       m.vm.provider :virtualbox do |vb|
-        vb.name = node
+        vb.name = vm
         vb.memory = memory
         vb.cpus = cpus
 
-        vb.customize ["modifyvm", :id, "--nictype2", "82543GC"]
         vb.customize ["modifyvm", :id, "--vram", "16"]
         vb.customize ["modifyvm", :id, "--largepages", "on"]
         vb.customize ["modifyvm", :id, "--nestedpaging", "on"]
@@ -366,7 +369,7 @@ Vagrant.configure("2") do |config|
           disk_file = File.join(vm_dir, "#{vm}-#{disk[0]}.vdi")
           unless File.exist?(disk_file)
             vb.customize ["createhd", "--filename", disk_file, "--size", disk[1]]
-            vb.customize ["storageattach", :id, "--storagectl", "SATAController", "--device", "0", "--port", "#{disk_idx+1}", "--type", "hdd", "--medium", disk_file]
+            vb.customize ["storageattach", :id, "--storagectl", "SATA Controller", "--device", "0", "--port", "#{disk_idx+1}", "--type", "hdd", "--medium", disk_file]
           end # File.exist
         end # disks.each
 

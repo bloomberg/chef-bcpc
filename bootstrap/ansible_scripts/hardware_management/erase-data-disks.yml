@@ -31,7 +31,7 @@
       apt: pkg=gdisk state=present
 
     - name: List out data disks and destroy their partition tables
-      shell: ls -1 /dev/sd? | grep -v sda | xargs -I% sgdisk -Z %
+      shell: ls -1 /dev/{nvme?n1,sd?} | grep -v sda | xargs -I% sgdisk -Z %
 
     - name: Remove all traces of LVM
       command: dmsetup remove_all -f

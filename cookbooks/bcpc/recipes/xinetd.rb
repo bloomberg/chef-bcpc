@@ -16,11 +16,5 @@
 # limitations under the License.
 #
 package "xinetd" do
-    action :install
-end
-
-service "xinetd" do
-    action [:enable, :start]
-    provider Chef::Provider::Service::Init::Debian
-    supports :status => true, :restart => true
+  action :upgrade
 end

@@ -28,8 +28,8 @@ RABBITMQ_USER=$(extract_value 'rabbitmq-user')
 RABBITMQ_PASSWORD=$(extract_value 'rabbitmq-password')
 HAPROXY_USER=$(extract_value 'haproxy-stats-user')
 HAPROXY_PASSWORD=$(extract_value 'haproxy-stats-password')
-KEYSTONE_ADMIN_USER=$(extract_value 'keystone-admin-user')
-KEYSTONE_ADMIN_PASSWORD=$(extract_value 'keystone-admin-password')
+KEYSTONE_ADMIN_USER=$(extract_value 'keystone-local-admin-user')
+KEYSTONE_ADMIN_PASSWORD=$(extract_value 'keystone-local-admin-password')
 
 # Print everything out for the user.
 echo "------------------------------------------------------------"

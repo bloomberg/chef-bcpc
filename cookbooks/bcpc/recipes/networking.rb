@@ -106,6 +106,67 @@ bash "setup-interfaces-source" do
     not_if "grep '^source /etc/network/interfaces.d/iface-' /etc/network/interfaces"
 end
 
+# Setup dummy interface for Anycast
+if node['bcpc']['enabled']['neutron'] && get_head_nodes.include?(node)
+  template '/etc/network/interfaces.d/iface-dummy0' do
+    source 'network.iface.erb'
+    owner 'root'
+    group 'root'
+    mode 00644
+    variables(
+      :interface => node['bcpc']['anycast']['interface'],
+      :ip => node['bcpc']['management']['vip'],
+      :netmask => '255.255.255.255'
+    )
+  end
+  bash 'enable-dummy-interface' do
+    user 'root'
+    code <<-EOH
+      modprobe dummy
+      echo 'dummy' >> /etc/modules
+      ifup #{node['bcpc']['anycast']['interface']}
+    EOH
+    not_if 'grep -e "^dummy" /etc/modules'
+  end
+
+  pdns_anycast_interface = node['bcpc']['anycast']['pdns']['interface']
+  template "/etc/network/interfaces.d/iface-#{pdns_anycast_interface}" do
+    source 'network.iface.erb'
+    owner 'root'
+    group 'root'
+    mode 00644
+    variables(
+      :interface => pdns_anycast_interface,
+      :ip => node['bcpc']['anycast']['pdns']['ip'],
+      :netmask => '255.255.255.255'
+    )
+  end
+  bash 'enable-pdns-dummy-interface' do
+    user 'root'
+    code <<-EOH
+      ip link add #{pdns_anycast_interface} type dummy
+      ifup #{pdns_anycast_interface}
+    EOH
+    not_if "ip link | grep -q #{pdns_anycast_interface}"
+  end
+end
+
+vlan = {}
+%w{ management storage }.each do |net|
+  # Checks if interface name indicates VLAN tagging
+  if node['bcpc'][net]['interface'] =~ /\.[0-9]/
+    vlan[net] = {
+      'tagged' => true,
+      'raw_device' => node['bcpc'][net]['interface'].split('.')[0]
+    }
+  else
+    vlan[net] = {
+      'tagged' => false,
+      'raw_device' => nil
+    }
+  end
+end
+
 # set up the DNS resolvers
 # we want the VIP which will be running powerdns to be first on the list
 # but the first entry in our master list is also the only one in pdns,
@@ -115,41 +176,46 @@ resolvers.push resolvers.shift
 resolvers.unshift node['bcpc']['management']['vip']
 
 template "/etc/network/interfaces.d/iface-#{node['bcpc']['management']['interface']}" do
-    source "network.iface.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables(
-        :interface => node['bcpc']['management']['interface'],
-        :ip => node['bcpc']['management']['ip'],
-        :netmask => node['bcpc']['management']['netmask'],
-        :gateway => node['bcpc']['management']['gateway'],
-        :dns => resolvers,
-        :mtu => node['bcpc']['management']['mtu'],
-        :metric => 100
-    )
+  source 'network.iface.erb'
+  owner 'root'
+  group 'root'
+  mode 00644
+  variables(
+    :vlan_tagged => vlan['management']['tagged'],
+    :vlan_raw_device => vlan['management']['raw_device'],
+    :interface => node['bcpc']['management']['interface'],
+    :ip => node['bcpc']['management']['ip'],
+    :netmask => node['bcpc']['management']['netmask'],
+    :gateway => node['bcpc']['management']['gateway'],
+    :dns => resolvers,
+    :mtu => node['bcpc']['management']['mtu']
+  )
 end
 
+<<<<<<< HEAD
 template "/etc/network/interfaces.d/iface-#{node['bcpc']['storage']['interface']}" do
-    source "network.iface.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables(
-        :interface => node['bcpc']['storage']['interface'],
-        :ip => node['bcpc']['storage']['ip'],
-        :netmask => node['bcpc']['storage']['netmask'],
-        :gateway => node['bcpc']['storage']['gateway'],
-        :dns => resolvers,
-        :mtu => node['bcpc']['storage']['mtu'],
-        :metric => 300
-    )
+=======
+template "/etc/network/interfaces.d/iface-#{node['bcpc']['storage']['interface']}" do 
+>>>>>>> BCPC v8: xenial release
+  source 'network.iface.erb'
+  owner 'root'
+  group 'root'
+  mode 00644
+  variables(
+    :vlan_tagged => vlan['storage']['tagged'],
+    :vlan_raw_device => vlan['storage']['raw_device'],
+    :interface => node['bcpc']['storage']['interface'],
+    :ip => node['bcpc']['storage']['ip'],
+    :netmask => node['bcpc']['storage']['netmask'],
+    :dns => resolvers,
+    :mtu => node['bcpc']['storage']['mtu']
+  )
 end
 
-%w{ storage floating }.each do |net|
+%w{ storage }.each do |net|
   if not node['bcpc'][net]['interface-parent'].nil?
     # safeguard to prevent cutting off management network access if
-    # the management interface is on the native VLAN and floating/storage
+    # the management interface is on the native VLAN and storage
     # is on a tagged VLAN on the same physical interface
     if node['bcpc'][net]['interface-parent'] == node['bcpc']['management']['interface']
       raise "#{net} interface parent is in use as the management interface, refusing to configure interface parent. Please unset interface parent on the #{net} interface in the hardware role."
@@ -166,21 +232,6 @@ end
       )
     end
   end
-end
-
-template "/etc/network/interfaces.d/iface-#{node['bcpc']['floating']['interface']}" do
-    source "network.iface.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables(
-        :interface => node['bcpc']['floating']['interface'],
-        :ip => node['bcpc']['floating']['ip'],
-        :netmask => node['bcpc']['floating']['netmask'],
-        :gateway => node['bcpc']['floating']['gateway'],
-        :mtu => node['bcpc']['floating']['mtu'],
-        :metric => 200
-    )
 end
 
 dhcp_resolvconf_hook="/etc/dhcp/dhclient-enter-hooks.d/resolvconf"
@@ -203,7 +254,15 @@ bash "interface-mgmt-make-static-if-dhcp" do
     only_if "cat /etc/network/interfaces | grep #{node['bcpc']['management']['interface']} | grep dhcp"
 end
 
-%w{ management storage floating }.each do |iface|
+bash "stop dhclient on #{node['bcpc']['management']['interface']}" do
+  mgt_iface = node['bcpc']['management']['interface']
+  code <<-EOH
+    pkill -f dhclient.#{mgt_iface}
+  EOH
+  only_if "pgrep -f dhclient.#{mgt_iface}"
+end
+
+%w{ management storage }.each do |iface|
 
   if not node['bcpc'][iface]['interface-parent'].nil?
     bash "#{iface} up" do

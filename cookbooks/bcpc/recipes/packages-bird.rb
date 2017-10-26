@@ -22,5 +22,4 @@ apt_repository "bird" do
   distribution node['lsb']['codename']
   components ["main"]
   key "bird-release.key"
-  notifies :run, "execute[apt-get update]", :immediately
 end

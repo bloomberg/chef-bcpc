@@ -7,12 +7,12 @@ default['bcpc']['country'] = "US"
 default['bcpc']['state'] = "NY"
 default['bcpc']['location'] = "New York"
 default['bcpc']['organization'] = "Bloomberg"
-default['bcpc']['openstack_release'] = "mitaka"
+default['bcpc']['openstack_release'] = "queens"
 default['bcpc']['openstack_branch'] = "updates"
 # Should be kvm (or qemu if testing in VMs that don't support VT-x)
 default['bcpc']['virt_type'] = "kvm"
 # Define the kernel to be installed. By default, track latest LTS kernel
-default['bcpc']['preseed']['kernel'] = "linux-image-generic-lts-trusty"
+default['bcpc']['preseed']['kernel'] = "linux-image-generic-lts-xenial"
 # Define a specific kernel version to have GRUB default to (if non-nil)
 # - specify kernel like pattern "3.13.0-61-generic"
 # - a wrong pattern here will result in Chef convergence failure
@@ -84,7 +84,7 @@ default['bcpc']['enabled']['apport'] = true
 default['bcpc']['enabled']['heat'] = false
 # Toggle to switch between Neutron+Calico and nova-network
 # SET BEFORE BUILDING, CHANGING ON EXISTING CLUSTER WILL CAUSE DEVASTATION
-default['bcpc']['enabled']['neutron'] = false
+default['bcpc']['enabled']['neutron'] = true
 
 ###########################################
 #
@@ -94,10 +94,9 @@ default['bcpc']['enabled']['neutron'] = false
 default['bcpc']['ceph']['hdd_disks'] = ["sdb", "sdc"]
 default['bcpc']['ceph']['ssd_disks'] = ["sdd", "sde"]
 default['bcpc']['ceph']['enabled_pools'] = ["ssd", "hdd"]
-default['bcpc']['management']['interface'] = "eth0"
-default['bcpc']['storage']['interface'] = "eth1"
-default['bcpc']['floating']['interface'] = "eth2"
-default['bcpc']['fixed']['vlan_interface'] = node['bcpc']['floating']['interface']
+default['bcpc']['anycast']['interface'] = "dummy0"
+default['bcpc']['management']['interface'] = "enp0s8"
+default['bcpc']['storage']['interface'] = "enp0s9"
 
 ###########################################
 #
@@ -117,10 +116,16 @@ default['bcpc']['rabbitmq']['heartbeat'] = 60
 #  Network settings for the cluster
 #
 ###########################################
-default['bcpc']['management']['vip'] = "10.17.1.15"
-default['bcpc']['management']['netmask'] = "255.255.255.0"
-default['bcpc']['management']['cidr'] = "10.17.1.0/24"
-default['bcpc']['management']['gateway'] = "10.17.1.1"
+default['bcpc']['management']['vip'] = "10.0.100.5"
+default['bcpc']['management']['aggregate']['netmask'] = "255.255.255.0"
+default['bcpc']['management']['aggregate']['cidr'] = "10.0.100.5/24"
+default['bcpc']['management']['rack-1'] = {
+  'default' => {
+    'netmask' => '255.255.255.0',
+    'cidr' => '10.0.100.0/25',
+    'gateway' => '10.0.100.1'
+  }
+}
 default['bcpc']['management']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
@@ -134,30 +139,29 @@ default['bcpc']['management']['firewall_tcp_ports'] = [
 
 default['bcpc']['metadata']['ip'] = "169.254.169.254"
 
-default['bcpc']['storage']['netmask'] = "255.255.255.0"
-default['bcpc']['storage']['cidr'] = "100.100.0.0/24"
-default['bcpc']['storage']['gateway'] = "100.100.0.1"
+default['bcpc']['storage']['aggregate']['netmask'] = "255.255.255.0"
+default['bcpc']['storage']['aggregate']['cidr'] = "172.16.100.0/24"
+default['bcpc']['storage']['rack-1'] = {
+  'default' => {
+    'netmask' => '255.255.255.0',
+    'cidr' => '172.16.100.0/24',
+    'gateway' => '172.16.100.1'
+  }
+}
 default['bcpc']['storage']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
 default['bcpc']['storage']['interface-parent'] = nil
 
-default['bcpc']['floating']['netmask'] = "255.255.255.0"
-default['bcpc']['floating']['cidr'] = "192.168.43.0/24"
-default['bcpc']['floating']['gateway'] = "192.168.43.2"
-default['bcpc']['floating']['available_subnet'] = "192.168.43.128/25"
-default['bcpc']['floating']['interface'] = nil
-# if 'interface' is a VLAN interface, specifying a parent allows MTUs
-# to be set properly
-default['bcpc']['floating']['interface-parent'] = nil
+default['bcpc']['guest_networks'] = [
+  {
+    'name' => 'DEFAULT',
+    'subnets' => [
+      {'name' => 'primary', 'cidr' => '10.68.0.0/18'}
+    ]
+  }
+]
 
-default['bcpc']['fixed']['cidr'] = "1.127.0.0/16"
-default['bcpc']['fixed']['vlan_start'] = "1000"
-default['bcpc']['fixed']['num_networks'] = "100"
-default['bcpc']['fixed']['network_size'] = "256"
-default['bcpc']['fixed']['dhcp_lease_time'] = "3600"
-
-default['bcpc']['ntp_servers'] = ["pool.ntp.org"]
 default['bcpc']['dns_servers'] = ["8.8.8.8", "8.8.4.4"]
 
 # Proxy server URL for recipes to use
@@ -177,11 +181,11 @@ default['bcpc']['repos']['fluentd'] = "http://packages.treasure-data.com/2/ubunt
 default['bcpc']['repos']['elasticsearch'] = "http://packages.elasticsearch.org/elasticsearch/1.5/debian"
 default['bcpc']['repos']['kibana'] = "http://packages.elasticsearch.org/kibana/4.1/debian"
 default['bcpc']['repos']['erlang'] = "http://packages.erlang-solutions.com/ubuntu"
-default['bcpc']['repos']['ceph'] = "http://download.ceph.com/debian-hammer"
+default['bcpc']['repos']['ceph'] = "http://download.ceph.com/debian-luminous"
 default['bcpc']['repos']['zabbix'] = "http://repo.zabbix.com/zabbix/2.4/ubuntu"
-default['bcpc']['repos']['mitaka-staging'] = "http://ppa.launchpad.net/ubuntu-cloud-archive/mitaka-staging/ubuntu"
-default['bcpc']['repos']['calico'] = "http://ppa.launchpad.net/project-calico/calico-2.6/ubuntu"
+default['bcpc']['repos']['calico'] = "http://ppa.launchpad.net/project-calico/calico-3.1/ubuntu"
 default['bcpc']['repos']['bird'] = "http://ppa.launchpad.net/cz.nic-labs/bird/ubuntu"
+default['bcpc']['repos']['powerdns'] = "http://repo.powerdns.com/ubuntu"
 
 ###########################################
 #
@@ -210,6 +214,7 @@ default['bcpc']['protocol']['nova'] = "https"
 default['bcpc']['protocol']['cinder'] = "https"
 default['bcpc']['protocol']['neutron'] = "https"
 default['bcpc']['protocol']['heat'] = "https"
+default['bcpc']['protocol']['placement'] = "https"
 
 ###########################################
 #
@@ -285,6 +290,7 @@ default['bcpc']['mysql-head']['slow_query_log'] = true
 default['bcpc']['mysql-head']['slow_query_log_file'] = '/var/log/mysql/slow.log'
 default['bcpc']['mysql-head']['long_query_time'] = 10
 default['bcpc']['mysql-head']['log_queries_not_using_indexes'] = false
+default['bcpc']['mysql-head']['service_hostname'] = 'primary.mysql.service.consul'
 
 ###########################################
 #
@@ -346,88 +352,88 @@ default['bcpc']['flavors'] = {
     "vcpus" => 1,
     "memory_mb" => 512,
     "disk_gb" => 1,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic1.small" => {
     "vcpus" => 1,
     "memory_mb" => 2048,
     "disk_gb" => 20,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic1.medium" => {
     "vcpus" => 2,
     "memory_mb" => 4096,
     "disk_gb" => 40,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic1.large" => {
     "vcpus" => 4,
     "memory_mb" => 8192,
     "disk_gb" => 40,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic1.xlarge" => {
     "vcpus" => 8,
     "memory_mb" => 16384,
     "disk_gb" => 40,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic1.2xlarge" => {
     "vcpus" => 16,
     "memory_mb" => 32768,
     "disk_gb" => 40,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic2.small" => {
     "vcpus" => 1,
     "memory_mb" => 6144,
     "disk_gb" => 50,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic2.medium" => {
     "vcpus" => 2,
     "memory_mb" => 12288,
     "disk_gb" => 100,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic2.large" => {
     "vcpus" => 4,
     "memory_mb" => 24576,
     "disk_gb" => 100,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic2.xlarge" => {
     "vcpus" => 8,
     "memory_mb" => 49152,
     "disk_gb" => 100,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   },
   "generic2.2xlarge" => {
     "vcpus" => 16,
     "memory_mb" => 98304,
     "disk_gb" => 100,
-    "extra_specs" => {
-      "aggregate_instance_extra_specs:general_compute" => "yes",
+    "properties" => {
+      "aggregate_instance_properties:general_compute" => "yes",
     }
   }
 }
@@ -457,14 +463,15 @@ default['bcpc']['aggregate_membership'] = []
 # Openstack Project Quotas
 #
 ###########################################
+
 default['bcpc']['quota'] = {
-    'nova' => {
-        'admin' => {
-           'cores'        => -1,
-           'ram'          => -1,
-           'floating_ips' => -1
-        }
+  'nova' => {
+    'admin' => {
+      'cores'        => -1,
+      'ram'          => -1,
+      'floating-ips' => -1
     }
+  }
 }
 
 ###########################################

@@ -46,6 +46,8 @@ default['bcpc']['nova']['verbose'] = false
 default['bcpc']['nova']['debug'] = false
 # Nova default log levels
 default['bcpc']['nova']['default_log_levels'] = nil
+# The loopback address matches what Calico's Felix defaults to for metadata
+default['bcpc']['nova']['metadata_listen'] = '127.0.0.1'
 # Nova scheduler default filters
 default['bcpc']['nova']['scheduler_default_filters'] = %w(
   AggregateInstanceExtraSpecsFilter
@@ -70,10 +72,8 @@ default['bcpc']['nova']['notifications']['enabled'] = false
 default['bcpc']['nova']['notifications']['notification_topics'] = 'notifications'
 default['bcpc']['nova']['notifications']['notification_driver'] = 'messagingv2'
 default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_state'
-
 default['bcpc']['nova']['quota'] = {
   "cores" => 4,
-  "floating_ips" => 10,
   "gigabytes"=> 1000,
   "instances" => -1,
   "ram" => 8192

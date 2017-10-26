@@ -19,9 +19,13 @@
 
 return unless node['bcpc']['enabled']['dns']
 
-# Once zone serial number is stored in data bag, it never auto-increments. We
-# want to increase the serial number and notify nameservers once for each
-# zone per cluster rechef.
+cookbook_file '/usr/local/bin/dns-update-zone.sh' do
+  source 'dns-update-zone.sh'
+  owner 'root'
+  group 'root'
+  mode 00755
+end
+
 template '/usr/local/etc/dns-update-slaves' do
   source 'dns-update-slaves.erb'
   owner 'root'
@@ -30,18 +34,11 @@ template '/usr/local/etc/dns-update-slaves' do
   variables(
     :slaves => node['bcpc']['pdns']['slaves']
   )
-  notifies :run, 'ruby_block[powerdns-update-all-zones]', :immediately
 end
 
-cookbook_file '/usr/local/bin/dns-update-zone.sh' do
-  source 'dns-update-zone.sh'
-  owner 'root'
-  group 'root'
-  mode 00755
-end
-
-ruby_block 'powerdns-update-all-zones' do
-  block do
-    system 'if_vip /usr/local/bin/dns-update-zone.sh'
-  end
+# Once zone serial number is stored in data bag, it never auto-increments. We
+# want to increase the serial number and notify nameservers once for each
+# zone per cluster rechef.
+execute 'powerdns-update-all-zones' do
+  command 'if_primary_mysql /usr/local/bin/dns-update-zone.sh'
 end

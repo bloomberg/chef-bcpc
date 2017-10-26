@@ -11,6 +11,13 @@ filter export_bgp {
   reject;
 }
 
+filter import_bgp {
+  if net != 0.0.0.0/0 then {
+    accept;
+  }
+  reject;
+}
+
 protocol kernel {
   learn;          # Learn all alien routes from the kernel
   persist;        # Don't remove routes on bird shutdown
@@ -33,7 +40,7 @@ protocol bgp {
   local <%= node['bcpc'][@workload_interface]['ip'] %> as <%= @as_number %>;
   neighbor <%= @upstream_peer %> as <%= @as_number %>;
   multihop;
-  import all;
+  import filter import_bgp;
   graceful restart;
   export filter export_bgp;
   next hop self;

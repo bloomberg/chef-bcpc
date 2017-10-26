@@ -26,11 +26,6 @@ apt_repository "percona" do
     key "percona-release.key"
 end
 
-# ensure percona-xtrabackup is updated before MySQL as Percona
-# sometimes introduces hard requirements on new minimum
-# xtrabackup versions without reflecting that in package deps
-%w(percona-xtrabackup percona-xtradb-cluster-56).each do |pkg|
-  package pkg do
-    action :install
-  end
+package 'percona-xtradb-cluster-57' do
+  action :upgrade
 end

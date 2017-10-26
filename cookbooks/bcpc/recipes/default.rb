@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: default
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,31 @@
 
 require 'ipaddr'
 
+# Take a guess at the rack name or default to 'rack-1'
+if node['bcpc']['rack_name'].nil? then
+  rack_guess = node['hostname'].match(/.*-r(\d+)[a-d]?n\d+$/)
+  node.set['bcpc']['rack_name'] = \
+    rack_guess.nil? ? 'rack-1' : "rack-#{rack_guess[1]}"
+end
+
+# Take a guess at the pod name or default to 'default'
+if node['bcpc']['pod_name'].nil? then
+  pod_guess = node['hostname'].match(/.*-r\d+([a-d])n\d+$/)
+  node.set['bcpc']['pod_name'] = pod_guess.nil? ? 'default' : pod_guess[1]
+end
+
+# Override legacy attributes to maintain compatibility
+rack = node['bcpc']['rack_name']
+pod = node['bcpc']['pod_name']
+%w(management storage).each do |net|
+  if node['bcpc'][net][rack][pod] then
+    node.set['bcpc'][net]['cidr'] = node['bcpc'][net][rack][pod]['cidr']
+    node.set['bcpc'][net]['gateway'] = node['bcpc'][net][rack][pod]['gateway']
+    node.set['bcpc'][net]['netmask'] = node['bcpc'][net][rack][pod]['netmask']
+  end
+end
+
+
 begin
   node.set['bcpc']['management']['ip'] = \
     node['network']['interfaces'][
@@ -33,21 +58,14 @@ end
 # Compute the bitlen for each of the network cidrs
 mgmt_bitlen = (node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
 stor_bitlen = (node['bcpc']['storage']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
-flot_bitlen = (node['bcpc']['floating']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
 
 # Save the host number on the mgmt network to the node_number for this node
 mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip']) << mgmt_bitlen >> mgmt_bitlen
 node.set['bcpc']['node_number'] = mgmt_hostaddr.to_i.to_s
 
-# Keep the same host number for addresses on the storage and float networks
+# Keep the same host number for addresses on the storage network
 node.set['bcpc']['storage']['ip'] = ((IPAddr.new(node['bcpc']['storage']['cidr'])>>(32-stor_bitlen)<<(32-stor_bitlen))|mgmt_hostaddr).to_s
-node.set['bcpc']['floating']['ip'] = ((IPAddr.new(node['bcpc']['floating']['cidr'])>>(32-flot_bitlen)<<(32-flot_bitlen))|mgmt_hostaddr).to_s
 
-# Take a guess at the rack name or default to 'rack'
-if node['bcpc']['rack_name'].nil? then
-    rack_guess = node['hostname'].match /.*-r(\d+)[a-d]?n\d+$/
-    node.set['bcpc']['rack_name'] = (rack_guess.nil?) ? "rack" : "rack-#{rack_guess[1].to_i}"
-end
 
 # Test if deprecated attribute hash still exists
 if node['bcpc']['management']['monitoring'] then

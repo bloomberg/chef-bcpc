@@ -1,0 +1,9 @@
+Listen <%=node['bcpc']['management']['ip']%>:80
+
+<IfModule ssl_module>
+  Listen <%=node['bcpc']['management']['ip']%>:443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+  Listen <%=node['bcpc']['management']['ip']%>:443
+</IfModule>

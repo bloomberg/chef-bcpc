@@ -5,13 +5,6 @@
 - include: ../common_playbooks/validate_environment.yml
 - include: ../common_playbooks/destructive_warning.yml
 
-- hosts: bootstraps
-  become: yes
-  gather_facts: no
-  tasks:
-    - name: Install ipmitool on bootstrap node
-      apt: pkg=ipmitool state=present
-
 - hosts: "{{ target }}"
   become: yes
   gather_facts: no
@@ -22,15 +15,15 @@
       delegate_to: "{{ groups['bootstraps'][0] }}"
 
     - name: Set PXE boot mode on node via IPMI
-      command: ipmitool -H {{ ipmi_address }} -I lanplus -U {{ ipmi_username }} -P {{ ipmi_password }} chassis bootdev pxe
-      delegate_to: "{{ groups['bootstraps'][0] }}"
+      local_action: command ipmitool -H {{ ipmi_address }} -I lanplus -U {{ ipmi_username }} -P {{ ipmi_password }} chassis bootdev pxe
+      become: no
       when: hardware_type != "Virtual"
       tags:
         - ipmi
 
     - name: Issue chassis power reset command to node
-      command: ipmitool -H {{ ipmi_address }} -I lanplus -U {{ ipmi_username }} -P {{ ipmi_password }} chassis power reset
-      delegate_to: "{{ groups['bootstraps'][0] }}"
+      local_action: command ipmitool -H {{ ipmi_address }} -I lanplus -U {{ ipmi_username }} -P {{ ipmi_password }} chassis power reset
+      become: no
       when: hardware_type != "Virtual"
       tags:
         - ipmi

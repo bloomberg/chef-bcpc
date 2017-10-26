@@ -15,35 +15,29 @@ echo
 echo "################################"
 echo "# HEAD NODE SERVICES"
 for i in apache2 \
-<%- if node['bcpc']['enabled']['neutron'] -%>
-         neutron-server \
-<%- end -%>
-         cinder-api \
          cinder-scheduler \
          cinder-volume \
          glance-api \
          glance-registry \
-         nova-cert \
+         neutron-server \
+         nova-api \
          nova-conductor \
          nova-consoleauth \
+         nova-novncproxy \
          nova-scheduler
 do
-    service $i $1
+    systemctl $1 $i
 done
-<% end -%>
-
+<% else-%>
 echo
 echo "################################"
 echo "# WORK NODE SERVICES"
-for i in nova-api \
+for i in nova-api-metadata \
          nova-compute \
-<%- if node['bcpc']['enabled']['neutron'] -%>
+         nova-novncproxy \
          neutron-metadata-agent \
-         calico-dhcp-agent \
-<%- else -%>
-         nova-network \
-<%- end -%>
-         nova-novncproxy
+         calico-dhcp-agent
 do
-    service $i $1
+    systemctl $1 $i
 done
+<%- end -%>

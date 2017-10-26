@@ -19,26 +19,32 @@
 
 include_recipe "bcpc::ceph-work"
 
-%w{ssd hdd}.each do |type|
-    node['bcpc']['ceph']["#{type}_disks"].each do |disk|
-        execute "ceph-disk-prepare-#{type}-#{disk}" do
-            command <<-EOH
-                ceph-disk-prepare /dev/#{disk}
-                ceph-disk-activate /dev/#{disk}
-                sleep 2
-                INFO=`df -k | grep /dev/#{disk} | awk '{print $2,$6}' | sed -e 's/\\/var\\/lib\\/ceph\\/osd\\/ceph-//'`
-                OSD=${INFO#* }
-                WEIGHT=`echo "scale=4; ${INFO% *}/1000000000.0" | bc -q`
-                ceph osd crush create-or-move $OSD $WEIGHT root=#{type} rack=#{node['bcpc']['rack_name']}-#{type} host=#{node['hostname']}-#{type}
-            EOH
-            not_if "sgdisk -i1 /dev/#{disk} | grep -i 4fbd7e29-9d25-41b8-afd0-062c0ceff05d"
-        end
+rack_number = node['bcpc']['rack_name'].match(/^rack-(\d+)/)[1].to_i
+ceph_rack = "rack-#{rack_number}"
+
+node['bcpc']['ceph']['enabled_pools'].each do |type|
+  node['bcpc']['ceph']["#{type}_disks"].each do |disk|
+    execute "ceph-volume-create-#{type}-#{disk}" do
+      command <<-EOH
+        ceph-volume lvm create --bluestore --data /dev/#{disk}
+        sleep 2
+        PV="`pvdisplay /dev/#{disk} -C --no-headings | awk '{print $2}'`"
+        BLOCK_DEV="`lvdisplay $PV | grep 'LV Path' | awk '{print $3}'`"
+        OSD_ID="`ceph-volume lvm list \
+          $BLOCK_DEV | grep 'osd id' | awk '{print $NF}')`"
+        ceph osd crush set osd.$OSD_ID 1.0 \
+          root=#{type} \
+          rack=#{ceph_rack}-#{type} \
+          host=#{node['hostname']}-#{type}
+      EOH
+      not_if "pvdisplay /dev/#{disk} >/dev/null 2>&1"
     end
+  end
 end
 
-execute "trigger-osd-startup" do
-    command "udevadm trigger --subsystem-match=block --action=add"
-end
+#execute "trigger-osd-startup" do
+#    command "udevadm trigger --subsystem-match=block --action=add"
+#end
 
 ruby_block "set-primary-anti-affinity" do
     block do
@@ -52,16 +58,29 @@ ruby_block "set-primary-anti-affinity" do
     only_if { node['bcpc']['ceph']['set_headnode_affinity'] and get_head_nodes.include?(node) }
 end
 
-template '/etc/init/ceph-osd-renice.conf' do
-  source 'ceph-upstart.ceph-osd-renice.conf.erb'
-  mode 00644
-  notifies :restart, "service[ceph-osd-renice]", :immediately
+file '/usr/local/bin/ceph-osd-renice.sh' do
+  ceph_osd_renice = node['bcpc']['ceph']['osd_niceness']
+  content <<-EOH.gsub(/^\s+/,'')
+    #!/bin/bash
+    /usr/bin/pgrep ceph-osd | xargs renice #{ceph_osd_renice}
+  EOH
+  mode '0755'
   not_if { get_head_nodes.include?(node) }
 end
 
-service 'ceph-osd-renice' do
-  provider Chef::Provider::Service::Upstart
-  action [:enable, :start]
-  restart_command 'service ceph-osd-renice restart'
+systemd_unit 'ceph-osd-renice.service' do
+  action [:create, :enable]
+  content <<-EOH.gsub(/^\s+/,'')
+    [Unit]
+    Description=Ceph OSD Renicer
+    After=ceph-osd.target
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/local/bin/ceph-osd-renice.sh
+
+    [Install]
+    WantedBy=multi-user.target
+  EOH
   not_if { get_head_nodes.include?(node) }
 end

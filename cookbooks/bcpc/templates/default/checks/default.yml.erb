@@ -1,9 +1,5 @@
 ---
 
-<%
-  filter = Proc.new {|name,val| [name.downcase, val]}
-  auth_vars = load_user_context_vars('admin')
-%>
-<%- auth_vars.each do |name, val| %>
+<%- os_adminrc.each do |name, val| %>
 <%= name %>: <%= val %>
 <% end %>

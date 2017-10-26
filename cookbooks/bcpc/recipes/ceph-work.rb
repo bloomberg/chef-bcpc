@@ -17,27 +17,23 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::ceph-common"
+include_recipe 'bcpc::packages_ceph'
+include_recipe 'bcpc::ceph-common'
+include_recipe 'bcpc::ceph_keys'
 
-bash "write-client-admin-key" do
-    code <<-EOH
-        ADMIN_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.admin`
-        ceph-authtool "/etc/ceph/ceph.client.admin.keyring" \
-            --create-keyring \
-            --name=client.admin \
-            --add-key="$ADMIN_KEY"
-        chmod 644 /etc/ceph/ceph.client.admin.keyring
-    EOH
-    not_if "test -f /etc/ceph/ceph.client.admin.keyring && chmod 644 /etc/ceph/ceph.client.admin.keyring"
-end
-
-bash "write-bootstrap-osd-key" do
-    code <<-EOH
-        BOOTSTRAP_KEY=`ceph --name mon. --keyring /etc/ceph/ceph.mon.keyring auth get-or-create-key client.bootstrap-osd mon 'allow profile bootstrap-osd'`
-        ceph-authtool "/var/lib/ceph/bootstrap-osd/ceph.keyring" \
-            --create-keyring \
-            --name=client.bootstrap-osd \
-            --add-key="$BOOTSTRAP_KEY"
-    EOH
-    not_if "test -f /var/lib/ceph/bootstrap-osd/ceph.keyring"
+ruby_block 'copy-ceph-bootstrap-keyring' do
+  block do
+    cmd = Mixlib::ShellOut.new(
+      'cp -p /etc/ceph/ceph.client.bootstrap-osd.keyring \
+       /var/lib/ceph/bootstrap-osd/ceph.keyring',
+      user: 'ceph'
+    )
+    cmd.run_command
+    cmd.stdout
+    cmd.error!
+  end
+  not_if {
+    system "ceph-authtool /var/lib/ceph/bootstrap-osd/ceph.keyring -l \
+            >/dev/null 2>&1"
+  }
 end

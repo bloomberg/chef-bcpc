@@ -1,0 +1,28 @@
+[Unit]
+Description=etcd - highly-available key value store
+Documentation=https://github.com/coreos/etcd
+Documentation=man:etcd
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+Environment=data_dir=/var/lib/etcd
+ExecStartPre=/bin/mkdir -p ${data_dir}
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd --name='<%= node['fqdn'] %>' \
+  --data-dir=${data_dir} \
+  --advertise-client-urls='http://<%= node['bcpc']['management']['ip'] %>:2379,http://<%= node['bcpc']['management']['ip'] %>:4001' \
+  --listen-client-urls='http://<%= node['bcpc']['management']['ip'] %>:2379,http://<%= node['bcpc']['management']['ip'] %>:4001,http://127.0.0.1:4001,http://127.0.0.1:2379' \
+  --listen-peer-urls='http://<%= node['bcpc']['management']['ip'] %>:2380' \
+  --initial-advertise-peer-urls='http://<%=node['bcpc']['management']['ip']%>:2380' \
+  --initial-cluster-token='<%= node.chef_environment %>-etcd-cluster-01' \
+  --initial-cluster='<%= @headnodes.collect{|x| x['fqdn'] + '=' + 'http://' + x['bcpc']['management']['ip'] + ':2380'}.join(',')%>' \
+  --initial-cluster-state <%= (@headnodes.length == 1) ? 'new' : 'existing' %>
+
+[Install]
+WantedBy=multi-user.target

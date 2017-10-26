@@ -1,7 +1,0 @@
-description "Ceph OSD renicer"
-
-start on started ceph-osd-all
-
-post-start script
-  pgrep ceph-osd | xargs renice <%=node['bcpc']['ceph']['osd_niceness']%>
-end script

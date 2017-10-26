@@ -54,6 +54,9 @@ export BOOTSTRAP_CHEF_ENV=Test-Laptop-Vagrant
 # tell *_configure_chef.sh to not run the final convergence step.
 export BOOTSTRAP_CHEF_DO_CONVERGE=1
 
+# DNS resolver to use during bootstrap
+export BOOTSTRAP_DNS_RESOLVER="8.8.8.8"
+
 # Set servers to be used as an HTTP/HTTPS proxy. Provide full URL with http/https scheme.
 export BOOTSTRAP_HTTP_PROXY_URL=
 export BOOTSTRAP_HTTPS_PROXY_URL=

@@ -1,8 +1,7 @@
-#
 # Cookbook Name:: bcpc
-# Recipe:: nova-head
+# Recipe:: nova-work
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +15,156 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+package 'nova-compute'
+package 'nova-api-metadata'
+package 'pm-utils'
+package 'memcached'
+package 'sysfsutils'
+
+service 'nova-compute'
+service 'nova-api-metadata'
+service 'libvirtd'
+
+# configure nova user starts
+#
+user "nova" do
+  shell '/bin/bash'
+end
+
+# add the nova user to the ceph group so nova can read
+# cinders ceph client key file
+#
+group 'ceph' do
+  action :modify
+  members 'nova'
+  append true
+end
+
+directory "/var/lib/nova/.ssh" do
+  owner "nova"
+  group "nova"
+  mode 00700
+end
+
+template "/var/lib/nova/.ssh/authorized_keys" do
+  source "nova-authorized_keys.erb"
+  owner "nova"
+  group "nova"
+  mode 00644
+end
+
+template "/var/lib/nova/.ssh/id_rsa" do
+  source "nova-id_rsa.erb"
+  owner "nova"
+  group "nova"
+  mode 00600
+end
+
+template "/var/lib/nova/.ssh/config" do
+  source "nova-ssh_config.erb"
+  owner "nova"
+  group "nova"
+  mode 00600
+end
+#
+# configure nova user ends
+
+
+# configure libvirt starts
+#
+template "/etc/libvirt/libvirtd.conf" do
+  source "libvirtd.conf.erb"
+  mode 00644
+  notifies :restart, "service[libvirtd]", :immediately
+end
+
+template "/etc/default/libvirtd" do
+  source "libvirtd-default.erb"
+  mode 00644
+  notifies :restart, "service[libvirtd]", :immediately
+end
+
+cookbook_file "/etc/libvirt/qemu.conf" do
+  source "libvirt-qemu.conf"
+  mode 00644
+  notifies :restart, "service[libvirtd]", :immediately
+end
+
+execute 'export client.cinder ceph keyring' do
+  user 'root'
+  group 'ceph'
+  command <<-EOH
+    ceph auth get client.cinder -o \
+      /etc/ceph/ceph.client.cinder.keyring
+  EOH
+end
+
+template "/etc/nova/virsh-secret.xml" do
+  source "virsh-secret.xml.erb"
+  notifies :run, "bash[load virsh secrets]", :immediately
+  not_if "virsh secret-list | grep -i #{get_config('libvirt-secret-uuid')}"
+end
+
+bash "load virsh secrets" do
+  action :nothing
+
+  code <<-EOH
+    virsh secret-define --file /etc/nova/virsh-secret.xml
+    virsh secret-set-value \
+      --secret #{get_config('libvirt-secret-uuid')} \
+      --base64 $(ceph auth get-key client.cinder)
+  EOH
+end
+
+bash "remove-default-virsh-net" do
+  code <<-EOH
+      virsh net-destroy default
+      virsh net-undefine default
+  EOH
+  only_if "virsh net-list | grep -i default"
+end
+#
+# configure libvirt ends
+
+template '/etc/nova/nova.conf' do
+  source 'nova/nova.conf.erb'
+  variables(
+    'servers' => get_head_nodes()
+  )
+  notifies :restart, 'service[nova-compute]', :immediately 
+end
+
+template '/etc/nova/nova-compute.conf' do
+  source 'nova/nova-compute.conf.erb'
+  notifies :restart, 'service[nova-compute]', :immediately 
+  notifies :restart, 'service[nova-api-metadata]', :immediately 
+end
+
+template "/etc/nova/policy.json" do
+  source "nova-policy.json.erb"
+  owner "nova"
+  group "nova"
+  mode 00600
+  variables(:policy => JSON.pretty_generate(node['bcpc']['nova']['policy']))
+end
+
+execute 'wait for compute host' do
+  environment (os_adminrc())
+  retries 15
+  command <<-EOH
+    openstack compute service list \
+      --service nova-compute | grep #{node['hostname']}
+  EOH
+end
+
+execute 'discover compute hosts' do
+  command <<-EOH
+    su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
+  EOH
+end
+
+=begin
 include_recipe "bcpc::ceph-work"
 include_recipe "bcpc::nova-common"
 
@@ -37,7 +186,7 @@ nova_services.each do |pkg|
     end
     service pkg do
         action [:enable, :start]
-        restart_command "service #{pkg} stop; sleep 5; service #{pkg} start"
+        restart_command "systemctl stop #{pkg}; sleep 5; systemctl start #{pkg}"
         subscribes :restart, "template[/etc/nova/nova.conf]", :delayed
         subscribes :restart, "template[/etc/nova/api-paste.ini]", :delayed
     end
@@ -49,7 +198,7 @@ template '/etc/init/nova-compute.conf' do
   group  'root'
   mode   '00644'
   variables(
-    nofile_soft_limit: node['bcpc']['nova']['compute']['limits']['nofile']['soft'],
+    nefile_soft_limit: node['bcpc']['nova']['compute']['limits']['nofile']['soft'],
     nofile_hard_limit: node['bcpc']['nova']['compute']['limits']['nofile']['hard']
   )
   notifies :restart, 'service[nova-compute]', :immediately
@@ -70,20 +219,6 @@ end
     package pkg do
         action :install
     end
-end
-
-template "/etc/nova/ssl-bcpc.pem" do
-    source "ssl-bcpc.pem.erb"
-    owner "nova"
-    group "nova"
-    mode 00644
-end
-
-template "/etc/nova/ssl-bcpc.key" do
-    source "ssl-bcpc.key.erb"
-    owner "nova"
-    group "nova"
-    mode 00600
 end
 
 directory "/var/lib/nova/.ssh" do
@@ -127,12 +262,12 @@ template "/var/lib/nova/.ssh/config" do
     mode 00600
 end
 
-template "/etc/default/libvirt-bin" do
-  source "libvirt-bin-default.erb"
+template "/etc/default/libvirtd" do
+  source "libvirtd-default.erb"
   owner "root"
   group "root"
   mode 00644
-  notifies :restart, "service[libvirt-bin]", :delayed
+  notifies :restart, "service[libvirtd]", :delayed
 end
 
 template "/etc/libvirt/libvirtd.conf" do
@@ -140,19 +275,18 @@ template "/etc/libvirt/libvirtd.conf" do
     owner "root"
     group "root"
     mode 00644
-    notifies :restart, "service[libvirt-bin]", :delayed
+    notifies :restart, "service[libvirtd]", :delayed
 end
 
-service "libvirt-bin" do
+service "libvirtd" do
     action [:enable, :start]
-    restart_command "/etc/init.d/libvirt-bin restart"
 end
 
 template "/etc/nova/virsh-secret.xml" do
-    source "virsh-secret.xml.erb"
-    owner "nova"
-    group "nova"
-    mode 00600
+  source "virsh-secret.xml.erb"
+  owner "nova"
+  group "nova"
+  mode 00600
 end
 
 bash "set-nova-user-shell" do
@@ -198,7 +332,7 @@ bash "libvirt-device-acls" do
         echo "]" >> /etc/libvirt/qemu.conf
     EOH
     not_if "grep -e '^cgroup_device_acl' /etc/libvirt/qemu.conf"
-    notifies :restart, "service[libvirt-bin]", :delayed
+    notifies :restart, "service[libvirtd]", :delayed
 end
 
 # we have to adjust apparmor to allow qemu to write rbd logs/sockets
@@ -208,7 +342,7 @@ end
 
 template "/etc/apparmor.d/abstractions/libvirt-qemu" do
   source "apparmor-libvirt-qemu.#{node['bcpc']['openstack_release']}.erb"
-  notifies :restart, "service[libvirt-bin]", :delayed
+  notifies :restart, "service[libvirtd]", :delayed
   notifies :restart, "service[apparmor]", :delayed
 end
 
@@ -270,3 +404,4 @@ unless node['bcpc']['enabled']['neutron']
 end
 
 include_recipe 'bcpc::calico-compute' if node['bcpc']['enabled']['neutron']
+=end

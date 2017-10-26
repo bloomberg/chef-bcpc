@@ -21,7 +21,7 @@ default['bcpc']['catalog'] = {
     }
   },
   'compute' => {
-    'name' => 'Compute Service',
+    'name' => 'nova',
     'project' => 'nova',
     'description' => 'OpenStack Compute Service',
     'ports' => {
@@ -30,43 +30,43 @@ default['bcpc']['catalog'] = {
       'public' => 8774
     },
     'uris' => {
-      'admin' => 'v2.1/%(project_id)s',
-      'internal' => 'v2.1/%(project_id)s',
-      'public' => 'v2.1/%(project_id)s'
+      'admin' => 'v2.1/',
+      'internal' => 'v2.1/',
+      'public' => 'v2.1/'
     }
   },
-  'volume' => {
-    'name' => 'Volume Service',
+  'placement' => {
+    'name' => 'placement',
+    'project' => 'placement',
+    'description' => 'Placement API',
+    'ports' => {
+      'admin' => 8778,
+      'internal' => 8778,
+      'public' => 8778
+    },
+    'uris' => {
+      'admin' => '',
+      'internal' => '',
+      'public' => ''
+    }
+  },
+  'volumev3' => {
+    'name' => 'cinderv3',
     'project' => 'cinder',
-    'description' => 'OpenStack Volume Service',
+    'description' => 'OpenStack Block Storage v3',
     'ports' => {
       'admin' => 8776,
       'internal' => 8776,
       'public' => 8776
     },
     'uris' => {
-      'admin' => 'v2/%(project_id)s',
-      'internal' => 'v2/%(project_id)s',
-      'public' => 'v2/%(project_id)s'
-    }
-  },
-  'volumev2' => {
-    'name' => 'cinderv2',
-    'project' => 'cinder',
-    'description' => 'OpenStack Volume Service V2',
-    'ports' => {
-      'admin' => 8776,
-      'internal' => 8776,
-      'public' => 8776
-    },
-    'uris' => {
-      'admin' => 'v2/%(project_id)s',
-      'internal' => 'v2/%(project_id)s',
-      'public' => 'v2/%(project_id)s'
+      'admin' => 'v3/%(project_id)s',
+      'internal' => 'v3/%(project_id)s',
+      'public' => 'v3/%(project_id)s'
     }
   },
   'image' => {
-    'name' => 'Image Service',
+    'name' => 'glance',
     'project' => 'glance',
     'description' => 'OpenStack Image Service',
     'ports' => {
@@ -81,9 +81,9 @@ default['bcpc']['catalog'] = {
     }
   },
   'network' => {
-    'name' => 'Network Service',
+    'name' => 'neutron',
     'project' => 'neutron',
-    'description' => 'OpenStack Network Service',
+    'description' => 'OpenStack Networking',
     'ports' => {
       'admin' => 9696,
       'internal' => 9696,

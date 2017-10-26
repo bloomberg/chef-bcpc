@@ -20,7 +20,6 @@ cacerts/
 cookbooks/apt/
 cookbooks/chef-solo-search/
 cookbooks/cron/
-cookbooks/ntp/
 cookbooks/ubuntu/
 cookbooks/yum/
 environments/*
