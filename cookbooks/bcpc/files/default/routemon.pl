@@ -51,7 +51,7 @@ my $float_if   = shift @ARGV;
 sub check_networks() {
     my $mgmt_stat = system("ifconfig $mgmt_if | grep 'inet addr' >/dev/null 2>&1");
     if ($mgmt_stat) {
-	myprint"mgmt $mgmt_if down\n";
+	myprint"management $mgmt_if down\n";
 	return 0;
     }
     my $storage_stat = system("ifconfig $storage_if | grep 'inet addr' >/dev/null 2>&1");
@@ -89,7 +89,7 @@ sub no_network_bail {
 no_network_bail();
 
 # check and retain current status of routes for comparison later
-my $mgmt_up    = hasdefaultroute ("mgmt", 1);
+my $mgmt_up    = hasdefaultroute ("management", 1);
 my $storage_up = hasdefaultroute ("storage", 1);
 
 # true if either network lacks a default route
@@ -102,7 +102,7 @@ sub fix_routes {
         system("$fixcommand");
         $fixes--;
         # check and see if the routes came back here
-        $mgmt_up    = hasdefaultroute ("mgmt", 1);
+        $mgmt_up    = hasdefaultroute ("management", 1);
         $storage_up = hasdefaultroute ("storage", 1);
         if ($mgmt_up && $storage_up) {
             myprint "Fixed. Remaining fixes: $fixes\n";
@@ -130,45 +130,45 @@ myprint "Monitoring default routes status  ...\n";
 my @scrollback;
 
 sub dump_scrollback() {
-        
+
     myprint "-----------------------------------------------------\n";
-    
+
     while (my $line = shift @scrollback) {
         myprint $line;
     }
-    
+
     myprint "-----------------------------------------------------\n";
 }
 
 
 while (1) {
-    
+
     myprint "Open \"ip monitor\" stream\n";
-    
+
     # monitor all IP events and after each one check to see whether
     # the default route appeared or disappeared
     my $child = open (IPEVENTS, "ip monitor all |") or die "Failed $!\n";
     while (<IPEVENTS> )
     {
         my $LINE = $_;
-        
+
         push @scrollback, $LINE;
         while ($#scrollback > 10) {
-            shift @scrollback;          
+            shift @scrollback;
         }
-        
-        my $currentmgmt = hasdefaultroute("mgmt",0);
+
+        my $currentmgmt = hasdefaultroute("management",0);
         if ($currentmgmt != $mgmt_up) {
             if ($currentmgmt) {
-                myprint "Info: Default route established on mgmt network, last events: \n";
+                myprint "Info: Default route established on management network, last events: \n";
             } else {
                 $routedown = 1;
-                myprint "WARN: Default route disappeared on mgmt network, last events: \n";
+                myprint "WARN: Default route disappeared on management network, last events: \n";
                 dump_scrollback();
             }
         }
         $mgmt_up = $currentmgmt;
-        
+
         my $currentstorage = hasdefaultroute("storage",0);
         if ($currentstorage != $storage_up) {
             if ($currentstorage) {
@@ -181,8 +181,8 @@ while (1) {
         }
         $storage_up = $currentstorage;
 
-	no_network_bail();
-       
+        no_network_bail();
+
         if ($routedown) {
             fix_routes();
             # give up monitoring this particular stream - throw away the output

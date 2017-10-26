@@ -22,9 +22,9 @@
 # MySQL on the head node with the database user set up here (otherwise
 # the portion of the backup that tries to back up the database will fail).
 
-# this will install from Ubuntu upstream rather than Percona, so
-# it's 5.5 client instead of 5.6, but it works fine for the backup
-package 'percona-xtradb-cluster-client'
+# this will install from Ubuntu upstream rather than Percona, but it works
+# fine for the backup
+package 'mysql-client'
 
 # this user will be used for backing up both the main and monitoring MySQL
 # clusters (if a monitoring cluster is present)

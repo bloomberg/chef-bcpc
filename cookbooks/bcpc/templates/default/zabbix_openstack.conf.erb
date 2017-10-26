@@ -6,4 +6,4 @@ UserParameter=openstack.nova.quota[*],HOME=/var/lib/zabbix mysql -u<%=get_config
 UserParameter=openstack.nova.quota_usage[*],HOME=/var/lib/zabbix mysql -u<%=get_config('mysql-nova-user')%> --password=<%=get_config('mysql-nova-password')%> nova  -e 'select coalesce(sum(in_use),0) from quota_usages where resource="$1";' | tail -n1
 UserParameter=rabbitmq.fd_usage,HOME=/var/lib/zabbix sudo -u rabbitmq /usr/sbin/rabbitmqctl status 2>/dev/null | egrep -o 'total_used,[0-9]{1,}' | awk -F',' '{print $2}'
 UserParameter=rabbitmq.partition,HOME=/var/lib/zabbix sudo -u rabbitmq /usr/sbin/rabbitmqctl cluster_status 2>/dev/null | egrep -c '{partitions,\[\{'
-UserParameter=net.vip_holder,HOME=/var/lib/zabbix /usr/local/bin/if_vip echo vip_holder | wc -l
+UserParameter=net.primary_mysql_holder,HOME=/var/lib/zabbix /usr/local/bin/if_primary_mysql echo primary_mysql | wc -l

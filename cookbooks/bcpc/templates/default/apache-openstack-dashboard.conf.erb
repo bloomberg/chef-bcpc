@@ -12,10 +12,12 @@ Listen <%=node['bcpc']['management']['ip']%>:9999
     WSGIScriptAlias /horizon /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi
     WSGIDaemonProcess horizon user=www-data group=www-data processes=3 threads=10 python-path=/usr/local/bcpc-horizon
     WSGIProcessGroup horizon
-    Alias /static /usr/share/openstack-dashboard/openstack_dashboard/static/
-    Alias /horizon/static /usr/share/openstack-dashboard/openstack_dashboard/static/
+    Alias /static /var/lib/openstack-dashboard/static/
+    Alias /horizon/static /var/lib/openstack-dashboard/static/
+    <Directory /var/lib/openstack-dashboard/static/>
+        Require all granted
+    </Directory>
     <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>
-        Order allow,deny
-        Allow from all
+        Require all granted
     </Directory>
 </VirtualHost>

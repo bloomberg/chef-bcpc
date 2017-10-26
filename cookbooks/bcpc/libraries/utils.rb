@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Library:: utils
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ require 'base64'
 require 'thread'
 require 'ipaddr'
 require 'ipaddress'
+require 'securerandom'
+require 'net/http'
+require 'json'
 
 def is_liberty?
   node['bcpc']['openstack_release'] == 'liberty'
@@ -29,6 +32,14 @@ end
 
 def is_mitaka?
   node['bcpc']['openstack_release'] == 'mitaka'
+end
+
+def is_pike?
+  node['bcpc']['openstack_release'] == 'pike'
+end
+
+def is_queens?
+  node['bcpc']['openstack_release'] == 'queens'
 end
 
 # this method deals in strings even though API versions are numbers because
@@ -450,4 +461,54 @@ def load_user_context_vars(username,
   auth ||= {}
   val_pairs = auth.collect {|tuple| filter.call(tuple) }.flatten
   auth_vars = Hash[ *val_pairs ]
+end
+
+def os_adminrc()
+  admin_username  = get_config('keystone-local-admin-user')
+  admin_password  = get_config('keystone-local-admin-password')
+  admin_project   = node['bcpc']['keystone']['admin']['project_name']
+
+  region_name     = node['bcpc']['region_name']
+
+  identity        = node['bcpc']['catalog']['identity']
+
+  return {
+    'OS_PROJECT_DOMAIN_ID' => 'default',
+    'OS_USER_DOMAIN_ID' => 'default',
+    'OS_PROJECT_NAME' => "#{admin_project}",
+    'OS_USERNAME' => "#{admin_username}",
+    'OS_PASSWORD' => "#{admin_password}",
+    'OS_AUTH_URL' => generate_service_catalog_uri(identity,'admin'),
+    'OS_REGION_NAME' => "#{region_name}",
+    'OS_IDENTITY_API_VERSION' => '3',
+    'OS_VOLUME_API_VERSION'=> '3'
+  }
+end
+
+def generate_fernet_key()
+  # fernet keys are random 32 byte string that are url safe and base64 encoded.
+  # see: https://github.com/pyca/cryptography/blob/master/src/cryptography/fernet.py
+  return Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
+end
+
+def rotate_fernet_keys()
+  # used to determine if it is time to rotate the fernet keys.
+
+  keystone = node['bcpc']['keystone']
+  rotation_enabled = keystone['rotate_fernet_tokens']
+
+  if rotation_enabled
+
+    if config_defined('fernet_last_rotation')
+      age = Time.now.to_i - get_config('fernet_last_rotation').to_i
+      max_age = keystone['fernet_token_max_age_seconds']
+
+      return (age > max_age) ? true : false
+    end
+
+    return true
+
+  end
+
+  return false
 end

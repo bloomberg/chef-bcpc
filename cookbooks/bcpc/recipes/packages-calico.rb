@@ -22,5 +22,12 @@ apt_repository "calico" do
   distribution node['lsb']['codename']
   components ["main"]
   key "calico-release.key"
-  notifies :run, "execute[apt-get update]", :immediately
+end
+
+cookbook_file '/usr/local/bin/calicoctl' do
+  source   'calicoctl-v3.1.1'
+  cookbook 'bcpc-binary-files'
+  mode     '00755'
+  owner    'root'
+  group    'root'
 end

@@ -28,20 +28,12 @@ include_recipe 'bcpc::packages-calico'
   end
 end
 
-etcd_data_dir = '/var/lib/etcd'
+etcd_data_dir = '/var/lib/etcd/default'
 
 directory etcd_data_dir do
   owner 'etcd'
   group 'etcd'
   mode  '00700'
-end
-
-template '/etc/init/etcd.conf' do
-  source 'etcd.conf.erb'
-  owner  'root'
-  group  'root'
-  mode   '00644'
-  notifies :restart, 'service[etcd]', :immediately
 end
 
 template '/etc/default/etcd' do

@@ -30,43 +30,14 @@ iptables-restore <<EOH
 ###########################
 
 # Allow hosts to talk freely to each other on storage network
--A INPUT -i <%=@node["bcpc"]["storage"]["interface"]%> -d <%=@node["bcpc"]["storage"]["cidr"]%> -s <%=@node["bcpc"]["storage"]["cidr"]%> -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['storage']['interface']%> -d <%=@node['bcpc']['storage']['aggregate']['cidr']%> -s <%=@node['bcpc']['storage']['aggregate']['cidr']%> -j ACCEPT
 
 # Log and drop everything else
--A INPUT -i <%=@node["bcpc"]["storage"]["interface"]%> -j LOGDROP
-
-###########################
-# Floating network ACLs
-###########################
-
-# Allow anyone to ingress float iface to the float addresses
--A INPUT -i <%=@node["bcpc"]["floating"]["interface"]%> -d <%=@node["bcpc"]["floating"]["cidr"]%> -j ACCEPT
-
-# Allow vrrp traffic
--A INPUT -i <%=@node["bcpc"]["floating"]["interface"]%> -p vrrp -j ACCEPT
-
-# Log and drop everything else
--A INPUT -i <%=@node["bcpc"]["floating"]["interface"]%> -j LOGDROP
+-A INPUT -i <%=@node['bcpc']['storage']['interface']%> -j LOGDROP
 
 ###########################
 # Management network ACLs
 ###########################
-
-# Allow hosts to talk freely to each other on mgmt network
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["cidr"]%> -s <%=@node["bcpc"]["management"]["cidr"]%> -j ACCEPT
-
-# Allow vrrp traffic
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -p vrrp -j ACCEPT
-
-# Allow external access to some mgmt network ports on each hypervisor
-## ssh 22
-## nova-novncproxy 6080
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["ip"]%> -p tcp --match multiport --dports 22,6080 -j ACCEPT
-## Fallback rules in case node is monitored by out-of-cluster monitoring
-# services
-<% node['bcpc']['monitoring']['cidrs'].each do |cidr| -%>
--A INPUT -i <%= @node['bcpc']['management']['interface'] %> -s <%= cidr %> -d <%= @node['bcpc']['management']['ip'] %> -p tcp -m multiport --dports <%= @node['bcpc']['monitoring']['agent_tcp_ports'].join(',') %> -j ACCEPT
-<% end -%>
 
 # Allow external access to some VIP services
 ## apache 80, 443
@@ -76,7 +47,8 @@ iptables-restore <<EOH
 ## cinder 8776
 ## nova-api-ec2 8773
 ## nova-api 8774
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --match multiport --dports 80,443,5000,6080,8774,8776,9292 -j ACCEPT
+## nova-placement-api 8778
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['vip']%> -p tcp --match multiport --dports 80,443,5000,6080,8774,8776,8778,9292 -j ACCEPT
 
 <% if node['bcpc']['enabled']['neutron'] %>
 ## Allow external access to Neutron on VIP
@@ -85,21 +57,38 @@ iptables-restore <<EOH
 
 # Additional ports enabled here
 ## keystone 35357
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --match multiport --dports <%= @node['bcpc']['management']['firewall_tcp_ports'].join(',') %> -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['vip']%> -p tcp --match multiport --dports <%= @node['bcpc']['management']['firewall_tcp_ports'].join(',') %> -j ACCEPT
+## unbound 53
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['vip']%> -p udp --dport 53 -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['vip']%> -p tcp --dport 53 -j ACCEPT
 ## powerdns 53
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p udp --dport 53 -j ACCEPT
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["management"]["vip"]%> -p tcp --dport 53 -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['anycast']['pdns']['ip']%> -p udp --dport 53 -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['anycast']['pdns']['ip']%> -p tcp --dport 53 -j ACCEPT
+
+
+# Allow hosts to talk freely to each other on mgmt network
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['aggregate']['cidr']%> -s <%=@node['bcpc']['management']['aggregate']['cidr']%> -j ACCEPT
+
+# Allow external access to some mgmt network ports on each hypervisor
+## ssh 22
+## nova-novncproxy 6080
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['management']['ip']%> -p tcp --match multiport --dports 22,6080 -j ACCEPT
+## Fallback rules in case node is monitored by out-of-cluster monitoring
+# services
+<% node['bcpc']['monitoring']['cidrs'].each do |cidr| -%>
+-A INPUT -i <%= @node['bcpc']['management']['interface'] %> -s <%= cidr %> -d <%= @node['bcpc']['management']['ip'] %> -p tcp -m multiport --dports <%= @node['bcpc']['monitoring']['agent_tcp_ports'].join(',') %> -j ACCEPT
+<% end -%>
 
 <% if node['bcpc']['monitoring']['provider'] -%>
 ## kibana 443
 ## graphite 8888
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["monitoring"]["vip"]%> -p tcp --match multiport --dports 443,8888 -j ACCEPT
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['monitoring']['vip']%> -p tcp --match multiport --dports 443,8888 -j ACCEPT
 
 ## carbon-relay 2013, 2014
 ## elasticsearch 9200
 ## zabbix-server 10051
 :INPUT-monitoring - [0:0]
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -d <%=@node["bcpc"]["monitoring"]["vip"]%> -p tcp --match multiport --dports 2013,2014,9200,10051 -j INPUT-monitoring
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -d <%=@node['bcpc']['monitoring']['vip']%> -p tcp --match multiport --dports 2013,2014,9200,10051 -j INPUT-monitoring
 
 ###########################
 # INPUT-monitoring chain
@@ -108,7 +97,7 @@ iptables-restore <<EOH
 <% end -%>
 
 # Log and drop everything else
--A INPUT -i <%=@node["bcpc"]["management"]["interface"]%> -j LOGDROP
+-A INPUT -i <%=@node['bcpc']['management']['interface']%> -j LOGDROP
 
 <% end -%>
 

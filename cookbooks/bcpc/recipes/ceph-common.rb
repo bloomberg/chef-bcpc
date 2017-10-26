@@ -17,54 +17,14 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::packages-openstack"
-
-apt_repository "ceph" do
-  uri node['bcpc']['repos']['ceph']
-  distribution node['lsb']['codename']
-  components ["main"]
-  key "ceph-release.key"
-  notifies :run, "execute[apt-get update]", :immediately
-end
-
-# configure an apt preference to prefer hammer packages
-apt_preference 'ceph' do
-  glob 'python-rbd python-rados python-cephfs python-ceph librbd1 libradosstriper1 librados2 libcephfs1 ceph-mds ceph-fuse ceph-fs-common ceph-common ceph'
-  pin 'version 0.94.10-1trusty'
-  pin_priority '900'
-end
-
 if platform?("debian", "ubuntu")
     include_recipe "bcpc::networking"
 end
 
-%w{librados2 librbd1 libcephfs1 python-ceph ceph ceph-common ceph-fs-common ceph-mds ceph-fuse}.each do |pkg|
-  package pkg do
-    action :upgrade
-  end
-end
-
-ruby_block "initialize-ceph-common-config" do
-    block do
-        make_config('ceph-fs-uuid', %x[uuidgen -r].strip)
-        make_config('ceph-mon-key', ceph_keygen)
-    end
-end
-
-ruby_block 'write-ceph-mon-key' do
-    block do
-        %x[ ceph-authtool "/etc/ceph/ceph.mon.keyring" \
-                --create-keyring \
-                --name=mon. \
-                --add-key="#{get_config('ceph-mon-key')}" \
-                --cap mon 'allow *'
-        ]
-    end
-    not_if "test -f /etc/ceph/ceph.mon.keyring"
-end
-
 template '/etc/ceph/ceph.conf' do
     source 'ceph.conf.erb'
+    owner 'ceph'
+    group 'ceph'
     mode '0644'
     variables(
       lazy {
@@ -84,26 +44,10 @@ template '/etc/default/ceph' do
   mode 0644
 end
 
-directory "/var/run/ceph/" do
-  owner "root"
-  group "root"
-  mode  "0755"
-end
-
-package 'libvirt-bin' do
-  action :upgrade
-end
-
-directory "/var/run/ceph/guests/" do
-  owner "libvirt-qemu"
-  group "libvirtd"
-  mode  "0755"
-end
-
-directory "/var/log/qemu/" do
-  owner "libvirt-qemu"
-  group "libvirtd"
-  mode  "0755"
+directory '/var/run/ceph/' do
+  owner 'ceph'
+  group 'ceph'
+  mode  '0755'
 end
 
 # Script looks for mdsmap and if MDS is removed later then this script will need to be changed.
@@ -112,5 +56,3 @@ bash "wait-for-pgs-creating" do
     user "root"
     code "sleep 1; while ceph -s | grep -v mdsmap | grep creating >/dev/null 2>&1; do echo Waiting for new pgs to create...; sleep 1; done"
 end
-
-include_recipe 'bcpc::ceph-cleanup'

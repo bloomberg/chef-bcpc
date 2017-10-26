@@ -13,7 +13,7 @@ CLUSTER_CONFIG="$REPO_MOUNT_POINT/bootstrap/config/$CLUSTER.json"
 KNIFE=/opt/opscode/embedded/bin/knife
 
 # Bootstrap chef client
-vm_ips="`cat $CLUSTER_CONFIG | jq -r '.nodes | .[] | .ip_address'`"
+vm_ips=$(cat ${CLUSTER_CONFIG} | jq -r '.nodes | .[] | .networks[] | select(.type == "management") | .ip')
 for ip in $vm_ips; do
   $KNIFE bootstrap -x vagrant -P vagrant --sudo $ip
 done

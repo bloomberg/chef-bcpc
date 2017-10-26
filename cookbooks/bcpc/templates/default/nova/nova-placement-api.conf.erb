@@ -1,0 +1,29 @@
+Listen <%=node['bcpc']['management']['ip']%>:8778
+
+<VirtualHost <%=node['bcpc']['management']['ip']%>:8778>
+  WSGIScriptAlias / /usr/bin/nova-placement-api
+  WSGIScriptAlias /placement /usr/bin/nova-placement-api
+
+  WSGIDaemonProcess nova-placement processes=<%= @processes %> threads=<%= @threads %> user=nova group=nova display-name=%{GROUP}
+  WSGIProcessGroup nova-placement
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  LimitRequestBody 114688
+
+  <IfVersion >= 2.4>
+    ErrorLogFormat "%{cu}t %M"
+  </IfVersion>
+
+  ErrorLog /var/log/apache2/nova_placement_error.log
+  CustomLog /var/log/apache2/nova_placement_access.log combined
+
+  <Directory /usr/bin>
+    <IfVersion >= 2.4>
+      Require all granted
+    </IfVersion>
+    <IfVersion < 2.4>
+      Order allow,deny
+      Allow from all
+    </IfVersion>
+  </Directory>
+</VirtualHost>

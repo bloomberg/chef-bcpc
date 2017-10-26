@@ -1,7 +1,8 @@
-# Cookbook Name:: bcpc
-# Recipe:: quota
 #
-# Copyright 2015, Bloomberg Finance L.P.
+# Cookbook Name:: bcpc
+# Recipe:: os-quota
+#
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,23 +17,20 @@
 # limitations under the License.
 #
 
-cookbook_file '/usr/local/bin/set-os-quota.py' do
-  source 'set-os-quota.py'
-  owner 'root'
-  mode '0755'
+
+node['bcpc']['cinder']['quota'].each do |k, v|
+  execute "set openstack #{k} quota" do
+    environment (os_adminrc())
+    command "openstack quota set --class --#{k} #{v} default"
+  end
 end
 
-execute 'set-os-quota' do
-  action :nothing
-  command '. /root/openrc-nova; /usr/local/bin/if_vip /usr/local/bin/set-os-quota.py'
-end
-
-template '/usr/local/etc/os-quota.yml' do
-  source 'os-quota.yml.erb'
-  owner 'root'
-  mode '0644'
-  variables(
-    :quota => node['bcpc']['quota'].to_hash.to_yaml
-  )
-  notifies :run, 'execute[set-os-quota]', :immediately
+node['bcpc']['quota']['nova'].each do |project, quotas|
+  quotas.each do |k,v|
+    execute "set #{k} quota for #{project} project" do
+      environment (os_adminrc())
+      command "openstack quota set --#{k} #{v} #{project}"
+      not_if "openstack quota show -f value -c #{k} #{project} | grep -w #{v}"
+    end
+  end
 end

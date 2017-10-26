@@ -53,3 +53,9 @@ catalog.<%=node['bcpc']['region_name']%>.cloudformation.name = Cloudformation Se
 # catalog.<%=node['bcpc']['region_name']%>.network.adminURL = <%=node['bcpc']['protocol']['neutron']%>://openstack.<%=node['bcpc']['cluster_domain']%>:9696/
 # catalog.<%=node['bcpc']['region_name']%>.network.internalURL = <%=node['bcpc']['protocol']['neutron']%>://openstack.<%=node['bcpc']['cluster_domain']%>:9696/
 # catalog.<%=node['bcpc']['region_name']%>.network.name = Networking Service
+
+catalog.<%=node['bcpc']['region_name']%>.placement.publicURL = <%=node['bcpc']['protocol']['nova']%>://openstack.<%=node['bcpc']['cluster_domain']%>:8778/
+catalog.<%=node['bcpc']['region_name']%>.placement.adminURL = <%=node['bcpc']['protocol']['nova']%>://openstack.<%=node['bcpc']['cluster_domain']%>:8778/
+catalog.<%=node['bcpc']['region_name']%>.placement.internalURL = <%=node['bcpc']['protocol']['nova']%>://openstack.<%=node['bcpc']['cluster_domain']%>:8778/
+catalog.<%=node['bcpc']['region_name']%>.placement.name = Placement Service
+

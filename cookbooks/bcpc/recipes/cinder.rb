@@ -17,63 +17,441 @@
 # limitations under the License.
 #
 
+mysql_root_user     = get_config('mysql-root-user')
+mysql_root_password = get_config('mysql-root-password')
+
+make_config('libvirt-secret-uuid', %x[uuidgen -r].strip)
+
+cinder_db = node['bcpc']['dbname']['cinder']
+cinder_db_user = make_config('cinder-db-user', "cinder")
+cinder_db_password = make_config('cinder-db-password', secure_password())
+
+cinder_os_user = make_config('cinder-os-user', "cinder")
+cinder_os_password = make_config('cinder-os-password', secure_password())
+
+region          = node['bcpc']['region_name']
+admin_role      = node['bcpc']['keystone']['admin_role']
+service_project = node['bcpc']['keystone']['service_project']['name']
+service_domain  = node['bcpc']['keystone']['service_project']['domain']
+
+
+# create client.cinder ceph user and keyring starts
+#
+execute 'get or create client.cinder user/keyring' do
+
+  enabled_pools = node['bcpc']['ceph']['enabled_pools']
+
+  vol_perms = enabled_pools.collect{|p|
+    "allow rwx pool=volumes-#{p}"
+  }.join(',')
+
+  command <<-EOH
+    ceph auth get-or-create client.cinder \
+      mon 'allow r' \
+      osd 'allow class-read object_prefix rbd_children, \
+           #{vol_perms}, \
+           allow rwx pool=vms, \
+           allow rx pool=images' \
+      -o /etc/ceph/ceph.client.cinder.keyring
+  EOH
+  creates '/etc/ceph/ceph.client.cinder.keyring'
+end
+#
+# create client.cinder ceph user and keyring ends
+
+
+# create ceph rbd volume pools starts
+#
+node['bcpc']['ceph']['enabled_pools'].each do |type|
+
+  execute "create #{type} rados pool" do
+
+    ceph          = node['bcpc']['ceph']
+
+    pool_name     = ceph['volumes']['name'] + '-' + type
+    pgs_per_node  = ceph['pgs_per_node']
+    vol_replicas  = ceph['volumes']['replicas']
+    vol_portions  = ceph['volumes']['portion']
+    pools_len     = ceph['enabled_pools'].length
+    ceph_osd_len  = get_ceph_osd_nodes.length
+    crush_rule    = node['bcpc']['ceph'][type]['rule']
+
+    optimal       = ceph_osd_len * pgs_per_node
+    optimal       = optimal / vol_replicas
+    optimal       = optimal * vol_portions / 100 / pools_len
+    optimal       = power_of_2(optimal)
+
+    command <<-EOH
+      ceph osd pool create #{pool_name} #{optimal} #{optimal} #{crush_rule}
+    EOH
+
+    not_if "rados lspools | grep #{pool_name}"
+  end
+
+  execute "set #{type} rados pool replicas" do
+    name = "#{node['bcpc']['ceph']['volumes']['name']}-#{type}"
+
+    ceph_osd_len  = search_nodes("recipe", "ceph-osd").length
+    vol_replicas  = node['bcpc']['ceph']['volumes']['replicas']
+    replicas      = [ceph_osd_len, vol_replicas].min
+
+    if replicas < 1; then
+        replicas = 1
+    end
+
+    command "ceph osd pool set #{name} size #{replicas}"
+
+    not_if "ceph osd pool get #{name} size | grep #{replicas}"
+  end
+
+  auto_adjust = ['pg_num']
+
+  if node['bcpc']['ceph']['pgp_auto_adjust']
+    auto_adjust.push('pgp_num')
+  end
+
+  auto_adjust.each do |pg|
+    execute "auto adjust #{type} rados pool" do
+      name = "#{node['bcpc']['ceph']['volumes']['name']}-#{type}"
+
+      osd_node_len      = get_ceph_osd_nodes.length
+      pgs_per_node      = node['bcpc']['ceph']['pgs_per_node']
+      vol_replicas      = node['bcpc']['ceph']['volumes']['replicas']
+      vol_portion       = node['bcpc']['ceph']['volumes']['portion']
+      enabled_pool_len  = node['bcpc']['ceph']['enabled_pools'].length
+
+      optimal = osd_node_len * pgs_per_node
+      optimal = optimal / vol_replicas
+      optimal = optimal * vol_portion
+      optimal = optimal / 100
+      optimal = optimal / enabled_pool_len
+      optimal = power_of_2(optimal)
+
+      command "ceph osd pool set #{name} #{pg} #{optimal}"
+
+      only_if { %x[ceph osd pool get #{name} #{pg} | awk '{print $2}'].to_i < optimal }
+    end
+  end
+
+end
+#
+# create ceph rbd volume pools ends
+
+
+# create cinder openstack user starts
+#
+execute 'create cinder openstack user' do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack user create \
+      --domain #{service_domain} \
+      --password #{cinder_os_password} \
+      #{cinder_os_user}
+  EOH
+
+  not_if "openstack user show \
+    --domain #{service_domain} #{cinder_os_user}
+  "
+end
+
+execute 'add openstack admin role to cinder user' do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack role add \
+      --project #{service_project} \
+      --user #{cinder_os_user} \
+      #{admin_role}
+  EOH
+
+  not_if "
+    openstack role assignment list \
+      --names \
+      --role #{admin_role} \
+      --project #{service_project} \
+      --user #{cinder_os_user} | grep #{cinder_os_user}
+  "
+end
+#
+# create cinder openstack user ends
+
+
+# create cinder volume services and endpoints starts
+#
+begin
+
+  type = 'volumev3'
+  service = node['bcpc']['catalog'][type]
+  project = service['project']
+
+  execute "create the #{project} #{type} service" do
+    environment (os_adminrc())
+
+    name = service['name']
+    desc = service['description']
+
+    command <<-EOH
+      openstack service create \
+        --name "#{name}" --description "#{desc}" #{type}
+    EOH
+
+    not_if "openstack service list | grep #{type}"
+  end
+
+  %w(admin internal public).each{|uri|
+
+    url = generate_service_catalog_uri(service,uri)
+
+    execute "create the #{project} #{type} #{uri} endpoint" do
+      environment (os_adminrc())
+
+      command <<-EOH
+        openstack endpoint create \
+          --region #{region} #{type} #{uri} '#{url}'
+      EOH
+
+      not_if "openstack endpoint list \
+        | grep #{type} | grep #{uri}
+      "
+    end
+
+  }
+
+end
+#
+# create cinder volume services and endpoints ends
+
+
+# cinder package installation and service definition starts
+#
+package 'cinder-api'
+package 'cinder-scheduler'
+package 'cinder-volume'
+
+service 'cinder-api' do
+  service_name 'apache2'
+end
+service 'cinder-volume'
+service 'cinder-scheduler'
+#
+# cinder package installation and service definition starts
+
+
+# update the file permissions on ceph.client.cinder.keyring to allow the
+# cinder user to use ceph
+#
+file '/etc/ceph/ceph.client.cinder.keyring' do
+  mode '0640'
+  owner 'root'
+  group 'cinder'
+end
+
+
+# create/manage cinder database starts
+#
+file '/tmp/cinder-db.sql' do
+  action :nothing
+end
+
+template '/tmp/cinder-db.sql' do
+  source 'cinder/cinder-db.sql.erb'
+
+  variables(
+    'cinder_db' => cinder_db,
+    'cinder_db_user' => cinder_db_user,
+    'cinder_db_password' => cinder_db_password
+  )
+
+  notifies :run, 'execute[create cinder database]', :immediately
+
+  not_if "mysql -u #{mysql_root_user} \
+                -e 'show databases' | grep #{cinder_db}",
+         :environment => {'MYSQL_PWD' => mysql_root_password}
+end
+
+execute 'create cinder database' do
+  action :nothing
+  environment ({'MYSQL_PWD' => mysql_root_password})
+
+  command "mysql -u #{mysql_root_user} < /tmp/cinder-db.sql"
+
+  notifies :delete, 'file[/tmp/cinder-db.sql]', :immediately
+  notifies :create, 'template[/etc/apache2/conf-available/cinder-wsgi.conf]', :immediately
+  notifies :create, 'template[/etc/cinder/cinder.conf]', :immediately
+  notifies :run, 'execute[cinder-manage db sync]', :immediately
+end
+
+execute 'cinder-manage db sync' do
+  action :nothing
+  command "su -s /bin/sh -c 'cinder-manage db sync' cinder"
+end
+#
+# create/manage cinder database ends
+
+
+
+# configure cinder service starts
+#
+template "/etc/apache2/conf-available/cinder-wsgi.conf" do
+  source "cinder/cinder-wsgi.conf.erb"
+  variables(
+    'processes' => node['bcpc']['cinder']['wsgi']['processes'],
+    'threads'   => node['bcpc']['cinder']['wsgi']['threads']
+  )
+  notifies :reload, "service[cinder-api]", :immediately
+end
+
+template "/etc/cinder/cinder.conf" do
+  source "cinder/cinder.conf.erb"
+  owner "cinder"
+  group "cinder"
+  mode "0600"
+  variables(
+    'servers' => get_head_nodes()
+  )
+  notifies :restart, "service[cinder-api]", :immediately
+  notifies :restart, "service[cinder-volume]", :immediately
+  notifies :restart, "service[cinder-scheduler]", :immediately
+end
+
+template "/etc/cinder/policy.json" do
+  source "cinder-policy.json.erb"
+  owner "cinder"
+  group "cinder"
+  mode 00600
+  variables(
+    'policy' => JSON.pretty_generate(node['bcpc']['cinder']['policy'])
+  )
+end
+#
+# configure cinder service ends
+
+
+execute 'wait for cinder to come online' do
+  environment (os_adminrc())
+  retries 30
+  command 'openstack volume service list'
+end
+
+
+# create cinder volume types starts
+#
+node['bcpc']['ceph']['enabled_pools'].each do |type|
+
+  execute "create #{type} cinder backend type" do
+    environment (os_adminrc())
+    command <<-EOH
+      openstack volume type create #{type.upcase}
+      openstack volume type set #{type.upcase} \
+        --property volume_backend_name=#{type.upcase}
+    EOH
+    not_if "openstack volume type show #{type.upcase}"
+  end
+
+end
+#
+# create cinder volume types ends
+
+
+
+=begin
 include_recipe "bcpc::mysql-head"
 include_recipe "bcpc::ceph-head"
 include_recipe "bcpc::openstack"
 
 ruby_block "initialize-cinder-config" do
-    block do
-        make_config('mysql-cinder-user', "cinder")
-        make_config('mysql-cinder-password', secure_password)
-        make_config('keystone-cinder-password', secure_password)
-        make_config('libvirt-secret-uuid', %x[uuidgen -r].strip)
-    end
+  block do
+    make_config('mysql-cinder-user', "cinder")
+    make_config('mysql-cinder-password', secure_password)
+    make_config('keystone-cinder-password', secure_password)
+    make_config('libvirt-secret-uuid', %x[uuidgen -r].strip)
+  end
 end
 
 # for Mitaka, move pool creation to before Cinder installation
 # (Cinder now gets very unhappy if the pools are not present on startup)
 node['bcpc']['ceph']['enabled_pools'].each do |type|
-    bash "create-cinder-rados-pool-#{type}" do
-        user "root"
-        optimal = power_of_2(get_ceph_osd_nodes.length*node['bcpc']['ceph']['pgs_per_node']/node['bcpc']['ceph']['volumes']['replicas']*node['bcpc']['ceph']['volumes']['portion']/100/node['bcpc']['ceph']['enabled_pools'].length)
-        code <<-EOH
-            ceph osd pool create #{node['bcpc']['ceph']['volumes']['name']}-#{type} #{optimal}
-            ceph osd pool set #{node['bcpc']['ceph']['volumes']['name']}-#{type} crush_ruleset #{(type=="ssd") ? node['bcpc']['ceph']['ssd']['ruleset'] : node['bcpc']['ceph']['hdd']['ruleset']}
-        EOH
-        not_if "rados lspools | grep #{node['bcpc']['ceph']['volumes']['name']}-#{type}"
-        notifies :run, "bash[wait-for-pgs-creating]", :immediately
+
+  bash "create-cinder-rados-pool-#{type}" do
+
+    ceph          = node['bcpc']['ceph']
+
+    pool_name     = ceph['volumes']['name'] + '-' + type
+    pgs_per_node  = ceph['pgs_per_node']
+    vol_replicas  = ceph['volumes']['replicas']
+    vol_portions  = ceph['volumes']['portion']
+    pools_len     = ceph['enabled_pools'].length
+    ceph_osd_len  = get_ceph_osd_nodes.length
+    crush_rule    = node['bcpc']['ceph'][type]['ruleset']
+
+    optimal       = ceph_osd_len * pgs_per_node
+    optimal       = optimal / vol_replicas
+    optimal       = optimal * vol_portions / 100 / pools_len
+    optimal       = power_of_2(optimal)
+
+    code <<-EOH
+      ceph osd pool create #{pool_name} #{optimal} #{optimal} #{crush_rule}
+    EOH
+
+    not_if "rados lspools | grep #{pool_name}"
+    notifies :run, "bash[wait-for-pgs-creating]", :immediately
+  end
+
+  bash "set-cinder-rados-pool-replicas-#{type}" do
+    name = "#{node['bcpc']['ceph']['volumes']['name']}-#{type}"
+
+    ceph_osd_len  = search_nodes("recipe", "ceph-osd").length
+    vol_replicas  = node['bcpc']['ceph']['volumes']['replicas']
+    replicas      = [ceph_osd_len, vol_replicas].min
+
+    if replicas < 1; then
+        replicas = 1
     end
 
-    bash "set-cinder-rados-pool-replicas-#{type}" do
-        user "root"
-        replicas = [search_nodes("recipe", "ceph-osd").length, node['bcpc']['ceph']['volumes']['replicas']].min
-        if replicas < 1; then
-            replicas = 1
-        end
-        code "ceph osd pool set #{node['bcpc']['ceph']['volumes']['name']}-#{type} size #{replicas}"
-        not_if "ceph osd pool get #{node['bcpc']['ceph']['volumes']['name']}-#{type} size | grep #{replicas}"
-    end
+    code "ceph osd pool set #{name} size #{replicas}"
+    not_if "ceph osd pool get #{name} size | grep #{replicas}"
+  end
 
-    (node['bcpc']['ceph']['pgp_auto_adjust'] ? %w{pg_num pgp_num} : %w{pg_num}).each do |pg|
-        bash "set-cinder-rados-pool-#{pg}-#{type}" do
-            user "root"
-            optimal = power_of_2(get_ceph_osd_nodes.length*node['bcpc']['ceph']['pgs_per_node']/node['bcpc']['ceph']['volumes']['replicas']*node['bcpc']['ceph']['volumes']['portion']/100/node['bcpc']['ceph']['enabled_pools'].length)
-            code "ceph osd pool set #{node['bcpc']['ceph']['volumes']['name']}-#{type} #{pg} #{optimal}"
-            only_if { %x[ceph osd pool get #{node['bcpc']['ceph']['volumes']['name']}-#{type} #{pg} | awk '{print $2}'].to_i < optimal }
-            notifies :run, "bash[wait-for-pgs-creating]", :immediately
-        end
+  auto_adjust = ['pg_num']
+
+  if node['bcpc']['ceph']['pgp_auto_adjust']
+    auto_adjust.push('pgp_num')
+  end
+
+  auto_adjust.each do |pg|
+    bash "set-cinder-rados-pool-#{pg}-#{type}" do
+      name = "#{node['bcpc']['ceph']['volumes']['name']}-#{type}"
+
+      osd_node_len      = get_ceph_osd_nodes.length
+      pgs_per_node      = node['bcpc']['ceph']['pgs_per_node']
+      vol_replicas      = node['bcpc']['ceph']['volumes']['replicas']
+      vol_portion       = node['bcpc']['ceph']['volumes']['portion']
+      enabled_pool_len  = node['bcpc']['ceph']['enabled_pools'].length
+
+      optimal = osd_node_len * pgs_per_node
+      optimal = optimal / vol_replicas
+      optimal = optimal * vol_portion
+      optimal = optimal / 100
+      optimal = optimal / enabled_pool_len
+
+      code "ceph osd pool set #{name} #{pg} #{optimal}"
+
+      only_if { %x[ceph osd pool get #{name} #{pg} | awk '{print $2}'].to_i < optimal }
+      notifies :run, "bash[wait-for-pgs-creating]", :immediately
     end
+  end
+
 end
 
-package 'cinder-common' do
-  action :upgrade
-end
 
-%w{cinder-api cinder-volume cinder-scheduler}.each do |pkg|
+%w{cinder-api cinder-volume cinder-scheduler cinder-common}.each do |pkg|
   package pkg do
     action :upgrade
   end
+end
 
+%w{cinder-volume cinder-scheduler}.each do |pkg|
   service pkg do
     action [:enable, :start]
   end
@@ -91,6 +469,15 @@ end
 service "cinder-api" do
     restart_command "service cinder-api restart; sleep 5"
     action :restart
+end
+
+template "/etc/apache2/conf-available/cinder-wsgi.conf" do
+  source "cinder/cinder-wsgi.conf.erb"
+  variables(
+    :processes => node['bcpc']['cinder']['wsgi']['processes'],
+    :threads   => node['bcpc']['cinder']['wsgi']['threads']
+  )
+  notifies :restart, "service[cinder-api]", :immediately
 end
 
 template "/etc/cinder/cinder.conf" do

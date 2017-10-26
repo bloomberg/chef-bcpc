@@ -4,195 +4,64 @@
 #
 ################################################
 
+# for an overview of all the available configuration options
+# go to: https://docs.openstack.org/glance/pike/configuration/glance_api.html
+#
 [DEFAULT]
-verbose = <%= node['bcpc']['glance']['verbose'] %>
 debug = <%= node['bcpc']['glance']['debug'] %>
-default_store = rbd
-known_stores = glance.store.rbd.Store
-#image_size_cap = 1099511627776
+show_image_direct_url = true
+enable_v1_api = false
+enable_v2_api = true
 bind_host = <%=node['bcpc']['management']['ip']%>
 bind_port = 9292
-log_file = /var/log/glance/api.log
-backlog = 4096
-#tcp_keepidle = 600
-# data_api = glance.db.sqlalchemy.api
 workers = <%= node['bcpc']['glance']['workers'] %>
-# max_header_line = 16384
 admin_role = <%=node['bcpc']['keystone']['admin_role']%>
-#allow_anonymous_access = False
-# v1 API must remain on even in Liberty
-enable_v1_api = True
-enable_v2_api = True
-show_image_direct_url = True
-#send_identity_headers = False
-#container_formats=ami,ari,aki,bare,ovf,ova
-#disk_formats=ami,ari,aki,vhd,vmdk,raw,qcow2,vdi,iso
-#property_protection_file =
-#property_protection_rule_format = roles
-# task_time_to_live = 48
-#location_strategy = location_order
-#use_syslog = False
-#syslog_log_facility = LOG_LOCAL0
-#cert_file = /path/to/certfile
-#key_file = /path/to/keyfile
-# ca_file = /etc/ssl/certs/ssl-bcpc.pem
-#metadata_encryption_key = <16, 24 or 32 char registry metadata key>
-registry_host = <%=node['bcpc']['management']['vip']%>
+image_cache_dir = /var/lib/glance/image-cache/
+registry_host = <%= node['bcpc']['management']['vip'] %>
 registry_port = 9191
 registry_client_protocol = <%= node['bcpc']['protocol']['glance'] %>
-#registry_client_key_file = /path/to/key/file
-#registry_client_cert_file = /path/to/cert/file
-# registry_client_ca_file = /etc/ssl/certs/ssl-bcpc.pem
-#registry_client_insecure = False
-#registry_client_timeout = 600
-#db_auto_create = False
-#sqlalchemy_debug = True
-notifier_strategy = rabbit
-#notification_driver = noop
-#default_publisher_id = image.localhost
-#qpid_notification_exchange = glance
-#qpid_notification_topic = notifications
-#qpid_hostname = localhost
-#qpid_port = 5672
-#qpid_username =
-#qpid_password =
-#qpid_sasl_mechanisms =
-#qpid_reconnect_timeout = 0
-#qpid_reconnect_limit = 0
-#qpid_reconnect_interval_min = 0
-#qpid_reconnect_interval_max = 0
-#qpid_reconnect_interval = 0
-#qpid_heartbeat = 5
-# Set to 'ssl' to enable SSL
-#qpid_protocol = tcp
-#qpid_tcp_nodelay = True
+log_file = /var/log/glance/api.log
+transport_url = rabbit://<%= @servers.map{|x| 'guest:' + get_config('rabbitmq-password') + '@' + x['bcpc']['management']['ip'] + ":5672"}.join(',') %>
 
-# ============ Swift Store Options =============================
-swift_store_auth_version = 2
-swift_store_auth_address = 127.0.0.1:5000/v2.0/
-swift_store_user = jdoe:jdoe
-swift_store_key = a86850deb2742ec3cb41518e26aa2d89
-swift_store_container = glance
-swift_store_create_container_on_put = False
-swift_store_large_object_size = 5120
-swift_store_large_object_chunk_size = 200
-swift_enable_snet = False
-#swift_store_multi_tenant = False
-#swift_store_admin_tenants =
-#swift_store_region =
-#swift_store_ssl_compression = True
-#swift_store_retry_get_count = 0
 
-# ============ S3 Store Options =============================
-s3_store_host = 127.0.0.1:8080/v1.0/
-s3_store_access_key = <20-char AWS access key>
-s3_store_secret_key = <40-char AWS secret key>
-s3_store_bucket = <lowercased 20-char aws access key>glance
-s3_store_create_bucket_on_put = False
-#s3_store_object_buffer_dir = /path/to/dir
-#s3_store_bucket_url_format = subdomain
+[database]
+connection = mysql+pymysql://<%=get_config('glance-db-user')%>:<%=get_config('glance-db-password')%>@<%=node['bcpc']['mysql-head']['service_hostname']%>/<%=node['bcpc']['dbname']['glance']%>
+max_pool_size=<%= node['bcpc']['glance']['database']['max_pool_size'] %>
+max_overflow=<%= node['bcpc']['glance']['database']['max_overflow'] %>
 
-# ============ Sheepdog Store Options =============================
-sheepdog_store_address = localhost
-sheepdog_store_port = 7000
-sheepdog_store_chunk_size = 64
 
-# ============ Cinder Store Options ===============================
-#cinder_catalog_info = volume:cinder:publicURL
-#cinder_endpoint_template = <None>
-#os_region_name = <None>
-# cinder_ca_certificates_file = /etc/ssl/certs/ssl-bcpc.pem
-#cinder_http_retries = 3
-#cinder_api_insecure = False
-
-# ============ VMware Datastore Store Options =====================
-#vmware_server_host = <None>
-#vmware_server_username = <None>
-#vmware_server_password = <None>
-#vmware_datacenter_path = <None>
-#vmware_datastore_name = <None>
-#vmware_api_retry_count = 10
-#vmware_task_poll_interval = 5
-#vmware_store_image_dir = /openstack_glance
-#vmware_api_insecure = False
-
-# ============ Delayed Delete Options =============================
-delayed_delete = False
-scrub_time = 43200
-scrubber_datadir = /var/lib/glance/scrubber
-
-# =============== Quota Options ==================================
-#image_member_quota = 128
-#image_property_quota = 128
-#image_tag_quota = 128
-#image_location_quota = 10
-#user_storage_quota = 0
-
-# =============== Image Cache Options =============================
-image_cache_dir = /var/lib/glance/image-cache/
-
-# ============ RBD Store Options ========================
 [glance_store]
-default_store = rbd
 stores = rbd
+default_store = rbd
 rbd_store_pool = <%=node['bcpc']['ceph']['images']['name']%>
 rbd_store_user = glance
 rbd_store_ceph_conf = /etc/ceph/ceph.conf
-rbd_store_chunk_size = 8
 
-[oslo_concurrency]
-# Directory to use for lock files. Default to a temp directory
-# (string value). This setting needs to be the same for both
-# glance-scrubber and glance-api.
-lock_path = /var/lock/glance/
 
-[oslo_messaging_rabbit]
-# Configuration options if sending notifications via rabbitmq (these are
-# the defaults)
-#rabbit_host = <%=node['bcpc']['management']['vip']%>
-rabbit_hosts=<%=get_shuffled_servers(@servers, prefer_local=true).map{|x| x['bcpc']['management']['ip'] + ":5672"}.join(',')%>
-rabbit_port = 5672
-rabbit_use_ssl = false
-rabbit_userid = guest
-rabbit_password = <%=get_config('rabbitmq-password')%>
-rabbit_virtual_host = /
-rabbit_notification_exchange = glance
-rabbit_notification_topic = notifications
-heartbeat_timeout_threshold=<%=node['bcpc']['rabbitmq']['heartbeat']%>
-amqp_durable_queues = <%=node['bcpc']['rabbitmq']['durable_queues']%>
+[image_format]
+container_formats = ami,ari,aki,bare,ovf,ova,docker
+disk_formats = ami,ari,aki,vhd,vhdx,vmdk,raw,qcow2,vdi,iso,ploop.root-tar
 
-# =============== Database Options =================================
-
-[database]
-#sqlite_db = /var/lib/glance/glance.sqlite
-#sqlite_synchronous = True
-backend = sqlalchemy
-connection = mysql://<%=get_config('mysql-glance-user')%>:<%=get_config('mysql-glance-password')%>@<%=node['bcpc']['management']['vip']%>/<%=node['bcpc']['dbname']['glance']%>
-max_overflow=<%= node['bcpc']['glance']['database']['max_overflow'] %>
-max_pool_size=<%= node['bcpc']['glance']['database']['max_pool_size'] %>
-#mysql_sql_mode = TRADITIONAL
-#idle_timeout = 3600
-#min_pool_size = 1
-#max_retries = 10
-#retry_interval = 10
-#connection_debug = 0
-#connection_trace = False
-#pool_timeout = <None>
-#use_db_reconnect = False
-#db_retry_interval = 1
-#db_inc_retry_interval = True
-#db_max_retry_interval = 10
-#db_max_retries = 20
 
 [keystone_authtoken]
-<% snippet = 'keystone/keystone_authtoken.snippet.erb' %>
-<%# add the node for chef nonsense... see https://github.com/chef/chef/issues/1506 %>
-<% vars = @partials[snippet]['variables'].merge({node: @node}) %>
-<%= render snippet, :variables => vars %>
-signing_dir = /var/lib/glance
+auth_uri = <%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:5000/v2.0/
+auth_url = <%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:35357
+memcached_servers = <%= @servers.map{|x| x['bcpc']['management']['ip'] + ":11211"}.join(',') %>
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = <%= get_config('glance-os-user') %>
+password = <%= get_config('glance-os-password') %>
+
+
+[oslo_concurrency]
+lock_path = /var/lock/glance
+
+
+[oslo_messaging_rabbit]
+amqp_durable_queues = <%=node['bcpc']['rabbitmq']['durable_queues']%>
+
 
 [paste_deploy]
 flavor = keystone
-
-[store_type_location_strategy]
-#store_type_preference =

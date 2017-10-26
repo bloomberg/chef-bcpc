@@ -1,0 +1,21 @@
+CREATE DATABASE IF NOT EXISTS <%= @nova_db %>;
+CREATE DATABASE IF NOT EXISTS <%= @nova_api_db %>;
+CREATE DATABASE IF NOT EXISTS nova_cell0;
+
+GRANT ALL PRIVILEGES ON <%= @nova_db %>.* TO '<%= @nova_db_user %>'@'localhost' \
+  IDENTIFIED BY '<%= @nova_db_password %>';
+
+GRANT ALL PRIVILEGES ON <%= @nova_db %>.* TO '<%= @nova_db_user %>'@'%' \
+  IDENTIFIED BY '<%= @nova_db_password %>';
+
+GRANT ALL PRIVILEGES ON <%= @nova_api_db %>.* TO '<%= @nova_db_user %>'@'localhost' \
+  IDENTIFIED BY '<%= @nova_db_password %>';
+
+GRANT ALL PRIVILEGES ON <%= @nova_api_db %>.* TO '<%= @nova_db_user %>'@'%' \
+  IDENTIFIED BY '<%= @nova_db_password %>';
+
+GRANT ALL PRIVILEGES ON nova_cell0.* TO '<%= @nova_db_user %>'@'localhost' \
+  IDENTIFIED BY '<%= @nova_db_password %>';
+
+GRANT ALL PRIVILEGES ON nova_cell0.* TO '<%= @nova_db_user %>'@'%' \
+  IDENTIFIED BY '<%= @nova_db_password %>';

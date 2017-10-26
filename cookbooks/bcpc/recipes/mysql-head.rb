@@ -19,21 +19,17 @@
 
 include_recipe "bcpc::packages-mysql"
 
-ruby_block "initialize-mysql-config" do
-    block do
-        make_config('mysql-root-user', "root")
-        make_config('mysql-root-password', secure_password)
-        make_config('mysql-galera-user', "sst")
-        make_config('mysql-galera-password', secure_password)
-        make_config('mysql-check-user', "check")
-        make_config('mysql-check-password', secure_password)
-    end
-end
+make_config('mysql-root-user', "root")
+make_config('mysql-root-password', secure_password)
+make_config('mysql-galera-user', "sst")
+make_config('mysql-galera-password', secure_password)
+make_config('mysql-check-user', "check")
+make_config('mysql-check-password', secure_password)
 
 ruby_block "initial-mysql-config" do
     block do
         %x[ mysql -u root -e "DELETE FROM mysql.user WHERE user='';"
-            mysql -u root -e "UPDATE mysql.user SET password=PASSWORD('#{get_config('mysql-root-password')}') WHERE user='root'; FLUSH PRIVILEGES;"
+            mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '#{get_config('mysql-root-password')}';"
             export MYSQL_PWD=#{get_config('mysql-root-password')};
             mysql -u root -e "UPDATE mysql.user SET host='%' WHERE user='root' and host='localhost'; FLUSH PRIVILEGES;"
             mysql -u root -e "GRANT USAGE ON *.* to #{get_config('mysql-galera-user')}@'%' IDENTIFIED BY '#{get_config('mysql-galera-password')}';"
@@ -42,7 +38,12 @@ ruby_block "initial-mysql-config" do
             mysql -u root -e "FLUSH PRIVILEGES;"
         ]
     end
-    not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT user from mysql.user where User=\"haproxy\"' >/dev/null" }
+    not_if {
+        system "MYSQL_PWD=#{get_config('mysql-root-password')} \
+                mysql -uroot -e 'SELECT user from mysql.user where \
+                User=\"#{get_config('mysql-check-user')}\"' | grep -q \
+                #{get_config('mysql-check-user')}"
+    }
 end
 
 include_recipe "bcpc::mysql-common"
@@ -126,7 +127,7 @@ template '/root/.my.cnf' do
   variables(
     lazy {
       {
-        :host         => node['bcpc']['management']['vip'],
+        :host         => node['bcpc']['mysql-head']['service_hostname'],
         :user_key     => 'mysql-root-user',
         :password_key => 'mysql-root-password'
       }
@@ -153,7 +154,7 @@ cron 'db-cleanup-daily' do
   user    'root'
   minute  '0'
   hour    '3'
-  command "/usr/local/bin/if_vip #{db_cleanup_script}"
+  command "/usr/local/bin/if_primary_mysql #{db_cleanup_script}"
 end
 
 template '/usr/local/bin/mysql_slow_query_check.sh' do

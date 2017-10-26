@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: powerdns-nova
 #
-# Copyright 2015, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #
 
 if node['bcpc']['enabled']['dns']
-  include_recipe "bcpc::nova-head"
 
   # this template replaces several old ruby_block resources and pre-seeds fixed entries into a template file to be loaded into MySQL
   fixed_records_file = "/tmp/powerdns_generate_fixed_records.sql"
@@ -41,9 +40,9 @@ if node['bcpc']['enabled']['dns']
       :cluster_domain     => node['bcpc']['cluster_domain'],
       :reverse_fixed_zones => reversed_zones.collect{ |rz| "'#{rz}'" }.join(',')
     })
-    notifies :run, 'ruby_block[powerdns-load-fixed-records]', :immediately
   end
 
+  # Omitting this psart until we know where to load these records into
   ruby_block "powerdns-load-fixed-records" do
     block do
       system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot #{node['bcpc']['dbname']['pdns']} < #{fixed_records_file}"
@@ -70,6 +69,6 @@ if node['bcpc']['enabled']['dns']
     minute "*/5"
     hour "*"
     weekday "*"
-    command "/usr/local/bin/if_vip /usr/local/bin/dns_fill.py -c /usr/local/etc/dns_fill.yml run"
+    command "/usr/local/bin/if_primary_mysql /usr/local/bin/dns_fill.py -c /usr/local/etc/dns_fill.yml run"
   end
 end

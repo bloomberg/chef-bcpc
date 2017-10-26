@@ -11,13 +11,13 @@ ip route add default via <%=@node["bcpc"]["management"]["gateway"]%> \
          table main \
          proto static
 
-ip route add <%=@node["bcpc"]["management"]["cidr"]%> \
+ip route add <%=@node["bcpc"]["management"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["management"]["interface"]%> \
          scope link src <%=@node["bcpc"]["management"]["ip"]%> \
          table main \
          proto static
 
-ip route add <%=@node["bcpc"]["storage"]["cidr"]%> \
+ip route add <%=@node["bcpc"]["storage"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["storage"]["interface"]%> \
          scope link src <%=@node["bcpc"]["storage"]["ip"]%> \
          table main \
@@ -30,7 +30,7 @@ ip route add default via <%=@node["bcpc"]["management"]["gateway"]%> \
          table mgmt \
          proto static
 
-ip route add <%=@node["bcpc"]["management"]["cidr"]%> \
+ip route add <%=@node["bcpc"]["management"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["management"]["interface"]%> \
          scope link src <%=@node["bcpc"]["management"]["ip"]%> \
          table mgmt \
@@ -91,8 +91,8 @@ ip rule add to <%= network["cidr"] %> pref <%= @fixed_pref %> table main
 # Activate this routing table for management traffic
 ip rule del pref 10000
 ip rule del pref 10001
-ip rule add from <%=@node["bcpc"]["management"]["cidr"]%> pref 10000 table mgmt
-ip rule add to <%=@node["bcpc"]["management"]["cidr"]%> pref 10001 table mgmt
+ip rule add from <%=@node["bcpc"]["management"]['aggregate']["cidr"]%> pref 10000 table mgmt
+ip rule add to <%=@node["bcpc"]["management"]['aggregate']["cidr"]%> pref 10001 table mgmt
 
 # Build routing table for storage network
 ip route flush table storage
@@ -101,7 +101,7 @@ ip route add default via <%=@node["bcpc"]["storage"]["gateway"]%> \
          table storage \
          proto static
 
-ip route add <%=@node["bcpc"]["storage"]["cidr"]%> \
+ip route add <%=@node["bcpc"]["storage"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["storage"]["interface"]%> \
          scope link src <%=@node["bcpc"]["storage"]["ip"]%> \
          table storage \
@@ -110,8 +110,8 @@ ip route add <%=@node["bcpc"]["storage"]["cidr"]%> \
 # Activate this routing table for storage traffic
 ip rule del pref 10002
 ip rule del pref 10003
-ip rule add from <%=@node["bcpc"]["storage"]["cidr"]%> pref 10002 table storage
-ip rule add to <%=@node["bcpc"]["storage"]["cidr"]%> pref 10003 table storage
+ip rule add from <%=@node["bcpc"]["storage"]['aggregate']["cidr"]%> pref 10002 table storage
+ip rule add to <%=@node["bcpc"]["storage"]['aggregate']["cidr"]%> pref 10003 table storage
 
 # Drop all routes to other networks from the main routing table
 # XXX: The following line is intentionally duplicated to remove multiple default routes
@@ -121,10 +121,10 @@ ip route del default dev <%=@node["bcpc"]["management"]["interface"]%> \
          table main
 ip route del default dev <%=@node["bcpc"]["storage"]["interface"]%> \
          table main
-ip route del <%=@node["bcpc"]["management"]["cidr"]%> \
+ip route del <%=@node["bcpc"]["management"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["management"]["interface"]%> \
          table main
-ip route del <%=@node["bcpc"]["storage"]["cidr"]%> \
+ip route del <%=@node["bcpc"]["storage"]['aggregate']["cidr"]%> \
          dev <%=@node["bcpc"]["storage"]["interface"]%> \
          table main
 

@@ -41,12 +41,23 @@ action :create do
       'disk' => :disk_gb,
       'ram' => :memory_mb,
       'OS-FLV-EXT-DATA:ephemeral' => :ephemeral_gb,
+      'properties' => :properties,
       'swap' => :swap_gb,
       'vcpus' => :vcpus
     }.each do |flavor_attr, resource_attr|
+      if flavor_attr == 'properties' and flavor_info[flavor_attr] != ""
+        current_properties = {}
+        flavor_info[flavor_attr].split(', ').each do |x|
+          kv = x.split('=')
+          current_properties[kv[0].to_s] = kv[1].to_s.gsub("'", '')
+        end
+        if current_properties != @new_resource.send(resource_attr)
+          need_to_delete = true
+          need_to_converge = true
+        end
       # special callout for swap because the flavor provider translates 0 into ""
       # which we should consider equal to Fixnum 0 for comparison purposes
-      if flavor_attr == 'swap' and flavor_info[flavor_attr] == "" and @new_resource.send(resource_attr) == 0
+      elsif flavor_attr == 'swap' and flavor_info[flavor_attr] == "" and @new_resource.send(resource_attr) == 0
         ; # do nothing
       elsif flavor_info[flavor_attr] != @new_resource.send(resource_attr)
         need_to_delete = true
@@ -67,41 +78,44 @@ action :create do
   if need_to_converge
     converge_by("Creating #{@new_resource.name}") do
       ispub = @new_resource.is_public ? "--public" : "--private"
-      stdout, status = Open3.capture2( *(args + ["flavor", "create", @new_resource.name , "-f", "json",
+      stdout, status = Open3.capture2( *(args + ["flavor", "create", "-f", "json",
                                                  "--ram=#{@new_resource.memory_mb}",
                                                  "--disk=#{@new_resource.disk_gb}",
                                                  "--ephemeral=#{@new_resource.ephemeral_gb}",
                                                  "--swap=#{@new_resource.swap_gb}",
                                                  "--vcpus=#{@new_resource.vcpus}",
                                                  "--id=#{@new_resource.flavor_id}",
-                                                 "#{ispub}"]
+                                                 "#{ispub}", @new_resource.name]
                                         ) )
       Chef::Log.error "Failed to create flavor: #{stdout} | #{stderr}" unless status.success?
     end
   end
 
-  # The openstack CLI doesn't have a way today (kilo) to get the extra_specs
-  # so fall back to nova CLI.
-  stdout, stderr, status = Open3.capture3(*(nova_cli + ["flavor-show",  @new_resource.name] ))
+  stdout, stderr, status = Open3.capture3(*(openstack_cli + ["flavor", "show", "-f", "json", "-c", "properties", @new_resource.name] ))
   if not status.success?
     Chef::Log.error "Failed to get flavor info: #{stdout} | #{stderr}"
     raise("Unable to get flavor info.")
   end
 
-  line = stdout.split("\n").select { |x| x.include? " extra_specs "}
-  if line.nil? or line.empty?
-    raise("No extra_specs line in 'nova flavor-show'")
+  line = JSON.parse(stdout)
+  unless line.key?('properties')
+    raise("No properties line in 'openstack flavor show'")
   end
 
-  current_specs = JSON.parse(line[0].split("|")[2])
-  new_specs = current_specs.clone
-  @new_resource.extra_specs.each { |k, v| new_specs[k.to_s] = v.to_s }
+  current_properties = {}
+  line['properties'].split(', ').each do |x|
+    kv = x.split('=')
+    current_properties[kv[0].to_s] = kv[1].to_s.gsub("'", '')
+  end
+  new_properties = current_properties.clone
+  @new_resource.properties.each { |k, v| new_properties[k.to_s] = v.to_s }
 
-  if current_specs != new_specs
-    converge_by("Update flavor extra_specs") do
-      kvp = new_specs.collect { |k,v| k + "=" + v}
-      stdout, stderr, status = Open3.capture3(*(nova_cli + ["flavor-key",  @new_resource.name, "set"] + kvp ))
-      Chef::Log.error "Failed to update flavor extra_specs: #{stdout} | #{stderr}" unless status.success?
+  args = []
+  if current_properties != new_properties
+    converge_by("Update flavor properties") do
+      kvp = new_properties.collect { |k,v| args += ['--property', k + "=" + v] }
+      stdout, stderr, status = Open3.capture3(*(openstack_cli + ["flavor", "set"] + args + [@new_resource.name]))
+      Chef::Log.error "Failed to update flavor properties: #{stdout} | #{stderr}" unless status.success?
     end
   end
 end

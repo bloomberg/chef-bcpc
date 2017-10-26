@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: glance
 #
-# Copyright 2015, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,249 +16,279 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+mysql_root_user     = get_config('mysql-root-user')
+mysql_root_password = get_config('mysql-root-password')
 
-include_recipe "bcpc::mysql-head"
-include_recipe "bcpc::ceph-head"
-include_recipe "bcpc::openstack"
+glance_db = node['bcpc']['dbname']['glance']
+glance_db_user = make_config('glance-db-user', "glance")
+glance_db_password = make_config('glance-db-password', secure_password())
 
-ruby_block "initialize-glance-config" do
-    block do
-        make_config('mysql-glance-user', "glance")
-        make_config('mysql-glance-password', secure_password)
-        make_config('keystone-glance-password', secure_password)
-    end
+glance_os_user = make_config('glance-os-user', "glance")
+glance_os_password = make_config('glance-os-password', secure_password())
+
+admin_role = node['bcpc']['keystone']['admin_role']
+service_project = node['bcpc']['keystone']['service_project']['name']
+region = node['bcpc']['region_name']
+
+
+# create client.glance ceph user and keyring starts
+#
+execute 'get or create client.glance user/keyring' do
+  command <<-EOH
+    ceph auth get-or-create client.glance \
+      mon 'allow r' \
+      osd 'allow class-read object_prefix rbd_children, \
+           allow rwx pool=images' \
+      -o /etc/ceph/ceph.client.glance.keyring
+  EOH
+  creates '/etc/ceph/ceph.client.glance.keyring'
+end
+#
+# create client.glance ceph user and keyring ends
+
+
+# create/configure glance openstack user starts
+#
+execute "create the glance user" do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack user create \
+      --domain default \
+      --password #{glance_os_password} \
+      #{glance_os_user}
+  EOH
+
+  not_if "openstack user show \
+    --domain default #{glance_os_user}
+  "
 end
 
-%w{glance glance-api glance-registry}.each do |pkg|
-  package pkg do
-    action :upgrade
+execute "add admin role to the glance user" do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack role add \
+      --project #{service_project} \
+      --user #{glance_os_user} \
+      #{admin_role}
+  EOH
+
+  not_if "
+    openstack role assignment list \
+      --role #{admin_role} \
+      --user #{glance_os_user} \
+      --project #{service_project} \
+      --names | grep #{glance_os_user}
+  "
+end
+#
+# create/configure glance openstack user ends
+
+
+# create image service and endpoints starts
+#
+begin
+  type = 'image'
+  service = node['bcpc']['catalog'][type]
+  project = service['project']
+
+  execute "create the #{project} #{type} service" do
+    environment (os_adminrc())
+
+    name = service['name']
+    desc = service['description']
+
+    command <<-EOH
+      openstack service create \
+        --name "#{name}" --description "#{desc}" #{type}
+    EOH
+
+    not_if "openstack service list | grep #{type}"
   end
-end
 
-%w{glance-api glance-registry}.each do |svc|
-    service svc do
-        action [:enable, :start]
+  %w(admin internal public).each{|uri|
+
+    url = generate_service_catalog_uri(service,uri)
+
+    execute "create the #{project} #{type} #{uri} endpoint" do
+      environment (os_adminrc())
+
+      command <<-EOH
+        openstack endpoint create \
+          --region #{region} #{type} #{uri} '#{url}'
+      EOH
+
+      not_if "openstack endpoint list \
+        | grep #{type} | grep #{uri}
+      "
     end
-end
-
-service "glance-api" do
-    restart_command "service glance-api restart; sleep 5"
-end
-
-ruby_block 'wait-for-keystone-to-become-operational' do
-  keystone_timeout = node['bcpc']['keystone']['wait_for_keystone_timeout']
-  block do
-    begin
-      Timeout.timeout(keystone_timeout) do
-        until execute_in_keystone_admin_context('openstack region list')
-          sleep 1
-        end
-      end
-    rescue Timeout::Error
-      raise 'Timeout waiting for keystone to become operational'
-    end
-  end
-end
-
-# Configure the glance keystone bits
-# https://docs.openstack.org/mitaka/install-guide-ubuntu/glance-install.html
-domain = node['bcpc']['keystone']['service_project']['domain']
-glance_username = 'glance'
-glance_project_name = node['bcpc']['keystone']['service_project']['name']
-admin_role_name = node['bcpc']['keystone']['admin_role']
-
-ruby_block 'keystone-create-glance-user' do
-  block do
-    cmd = "openstack user create --domain #{domain} " +
-          "--password #{get_config('keystone-glance-password')} #{glance_username}"
-    execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack user show --domain #{domain} #{glance_username}"
-    execute_in_keystone_admin_context(cmd)
   }
 end
+#
+# create image service and endpoints ends
 
-ruby_block 'keystone-assign-glance-admin-role' do
-  opts = [
-    "--user-domain #{domain}",
-    "--project-domain #{domain}",
-    "--user #{glance_username}",
-    "--project #{glance_project_name}"
-  ]
-  block do
-    cmd = "openstack role add " + opts.join(' ') + ' ' + admin_role_name
-    execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = 'openstack role assignment list '
-    g_opts = opts + [
-      '-f value -c Role',
-      "--role #{admin_role_name}",
-      "| grep ^#{get_keystone_role_id(admin_role_name)}$"
-    ]
-    cmd += g_opts.join(' ')
-    execute_in_keystone_admin_context(cmd)
-  }
+
+# glance package installation and service definition starts
+#
+package 'glance'
+package "qemu-utils"
+
+service 'glance-api'
+#
+# glance package installation and service definition ends
+
+
+# update file permisssions on ceph.client.glance.keyring to allow the
+# glance user to use ceph
+#
+file '/etc/ceph/ceph.client.glance.keyring' do
+  mode '0640'
+  owner 'root'
+  group 'glance'
 end
 
-template "/etc/glance/glance-api.conf" do
-    source "glance/glance-api.conf.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    variables(
-      lazy {
-        {
-          :servers => get_head_nodes,
-          :partials => {
-            "keystone/keystone_authtoken.snippet.erb" => {
-              "variables" => {
-                username: node['bcpc']['glance']['user'],
-                password: get_config('keystone-glance-password')
-              }
-            }
-          }
-        }
-      }
-    )
-    notifies :restart, "service[glance-api]", :delayed
-    notifies :restart, "service[glance-registry]", :delayed
+
+# create/manage glance database starts
+#
+file '/tmp/glance-create-db.sql' do
+  action :nothing
 end
 
-template "/etc/glance/glance-registry.conf" do
-    source "glance/glance-registry.conf.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    notifies :restart, "service[glance-api]", :delayed
-    notifies :restart, "service[glance-registry]", :delayed
+template '/tmp/glance-create-db.sql' do
+  source 'glance/glance-create-db.sql.erb'
+  variables(
+    'glance_db' => glance_db,
+    'glance_db_user' => glance_db_user,
+    'glance_db_password' => glance_db_password
+  )
+  notifies :run, 'execute[create glance database]', :immediately
+  not_if "mysql -u #{mysql_root_user} \
+                -e 'show databases' | grep #{glance_db}",
+         :environment => {'MYSQL_PWD' => mysql_root_password}
 end
 
-template "/etc/glance/glance-scrubber.conf" do
-    source "glance/glance-scrubber.conf.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    notifies :restart, "service[glance-api]", :delayed
-    notifies :restart, "service[glance-registry]", :delayed
+execute 'create glance database' do
+  action :nothing
+  environment ({'MYSQL_PWD' => mysql_root_password})
+
+  command "mysql -u #{mysql_root_user} < /tmp/glance-create-db.sql"
+
+  notifies :delete, 'file[/tmp/glance-create-db.sql]', :immediately
+  notifies :create, 'template[/etc/glance/glance-api.conf]', :immediately
+  notifies :run, 'execute[glance-manage db_sync]', :immediately
 end
 
-template "/etc/glance/glance-cache.conf" do
-    source "glance/glance-cache.conf.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    notifies :restart, "service[glance-api]", :immediately
-    notifies :restart, "service[glance-registry]", :immediately
+execute 'glance-manage db_sync' do
+  action :nothing
+  command <<-EOH
+    su -s /bin/sh -c "glance-manage db_sync" glance
+  EOH
+end
+#
+# create/manage glance database ends
+
+# install and configure components starts
+#
+template '/etc/glance/glance-api.conf' do
+  source 'glance/glance-api.conf.erb'
+  variables(
+    'servers' => get_head_nodes()
+  )
+  notifies :restart, 'service[glance-api]', :immediately
 end
 
 template "/etc/glance/policy.json" do
-    source "glance/glance-policy.json.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    variables(:policy => JSON.pretty_generate(node['bcpc']['glance']['policy']))
-end
-
-# Write out glance openrc
-template '/root/openrc-glance' do
-  source 'keystone/openrc.erb'
+  source "glance-policy.json.erb"
+  owner 'glance'
+  group 'glance'
   mode '0600'
+
   variables(
-    lazy {
-      {
-        username: glance_username,
-        password: get_config('keystone-glance-password'),
-        project_name: glance_project_name,
-        domain: domain
-      }
-    }
+    'policy' => JSON.pretty_generate(node['bcpc']['glance']['policy'])
   )
 end
+#
+# install and configure components ends
 
-ruby_block "glance-database-creation" do
-    block do
-        %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
-            mysql -uroot -e "CREATE DATABASE #{node['bcpc']['dbname']['glance']};"
-            mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['glance']}.* TO '#{get_config('mysql-glance-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-glance-password')}';"
-            mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['glance']}.* TO '#{get_config('mysql-glance-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-glance-password')}';"
-            mysql -uroot -e "FLUSH PRIVILEGES;"
-        ]
-        self.notifies :run, "bash[glance-database-sync]", :immediately
-        self.resolve_notification_references
-    end
-    not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['glance']}\"'|grep \"#{node['bcpc']['dbname']['glance']}\" >/dev/null" }
+execute 'wait for glance to come online' do
+  environment (os_adminrc())
+  retries 15
+  command 'openstack image list'
 end
 
-ruby_block 'update-glance-db-schema' do
-  block do
-    self.notifies :run, "bash[glance-database-sync]", :immediately
-    self.resolve_notification_references
-  end
-  only_if { ::File.exist?('/usr/local/etc/openstack_upgrade') }
+images_pool = node['bcpc']['ceph']['images']
+
+bash "create-rados-pool-#{images_pool['name']}" do
+  name      = images_pool['name']
+  type      = images_pool['type']
+  rule      = node['bcpc']['ceph'][type]['rule']
+  pg_count  = get_ceph_optimal_pg_count(name)
+  pgp_count = pg_count
+
+  code <<-EOH
+    ceph osd pool create #{name} #{pg_count} #{pgp_count} #{rule}
+    sleep 15
+  EOH
+
+  not_if "ceph osd lspools | grep #{name}"
 end
 
-bash "glance-database-sync" do
-    action :nothing
-    # TODO(kmidzi): why is this run as root?
-    user "root"
-    code "glance-manage db_sync"
-    notifies :restart, "service[glance-api]", :immediately
-    notifies :restart, "service[glance-registry]", :immediately
+bash "set rados-pool-#{images_pool['name']} pool replication" do
+  name      = images_pool['name']
+  rep_count = get_ceph_replica_count('images')
+
+  code <<-EOH
+    ceph osd pool set #{name} size #{rep_count}
+  EOH
+
+  not_if "ceph osd pool get #{name} size | grep #{rep_count}"
 end
 
-# Note, glance connects to ceph using client.glance, but we have already generated
-# the key for that in ceph-head.rb, so by now we should have it in /etc/ceph/ceph.client.glance.key
-
-ruby_block "create-glance-rados-pool" do
-  block do
-    crush_ruleset = (node['bcpc']['ceph']['images']['type'] == "ssd") ? node['bcpc']['ceph']['ssd']['ruleset'] : node['bcpc']['ceph']['hdd']['ruleset']
-    %x(
-      ceph osd pool create #{node['bcpc']['ceph']['images']['name']} #{get_ceph_optimal_pg_count('images')};
-      ceph osd pool set #{node['bcpc']['ceph']['images']['name']} crush_ruleset #{crush_ruleset}
-    )
-  end
-  not_if "rados lspools | grep #{node['bcpc']['ceph']['images']['name']}"
-  notifies :run, "bash[wait-for-pgs-creating]", :immediately
-end
-
-
-ruby_block "set-glance-rados-pool-replicas" do
-  block do
-    %x(ceph osd pool set #{node['bcpc']['ceph']['images']['name']} size #{get_ceph_replica_count('images')})
-  end
-  not_if "ceph osd pool get #{node['bcpc']['ceph']['images']['name']} size | grep #{get_ceph_replica_count('images')}"
-end
 
 (node['bcpc']['ceph']['pgp_auto_adjust'] ? %w{pg_num pgp_num} : %w{pg_num}).each do |pg|
+
+  name = images_pool['name']
+
   ruby_block "set-glance-rados-pool-#{pg}" do
     block do
-      %x(ceph osd pool set #{node['bcpc']['ceph']['images']['name']} #{pg} #{get_ceph_optimal_pg_count('images')})
+      %x(ceph osd pool set #{name} #{pg} #{get_ceph_optimal_pg_count('images')})
     end
-    only_if { %x[ceph osd pool get #{node['bcpc']['ceph']['images']['name']} #{pg} | awk '{print $2}'].to_i < get_ceph_optimal_pg_count('images') }
-    notifies :run, "bash[wait-for-pgs-creating]", :immediately
+    only_if { %x[ceph osd pool get #{name} #{pg} | awk '{print $2}'].to_i < get_ceph_optimal_pg_count('images') }
   end
 end
 
+
+# create/upload cirros image starts
+#
 cookbook_file "/tmp/cirros-0.3.4-x86_64-disk.img" do
-    source "cirros-0.3.4-x86_64-disk.img"
-    cookbook 'bcpc-binary-files'
-    owner "root"
-    mode "0444"
+  source "cirros-0.3.4-x86_64-disk.img"
+  cookbook 'bcpc-binary-files'
+
+  notifies :run, 'execute[convert cirros image]', :immediately
+  not_if 'openstack image list | grep -i cirros', :environment => os_adminrc()
 end
 
-package "qemu-utils"
+execute 'convert cirros image' do
+  action :nothing
 
-bash "glance-cirros-image" do
-    user "root"
-    code <<-EOH
-        . /root/openrc-glance
-        . /root/api_versionsrc
-        qemu-img convert -f qcow2 -O raw /tmp/cirros-0.3.4-x86_64-disk.img /tmp/cirros-0.3.4-x86_64-disk.raw
-        glance image-create --name='Cirros 0.3.4 x86_64' --visibility=public --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw
-    EOH
-    not_if ". /root/openrc-glance; glance image-list | grep 'Cirros 0.3.4 x86_64'"
+  command <<-EOH
+    qemu-img convert -f qcow2 -O raw \
+      /tmp/cirros-0.3.4-x86_64-disk.img /tmp/cirros-0.3.4-x86_64-disk.raw
+  EOH
+
+  notifies :run, 'execute[add cirros image]', :immediately
+end
+
+execute "add cirros image" do
+  environment (os_adminrc())
+  action :nothing
+
+  command <<-EOH
+    openstack image create 'Cirros 0.3.4 x86_64' \
+      --public --container-format=bare \
+      --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw
+  EOH
 end
 
 template "/etc/logrotate.d/glance-common" do

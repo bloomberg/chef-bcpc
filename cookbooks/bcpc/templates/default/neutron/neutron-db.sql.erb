@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS <%= @neutron_db %>;
+
+GRANT ALL PRIVILEGES ON <%= @neutron_db %>.* TO '<%= @neutron_db_user %>'@'localhost' \
+IDENTIFIED BY '<%= @neutron_db_password %>';
+
+GRANT ALL PRIVILEGES ON <%= @neutron_db %>.* TO '<%= @neutron_db_user %>'@'%' \
+IDENTIFIED BY '<%= @neutron_db_password %>';

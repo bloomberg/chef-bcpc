@@ -17,17 +17,7 @@
 # limitations under the License.
 #
 node['bcpc']['getty']['ttys'].each do |ttyname|
-  template "/etc/init/#{ttyname}.conf" do
-      source "init.ttyXX.erb"
-      owner "root"
-      group "root"
-      mode 00644
-      notifies :restart, "service[#{ttyname}]", :delayed
-      variables({ :ttyname => ttyname })
-  end
-
-  service "#{ttyname}" do
-      provider Chef::Provider::Service::Upstart
-      action [ :enable, :start ]
+  systemd_unit "getty@#{ttyname}.service" do
+    action [:enable, :start]
   end
 end

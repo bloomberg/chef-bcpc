@@ -87,9 +87,6 @@ default['bcpc']['nova']['policy'] = {
   "compute:security_groups:add_to_instance" => "rule:admin_or_owner",
   "compute:security_groups:remove_from_instance" => "rule:admin_or_owner",
 
-  "compute:delete" => "rule:admin_or_owner",
-  "compute:soft_delete" => "rule:admin_or_owner",
-  "compute:force_delete" => "rule:admin_or_owner",
   "compute:restore" => "rule:admin_or_owner",
 
   "compute:volume_snapshot_create" => "role:admin",

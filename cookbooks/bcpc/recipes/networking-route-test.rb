@@ -19,29 +19,29 @@
 
 if node['bcpc']['enabled']['network_tests'] then
 
+    systemd_unit 'routemon.service' do
+      content <<-EOH.gsub(/^\s+/, '')
+      [Unit]
+      Description=Route monitor for network interfaces
+      After=syslog.target network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/routemon.pl \
+        #{node['bcpc']['routemon']['numfixes']} \
+        #{node['bcpc']['management']['interface']} \
+        #{node['bcpc']['storage']['interface']}
+
+      [Install]
+      WantedBy=multi-user.target
+      EOH
+      action [:create, :enable]
+    end
+
     cookbook_file "/usr/local/bin/routemon.pl" do
         source "routemon.pl"
         owner "root"
         mode 00755
-        notifies :restart, "service[routemon]", :delayed
-    end
-
-    template "/etc/init/routemon.conf" do
-        source "routemon.conf.erb"
-        owner "root"
-        mode "0644"
-
-        # using a simple 'restart' here fails. Something is holding
-        # onto the command-line used to invoke routemon.pl too long so
-        # the service restarts with a stale numfixes parameter.
-        notifies :stop, "service[routemon]", :immediately
-        notifies :start, "service[routemon]", :delayed
-
-    end
-
-    service "routemon" do
-        provider Chef::Provider::Service::Upstart
-        action :start
+        notifies :restart, "systemd_unit[routemon.service]", :immediately
     end
 
 end

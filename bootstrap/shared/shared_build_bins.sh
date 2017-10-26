@@ -30,12 +30,12 @@ if [[ -d "$BUILD_CACHE_DIR" ]]; then
 fi
 
 # Install tools needed for packaging
-apt-get -y install git ruby-dev make pbuilder python-mock python-configobj python-support cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev libxml2-dev libxslt1-dev libpq-dev build-essential libssl-dev libffi-dev python-dev python-pip jq
+apt-get -y install git ruby-dev make pbuilder python-mock python-configobj cdbs python-all-dev python-stdeb libmysqlclient-dev libldap2-dev libxml2-dev libxslt1-dev libpq-dev build-essential libssl-dev libffi-dev python-dev python-pip jq
 
 # install fpm and support gems
 if [[ -z "$(gem list --local fpm | awk '/fpm/ {print $1}')" ]]; then
   pushd "$FILECACHE_MOUNT_POINT/fpm_gems/"
-  gem install -l --no-ri --no-rdoc arr-pm-0.0.10.gem backports-3.6.4.gem cabin-0.7.1.gem childprocess-0.5.6.gem clamp-0.6.5.gem ffi-1.9.8.gem fpm-1.3.3.gem json-1.8.2.gem
+  gem install -l --no-ri --no-rdoc arr-pm-0.0.10.gem backports-3.6.4.gem cabin-0.7.1.gem childprocess-0.5.6.gem clamp-1.0.0.gem coderay-1.1.0.gem diff-lcs-1.2.0.gem ffi-1.9.8.gem fpm-1.9.3.gem hashie-1.1.0.gem json-1.8.2.gem insist-1.0.0.gem io-like-0.3.0.gem method_source-0.9.0.gem minitar-0.6.1.gem minitar-cli-0.6.1.gem mustache-0.99.8.gem pleaserun-0.0.30.gem powerbar-1.0.18.gem pry-0.11.3.gem rspec-3.7.0.gem rspec-core-3.7.0.gem rspec-expectations-3.7.0.gem rspec-mocks-3.7.0.gem rspec-support-3.7.0.gem ruby-xz-0.2.3.gem stud-0.0.23.gem
   popd
 fi
 
@@ -55,11 +55,11 @@ if [[ ! -f cirros-0.3.4-x86_64-disk.img ]]; then
 fi
 FILES+="cirros-0.3.4-x86_64-disk.img $FILES"
 
-# Grab the Ubuntu 14.04 installer image
-if [[ ! -f ubuntu-14.04-mini.iso ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/ubuntu-14.04-mini.iso ubuntu-14.04-mini.iso
+# Grab the Ubuntu installer image
+if [[ ! -f ubuntu-16.04-mini.iso ]]; then
+  cp -v "$FILECACHE_MOUNT_POINT"/ubuntu-16.04-mini.iso ubuntu-16.04-mini.iso
 fi
-FILES="ubuntu-14.04-mini.iso $FILES"
+FILES="ubuntu-16.04-mini.iso $FILES"
 
 # Test if diamond package version is <= 3.x, which implies a BrightCoveOS source
 if [[ -f diamond.deb ]]; then
@@ -68,17 +68,18 @@ if [[ -f diamond.deb ]]; then
     fi
 fi
 # Make the diamond package
-if [[ ! -f diamond.deb ]]; then
-  git clone "$FILECACHE_MOUNT_POINT/python-diamond" Diamond &&
-  cd Diamond &&
-  git checkout "$VER_DIAMOND" &&
-  make builddeb &&
-  diamond_version=$(< version.txt) &&
-  cd .. &&
-  mv Diamond/build/diamond_"${diamond_version}"_all.deb diamond.deb &&
-  rm -rf Diamond || exit
-fi
-FILES="diamond.deb $FILES"
+# TODO either make build work on Xenial or install from pip?
+#if [[ ! -f diamond.deb ]]; then
+  #git clone "$FILECACHE_MOUNT_POINT/python-diamond" Diamond &&
+  #cd Diamond &&
+  #git checkout "$VER_DIAMOND" &&
+  #make builddeb &&
+  #diamond_version=$(< version.txt) &&
+  #cd .. &&
+  #mv Diamond/build/diamond_"${diamond_version}"_all.deb diamond.deb &&
+  #rm -rf Diamond || exit
+#fi
+#FILES="diamond.deb $FILES"
 
 if [[ ! -f elasticsearch-plugins.tgz ]]; then
   cp -r "$FILECACHE_MOUNT_POINT/elasticsearch-head" . &&
@@ -150,6 +151,36 @@ if [[ ! -f "$CALICOCTL_BINARY" ]]; then
   cp -v "$FILECACHE_MOUNT_POINT/$CALICOCTL_BINARY" .
 fi
 FILES="$CALICOCTL_BINARY $FILES"
+
+# Add Consul binary
+CONSUL_ZIP=consul_"${VER_CONSUL}_linux_amd64.zip"
+if [[ ! -f "$CONSUL_ZIP" ]]; then
+  cp -v "$FILECACHE_MOUNT_POINT/$CONSUL_ZIP" . &&
+  unzip -u $CONSUL_ZIP &&
+  rm -f $CONSUL_ZIP
+fi
+FILES="consul $FILES"
+
+# add etcd binary
+ETCD_TAR_GZ="etcd-${VER_ETCD}-linux-amd64.tar.gz"
+ETCD_DIR="etcd-${VER_ETCD}-linux-amd64"
+ETCD="${ETCD_DIR}/etcd"
+ETCDCTL="${ETCD_DIR}/etcdctl"
+if [[ ! -f "$ETCD_TAR_GZ" ]]; then
+  cp -v "$FILECACHE_MOUNT_POINT/$ETCD_TAR_GZ" .
+  tar -xzf $ETCD_TAR_GZ
+  cp "${ETCD}" .
+  cp "${ETCDCTL}" .
+  rm -rf $ETCD_TAR_GZ $ETCD_DIR
+fi
+FILES="etcd etcdctl $FILES"
+
+# add etcd3gw python library
+ETCD3GW_TAR_GZ="etcd3gw.tar.gz"
+if [[ ! -f ${ETCD3GW_TAR_GZ} ]]; then
+  cp -v "$FILECACHE_MOUNT_POINT"/${ETCD3GW_TAR_GZ} .
+fi
+FILES="${ETCD3GW_TAR_GZ} $FILES"
 
 # rsync build products with cache directory
 mkdir -p "$BUILD_CACHE_DIR" && rsync -avxSH "$(pwd -P)"/* "$BUILD_CACHE_DIR"
