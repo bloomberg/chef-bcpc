@@ -533,6 +533,15 @@ admin_username = node['bcpc']['keystone']['admin']['username']
 admin_project_domain = node['bcpc']['keystone']['admin']['project_domain']
 admin_user_domain = node['bcpc']['keystone']['admin']['user_domain']
 
+# For case... mostly migratory where ldap-backed domain already exists, sql-backed is added
+admin_config = {
+  sql: {
+    project_name: admin_project_name,
+    project_domain: admin_project_domain,
+    user_domain: admin_user_domain,
+    user_name: admin_username
+  },
+}
 # Create the domains
 ruby_block "keystone-create-domains" do
   block do
@@ -556,38 +565,32 @@ end
 
 ruby_block "keystone-create-admin-projects" do
   block do
-    # For case... mostly migratory where ldap-backed domain already exists, sql-backed is added
-    admin_config = {
-      sql: {
-        name: admin_project_name,
-        domain_name: admin_project_domain
-      },
-      ldap: {
-        name: get_config('keystone-admin-project-name'),
-        domain_name: get_config('keystone-admin-project-domain')
-      }
+    admin_config[:ldap] = {
+      project_name: get_config('keystone-admin-project-name'),
+      project_domain: get_config('keystone-admin-project-domain'),
+      user_domain: get_config('keystone-admin-user-domain'),
+      user_name: get_config('keystone-admin-user')
     }
-    admin_config.each do |backend, project_config|
-      name = "keystone-create-admin-project::#{project_config[:name]}"
+    admin_config.each do |backend, config|
+      name = "keystone-create-admin-project::#{config[:project_name]}"
       run_context.resource_collection << project_create = Chef::Resource::RubyBlock.new(name, run_context)
       project_create.block {
-        execute_in_keystone_admin_context("openstack project create --domain #{project_config[:domain_name]} " +
-                                          "--description 'Admin Project' #{project_config[:name]}")
+        execute_in_keystone_admin_context("openstack project create --domain #{config[:project_domain]} " +
+                                          "--description 'Admin Project' #{config[:project_name]}")
       }
       project_create.not_if {
-        execute_in_keystone_admin_context("openstack project show --domain #{project_config[:domain_name]} " +
-                                          "#{project_config[:name]}")
+        execute_in_keystone_admin_context("openstack project show --domain #{config[:project_domain]} " +
+                                          "#{config[:project_name]}")
         $?.success?
       }
     end
   end
-
 end
 
 ruby_block "keystone-create-admin-user" do
   block do
-    # TODO(kamidzi): debatable whether to prefer get_config('keystone-admin-user')..
-    execute_in_keystone_admin_context("openstack user create --domain #{admin_project_domain} --password #{get_config('keystone-local-admin-password')} #{admin_username}")
+    execute_in_keystone_admin_context("openstack user create --domain #{admin_project_domain} --password " +
+                                      "#{get_config('keystone-local-admin-password')} #{admin_username}")
   end
   not_if { execute_in_keystone_admin_context("openstack user show --domain #{admin_project_domain} #{admin_username}") ; $?.success? }
 end
@@ -600,19 +603,60 @@ ruby_block "keystone-create-admin-role" do
   not_if { execute_in_keystone_admin_context("openstack role show #{admin_role_name}") ; $?.success? }
 end
 
-ruby_block "keystone-assign-domain-admin-role" do
+# SQL-backed admin is domain admin
+# Ldap-backed admin, if defined, is project admin
+ruby_block "keystone-assign-admin-roles" do
   block do
-    execute_in_keystone_admin_context("openstack role add --domain #{admin_project_domain} --user-domain #{admin_user_domain} --user #{admin_username} #{admin_role_name}")
-  end
-  # NOTE(kamidzi): below command always returns, so check for valid json output; break pattern with only_if
-  only_if {
-    begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{admin_role_name} --domain #{admin_project_domain} --user-domain #{admin_user_domain} --user #{admin_username} -fjson")
-      r.empty?
-    rescue JSON::ParserError
-      true
+    admin_config[:ldap] = {
+      project_name: get_config('keystone-admin-project-name'),
+      project_domain: get_config('keystone-admin-project-domain'),
+      user_domain: get_config('keystone-admin-user-domain'),
+      user_name: get_config('keystone-admin-user')
+    }
+    admin_config.each do |backend, config|
+      name = "keystone-assign-admin-role::#{config[:user_domain]}::#{config[:user_name]}"
+      a_cmd = "openstack role add"
+      a_opts = [
+        "--user-domain #{config[:user_domain]}",
+        "--user #{config[:user_name]}"
+      ]
+      a_args = [admin_role_name]
+
+      g_cmd = "openstack role assignment list"
+      g_opts = [
+        "-fjson",
+        "--role #{admin_role_name}",
+        "--user-domain #{config[:user_domain]}",
+        "--user #{config[:user_name]}"
+      ]
+      case backend
+      when :sql
+        [g_opts, a_opts].each {|opts|
+          opts.concat ["--domain #{config[:project_domain]}"]
+        }
+        name = "keystone-assign-domain-admin-role::#{config[:user_domain]}::#{config[:user_name]}"
+      when :ldap
+        [g_opts, a_opts].each {|opts|
+          opts.concat [
+            "--project-domain #{config[:project_domain]}",
+            "--project #{config[:project_name]}"
+          ]
+        }
+      end
+      assign_cmd = ([a_cmd] + a_opts + a_args).join(' ')
+      guard_cmd = ([g_cmd] + g_opts).join(' ')
+      run_context.resource_collection << admin_assign = Chef::Resource::RubyBlock.new(name, run_context)
+      admin_assign.block { execute_in_keystone_admin_context(assign_cmd) }
+      admin_assign.only_if {
+        begin
+          r = JSON.parse execute_in_keystone_admin_context(guard_cmd)
+          r.empty?
+        rescue JSON::ParserError
+          true
+        end
+      }
     end
-  }
+  end
 end
 
 ruby_block "keystone-create-service-project" do
