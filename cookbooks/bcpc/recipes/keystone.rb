@@ -40,7 +40,7 @@ ruby_block "initialize-keystone-config" do
     make_config('keystone-admin-user',
                 node["bcpc"]["ldap"]["admin_user"] || node["bcpc"]["keystone"]["admin"]["username"])
     make_config('keystone-admin-password',
-                node["bcpc"]["ldap"]["admin_pass"] || secure_password)
+                node["bcpc"]["ldap"]["admin_pass"] || get_config('keystone-local-admin-password'))
     make_config('keystone-admin-project-name',
                 node['bcpc']['ldap']['admin_project_name'] || node["bcpc"]["keystone"]["admin"]["project_name"])
     make_config('keystone-admin-project-domain',
@@ -554,11 +554,34 @@ ruby_block "keystone-create-domains" do
   end
 end
 
-ruby_block "keystone-create-admin-project" do
+ruby_block "keystone-create-admin-projects" do
   block do
-    execute_in_keystone_admin_context("openstack project create --domain #{admin_project_domain} --description 'Admin Project' #{admin_project_name}")
+    # For case... mostly migratory where ldap-backed domain already exists, sql-backed is added
+    admin_config = {
+      sql: {
+        name: admin_project_name,
+        domain_name: admin_project_domain
+      },
+      ldap: {
+        name: get_config('keystone-admin-project-name'),
+        domain_name: get_config('keystone-admin-project-domain')
+      }
+    }
+    admin_config.each do |backend, project_config|
+      name = "keystone-create-admin-project::#{project_config[:name]}"
+      run_context.resource_collection << project_create = Chef::Resource::RubyBlock.new(name, run_context)
+      project_create.block {
+        execute_in_keystone_admin_context("openstack project create --domain #{project_config[:domain_name]} " +
+                                          "--description 'Admin Project' #{project_config[:name]}")
+      }
+      project_create.not_if {
+        execute_in_keystone_admin_context("openstack project show --domain #{project_config[:domain_name]} " +
+                                          "#{project_config[:name]}")
+        $?.success?
+      }
+    end
   end
-  not_if { execute_in_keystone_admin_context("openstack project show --domain #{admin_project_domain} #{admin_project_name}") ; $?.success? }
+
 end
 
 ruby_block "keystone-create-admin-user" do

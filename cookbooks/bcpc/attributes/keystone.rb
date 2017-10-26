@@ -75,9 +75,9 @@ default['bcpc']['keystone']['default_domain'] = 'default'
 # LDAP credentials used by Keystone
 default['bcpc']['ldap']['admin_user'] = nil
 default['bcpc']['ldap']['admin_pass'] = nil
-default['bcpc']['ldap']['admin_user_domain'] = 'default'
-default['bcpc']['ldap']['admin_project_domain'] = 'default'
-default['bcpc']['ldap']['admin_project_name'] = default['bcpc']['keystone']['admin_tenant']
+default['bcpc']['ldap']['admin_user_domain'] = nil
+default['bcpc']['ldap']['admin_project_domain'] = nil
+default['bcpc']['ldap']['admin_project_name'] = nil
 default['bcpc']['ldap']['config'] = {}
 
 # Domain configs
