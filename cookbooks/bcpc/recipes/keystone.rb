@@ -613,8 +613,6 @@ ruby_block "keystone-create-admin-role" do
   }
 end
 
-# SQL-backed admin is domain admin
-# Ldap-backed admin, if defined, is project admin
 ruby_block "keystone-assign-admin-roles" do
   block do
     admin_config[:ldap] = {
@@ -628,31 +626,17 @@ ruby_block "keystone-assign-admin-roles" do
       a_cmd = "openstack role add"
       a_opts = [
         "--user-domain #{config[:user_domain]}",
-        "--user #{config[:user_name]}"
+        "--user #{config[:user_name]}",
+        "--project-domain #{config[:project_domain]}",
+        "--project #{config[:project_name]}"
       ]
       a_args = [admin_role_name]
 
       g_cmd = "openstack role assignment list"
-      g_opts = [
+      g_opts = a_opts + [
         "-fjson",
         "--role #{admin_role_name}",
-        "--user-domain #{config[:user_domain]}",
-        "--user #{config[:user_name]}"
       ]
-      case backend
-      when :sql
-        [g_opts, a_opts].each {|opts|
-          opts.concat ["--domain #{config[:project_domain]}"]
-        }
-        name = "keystone-assign-domain-admin-role::#{config[:user_domain]}::#{config[:user_name]}"
-      when :ldap
-        [g_opts, a_opts].each {|opts|
-          opts.concat [
-            "--project-domain #{config[:project_domain]}",
-            "--project #{config[:project_name]}"
-          ]
-        }
-      end
       assign_cmd = ([a_cmd] + a_opts + a_args).join(' ')
       guard_cmd = ([g_cmd] + g_opts).join(' ')
       run_context.resource_collection << admin_assign = Chef::Resource::RubyBlock.new(name, run_context)
@@ -720,9 +704,10 @@ template "/root/admin-openrc" do
       lazy {
         {
           username: admin_username,
-          # TODO(kamidzi): below breaks naming pattern
           password: get_config('keystone-local-admin-password'),
-          domain: admin_user_domain,
+          project_name: admin_project_name,
+          user_domain: admin_user_domain,
+          project_domain: admin_project_domain
         }
       }
     )
