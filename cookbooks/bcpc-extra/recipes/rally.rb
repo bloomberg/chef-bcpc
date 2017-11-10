@@ -39,9 +39,16 @@ rally_version = node['bcpc-extra']['rally']['version']
     end
 end
 
+directory "#{rally_install_dir}" do
+    user rally_user
+    owner rally_user
+    group rally_user
+    mode "0755"
+    action :create
+end
+
 bash 'create virtual env for rally' do
   code <<-EOH
-    mkdir -p "#{rally_install_dir}"
     pip install --user --upgrade virtualenv
     #{rally_home_dir}/.local/bin/virtualenv "#{rally_venv_dir}"
   EOH
