@@ -551,7 +551,10 @@ ruby_block "keystone-create-domains" do
       run_context.resource_collection << dom_create = Chef::Resource::RubyBlock.new(name, run_context)
       dom_create.block  { execute_in_keystone_admin_context("openstack domain create --description '#{desc}' #{domain}") }
       # TODO(kamidzi): if domain changes, guard will not detect
-      dom_create.not_if { execute_in_keystone_admin_context("openstack domain show #{domain}") ; $?.success? }
+      dom_create.not_if {
+        s = execute_in_keystone_admin_context("openstack domain show #{domain}"){|o,e,s| s}
+        s.success?
+      }
 
       # Configure them
       name = "keystone-configure-domain::#{domain}"
@@ -579,9 +582,9 @@ ruby_block "keystone-create-admin-projects" do
                                           "--description 'Admin Project' #{config[:project_name]}")
       }
       project_create.not_if {
-        execute_in_keystone_admin_context("openstack project show --domain #{config[:project_domain]} " +
-                                          "#{config[:project_name]}")
-        $?.success?
+        cmd = "openstack project show --domain #{config[:project_domain]} " + "#{config[:project_name]}"
+        s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+        s.success?
       }
     end
   end
@@ -592,7 +595,11 @@ ruby_block "keystone-create-admin-user" do
     execute_in_keystone_admin_context("openstack user create --domain #{admin_project_domain} --password " +
                                       "#{get_config('keystone-local-admin-password')} #{admin_username}")
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{admin_project_domain} #{admin_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{admin_project_domain} #{admin_username}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 # FYI: https://blueprints.launchpad.net/keystone/+spec/domain-specific-roles
@@ -600,7 +607,10 @@ ruby_block "keystone-create-admin-role" do
   block do
     execute_in_keystone_admin_context("openstack role create #{admin_role_name}")
   end
-  not_if { execute_in_keystone_admin_context("openstack role show #{admin_role_name}") ; $?.success? }
+  not_if {
+    s = execute_in_keystone_admin_context("openstack role show #{admin_role_name}"){|o,e,s| s}
+    s.success?
+  }
 end
 
 # SQL-backed admin is domain admin
@@ -663,14 +673,21 @@ ruby_block "keystone-create-service-project" do
   block do
     execute_in_keystone_admin_context("openstack project create --domain #{service_project_domain} --description 'Service Project' #{service_project_name}")
   end
-  not_if { execute_in_keystone_admin_context("openstack project show --domain #{service_project_domain} #{service_project_name}") ; $?.success? }
+  not_if {
+    cmd = "openstack project show --domain #{service_project_domain} #{service_project_name}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 ruby_block "keystone-create-member-role" do
   block do
     execute_in_keystone_admin_context("openstack role create #{member_role_name}")
   end
-  not_if { execute_in_keystone_admin_context("openstack role show #{member_role_name}") ; $?.success? }
+  not_if {
+    s = execute_in_keystone_admin_context("openstack role show #{member_role_name}"){|o,e,s| s}
+    s.success?
+  }
 end
 
 # FIXME(kamidzi): this is another level of indirection because of preference to ldap
