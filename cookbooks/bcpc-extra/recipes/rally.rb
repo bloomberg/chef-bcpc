@@ -40,7 +40,6 @@ rally_version = node['bcpc-extra']['rally']['version']
 end
 
 directory "#{rally_install_dir}" do
-    user rally_user
     owner rally_user
     group rally_user
     mode "0755"
@@ -64,7 +63,6 @@ bash 'install-rally' do
 end
 
 directory "#{rally_conf_dir}" do
-    user rally_user
     owner rally_user
     group rally_user
     mode "0755"
@@ -73,7 +71,6 @@ end
 
 template "#{rally_conf_dir}/rally.conf" do
     source "rally.conf.erb"
-    user rally_user
     owner rally_user
     group rally_user
     mode 0664
@@ -83,7 +80,6 @@ template "#{rally_conf_dir}/rally.conf" do
 end
 
 directory "#{rally_database_dir}" do
-    user rally_user
     owner rally_user
     group rally_user
     mode "0755"
