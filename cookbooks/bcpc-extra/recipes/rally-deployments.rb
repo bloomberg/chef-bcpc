@@ -74,7 +74,13 @@ KEYSTONE_API_VERSIONS.each do |version|
       code <<-EOH
           # Another approach is to use --fromenv...
           source #{rally_venv_dir}/bin/activate
+          rally deployment destroy #{version}
           rally deployment create --filename="#{infile}" --name=#{version}
       EOH
   end
+end
+
+log "copy rally task files" do
+  message "Copy rally scenario files from the local repo in order to run the rally tests"
+  level :info
 end
