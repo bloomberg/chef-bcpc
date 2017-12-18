@@ -27,10 +27,10 @@ apt_repository "ceph" do
   notifies :run, "execute[apt-get update]", :immediately
 end
 
-# configure an apt preference to prefer the RedHat vendor to Canonical
+# configure an apt preference to prefer hammer packages
 apt_preference 'ceph' do
-  glob '*'
-  pin 'release o=RedHat'
+  glob 'radosgw python-rbd python-rados python-cephfs python-ceph librbd1 libradosstriper1 librados2 libcephfs1 ceph-mds ceph-fuse ceph-fs-common ceph-common ceph'
+  pin 'version 0.94.10-1trusty'
   pin_priority '900'
 end
 
@@ -47,9 +47,6 @@ end
 
 %w{librados2 librbd1 libcephfs1 python-ceph ceph ceph-common ceph-fs-common ceph-mds ceph-fuse}.each do |pkg|
   package pkg do
-    # use Ceph repository instead of UCA
-    # UCA release looks like "trusty-proposed" or "trusty-updates"
-    default_release 'trusty'
     action :upgrade
   end
 end
