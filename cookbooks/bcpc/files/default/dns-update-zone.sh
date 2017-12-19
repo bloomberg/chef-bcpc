@@ -12,8 +12,8 @@ test -n "$ZONE" && COND="WHERE name = '$ZONE'"
 mysql --defaults-file=/etc/mysql/debian.cnf -N -s -D pdns -e \
 "SELECT name FROM domains $COND" | \
 while read zone; do
-  pdnssec increase-serial $zone || exit 1
+  pdnssec increase-serial $zone >/dev/null
   for slave in $SLAVES; do
-    pdns_control notify-host $zone $slave >/dev/null 2>&1 || exit 1
+    pdns_control notify-host $zone $slave >/dev/null
   done
 done
