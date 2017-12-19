@@ -100,7 +100,11 @@ ruby_block "keystone-create-nova-user" do
   block do
     execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-nova-password')} #{nova_username}")
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{nova_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{nova_username}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 ruby_block "keystone-assign-nova-admin-role" do

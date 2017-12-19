@@ -5,12 +5,9 @@
 ################################################
 
 ---
-OS_PROJECT_NAME: <%=@node['bcpc']['keystone']['admin_tenant']%>
-OS_USERNAME: <%=get_config('keystone-admin-user')%>
-OS_PASSWORD: <%=get_config('keystone-admin-password')%>
-OS_AUTH_URL: <%=node['bcpc']['protocol']['keystone']%>://<%=node['bcpc']['management']['vip']%>:5000
-OS_REGION_NAME: <%=@node['bcpc']['region_name']%>
-OS_NO_CACHE: 1
+<%- user_context('admin').each do |name, val| %>
+<%= name %>: <%= val %>
+<% end %>
 OS_CACERT: /etc/ssl/certs/ssl-bcpc.pem
 IDENTITY_URI: <%=node['bcpc']['catalog']['identity']['uris']['public']%>
 domain: <%=@node['bcpc']['cluster_domain']%>

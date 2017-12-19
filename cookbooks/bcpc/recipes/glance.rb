@@ -56,7 +56,11 @@ ruby_block "keystone-create-glance-user" do
   block do
     execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-glance-password')} #{glance_username}")
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{glance_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{glance_username}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 ruby_block "keystone-assign-glance-admin-role" do

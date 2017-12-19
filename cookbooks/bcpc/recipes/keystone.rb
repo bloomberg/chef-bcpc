@@ -29,31 +29,27 @@ cookbook_file "/etc/init/keystone.override" do
   source "keystone/init.keystone.override"
 end
 
-ruby_block "initialize-keystone-config" do
-  block do
-  # TODO(kamidzi): this is all suspect now...
-  # Essentially prefer ldap-backed identities for admin? 
-    make_config('mysql-keystone-user', "keystone")
-    make_config('mysql-keystone-password', secure_password)
-    make_config('keystone-admin-token', secure_password)
-    make_config('keystone-local-admin-password', secure_password)
-    make_config('keystone-admin-user',
-                node["bcpc"]["ldap"]["admin_user"] || node["bcpc"]["keystone"]["admin"]["username"])
-    make_config('keystone-admin-password',
-                node["bcpc"]["ldap"]["admin_pass"] || get_config('keystone-local-admin-password'))
-    make_config('keystone-admin-project-name',
-                node['bcpc']['ldap']['admin_project_name'] || node["bcpc"]["keystone"]["admin"]["project_name"])
-    make_config('keystone-admin-project-domain',
-                node['bcpc']['ldap']['admin_project_domain'] || node["bcpc"]["keystone"]["admin"]["project_domain"])
-    make_config('keystone-admin-user-domain',
-                node['bcpc']['ldap']['admin_user_domain'] || node["bcpc"]["keystone"]["admin"]["user_domain"])
-    begin
-        get_config('keystone-pki-certificate')
-    rescue
-        temp = %x[openssl req -new -x509 -passout pass:temp_passwd -newkey rsa:2048 -out /dev/stdout -keyout /dev/stdout -days 1095 -subj "/C=#{node['bcpc']['country']}/ST=#{node['bcpc']['state']}/L=#{node['bcpc']['location']}/O=#{node['bcpc']['organization']}/OU=#{node['bcpc']['region_name']}/CN=keystone.#{node['bcpc']['cluster_domain']}/emailAddress=#{node['bcpc']['keystone']['admin_email']}"]
-        make_config('keystone-pki-private-key', %x[echo "#{temp}" | openssl rsa -passin pass:temp_passwd -out /dev/stdout])
-        make_config('keystone-pki-certificate', %x[echo "#{temp}" | openssl x509])
-    end
+begin
+  make_config('mysql-keystone-user', "keystone")
+  make_config('mysql-keystone-password', secure_password)
+  make_config('keystone-admin-token', secure_password)
+  make_config('keystone-local-admin-password', secure_password)
+  make_config('keystone-admin-user',
+              node["bcpc"]["ldap"]["admin_user"] || node["bcpc"]["keystone"]["admin"]["username"])
+  make_config('keystone-admin-password',
+              node["bcpc"]["ldap"]["admin_pass"] || get_config('keystone-local-admin-password'))
+  make_config('keystone-admin-project-name',
+              node['bcpc']['ldap']['admin_project_name'] || node["bcpc"]["keystone"]["admin"]["project_name"])
+  make_config('keystone-admin-project-domain',
+              node['bcpc']['ldap']['admin_project_domain'] || node["bcpc"]["keystone"]["admin"]["project_domain"])
+  make_config('keystone-admin-user-domain',
+              node['bcpc']['ldap']['admin_user_domain'] || node["bcpc"]["keystone"]["admin"]["user_domain"])
+  begin
+      get_config('keystone-pki-certificate')
+  rescue
+      temp = %x[openssl req -new -x509 -passout pass:temp_passwd -newkey rsa:2048 -out /dev/stdout -keyout /dev/stdout -days 1095 -subj "/C=#{node['bcpc']['country']}/ST=#{node['bcpc']['state']}/L=#{node['bcpc']['location']}/O=#{node['bcpc']['organization']}/OU=#{node['bcpc']['region_name']}/CN=keystone.#{node['bcpc']['cluster_domain']}/emailAddress=#{node['bcpc']['keystone']['admin_email']}"]
+      make_config('keystone-pki-private-key', %x[echo "#{temp}" | openssl rsa -passin pass:temp_passwd -out /dev/stdout])
+      make_config('keystone-pki-certificate', %x[echo "#{temp}" | openssl x509])
   end
 end
 
@@ -541,6 +537,12 @@ admin_config = {
     user_domain: admin_user_domain,
     user_name: admin_username
   },
+  ldap: {
+      project_name: get_config('keystone-admin-project-name'),
+      project_domain: get_config('keystone-admin-project-domain'),
+      user_domain: get_config('keystone-admin-user-domain'),
+      user_name: get_config('keystone-admin-user')
+  }
 }
 # Create the domains
 ruby_block "keystone-create-domains" do
@@ -568,12 +570,6 @@ end
 
 ruby_block "keystone-create-admin-projects" do
   block do
-    admin_config[:ldap] = {
-      project_name: get_config('keystone-admin-project-name'),
-      project_domain: get_config('keystone-admin-project-domain'),
-      user_domain: get_config('keystone-admin-user-domain'),
-      user_name: get_config('keystone-admin-user')
-    }
     admin_config.each do |backend, config|
       name = "keystone-create-admin-project::#{config[:project_name]}"
       run_context.resource_collection << project_create = Chef::Resource::RubyBlock.new(name, run_context)
@@ -613,46 +609,24 @@ ruby_block "keystone-create-admin-role" do
   }
 end
 
-# SQL-backed admin is domain admin
-# Ldap-backed admin, if defined, is project admin
 ruby_block "keystone-assign-admin-roles" do
   block do
-    admin_config[:ldap] = {
-      project_name: get_config('keystone-admin-project-name'),
-      project_domain: get_config('keystone-admin-project-domain'),
-      user_domain: get_config('keystone-admin-user-domain'),
-      user_name: get_config('keystone-admin-user')
-    }
-    admin_config.each do |backend, config|
+      admin_config.each do |backend, config|
       name = "keystone-assign-admin-role::#{config[:user_domain]}::#{config[:user_name]}"
       a_cmd = "openstack role add"
       a_opts = [
         "--user-domain #{config[:user_domain]}",
-        "--user #{config[:user_name]}"
+        "--user #{config[:user_name]}",
+        "--project-domain #{config[:project_domain]}",
+        "--project #{config[:project_name]}"
       ]
       a_args = [admin_role_name]
 
       g_cmd = "openstack role assignment list"
-      g_opts = [
+      g_opts = a_opts + [
         "-fjson",
         "--role #{admin_role_name}",
-        "--user-domain #{config[:user_domain]}",
-        "--user #{config[:user_name]}"
       ]
-      case backend
-      when :sql
-        [g_opts, a_opts].each {|opts|
-          opts.concat ["--domain #{config[:project_domain]}"]
-        }
-        name = "keystone-assign-domain-admin-role::#{config[:user_domain]}::#{config[:user_name]}"
-      when :ldap
-        [g_opts, a_opts].each {|opts|
-          opts.concat [
-            "--project-domain #{config[:project_domain]}",
-            "--project #{config[:project_name]}"
-          ]
-        }
-      end
       assign_cmd = ([a_cmd] + a_opts + a_args).join(' ')
       guard_cmd = ([g_cmd] + g_opts).join(' ')
       run_context.resource_collection << admin_assign = Chef::Resource::RubyBlock.new(name, run_context)
@@ -720,9 +694,10 @@ template "/root/admin-openrc" do
       lazy {
         {
           username: admin_username,
-          # TODO(kamidzi): below breaks naming pattern
           password: get_config('keystone-local-admin-password'),
-          domain: admin_user_domain,
+          project_name: admin_project_name,
+          user_domain: admin_user_domain,
+          project_domain: admin_project_domain
         }
       }
     )

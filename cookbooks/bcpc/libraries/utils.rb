@@ -422,3 +422,30 @@ def env(env={}, &block)
   ENV.replace old_env
   res
 end
+
+def cmdline_env_args(environ={})
+  ret = ['env']
+  ret + (environ || {}).collect {|k,v|
+    v = "\"#{v}\"" if v.to_s.match(/ /)
+    "#{k}=#{v}"
+  }.flatten
+end
+
+
+# Returns authentication context variables for administrative user
+#
+# @param username [String] target user for context
+# @param filter [Proc] filter for context variables
+# @param driver_precedence [Symbol] precedence of drivers to attempt [:memory, :file]
+# @return [Hash] key-value map of authentication parameters
+def load_user_context_vars(username,
+                           filter=Proc.new {|x| x},
+                           driver_precedence=[:memory, :file])
+  auth = nil
+  driver_precedence.each {|driver|
+    auth ||= user_context(username, driver)
+  }
+  auth ||= {}
+  val_pairs = auth.collect {|tuple| filter.call(tuple) }.flatten
+  auth_vars = Hash[ *val_pairs ]
+end

@@ -158,7 +158,11 @@ ruby_block "keystone-create-cinder-user" do
   block do
     execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-cinder-password')} #{cinder_username}")
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{cinder_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{cinder_username}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 ruby_block "keystone-assign-cinder-admin-role" do

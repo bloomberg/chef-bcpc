@@ -23,24 +23,6 @@ def whyrun_supported?
   true
 end
 
-def openstack_cli
-  # even on Kilo with a v1.1 compute API endpoint, force v2
-  args =  ["openstack",
-           "--os-tenant-name", node['bcpc']['keystone']['admin_tenant'],
-           "--os-project-name", node['bcpc']['keystone']['admin_tenant'],
-           "--os-username", get_config('keystone-admin-user'),
-           "--os-compute-api-version", "2",
-           "--os-auth-url", "#{node['bcpc']['protocol']['keystone']}://openstack.#{node['bcpc']['cluster_domain']}:#{node['bcpc']['catalog']['identity']['ports']['public']}/#{node['bcpc']['catalog']['identity']['uris']['public']}/",
-           "--os-region-name", node['bcpc']['region_name'],
-           "--os-password" , get_config('keystone-admin-password')]
-
-  if get_api_version(:identity) == "3"
-    args += ["--os-project-domain-name", "default", "--os-user-domain-name", "default"]
-  end
-
-  return args
-end
-
 # calculate the hostname
 # See bloomberg/chef-bcpc#1069
 def hostname
