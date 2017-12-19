@@ -60,7 +60,11 @@ ruby_block "keystone-create-neutron-user" do
   block do
     execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-neutron-password')} #{neutron_username}")
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{neutron_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{neutron_username}"
+    s = execute_in_keystone_admin_context(cmd){|o,e,s| s}
+    s.success?
+  }
 end
 
 ruby_block "keystone-assign-neutron-admin-role" do
