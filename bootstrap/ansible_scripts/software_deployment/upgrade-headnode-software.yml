@@ -265,13 +265,22 @@
     - name: Determine if node is VIP holder
       shell: /usr/local/bin/if_vip echo 'have_vip'
       register: if_vip_output
+      tags:
+        - ceph
+        - chef
 
     - set_fact: vip_holder="{{ inventory_hostname }}"
       when: if_vip_output.stdout == "have_vip"
+      tags:
+        - ceph
+        - chef
 
     - name: Set Ceph noout
       command: ceph osd set noout
       when: vip_holder is defined
+      tags:
+        - ceph
+        - chef
 
 # now each head node can be recheffed and have the rest of its software upgraded
 - hosts: headnodes
@@ -281,14 +290,21 @@
   tasks:
     - name: Run chef-client
       command: chef-client
+      tags:
+        - chef
+        - dist-upgrade
 
     - name: Upgrade remaining packages
       shell: apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
       environment:
         DEBIAN_FRONTEND: noninteractive
+      tags:
+        - dist-upgrade
 
     - name: Restart Ceph monitor and OSDs
       shell: /usr/sbin/service ceph-all restart
+      tags:
+        - ceph
 
 # unset noout (reboot playbook will set it again)
 - hosts: headnodes
@@ -299,13 +315,19 @@
     - name: Determine if node is VIP holder
       shell: /usr/local/bin/if_vip echo 'have_vip'
       register: if_vip_output
+      tags:
+        - ceph
 
     - set_fact: vip_holder="{{ inventory_hostname }}"
       when: if_vip_output.stdout == "have_vip"
+      tags:
+        - ceph
 
     - name: Unset Ceph noout
       command: ceph osd unset noout
       when: vip_holder is defined
+      tags:
+        - ceph
 
 # restart OpenStack services on each node to avoid service issues in gap
 # between software upgrade and restarting the head nodes
@@ -316,6 +338,10 @@
   tasks:
     - name: hup OpenStack services
       command: /usr/local/bin/hup_openstack
+      tags:
+        - hup_openstack
 
     - name: Wait 30 seconds for head node services to settle
       command: sleep 30
+      tags:
+        - hup_openstack
