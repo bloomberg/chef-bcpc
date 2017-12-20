@@ -11,9 +11,18 @@ import json
 import keystoneclient
 from keystoneclient import exceptions as kc_exceptions
 import MySQLdb as mdb
+import platform
 import re
+import requests
 import subprocess
 import syslog
+
+if platform.python_version() == '2.7.6':
+    from requests.packages.urllib3.exceptions import InsecureRequestWarning, \
+        InsecurePlatformWarning, SNIMissingWarning
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+    requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
+    requests.packages.urllib3.disable_warnings(SNIMissingWarning)
 
 
 class dns_popper(object):

@@ -1,4 +1,4 @@
-# Cookbook Name:: bcpc
+# Cookbook Name:: bcpc-extra
 # Recipe:: rally
 #
 # Copyright 2017, Bloomberg Finance L.P.
@@ -16,13 +16,13 @@
 # limitations under the License.
 #
 
-rally_user = node['bcpc']['rally']['user']
+rally_user = node['bcpc-extra']['rally']['user']
 rally_home_dir = node['etc']['passwd'][rally_user]['dir']
 rally_install_dir = "#{rally_home_dir}/rally"
 rally_venv_dir = "#{rally_install_dir}/venv"
 rally_conf_dir = "#{rally_venv_dir}/etc/rally"
 rally_database_dir = "#{rally_venv_dir}/database"
-rally_version = node['bcpc']['rally']['version']
+rally_version = node['bcpc-extra']['rally']['version']
 
 %w{
      wget
@@ -39,9 +39,15 @@ rally_version = node['bcpc']['rally']['version']
     end
 end
 
+directory "#{rally_install_dir}" do
+    owner rally_user
+    group rally_user
+    mode "0755"
+    action :create
+end
+
 bash 'create virtual env for rally' do
   code <<-EOH
-    mkdir "#{rally_install_dir}"
     pip install --user --upgrade virtualenv
     #{rally_home_dir}/.local/bin/virtualenv "#{rally_venv_dir}"
   EOH
@@ -57,7 +63,6 @@ bash 'install-rally' do
 end
 
 directory "#{rally_conf_dir}" do
-    user rally_user
     owner rally_user
     group rally_user
     mode "0755"
@@ -66,7 +71,6 @@ end
 
 template "#{rally_conf_dir}/rally.conf" do
     source "rally.conf.erb"
-    user rally_user
     owner rally_user
     group rally_user
     mode 0664
@@ -76,7 +80,6 @@ template "#{rally_conf_dir}/rally.conf" do
 end
 
 directory "#{rally_database_dir}" do
-    user rally_user
     owner rally_user
     group rally_user
     mode "0755"
