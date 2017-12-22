@@ -34,14 +34,15 @@ class dns_popper(object):
             'password': config['OS_PASSWORD'],
             'insecure': True
         }
-        auth_params['auth_url'] = config['OS_AUTH_URL'] + \
-            "/%s/" % self.api_version
+        auth_params['auth_url'] = config['OS_AUTH_URL']
         if self.api_version == 'v2.0':
             from keystoneclient.v2_0 import client as kclient
             auth_params['tenant_name'] = config['OS_PROJECT_NAME']
         else:
             from keystoneclient.v3 import client as kclient
             auth_params['project_name'] = config['OS_PROJECT_NAME']
+            auth_params['project_domain_name'] = config['OS_PROJECT_DOMAIN_NAME']
+            auth_params['user_domain_name'] = config['OS_USER_DOMAIN_NAME']
         self.keystone = kclient.Client(**auth_params)
 
         dbc = self.config["db"]
