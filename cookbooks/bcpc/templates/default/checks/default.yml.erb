@@ -1,6 +1,8 @@
 ---
 
-tenant: <%=@node['bcpc']['keystone']['admin_tenant']%>
-user: '<%="#{get_config('keystone-admin-user')}"%>'
+project_name: <%=@node['bcpc']['keystone']['admin_tenant']%>
+username: '<%="#{get_config('keystone-admin-user')}"%>'
 password: '<%="#{get_config('keystone-admin-password')}"%>'
-auth_url: https://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v2.0/
+user_domain_name: '<%="#{get_config('keystone-admin-user-domain')}"%>'
+project_domain_name: '<%=@node['bcpc']['keystone']['default_domain']%>'
+auth_url: https://<%="#{node[:bcpc][:management][:vip]}"%>:5000/v3/

@@ -4,8 +4,9 @@ import syslog
 import socket
 import time
 import novaclient
-from novaclient.v2 import client
-
+from novaclient import client
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
 
 
 class TestNovaCompute(object):
@@ -13,14 +14,19 @@ class TestNovaCompute(object):
         self.start = time.time()
         self.config = config
 
-        self.client  = client.Client(config["user"], config["password"],
-                                     config["tenant"], config["auth_url"],
-                                     service_type="compute", insecure=True)
-
+        self.auth = \
+            v3.Password(auth_url=config['auth_url'],
+                        username=config['username'],
+                        password=config['password'],
+                        project_name=config['project_name'],
+                        project_domain_name=config['project_domain_name'],
+                        user_domain_name=config['user_domain_name'])
+        self.session = session.Session(auth=self.auth, verify=False)
+        self.client = client.Client(config['version'], session=self.session)
 
         self.instance_name = "test2-" + socket.gethostname()
         if "timeout" not in self.config:
-            self.config["timeout" ] = 60.0
+            self.config["timeout"] = 60.0
 
     def _wait_for_statechange(self, server, target):
         while time.time() - self.start < self.config["timeout"]:
@@ -40,7 +46,8 @@ class TestNovaCompute(object):
                 self.client.servers.add_floating_ip(server, f.ip)
             except novaclient.exceptions.BadRequest as e:
                 # Log to track if race condition is fixed per PR #801
-                syslog.syslog(syslog.LOG_INFO, str(e) + '. Wait for a bit before retrying...')
+                syslog.syslog(syslog.LOG_INFO, str(e) +
+                              '. Wait for a bit before retrying...')
                 time.sleep(2)
             except novaclient.exceptions.NotFound as e:
                 raise Exception("Unable to associate floating IP")
@@ -63,7 +70,6 @@ class TestNovaCompute(object):
 
         return f
 
-
     def _delete_server(self, server):
         try:
             server.delete()
@@ -81,31 +87,36 @@ class TestNovaCompute(object):
                 self._delete_server(server)
 
         image_name = self.config.get("image_name", "Cirros 0.3.4*")
-        images = [ i for i in self.client.images.list() if i.name is not None and glob.fnmatch.fnmatch(i.name, image_name) ]
-        if len(images)==0:
-            raise Exception("Found %d images called %s"  %(len(images), image_name))
+        images = [i for i in self.client.images.list()
+                  if i.name is not None
+                  and glob.fnmatch.fnmatch(i.name, image_name)]
+        if len(images) == 0:
+            raise Exception("Found %d images called %s"
+                            % (len(images), image_name))
 
-        flavor_name =  self.config.get("flavor", "generic1.small")
-        flavors = [ f for f in self.client.flavors.list() if f.name ==  flavor_name]
+        flavor_name = self.config.get("flavor", "generic1.small")
+        flavors = [f for f in self.client.flavors.list()
+                   if f.name == flavor_name]
 
-        if len(flavors)!=1:
-            raise Exception("Found %d flavors called %s"  %(len(flavors), flavor_name))
+        if len(flavors) != 1:
+            raise Exception(
+                "Found %d flavors called %s" % (len(flavors), flavor_name))
 
         #
         # Make the server
         #
         if 'host' in self.config:
-            availability_zone = self.config["cluster"] + ':' + self.config["host"]
-            server = self.client.servers.create(self.instance_name,
-                                                images[0],
-                                                flavors[0],
-                                                availability_zone=availability_zone,
-                                               )
+            availability_zone = \
+                self.config["cluster"] + ':' + self.config["host"]
+            server = \
+                self.client.servers.create(self.instance_name,
+                                           images[0],
+                                           flavors[0],
+                                           availability_zone=availability_zone)
         else:
             server = self.client.servers.create(self.instance_name,
                                                 images[0],
-                                                flavors[0]
-                                               )
+                                                flavors[0])
 
         if self._wait_for_statechange(server, "ACTIVE"):
             self._associate_floating_ip(server)
@@ -127,16 +138,16 @@ if __name__ == '__main__':
 
     rc = {}
     try:
-        result, msg = TestNovaCompute(config).run();
+        result, msg = TestNovaCompute(config).run()
         rc["msg"] = msg
 
         if result:
-            rc["result"]= "OKAY"
+            rc["result"] = "OKAY"
         else:
             rc["result"] = "FAIL"
 
     except Exception as e:
         rc["result"] = "ERROR"
-        rc["msg"]  = "%s : %s" %(str(type(e)), e.message)
+        rc["msg"] = "%s : %s" % (str(type(e)), e.message)
 
     print yaml.dump(rc)
