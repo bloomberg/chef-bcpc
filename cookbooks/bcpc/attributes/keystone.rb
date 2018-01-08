@@ -69,8 +69,6 @@ default['bcpc']['keystone']['admin']['enable_admin_project'] = true
 default['bcpc']['keystone']['service_project']['name'] = 'service'
 default['bcpc']['keystone']['service_project']['domain'] = 'local'
 
-default['bcpc']['keystone']['default_domain'] = 'default'
-
 # LDAP credentials used by Keystone
 default['bcpc']['ldap']['admin_user'] = nil
 default['bcpc']['ldap']['admin_pass'] = nil

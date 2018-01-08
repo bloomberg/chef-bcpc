@@ -26,6 +26,9 @@
         "ram_allocation_ratio" : "20.0",
         "cpu_allocation_ratio": "20.0"
       },
+      "keystone": {
+        "default_domain": "local"
+      },
       "domain_name" : "bcpc.example.com",
       "management": {
         "vip" : "10.0.100.5",
