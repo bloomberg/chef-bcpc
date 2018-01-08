@@ -64,6 +64,7 @@ default['bcpc']['keystone']['admin']['email'] = 'admin@bcpc.example.com'
 default['bcpc']['keystone']['admin']['username'] = 'admin'
 default['bcpc']['keystone']['admin']['project_name'] = 'admin'
 default['bcpc']['keystone']['admin']['domain'] = 'local'
+default['bcpc']['keystone']['admin']['enable_admin_project'] = true
 
 default['bcpc']['keystone']['service_project']['name'] = 'service'
 default['bcpc']['keystone']['service_project']['domain'] = 'local'
