@@ -105,7 +105,7 @@ vif_plugging_timeout = 0
 
 [neutron]
 url = <%= node['bcpc']['protocol']['neutron'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:9696
-admin_tenant_name = <%= node['bcpc']['admin_tenant'] %>
+admin_tenant_name = <%= node['bcpc']['keystone']['admin']['project_name'] %>
 auth_strategy = keystone
 admin_auth_url = <%= node['bcpc']['protocol']['keystone'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:35357/v2.0/
 admin_username = <%= get_config('keystone-admin-user') %>

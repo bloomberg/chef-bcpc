@@ -56,34 +56,45 @@ domain = node['bcpc']['keystone']['service_project']['domain']
 neutron_username = node['bcpc']['neutron']['user']
 neutron_project_name = node['bcpc']['keystone']['service_project']['name']
 
-ruby_block "keystone-create-neutron-user" do
+ruby_block 'keystone-create-neutron-user' do
   block do
-    execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-neutron-password')} #{neutron_username}")
+    cmd = "openstack user create --domain #{domain} " +
+          "--password #{get_config('keystone-neutron-password')} #{neutron_username}"
+    execute_in_keystone_admin_context(cmd)
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{neutron_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{neutron_username}"
+    execute_in_keystone_admin_context(cmd)
+  }
 end
 
-ruby_block "keystone-assign-neutron-admin-role" do
+ruby_block 'keystone-assign-neutron-admin-role' do
+  opts = [
+    "--user-domain #{domain}",
+    "--project-domain #{domain}",
+    "--user #{neutron_username}",
+    "--project #{neutron_project_name}"
+  ]
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{neutron_project_name} --user #{neutron_username} #{node['bcpc']['keystone']['admin_role']}")
+    cmd = "openstack role add " + opts.join(' ') + ' ' + admin_role_name
+    execute_in_keystone_admin_context(cmd)
   end
-  # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
-  only_if {
-    begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{node['bcpc']['keystone']['admin_role']} --project #{neutron_project_name} --user #{neutron_username} -fjson")
-      r.empty?
-    rescue JSON::ParserError
-      true
-    end
+  not_if {
+    cmd = 'openstack role assignment list '
+    g_opts = opts + [
+      '-f value -c Role',
+      "--role #{admin_role_name}",
+      "| grep ^#{get_keystone_role_id(admin_role_name)}$"
+    ]
+    cmd += g_opts.join(' ')
+    execute_in_keystone_admin_context(cmd)
   }
 end
 
 # Write out neutron openrc
-template "/root/neutron-openrc" do
-  source "keystone/openrc.erb"
-  owner neutron_username
-  group neutron_username
-  mode "0600"
+template '/root/openrc-neutron' do
+  source 'keystone/openrc.erb'
+  mode '0600'
   variables(
     lazy {
       {

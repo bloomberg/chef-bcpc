@@ -22,16 +22,16 @@ return unless node['bcpc']['enabled']['neutron']
 
 # spin until Neutron starts to respond, avoids blowing up on an HTTP 503
 bash "wait-for-neutron-to-become-operational" do
-  code ". /root/neutron-openrc; until neutron net-list >/dev/null 2>&1; do sleep 1; done"
+  code ". /root/openrc-neutron; until neutron net-list >/dev/null 2>&1; do sleep 1; done"
   timeout 30
 end
 
 bash "configure-neutron-fixed-network" do
-  code ". /root/neutron-openrc; neutron net-create --shared --provider:network_type local #{node['bcpc']['calico']['fixed_network']['name']}"
-  not_if ". /root/neutron-openrc; neutron net-show #{node['bcpc']['calico']['fixed_network']['name']}"
+  code ". /root/openrc-neutron; neutron net-create --shared --provider:network_type local #{node['bcpc']['calico']['fixed_network']['name']}"
+  not_if ". /root/openrc-neutron; neutron net-show #{node['bcpc']['calico']['fixed_network']['name']}"
 end
 
 bash "configure-neutron-fixed-subnet" do
-  code ". /root/neutron-openrc; neutron subnet-create --name #{node['bcpc']['calico']['fixed_network']['subnet']} #{node['bcpc']['calico']['fixed_network']['name']} #{node['bcpc']['calico']['fixed_network']['subnet']}"
-  not_if ". /root/neutron-openrc; neutron subnet-show #{node['bcpc']['calico']['fixed_network']['subnet']}"
+  code ". /root/openrc-neutron; neutron subnet-create --name #{node['bcpc']['calico']['fixed_network']['subnet']} #{node['bcpc']['calico']['fixed_network']['name']} #{node['bcpc']['calico']['fixed_network']['subnet']}"
+  not_if ". /root/openrc-neutron; neutron subnet-show #{node['bcpc']['calico']['fixed_network']['subnet']}"
 end

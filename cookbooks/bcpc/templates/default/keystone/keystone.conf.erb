@@ -194,9 +194,9 @@ driver = <%= node['bcpc']['keystone']['drivers']['federation'] %>
 
 [identity]
 #default_domain_id = default
-#domain_specific_drivers_enabled = false
-#domain_configurations_from_database = false
-#domain_config_dir = /etc/keystone/domains
+domain_specific_drivers_enabled = true
+domain_configurations_from_database = <%= node['bcpc']['keystone']['identity']['domain_configurations_from_database'] %>
+domain_config_dir = <%= node['bcpc']['keystone']['domain_config_dir'] %>
 driver = <%= node['bcpc']['keystone']['drivers']['identity'] %>
 <% if node['bcpc']['keystone']['enable_caching'] %>
 caching = true
@@ -221,11 +221,6 @@ backends = keystone.common.kvs.backends.memcached
 #config_prefix = keystone.kvs
 #enable_key_mangler = true
 #default_lock_timeout = 5
-
-[ldap]
-<% node['bcpc']['ldap']['config'].sort.each do |k, v| %>
-<%= k %> = <%= v %>
-<% end %>
 
 [matchmaker_redis]
 #host = 127.0.0.1
@@ -338,6 +333,13 @@ caching = true
 <% else %>
 caching = false
 <% end %>
+
+<% if node['bcpc']['keystone']['admin']['enable_admin_project'] %>
+admin_project_name = <%= get_config("keystone-admin-project-name") %>
+admin_project_domain_name = <%= get_config("keystone-admin-project-domain") %>
+<% end %>
+domain_name_url_safe = strict
+project_name_url_safe = strict
 #cache_time = <None>
 #list_limit = <None>
 

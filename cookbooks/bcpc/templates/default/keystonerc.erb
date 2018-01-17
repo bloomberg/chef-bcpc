@@ -4,7 +4,6 @@
 #
 ################################################
 
-# hardcoded to use v2.0 in order to work with keystoneclient during bootstrapping
-export SERVICE_ENDPOINT=<%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:35357/v2.0/
-export SERVICE_TOKEN=<%=get_config('keystone-admin-token')%>
-# export OS_CACERT=/etc/ssl/certs/ssl-bcpc.pem
+export OS_URL=<%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:<%=node['bcpc']['catalog']['identity']['ports']['admin']%>/<%=node['bcpc']['catalog']['identity']['uris']['admin']%>/
+export OS_TOKEN=<%=get_config('keystone-admin-token')%>
+. /root/api_versionsrc

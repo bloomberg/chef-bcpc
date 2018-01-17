@@ -5,7 +5,10 @@ interface: <%= @node["bcpc"]["floating"]["interface"] %>
 
 # overide the default testing user for this operation, 
 # compute_extension:floating_ips_bulk is an admin thing
-user: '<%="#{get_config('keystone-admin-user')}"%>'
-password: '<%="#{get_config('keystone-admin-password')}"%>'
-
-
+<%
+  filter = Proc.new {|name,val| [name.downcase, val]}
+  auth_vars = load_user_context_vars('admin')
+%>
+<%- auth_vars.each do |name, val| %>
+<%= name %>: <%= val %>
+<% end %>

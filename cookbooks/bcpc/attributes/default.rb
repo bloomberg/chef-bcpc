@@ -200,12 +200,6 @@ default['bcpc']['dbname']['graphite'] = "graphite"
 default['bcpc']['dbname']['pdns'] = "pdns"
 default['bcpc']['dbname']['zabbix'] = "zabbix"
 
-default['bcpc']['admin_tenant'] = "AdminTenant"
-default['bcpc']['admin_role'] = "Admin"
-default['bcpc']['admin_username'] = "admin"
-default['bcpc']['member_role'] = "Member"
-default['bcpc']['admin_email'] = "admin@localhost.com"
-
 default['bcpc']['zabbix']['user'] = "zabbix"
 default['bcpc']['zabbix']['group'] = "adm"
 
@@ -461,7 +455,7 @@ default['bcpc']['aggregate_membership'] = []
 ###########################################
 default['bcpc']['quota'] = {
     'nova' => {
-        'AdminTenant' => {
+        'admin' => {
            'cores'        => -1,
            'ram'          => -1,
            'floating_ips' => -1

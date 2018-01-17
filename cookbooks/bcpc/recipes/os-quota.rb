@@ -17,22 +17,22 @@
 #
 
 cookbook_file '/usr/local/bin/set-os-quota.py' do
-    source 'set-os-quota.py'
-    owner 'root'
-    mode 00755
+  source 'set-os-quota.py'
+  owner 'root'
+  mode '0755'
 end
 
 execute 'set-os-quota' do
-    action :nothing
-    command '. /root/adminrc; /usr/local/bin/if_vip /usr/local/bin/set-os-quota.py'
+  action :nothing
+  command '. /root/openrc-nova; /usr/local/bin/if_vip /usr/local/bin/set-os-quota.py'
 end
 
 template '/usr/local/etc/os-quota.yml' do
-    source 'os-quota.yml.erb'
-    owner 'root'
-    mode 00644
-    variables(
-        :quota => node['bcpc']['quota'].to_hash.to_yaml
-    )
-    notifies :run, 'execute[set-os-quota]', :immediately
+  source 'os-quota.yml.erb'
+  owner 'root'
+  mode '0644'
+  variables(
+    :quota => node['bcpc']['quota'].to_hash.to_yaml
+  )
+  notifies :run, 'execute[set-os-quota]', :immediately
 end

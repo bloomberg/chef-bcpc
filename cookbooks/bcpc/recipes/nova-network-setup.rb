@@ -26,26 +26,26 @@ include_recipe "bcpc::nova-head"
 # spin until nova starts to respond, avoids blowing up on an HTTP 503
 # if Apache was restarted recently and is not yet ready
 bash "wait-for-nova-to-become-operational" do
-  code ". /root/nova-openrc; until nova secgroup-list >/dev/null 2>&1; do sleep 1; done"
+  code ". /root/openrc-nova; until nova secgroup-list >/dev/null 2>&1; do sleep 1; done"
   timeout 30
 end
 
 bash "nova-configure-default-icmp-secgroup-rule" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova secgroup-add-default-rule icmp -1 -1 0.0.0.0/0
     EOH
-    not_if ". /root/nova-openrc; nova secgroup-list-default-rules | grep icmp"
+    not_if ". /root/openrc-nova; nova secgroup-list-default-rules | grep icmp"
 end
 
 bash "nova-configure-default-ssh-secgroup-rule" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova secgroup-add-default-rule tcp 22 22 0.0.0.0/0
     EOH
-    not_if ". /root/nova-openrc; nova secgroup-list-default-rules | grep tcp | grep 22"
+    not_if ". /root/openrc-nova; nova secgroup-list-default-rules | grep tcp | grep 22"
 end
 
 # AdminTenant will already exist, so the above default rules will not
@@ -53,35 +53,35 @@ end
 bash "nova-apply-default-icmp-secgroup-rule" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
     EOH
-    not_if ". /root/nova-openrc; nova secgroup-list-rules default | grep icmp"
+    not_if ". /root/openrc-nova; nova secgroup-list-rules default | grep icmp"
 end
 
 bash "nova-apply-default-ssh-secgroup-rule" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova secgroup-add-rule default tcp  22 22 0.0.0.0/0
     EOH
-    not_if ". /root/nova-openrc; nova secgroup-list-rules default | grep tcp | grep 22"
+    not_if ". /root/openrc-nova; nova secgroup-list-rules default | grep tcp | grep 22"
 end
 
 bash "nova-floating-add" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova-manage floating create --ip_range=#{node['bcpc']['floating']['available_subnet']} --pool #{node['bcpc']['region_name']}
     EOH
-    only_if ". /root/nova-openrc; nova-manage floating list | grep \"No floating IP addresses have been defined\""
+    only_if ". /root/openrc-nova; nova-manage floating list | grep \"No floating IP addresses have been defined\""
 end
 
 bash "nova-fixed-add" do
     user "root"
     code <<-EOH
-        . /root/nova-openrc
+        . /root/openrc-nova
         nova-manage network create --label fixed --fixed_range_v4=#{node['bcpc']['fixed']['cidr']} --num_networks=#{node['bcpc']['fixed']['num_networks']} --multi_host=T --network_size=#{node['bcpc']['fixed']['network_size']} --vlan_start=#{node['bcpc']['fixed']['vlan_start']} --bridge_interface=#{node['bcpc']['fixed']['vlan_interface']}
     EOH
-    only_if ". /root/nova-openrc; nova-manage network list | grep \"No networks found\""
+    only_if ". /root/openrc-nova; nova-manage network list | grep \"No networks found\""
 end

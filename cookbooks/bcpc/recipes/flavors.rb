@@ -17,7 +17,7 @@
 #
 
 bash "wait-for-flavors-to-become-operational" do
-  code ". /root/adminrc; until openstack flavor list >/dev/null 2>&1; do sleep 1; done"
+  code ". /root/openrc-nova; until openstack flavor list >/dev/null 2>&1; do sleep 1; done"
   timeout 60
 end
 

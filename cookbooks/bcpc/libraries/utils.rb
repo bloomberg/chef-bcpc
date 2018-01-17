@@ -411,13 +411,41 @@ def generate_service_catalog_uri(svcprops, access_level)
   "#{node['bcpc']['protocol'][svcprops['project']]}://openstack.#{node['bcpc']['cluster_domain']}:#{svcprops['ports'][access_level]}/#{svcprops['uris'][access_level]}"
 end
 
-def execute_in_keystone_admin_context(cmd, debug=false)
-  script = <<-EoS
-    . /root/api_versionsrc ;
-    export OS_TOKEN="#{get_config('keystone-admin-token')}";
-    export OS_URL="#{node['bcpc']['protocol']['keystone']}://openstack.#{node['bcpc']['cluster_domain']}:#{node['bcpc']['catalog']['identity']['ports']['admin']}/#{node['bcpc']['catalog']['identity']['uris']['admin']}/";
-    #{cmd}
-  EoS
-  script = "set -x;\n" + script if debug
-  %x[ #{script} ]
+# Run temporarily with specified environment
+def env(env={}, &block)
+  if not block_given?
+    return ENV.to_h
+  end
+  old_env = ENV.to_h
+  ENV.replace env
+  res = yield
+  ENV.replace old_env
+  res
+end
+
+def cmdline_env_args(environ={})
+  ret = ['env']
+  ret + (environ || {}).collect {|k,v|
+    v = "\"#{v}\"" if v.to_s.match(/ /)
+    "#{k}=#{v}"
+  }.flatten
+end
+
+
+# Returns authentication context variables for administrative user
+#
+# @param username [String] target user for context
+# @param filter [Proc] filter for context variables
+# @param driver_precedence [Symbol] precedence of drivers to attempt [:memory, :file]
+# @return [Hash] key-value map of authentication parameters
+def load_user_context_vars(username,
+                           filter=Proc.new {|x| x},
+                           driver_precedence=[:memory, :file])
+  auth = nil
+  driver_precedence.each {|driver|
+    auth ||= user_context(username, driver)
+  }
+  auth ||= {}
+  val_pairs = auth.collect {|tuple| filter.call(tuple) }.flatten
+  auth_vars = Hash[ *val_pairs ]
 end

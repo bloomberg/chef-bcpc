@@ -133,7 +133,7 @@ template "/usr/share/openstack-dashboard/openstack_dashboard/conf/keystone_polic
     owner "root"
     group "root"
     mode 00644
-    variables(:policy => JSON.pretty_generate(node['bcpc']['keystone']['policy']))
+    variables(:policy => JSON.pretty_generate(node['bcpc']['horizon']['keystone_policy']))
 end
 
 template "/usr/share/openstack-dashboard/openstack_dashboard/conf/nova_policy.json" do

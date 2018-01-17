@@ -152,62 +152,74 @@ end
 domain = node['bcpc']['keystone']['service_project']['domain']
 cinder_username = node['bcpc']['cinder']['user']
 cinder_project_name = node['bcpc']['keystone']['service_project']['name']
+admin_role_name = node['bcpc']['keystone']['admin_role']
 
-ruby_block "keystone-create-cinder-user" do
+ruby_block 'keystone-create-cinder-user' do
   block do
-    execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-cinder-password')} #{cinder_username}")
+    cmd = "openstack user create --domain #{domain} " +
+          "--password #{get_config('keystone-cinder-password')} #{cinder_username}"
+    execute_in_keystone_admin_context(cmd)
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{cinder_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{cinder_username}"
+    execute_in_keystone_admin_context(cmd)
+  }
 end
 
-ruby_block "keystone-assign-cinder-admin-role" do
+ruby_block 'keystone-assign-cinder-admin-role' do
+  opts = [
+    "--user-domain #{domain}",
+    "--project-domain #{domain}",
+    "--user #{cinder_username}",
+    "--project #{cinder_project_name}"
+  ]
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{cinder_project_name} --user #{cinder_username} #{node['bcpc']['keystone']['admin_role']}")
+    cmd = "openstack role add " + opts.join(' ') + ' ' + admin_role_name
+    execute_in_keystone_admin_context(cmd)
   end
-  # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
-  only_if {
-    begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{node['bcpc']['keystone']['admin_role']} --project #{cinder_project_name} --user #{cinder_username} -fjson")
-      r.empty?
-    rescue JSON::ParserError
-      true
-    end
+  not_if {
+    cmd = 'openstack role assignment list '
+    g_opts = opts + [
+      '-f value -c Role',
+      "--role #{admin_role_name}",
+      "| grep ^#{get_keystone_role_id(admin_role_name)}$"
+    ]
+    cmd += g_opts.join(' ')
+    execute_in_keystone_admin_context(cmd)
   }
 end
 
 # Write out cinder openrc
-template "/root/cinder-openrc" do
-    source "keystone/openrc.erb"
-    owner cinder_username
-    group cinder_username
-    mode "0600"
-    variables(
-      lazy {
-        {
-          username: cinder_username,
-          password: get_config('keystone-cinder-password'),
-          project_name: cinder_project_name,
-          domain: domain
-        }
+template '/root/openrc-cinder' do
+  source 'keystone/openrc.erb'
+  mode '0600'
+  variables(
+    lazy {
+      {
+        username: cinder_username,
+        password: get_config('keystone-cinder-password'),
+        project_name: cinder_project_name,
+        domain: domain
       }
-    )
+    }
+  )
 end
 
 # this is a synchronization resource that polls Cinder until it stops returning 503s
-bash "wait-for-cinder-to-become-operational" do
-    code ". /root/cinder-openrc; until cinder list >/dev/null 2>&1; do sleep 1; done"
-    timeout 120
+bash 'wait-for-cinder-to-become-operational' do
+  code '. /root/openrc-cinder; until cinder list >/dev/null 2>&1; do sleep 1; done'
+  timeout 120
 end
 
 node['bcpc']['ceph']['enabled_pools'].each do |type|
     bash "cinder-make-type-#{type}" do
         user "root"
         code <<-EOH
-            . /root/cinder-openrc
+            . /root/openrc-cinder
             cinder type-create #{type.upcase}
             cinder type-key #{type.upcase} set volume_backend_name=#{type.upcase}
         EOH
-        not_if ". /root/cinder-openrc; cinder type-list | grep #{type.upcase}"
+        not_if ". /root/openrc-cinder; cinder type-list | grep #{type.upcase}"
     end
 end
 
@@ -215,7 +227,7 @@ node['bcpc']['cinder']['quota'].each do |k, v|
   bash "cinder-set-default-#{k}-quota" do
     user "root"
     code <<-EOH
-      . /root/cinder-openrc
+      . /root/openrc-cinder
       cinder quota-class-update --#{k} #{v} default
     EOH
   end

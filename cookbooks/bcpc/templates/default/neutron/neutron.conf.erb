@@ -373,7 +373,7 @@ nova_admin_username = <%= get_config('keystone-admin-user') %>
 # The name of the admin nova tenant. If the uuid of the admin nova tenant
 # is set, this is optional.  Useful for cases where the uuid of the admin
 # nova tenant is not available when configuration is being done.
-nova_admin_tenant_name = <%= node['bcpc']['admin_tenant'] %>
+nova_admin_tenant_name = <%= node['bcpc']['keystone']['admin']['project_name'] %>
 
 # Password for connection to nova in admin context.
 nova_admin_password = <%= get_config('keystone-admin-password') %>

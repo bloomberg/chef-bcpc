@@ -6,7 +6,7 @@
 auth_url = <%= node['bcpc']['protocol']['keystone'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:5000/v2.0/
 identity_uri = <%= node['bcpc']['protocol']['keystone'] %>://openstack.<%= node['bcpc']['cluster_domain'] %>:35357
 auth_version = v2.0
-admin_tenant_name = <%= node['bcpc']['admin_tenant'] %>
+admin_tenant_name = <%= node['bcpc']['keystone']['admin']['project_name'] %>
 admin_user = <%= get_config('keystone-admin-user') %>
 admin_password = <%= get_config('keystone-admin-password') %>
 

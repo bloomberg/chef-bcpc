@@ -45,31 +45,60 @@ service "glance-api" do
     restart_command "service glance-api restart; sleep 5"
 end
 
+ruby_block 'wait-for-keystone-to-become-operational' do
+  keystone_timeout = node['bcpc']['keystone']['wait_for_keystone_timeout']
+  block do
+    begin
+      Timeout.timeout(keystone_timeout) do
+        until execute_in_keystone_admin_context('openstack region list')
+          sleep 1
+        end
+      end
+    rescue Timeout::Error
+      raise 'Timeout waiting for keystone to become operational'
+    end
+  end
+end
+
 # Configure the glance keystone bits
 # https://docs.openstack.org/mitaka/install-guide-ubuntu/glance-install.html
 domain = node['bcpc']['keystone']['service_project']['domain']
 glance_username = 'glance'
 glance_project_name = node['bcpc']['keystone']['service_project']['name']
+admin_role_name = node['bcpc']['keystone']['admin_role']
 
-ruby_block "keystone-create-glance-user" do
+ruby_block 'keystone-create-glance-user' do
   block do
-    execute_in_keystone_admin_context("openstack user create --domain #{domain} --password #{get_config('keystone-glance-password')} #{glance_username}")
+    cmd = "openstack user create --domain #{domain} " +
+          "--password #{get_config('keystone-glance-password')} #{glance_username}"
+    execute_in_keystone_admin_context(cmd)
   end
-  not_if { execute_in_keystone_admin_context("openstack user show --domain #{domain} #{glance_username}") ; $?.success? }
+  not_if {
+    cmd = "openstack user show --domain #{domain} #{glance_username}"
+    execute_in_keystone_admin_context(cmd)
+  }
 end
 
-ruby_block "keystone-assign-glance-admin-role" do
+ruby_block 'keystone-assign-glance-admin-role' do
+  opts = [
+    "--user-domain #{domain}",
+    "--project-domain #{domain}",
+    "--user #{glance_username}",
+    "--project #{glance_project_name}"
+  ]
   block do
-    execute_in_keystone_admin_context("openstack role add --project #{glance_project_name} --user #{glance_username} #{node['bcpc']['keystone']['admin_role']}")
+    cmd = "openstack role add " + opts.join(' ') + ' ' + admin_role_name
+    execute_in_keystone_admin_context(cmd)
   end
-  # NOTE(kmidzi): below command always returns, so check for valid json output; break pattern with only_if
-  only_if {
-    begin
-      r = JSON.parse execute_in_keystone_admin_context("openstack role assignment list --role #{node['bcpc']['keystone']['admin_role']} --project #{glance_project_name} --user #{glance_username} -fjson")
-      r.empty?
-    rescue JSON::ParserError
-      true
-    end
+  not_if {
+    cmd = 'openstack role assignment list '
+    g_opts = opts + [
+      '-f value -c Role',
+      "--role #{admin_role_name}",
+      "| grep ^#{get_keystone_role_id(admin_role_name)}$"
+    ]
+    cmd += g_opts.join(' ')
+    execute_in_keystone_admin_context(cmd)
   }
 end
 
@@ -133,21 +162,19 @@ template "/etc/glance/policy.json" do
 end
 
 # Write out glance openrc
-template "/root/glance-openrc" do
-    source "keystone/openrc.erb"
-    owner glance_username
-    group glance_username
-    mode "0600"
-    variables(
-      lazy {
-        {
-          username: glance_username,
-          password: get_config('keystone-glance-password'),
-          project_name: glance_project_name,
-          domain: domain
-        }
+template '/root/openrc-glance' do
+  source 'keystone/openrc.erb'
+  mode '0600'
+  variables(
+    lazy {
+      {
+        username: glance_username,
+        password: get_config('keystone-glance-password'),
+        project_name: glance_project_name,
+        domain: domain
       }
-    )
+    }
+  )
 end
 
 ruby_block "glance-database-creation" do
@@ -226,10 +253,10 @@ package "qemu-utils"
 bash "glance-cirros-image" do
     user "root"
     code <<-EOH
-        . /root/glance-openrc
+        . /root/openrc-glance
         . /root/api_versionsrc
         qemu-img convert -f qcow2 -O raw /tmp/cirros-0.3.4-x86_64-disk.img /tmp/cirros-0.3.4-x86_64-disk.raw
         glance image-create --name='Cirros 0.3.4 x86_64' --visibility=public --container-format=bare --disk-format=raw --file /tmp/cirros-0.3.4-x86_64-disk.raw
     EOH
-    not_if ". /root/glance-openrc; glance image-list | grep 'Cirros 0.3.4 x86_64'"
+    not_if ". /root/openrc-glance; glance image-list | grep 'Cirros 0.3.4 x86_64'"
 end

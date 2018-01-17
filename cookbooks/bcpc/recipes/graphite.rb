@@ -219,7 +219,7 @@ if node['bcpc']['enabled']['metrics']
     code <<-EOH
       python /opt/graphite/webapp/graphite/manage.py syncdb --noinput
       python /opt/graphite/webapp/graphite/manage.py createsuperuser \
-      --username=admin --email=#{node['bcpc']['keystone']['admin_email']} --noinput
+      --username=admin --email=#{node['bcpc']['keystone']['admin']['email']} --noinput
     EOH
     notifies :restart, 'service[apache2]', :immediately
   end
