@@ -224,3 +224,10 @@ end
 service "tgt" do
     action [:stop, :disable]
 end
+
+template "/etc/logrotate.d/cinder-common" do
+    source "cinder/cinder-common.logrotate.conf.erb"
+    owner "root"
+    group "root"
+    mode 00644
+end

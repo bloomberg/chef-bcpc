@@ -567,3 +567,10 @@ end
 file "/var/lib/keystone/keystone.db" do
   action :delete
 end
+
+template "/etc/logrotate.d/keystone" do
+    source "keystone/keystone.logrotate.conf.erb"
+    owner "root"
+    group "root"
+    mode 00644
+end

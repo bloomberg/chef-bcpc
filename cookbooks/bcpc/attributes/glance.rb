@@ -12,3 +12,4 @@ default['bcpc']['glance']['database']['max_pool_size'] = 5
 
 # This may need to be rescoped...
 default['bcpc']['glance']['user'] = 'glance'
+default['bcpc']['glance']['days_to_keep_logs'] = 14

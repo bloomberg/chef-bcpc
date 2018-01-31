@@ -79,3 +79,5 @@ default['bcpc']['nova']['quota'] = {
 # When true, all DNS queries will be forwarded to external DNS servers
 # by each tenant's dnsmasq instance, except fixed zone PTRs.
 default['bcpc']['nova']['conditional_dns'] = false
+
+default['bcpc']['nova']['days_to_keep_logs'] = 14

@@ -20,3 +20,4 @@ default['bcpc']['cinder']['quota'] = {
 
 # Identity
 default['bcpc']['cinder']['user'] = 'cinder'
+default['bcpc']['cinder']['days_to_keep_logs'] = 14

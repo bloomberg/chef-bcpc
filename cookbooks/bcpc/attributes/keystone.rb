@@ -69,3 +69,5 @@ default['bcpc']['keystone']['default_domain'] = 'default'
 default['bcpc']['ldap']['admin_user'] = nil
 default['bcpc']['ldap']['admin_pass'] = nil
 default['bcpc']['ldap']['config'] = {}
+
+default['bcpc']['keystone']['days_to_keep_logs'] = 14

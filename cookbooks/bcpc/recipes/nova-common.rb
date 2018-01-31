@@ -84,3 +84,10 @@ template "/etc/nova/policy.json" do
     mode 00600
     variables(:policy => JSON.pretty_generate(node['bcpc']['nova']['policy']))
 end
+
+template "/etc/logrotate.d/nova-common" do
+    source "nova/nova-common.logrotate.conf.erb"
+    owner "root"
+    group "root"
+    mode 00644
+end

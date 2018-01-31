@@ -1,0 +1,8 @@
+/var/log/cinder/*.log {
+    rotate <%=node['bcpc']['cinder']['days_to_keep_logs']%>
+    daily
+    missingok
+    compress
+    delaycompress
+    copytruncate
+}
