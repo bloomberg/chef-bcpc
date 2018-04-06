@@ -79,6 +79,15 @@ end
   end
 end
 
+# Patch cinder to prevent throwing 403 even policy is successful
+bcpc_patch 'cinder-policy-patch' do
+  patch_file           'cinder-policy.patch'
+  patch_root_dir       '/usr/lib/python2.7/dist-packages'
+  shasums_before_apply 'cinder-policy-BEFORE.SHASUMS'
+  shasums_after_apply  'cinder-policy-AFTER.SHASUMS'
+  only_if "dpkg --compare-versions $(dpkg-query --showformat='${Version}' --show cinder-api) ge 2:0 && dpkg --compare-versions $(dpkg-query --showformat='${Version}' --show cinder-api) le 2:9"
+end
+
 service "cinder-api" do
     restart_command "service cinder-api restart; sleep 5"
 end
