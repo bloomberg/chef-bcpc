@@ -1,40 +1,34 @@
-From 3bc126b52797aed8e47dbc6d799a3ed9844002ee Mon Sep 17 00:00:00 2001
-From: Srinivas Sakhamuri <ssakhamuri@bloomberg.net>
-Date: Fri, 6 Apr 2018 19:14:54 +0000
-Subject: [PATCH 2/2] Fix quotas to use policy
-
----
- cinder/api/contrib/quotas.py | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
-
 diff --git a/cinder/api/contrib/quotas.py b/cinder/api/contrib/quotas.py
-index efb8f54..9565b28 100644
+index ce60066..9565b28 100644
 --- a/cinder/api/contrib/quotas.py
 +++ b/cinder/api/contrib/quotas.py
-@@ -177,9 +177,13 @@ class QuotaSetsController(wsgi.Controller):
-         :param id: target project id that needs to be shown
+@@ -178,6 +178,10 @@ class QuotaSetsController(wsgi.Controller):
          """
          context = req.environ['cinder.context']
-+        authorize_show(context)
+         authorize_show(context)
 +        prev_is_admin = context.is_admin
 +        # policy check is successful, the following line makes sure
 +        # cinder checks are successful as well
 +        context.is_admin = True
          params = req.params
          target_project_id = id
--        authorize_show(context, target={'project_id': target_project_id})
 
-         if not hasattr(params, '__call__') and 'usage' in params:
-             usage = strutils.bool_from_string(params['usage'])
-@@ -199,6 +203,7 @@ class QuotaSetsController(wsgi.Controller):
+@@ -198,13 +202,8 @@ class QuotaSetsController(wsgi.Controller):
+
              self._authorize_show(context_project, target_project)
 
+-        try:
+-            sqlalchemy_api.authorize_project_context(context,
+-                                                     target_project_id)
+-        except exception.NotAuthorized:
+-            raise webob.exc.HTTPForbidden()
+-
          quotas = self._get_quotas(context, target_project_id, usage)
 +        context.is_admin = prev_is_admin
          return self._format_quota_set(target_project_id, quotas)
 
      @wsgi.serializers(xml=QuotaTemplate)
-@@ -217,6 +222,10 @@ class QuotaSetsController(wsgi.Controller):
+@@ -223,6 +222,10 @@ class QuotaSetsController(wsgi.Controller):
          """
          context = req.environ['cinder.context']
          authorize_update(context)
@@ -45,7 +39,7 @@ index efb8f54..9565b28 100644
          self.validate_string_length(id, 'quota_set_name',
                                      min_length=1, max_length=255)
 
-@@ -310,7 +319,9 @@ class QuotaSetsController(wsgi.Controller):
+@@ -316,7 +319,9 @@ class QuotaSetsController(wsgi.Controller):
 
          if reservations:
              db.reservation_commit(context, reservations)
@@ -56,6 +50,3 @@ index efb8f54..9565b28 100644
 
      def _get_quota_usage(self, quota_obj):
          return (quota_obj.get('in_use', 0) + quota_obj.get('allocated', 0) +
---
-2.7.4
-
