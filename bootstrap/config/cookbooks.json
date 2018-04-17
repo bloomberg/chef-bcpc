@@ -1,0 +1,16 @@
+{
+  "packages": [
+    {"name": "apt",          "version": "3.0.0"},
+    {"name": "chef-client",  "version": "4.5.0"},
+    {"name": "chef_handler", "version": "1.4.0"},
+    {"name": "concat",       "version": "0.3.3"},
+    {"name": "cron",         "version": "1.7.6"},
+    {"name": "hostsfile",    "version": "2.4.5"},
+    {"name": "logrotate",    "version": "1.9.2"},
+    {"name": "ntp",          "version": "2.0.0"},
+    {"name": "ubuntu",       "version": "1.2.0"},
+    {"name": "windows",      "version": "1.40.0"},
+    {"name": "yum",          "version": "3.10.0"}
+  ]
+}
+ 
