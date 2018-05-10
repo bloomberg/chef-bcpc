@@ -32,7 +32,7 @@ node['bcpc']['flavors'].each do |name, flavor|
     if flavor['swap_gb']
       swap_gb flavor['swap_gb']
     end
-    if flavor['is_public']
+    if flavor.key?('is_public')
       is_public flavor['is_public']
     end
     if flavor['id']
