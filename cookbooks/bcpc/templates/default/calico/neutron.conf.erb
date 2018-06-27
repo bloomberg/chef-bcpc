@@ -1,8 +1,0 @@
-[DEFAULT]
-core_plugin = calico
-dns_domain = <%= node['bcpc']['cluster_domain'] %>
-dnsmasq_dns_servers = <%= node['bcpc']['management']['vip'] %>
-
-[calico]
-etcd_host = 127.0.0.1
-etcd_port = 2379

@@ -1,0 +1,14 @@
+{
+  "name": "node",
+  "description": "common role for all bcpc nodes",
+  "json_class": "Chef::Role",
+  "chef_type": "role",
+  "run_list": [
+    "recipe[bcpc::networking]",
+    "recipe[bcpc::apt]",
+    "recipe[bcpc::ssl]",
+    "recipe[bcpc::cloud-archive]",
+    "recipe[bcpc::chrony]",
+    "recipe[bcpc::common-packages]"
+  ]
+}

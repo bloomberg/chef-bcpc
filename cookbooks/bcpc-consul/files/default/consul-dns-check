@@ -1,4 +1,0 @@
-#!/bin/bash
-
-unbound-control status || exit 1
-pdns_control rping || exit 2

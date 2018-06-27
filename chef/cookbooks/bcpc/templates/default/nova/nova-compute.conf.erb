@@ -1,0 +1,22 @@
+# for an overview of all the available configuration options for nova@pike
+# go to: https://docs.openstack.org/nova/pike/configuration/config.html
+#
+[DEFAULT]
+compute_driver = libvirt.LibvirtDriver
+
+
+[libvirt]
+virt_type = <%= @virt_type %>
+images_type = rbd
+images_rbd_pool = <%= node['bcpc']['nova']['ceph']['pool']['name'] %>
+images_rbd_ceph_conf = /etc/ceph/ceph.conf
+rbd_user = <%= node['bcpc']['nova']['ceph']['user'] %>
+rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
+disk_cachemodes = "network=writeback"
+hw_disk_discard = unmap
+<% if node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
+cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
+<% end %>
+<% if node['bcpc']['nova']['cpu_config']['cpu_model'] %>
+cpu_model = <%= node['bcpc']['nova']['cpu_config']['cpu_model'] %>
+<% end %>

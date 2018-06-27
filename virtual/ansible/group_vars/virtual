@@ -1,0 +1,14 @@
+# -*- mode: yaml -*-
+# vi: set ft=yaml :
+
+# username and password used to access bare metal machines
+#
+initial_ssh_user: vagrant
+initial_ssh_pass: vagrant
+
+ansible_user: "{{ operator.username }}"
+ansible_host_key_checking: false
+ansible_ssh_private_key_file: "{{ playbook_dir }}/roles/localhost/files/id_ed25519"
+
+ssh:
+  generate_private_key: true

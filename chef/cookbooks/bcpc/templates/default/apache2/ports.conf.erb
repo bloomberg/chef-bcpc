@@ -1,0 +1,9 @@
+Listen <%= node['ipaddress'] %>:80
+
+<IfModule ssl_module>
+  Listen <%= node['ipaddress'] %>:443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+  Listen <%= node['ipaddress'] %>:443
+</IfModule>
