@@ -1,0 +1,6 @@
+- hosts: localhost
+  gather_facts: false
+  roles:
+    - localhost
+  vars_files:
+    - shared_vars/shared.yml

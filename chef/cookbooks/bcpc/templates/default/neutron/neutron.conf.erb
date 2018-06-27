@@ -1,0 +1,38 @@
+[DEFAULT]
+debug = false
+core_plugin = calico
+bind_host = <%= node['ipaddress'] %>
+auth_strategy = keystone
+transport_url = rabbit://<%= @nodes.map{ |n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+
+[agent]
+root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
+
+[database]
+connection = mysql+pymysql://<%= "#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/#{@db['dbname']}" %>
+
+[keystone_authtoken]
+auth_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
+auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
+memcached_servers = <%= @nodes.map{ |n| "#{n['ipaddress']}:11211" }.join(',') %>
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = <%= @os['username'] %>
+password = <%= @os['password'] %>
+
+
+[nova]
+auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+region_name = <%= node['bcpc']['cloud']['region'] %>
+project_name = service
+username = <%= @config['nova']['creds']['os']['username'] %>
+password = <%= @config['nova']['creds']['os']['password'] %>
+
+
+[oslo_concurrency]
+lock_path = $state_path/lock

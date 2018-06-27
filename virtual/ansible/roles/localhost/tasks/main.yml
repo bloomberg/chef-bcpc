@@ -1,0 +1,4 @@
+- import_tasks: virtual.yml
+  vars:
+    root_dir: "{{ playbook_dir | dirname | dirname }}"
+    virtual_dir: "{{ playbook_dir | dirname }}"

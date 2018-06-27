@@ -1,7 +1,0 @@
-UserParameter=ceph.health,HOME=/var/lib/zabbix ceph health detail | /usr/local/bin/ceph_health_filter.sh | head -1
-UserParameter=ceph.pool.usage[*],HOME=/var/lib/zabbix rados df | egrep "^$1 " | awk '{}{print $$3}'
-UserParameter=ceph.pool.objects[*],HOME=/var/lib/zabbix rados df | egrep "^$1 " | awk '{}{print $$4}'
-UserParameter=ceph.total.usage[*],HOME=/var/lib/zabbix rados df | egrep "total used" | awk '{}{print $$3}' | tr -d '\n'
-UserParameter=ceph.total.space[*],HOME=/var/lib/zabbix rados df | egrep "total space" | awk '{}{print $$3}' | tr -d '\n'
-UserParameter=ceph.total.objects[*],HOME=/var/lib/zabbix rados df | egrep "total used" | awk '{}{print $$4}' | tr -d '\n'
-UserParameter=ceph.leader,HOME=/var/lib/zabbix /usr/local/bin/if_leader echo leader | wc -l

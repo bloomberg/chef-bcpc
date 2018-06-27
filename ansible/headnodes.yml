@@ -1,0 +1,8 @@
+- hosts: headnodes
+  serial: "{{ step | default(ansible_play_batch | length) }}"
+  gather_facts: false
+  roles:
+    - common
+    - chef-node
+  vars_files:
+    - shared_vars/shared.yml

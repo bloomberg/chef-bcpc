@@ -1,0 +1,27 @@
+---
+- name: create/refresh virtual environment
+  shell: |
+   vagrant up
+  args:
+    chdir: "{{ virtual_dir }}"
+
+- name: generate cloud inventory
+  shell: |
+    git update-index --assume-unchanged {{ inventory_file }}
+
+    vagrant_ssh_config=$(mktemp)
+    generate={{ role_path }}/files/generate-inventory
+
+    vagrant ssh-config > ${vagrant_ssh_config}
+
+    inventory=$(${generate} \
+      --ssh-config ${vagrant_ssh_config} \
+      --topology-config topology/topology.yml)
+
+    if [ $? -eq 0 ]; then
+      echo "$inventory" > {{ inventory_file }}
+    fi
+
+  args:
+    chdir: "{{ virtual_dir }}"
+    executable: /bin/bash

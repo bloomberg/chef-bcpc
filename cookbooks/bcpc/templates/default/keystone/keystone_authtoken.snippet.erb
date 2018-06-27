@@ -1,9 +1,0 @@
-auth_uri = <%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:5000
-<%# TODO(kamidzi): use endpoint generator %>
-auth_url = <%=node['bcpc']['protocol']['keystone']%>://openstack.<%=node['bcpc']['cluster_domain']%>:35357
-auth_type = password
-project_domain_name = <%=node['bcpc']['keystone']['service_project']['domain']%>
-user_domain_name = <%=node['bcpc']['keystone']['service_project']['domain']%>
-project_name = <%=node['bcpc']['keystone']['service_project']['name']%>
-username = <%= @username %>
-password = <%= @password %>

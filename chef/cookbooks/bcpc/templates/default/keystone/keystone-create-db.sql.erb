@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS <%= @database['dbname'] %>;
+
+GRANT ALL PRIVILEGES ON <%= @database['dbname'] %>.* TO '<%= @database['username'] %>'@'localhost' \
+IDENTIFIED BY '<%= @database['password'] %>';
+
+GRANT ALL PRIVILEGES ON <%= @database['dbname'] %>.* TO '<%= @database['username'] %>'@'%' \
+IDENTIFIED BY '<%= @database['password'] %>';
