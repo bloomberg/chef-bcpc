@@ -1,0 +1,46 @@
+{
+  "packages": [
+    {"name": "apt",           "version": "3.0.0"},
+    {"name": "chef-client",   "version": "4.5.0"},
+    {"name": "chef_handler",  "version": "1.4.0"},
+    {"name": "concat",        "version": "0.3.3"},
+    {"name": "cron",          "version": "1.7.6"},
+    {"name": "hostsfile",     "version": "2.4.5"},
+    {"name": "logrotate",     "version": "1.9.2"},
+    {"name": "ntp",           "version": "2.0.0"},
+    {"name": "ubuntu",        "version": "1.2.0"},
+    {"name": "windows",       "version": "1.40.0"},
+    {"name": "yum",           "version": "3.10.0"}
+  ],
+ "monitoring": [
+    { "name": "pyrabbit",     "version": "1.0.1"},
+    { "name": "requests-aws", "version": "0.1.6"},
+    { "name": "pyzabbix",     "version": "0.7.3"},
+    { "name": "carbon",       "version": "0.9.15"},
+    { "name": "whisper",      "version": "0.9.15"},
+    { "name": "graphite-web", "version": "0.9.15"}
+  ],
+   "fluentd_gems": [
+    {"name": "elasticsearch", "version": "1.0.12"},
+    {"name": "elasticsearch-api",
+                              "version": "1.0.12"},
+    {"name": "elasticsearch-transport",
+                              "version": "1.0.12"},
+    {"name": "excon",         "version": "0.45.3"},
+    {"name": "faraday",       "version": "0.9.1"},
+    {"name": "fluent-plugin-elasticsearch",
+                              "version": "0.9.0"},
+    {"name": "multi_json",    "version": "1.11.2"},
+    {"name": "multipart-post","version": "2.0.0"}
+  ],
+  "fpm_gems": [
+    {"name": "arr-pm",        "version": "0.0.10"},
+    {"name": "backports",     "version": "3.6.4"},
+    {"name": "cabin",         "version": "0.7.1"},
+    {"name": "childprocess",  "version": "0.5.6"},
+    {"name": "clamp",         "version": "0.6.5"},
+    {"name": "ffi",           "version": "1.9.8"},
+    {"name": "fpm",           "version": "1.3.3"},
+    {"name": "json",          "version": "1.8.2"}
+  ]
+}

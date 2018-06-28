@@ -46,8 +46,8 @@ fi
 
 # fluentd plugins and dependencies are fetched by shared_prereqs.sh, just copy them
 # in from the local cache and add them to $FILES
-rsync -avxSH "$FILECACHE_MOUNT_POINT"/fluentd_gems/* "$(pwd -P)"
-FILES+=$(ls -1 "$FILECACHE_MOUNT_POINT"/fluentd_gems/*.gem)
+rsync -avxSH "${FILECACHE_MOUNT_POINT}"/fluentd_gems/* "$(pwd -P)"
+FILES+=$(ls -1 "${FILECACHE_MOUNT_POINT}"/fluentd_gems/*.gem)
 
 # Fetch the cirros image for testing
 if [[ ! -f cirros-0.3.4-x86_64-disk.img ]]; then
@@ -57,7 +57,7 @@ FILES+="cirros-0.3.4-x86_64-disk.img $FILES"
 
 # Grab the Ubuntu 14.04 installer image
 if [[ ! -f ubuntu-14.04-mini.iso ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/ubuntu-14.04-mini.iso ubuntu-14.04-mini.iso
+  cp -v "${FILECACHE_MOUNT_POINT}"/ubuntu-14.04-mini.iso ubuntu-14.04-mini.iso
 fi
 FILES="ubuntu-14.04-mini.iso $FILES"
 
@@ -91,25 +91,21 @@ FILES="elasticsearch-plugins.tgz $FILES"
 
 # Fetch pyrabbit
 if [[ ! -f pyrabbit-1.0.1.tar.gz ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/pyrabbit-1.0.1.tar.gz .
+  cp -v "${FILECACHE_MOUNT_POINT}"/pyrabbit-1.0.1.tar.gz .
 fi
 FILES="pyrabbit-1.0.1.tar.gz $FILES"
 
 # Build requests-aws package
 if [[ ! -f python-requests-aws_"${VER_REQUESTS_AWS}"_all.deb ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/requests-aws-"${VER_REQUESTS_AWS}".tar.gz . &&
-  tar zxf requests-aws-"${VER_REQUESTS_AWS}".tar.gz &&
-  fpm -s python -t deb -f requests-aws-"${VER_REQUESTS_AWS}"/setup.py &&
-  rm -rf requests-aws-"${VER_REQUESTS_AWS}".tar.gz requests-aws-"${VER_REQUESTS_AWS}" || exit
+  tar zxf "${FILECACHE_MOUNT_POINT}"/requests-aws-"${VER_REQUESTS_AWS}".tar.gz -C . &&
+  fpm -s python -t deb -f requests-aws-"${VER_REQUESTS_AWS}"/setup.py || exit
 fi
 FILES="python-requests-aws_${VER_REQUESTS_AWS}_all.deb $FILES"
 
 # Build pyzabbix package
 if [[ ! -f python-pyzabbix_"${VER_PYZABBIX}"_all.deb ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/pyzabbix-"${VER_PYZABBIX}".tar.gz . &&
-  tar zxf pyzabbix-"${VER_PYZABBIX}".tar.gz &&
-  fpm -s python -t deb -f pyzabbix-"${VER_PYZABBIX}"/setup.py &&
-  rm -rf pyzabbix-"${VER_PYZABBIX}".tar.gz pyzabbix-"${VER_PYZABBIX}" || exit
+  tar zxf "${FILECACHE_MOUNT_POINT}"/pyzabbix-"${VER_PYZABBIX}".tar.gz -C . &&
+  fpm -s python -t deb -f pyzabbix-"${VER_PYZABBIX}"/setup.py || exit
 fi
 FILES="python-pyzabbix_${VER_PYZABBIX}_all.deb $FILES"
 
@@ -121,26 +117,20 @@ FILES="pagerduty-zabbix-proxy.py $FILES"
 
 # Build graphite packages
 if [[ ! -f python-carbon_"${VER_GRAPHITE_CARBON}"_all.deb ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/carbon-"${VER_GRAPHITE_CARBON}".tar.gz . &&
-  tar zxf carbon-"${VER_GRAPHITE_CARBON}".tar.gz &&
-  fpm --python-install-bin /opt/graphite/bin -s python -t deb -f carbon-"${VER_GRAPHITE_CARBON}"/setup.py &&
-  rm -rf carbon-"${VER_GRAPHITE_CARBON}" carbon-"${VER_GRAPHITE_CARBON}".tar.gz || exit
+  tar zxf "${FILECACHE_MOUNT_POINT}"/carbon-"${VER_GRAPHITE_CARBON}".tar.gz -C . &&
+  fpm --python-install-bin /opt/graphite/bin -s python -t deb -f carbon-"${VER_GRAPHITE_CARBON}"/setup.py || exit
 fi
 FILES="python-carbon_${VER_GRAPHITE_CARBON}_all.deb $FILES"
 
 if [[ ! -f python-whisper_"${VER_GRAPHITE_WHISPER}"_all.deb ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/whisper-"${VER_GRAPHITE_WHISPER}".tar.gz . &&
-  tar zxf whisper-"${VER_GRAPHITE_WHISPER}".tar.gz &&
-  fpm --python-install-bin /opt/graphite/bin -s python -t deb -f whisper-"${VER_GRAPHITE_WHISPER}"/setup.py &&
-  rm -rf whisper-"${VER_GRAPHITE_WHISPER}" whisper-"${VER_GRAPHITE_WHISPER}".tar.gz || exit
+  tar zxf "${FILECACHE_MOUNT_POINT}"/whisper-"${VER_GRAPHITE_WHISPER}".tar.gz -C . &&
+  fpm --python-install-bin /opt/graphite/bin -s python -t deb -f whisper-"${VER_GRAPHITE_WHISPER}"/setup.py || exit
 fi
 FILES="python-whisper_${VER_GRAPHITE_WHISPER}_all.deb $FILES"
 
 if [[ ! -f "python-graphite-web_${VER_GRAPHITE_WEB}_all.deb" ]]; then
-  cp -v "$FILECACHE_MOUNT_POINT"/graphite-web-"${VER_GRAPHITE_WEB}".tar.gz . &&
-  tar zxf graphite-web-"${VER_GRAPHITE_WEB}".tar.gz &&
-  fpm --python-install-lib /opt/graphite/webapp -s python -t deb -f graphite-web-"${VER_GRAPHITE_WEB}"/setup.py &&
-  rm -rf graphite-web-"${VER_GRAPHITE_WEB}" graphite-web-"${VER_GRAPHITE_WEB}".tar.gz || exit
+  tar zxf "${FILECACHE_MOUNT_POINT}"/graphite-web-"${VER_GRAPHITE_WEB}".tar.gz -C . &&
+  fpm --python-install-lib /opt/graphite/webapp -s python -t deb -f graphite-web-"${VER_GRAPHITE_WEB}"/setup.py || exit
 fi
 FILES="python-graphite-web_${VER_GRAPHITE_WEB}_all.deb $FILES"
 

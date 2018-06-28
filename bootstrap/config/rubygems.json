@@ -1,0 +1,22 @@
+{
+  "fluentd_gems": [
+    {"name": "elasticsearch",               "version": "1.0.12"},
+    {"name": "elasticsearch-api",           "version": "1.0.12"},
+    {"name": "elasticsearch-transport",     "version": "1.0.12"},
+    {"name": "excon",                       "version": "0.45.3"},
+    {"name": "faraday",                     "version": "0.9.1"},
+    {"name": "fluent-plugin-elasticsearch", "version": "0.9.0"},
+    {"name": "multi_json",                  "version": "1.11.2"},
+    {"name": "multipart-post",              "version": "2.0.0"}
+  ],
+  "fpm_gems": [
+    {"name": "arr-pm",        "version": "0.0.10"},
+    {"name": "backports",     "version": "3.6.4"},
+    {"name": "cabin",         "version": "0.7.1"},
+    {"name": "childprocess",  "version": "0.5.6"},
+    {"name": "clamp",         "version": "0.6.5"},
+    {"name": "ffi",           "version": "1.9.8"},
+    {"name": "fpm",           "version": "1.3.3"},
+    {"name": "json",          "version": "1.8.2"}
+  ]
+}
