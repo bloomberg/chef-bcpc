@@ -1,0 +1,10 @@
+- import_tasks: operator.yml
+  become: true
+  vars:
+    ansible_ssh_user: "{{ initial_ssh_user }}"
+    ansible_ssh_pass: "{{ initial_ssh_pass }}"
+  tags: [never,operator]
+
+- import_tasks: chef-client.yml
+  become: true
+  tags: [never,chef-client]

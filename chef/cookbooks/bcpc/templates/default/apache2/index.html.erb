@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title><%= node['bcpc']['region'] %> - <%= node['ipaddress'] %> - BCPC</title>
+  </head>
+  <body>
+    <style>
+      body{
+        font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+      }
+      p.version {
+        font-style: italic;
+      }
+      div.block{
+        overflow:hidden;
+      }
+      div.block label{
+        width:160px;
+        display:block;
+        float:left;
+        text-align:right;
+        padding-right:8px;
+      }
+      div.block .a{
+        margin-left:4px;
+        float:left;
+      }
+      table {
+        border: 1px solid black;
+        border-spacing: 0px;
+      }
+      th {
+        border: 1px solid black;
+        padding: 4px;
+      }
+      td {
+        border: 1px solid black; padding: 4px;
+      }
+    </style>
+
+    <h2><%= node['bcpc']['region'] %> - <%= node['bcpc']['fqdn'] %> (<%= @vip %>)</h2>
+    <p class="version">BCPC cookbook <%= @cookbook_version %> (<%= node['bcpc']['openstack']['release'] %>-<%= node['bcpc']['openstack']['branch'] %>)</p>
+
+    <h3>Web Interfaces</h3>
+    <table>
+      <tr>
+        <th>Resource</th>
+        <th>URL</th>
+        <th>IP-based URL (deprecated)</th>
+      </tr>
+      <tr>
+        <td><em>OpenStack</em></td>
+        <td><a href="https://<%= node['bcpc']['fqdn'] %>/horizon/">https://<%= node['bcpc']['fqdn'] %>/horizon/</a></td>
+        <td><a href="https://<%= @vip %>/horizon/">https://<%= @vip %>/horizon/</a></td>
+      </tr>
+      <tr>
+        <td><em>HAProxy</em></td>
+        <td><a href="https://<%= node['bcpc']['fqdn'] %>/haproxy">https://<%= node['bcpc']['fqdn'] %>/haproxy</a></td>
+        <td><a href="https://<%= @vip %>/haproxy">https://<%= @vip %>/haproxy</a></td>
+      </tr>
+      <tr>
+          <td><em>RabbitMQ</em></td>
+          <td><a href="https://<%= node['bcpc']['fqdn'] %>/rabbitmq/">https://<%= node['bcpc']['fqdn'] %>/rabbitmq/</a></td>
+          <td><a href="https://<%= @vip %>/rabbitmq/">https://<%= @vip %>/rabbitmq/</a></td>
+      </tr>
+      <tr>
+        <td><em>PDNS</em></td>
+        <td> - </td>
+        <td><a href="http://<%= @vip %>:8081">http://<%= @vip %>:8081</a></td>
+      </tr>
+    </table>
+
+    <h3>API Endpoints</h3>
+
+    <p>For API endpoint information, please consult the Service Endpoint list in OpenStack Horizon under <strong>Project > Compute > Access & Security > API Access</strong>.
+
+    <h3>SSL Certificate</h3>
+    <code>
+      <%= @config['ssl']['crt'].gsub(/\n/, '<br/>') %>
+    </code>
+
+    <% if @config['ssl']['intermediate'] %>
+      <h3>SSL CA certificate</h3>
+      <code>
+          <%= @config['ssl']['intermediate'].gsub(/\n/, '<br/>') %>
+      </code>
+    <% end %>
+	</body>
+</html>

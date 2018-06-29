@@ -1,0 +1,418 @@
+# -*- coding: utf-8 -*-
+
+import os
+from django.utils.translation import ugettext_lazy as _
+from horizon.utils import secret_key
+from openstack_dashboard.settings import HORIZON_CONFIG
+
+DEBUG = False
+
+ALLOWED_HOSTS = '*'
+SITE_BRANDING = "<%= node['bcpc']['cloud']['region'] %>"
+
+WEBROOT = '/horizon'
+LOGIN_URL = WEBROOT + '/auth/login/'
+LOGOUT_URL = WEBROOT + '/auth/logout/'
+LOGIN_REDIRECT_URL = WEBROOT
+
+DEFAULT_THEME = 'material'
+AVAILABLE_THEMES = [
+  ('material', 'Material', 'themes/material'),
+]
+
+COMPRESS_OFFLINE = True
+DISALLOW_IFRAME_EMBED = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_TIMEOUT=3600
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SHOW_KEYSTONE_V2_RC = False
+API_RESULT_LIMIT = 1000
+API_RESULT_PAGE_SIZE = 20
+
+REST_API_REQUIRED_SETTINGS = [
+  'OPENSTACK_HYPERVISOR_FEATURES',
+  'LAUNCH_INSTANCE_DEFAULTS',
+  'OPENSTACK_IMAGE_FORMATS',
+  'OPENSTACK_KEYSTONE_DEFAULT_DOMAIN',
+  'CREATE_IMAGE_DEFAULTS',
+  'ENFORCE_PASSWORD_CHECK'
+]
+
+OPENSTACK_API_VERSIONS = {
+  "data-processing": 1.1,
+  "identity": 3,
+  "image": 2,
+  "volume": 3,
+  "compute": 2,
+}
+
+#OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+#OPENSTACK_KEYSTONE_DOMAIN_DROPDOWN = True
+#OPENSTACK_KEYSTONE_DOMAIN_CHOICES = (
+#  ('Default', 'Default'),
+#)
+OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = 'Default'
+
+
+HORIZON_CONFIG = {
+  'ajax_queue_limit': 10,
+  'modal_backdrop': "static",
+  'simple_ip_management' : False,
+  'password_autocomplete': "off",
+  'disable_password_reveal': False,
+  'user_home': 'openstack_dashboard.views.get_user_home'
+}
+
+
+LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
+SECRET_KEY = '<%= @config['horizon']['secret'] %>'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+CACHES = {
+  'default': {
+    'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
+    'LOCATION' : [<%= @nodes.map{|n| "'#{n['ipaddress']}:11211'"}.join(',') %>]
+  }
+}
+
+OPENSTACK_HOST = "<%= node['bcpc']['cloud']['fqdn'] %>"
+OPENSTACK_KEYSTONE_URL = "https://%s:5000/<%= node['bcpc']['catalog']['identity']['uris']['internal'] %>" % OPENSTACK_HOST
+OPENSTACK_SSL_NO_VERIFY = False
+OPENSTACK_SSL_CACERT = '/etc/ssl/certs/ssl-bcpc.pem'
+
+OPENSTACK_KEYSTONE_ADMIN_ROLES = ["<%= node['bcpc']['keystone']['roles']['admin'] %>"]
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= node['bcpc']['keystone']['roles']['member'] %>"
+
+LAUNCH_INSTANCE_LEGACY_ENABLED = False
+LAUNCH_INSTANCE_NG_ENABLED = True
+
+OPENSTACK_NEUTRON_NETWORK = {
+  'enable_router': False,
+  'enable_quotas': False,
+  'enable_ipv6': False,
+  'enable_distributed_router': False,
+  'enable_ha_router': False,
+  'enable_fip_topology_check': False,
+  'supported_provider_types': ['local'],
+  'supported_vnic_types': ['*'],
+}
+
+OPENSTACK_HEAT_STACK = {
+  'enable_user_pass': True,
+}
+
+HORIZON_IMAGES_UPLOAD_MODE = 'off'
+
+# The OPENSTACK_IMAGE_BACKEND settings can be used to customize features
+# in the OpenStack Dashboard related to the Image service, such as the list
+# of supported image formats.
+#OPENSTACK_IMAGE_BACKEND = {
+#    'image_formats': [
+#        ('', _('Select format')),
+#        ('aki', _('AKI - Amazon Kernel Image')),
+#        ('ami', _('AMI - Amazon Machine Image')),
+#        ('ari', _('ARI - Amazon Ramdisk Image')),
+#        ('docker', _('Docker')),
+#        ('iso', _('ISO - Optical Disk Image')),
+#        ('ova', _('OVA - Open Virtual Appliance')),
+#        ('qcow2', _('QCOW2 - QEMU Emulator')),
+#        ('raw', _('Raw')),
+#        ('vdi', _('VDI - Virtual Disk Image')),
+#        ('vhd', _('VHD - Virtual Hard Disk')),
+#        ('vhdx', _('VHDX - Large Virtual Hard Disk')),
+#        ('vmdk', _('VMDK - Virtual Machine Disk')),
+#    ],
+#}
+
+# The IMAGE_CUSTOM_PROPERTY_TITLES settings is used to customize the titles for
+# image custom property attributes that appear on image detail pages.
+IMAGE_CUSTOM_PROPERTY_TITLES = {
+  "architecture": _("Architecture"),
+  "kernel_id": _("Kernel ID"),
+  "ramdisk_id": _("Ramdisk ID"),
+  "image_state": _("Euca2ools state"),
+  "project_id": _("Project ID"),
+  "image_type": _("Image Type"),
+}
+
+
+# The default number of lines displayed for instance console log.
+INSTANCE_LOG_LENGTH = 35
+
+# Specify a maximum number of items to display in a dropdown.
+DROPDOWN_MAX_ITEMS = 30
+
+# The timezone of the server. This should correspond with the timezone
+# of your entire OpenStack installation, and hopefully be in UTC.
+TIME_ZONE = "UTC"
+
+# The Horizon Policy Enforcement engine uses these values to load per service
+# policy rule files. The content of these files should match the files the
+# OpenStack services are using to determine role based access control in the
+# target installation.
+
+# Path to directory containing policy.json files
+#POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
+
+# Map of local copy of service policy files.
+# Please insure that your identity policy file matches the one being used on
+# your keystone servers. There is an alternate policy file that may be used
+# in the Keystone v3 multi-domain case, policy.v3cloudsample.json.
+# This file is not included in the Horizon repository by default but can be
+# found at
+# http://git.openstack.org/cgit/openstack/keystone/tree/etc/ \
+# policy.v3cloudsample.json
+# Having matching policy files on the Horizon and Keystone servers is essential
+# for normal operation. This holds true for all services and their policy files.
+#POLICY_FILES = {
+#    'identity': 'keystone_policy.json',
+#    'compute': 'nova_policy.json',
+#    'volume': 'cinder_policy.json',
+#    'image': 'glance_policy.json',
+#    'network': 'neutron_policy.json',
+#}
+
+LOGGING = {
+  'version': 1,
+  # When set to True this will disable all logging except
+  # for loggers specified in this configuration dictionary. Note that
+  # if nothing is specified here and disable_existing_loggers is True,
+  # django.db.backends will still log unless it is disabled explicitly.
+  'disable_existing_loggers': False,
+  # If apache2 mod_wsgi is used to deploy OpenStack dashboard
+  # timestamp is output by mod_wsgi. If WSGI framework you use does not
+  # output timestamp for logging, add %(asctime)s in the following
+  # format definitions.
+  'formatters': {
+      'console': {
+          'format': '%(levelname)s %(name)s %(message)s'
+      },
+      'operation': {
+          # The format of "%(message)s" is defined by
+          # OPERATION_LOG_OPTIONS['format']
+          'format': '%(message)s'
+      },
+  },
+  'handlers': {
+      'null': {
+          'level': 'DEBUG',
+          'class': 'logging.NullHandler',
+      },
+      'console': {
+          # Set the level to "DEBUG" for verbose output logging.
+          'level': 'INFO',
+          'class': 'logging.StreamHandler',
+          'formatter': 'console',
+      },
+      'operation': {
+          'level': 'INFO',
+          'class': 'logging.StreamHandler',
+          'formatter': 'operation',
+      },
+  },
+  'loggers': {
+      'horizon': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'horizon.operation_log': {
+          'handlers': ['operation'],
+          'level': 'INFO',
+          'propagate': False,
+      },
+      'openstack_dashboard': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'novaclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'cinderclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'keystoneauth': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'keystoneclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'glanceclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'neutronclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'swiftclient': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'oslo_policy': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'openstack_auth': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'nose.plugins.manager': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      'django': {
+          'handlers': ['console'],
+          'level': 'DEBUG',
+          'propagate': False,
+      },
+      # Logging from django.db.backends is VERY verbose, send to null
+      # by default.
+      'django.db.backends': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+      'requests': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+      'urllib3': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+      'chardet.charsetprober': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+      'iso8601': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+      'scss': {
+          'handlers': ['null'],
+          'propagate': False,
+      },
+  },
+}
+
+SECURITY_GROUP_RULES = {
+  'all_tcp': {
+    'name': _('All TCP'),
+    'ip_protocol': 'tcp',
+    'from_port': '1',
+    'to_port': '65535',
+  },
+  'all_udp': {
+    'name': _('All UDP'),
+    'ip_protocol': 'udp',
+    'from_port': '1',
+    'to_port': '65535',
+  },
+  'all_icmp': {
+    'name': _('All ICMP'),
+    'ip_protocol': 'icmp',
+    'from_port': '-1',
+    'to_port': '-1',
+  },
+  'ssh': {
+    'name': 'SSH',
+    'ip_protocol': 'tcp',
+    'from_port': '22',
+    'to_port': '22',
+  },
+  'smtp': {
+    'name': 'SMTP',
+    'ip_protocol': 'tcp',
+    'from_port': '25',
+    'to_port': '25',
+  },
+  'dns': {
+    'name': 'DNS',
+    'ip_protocol': 'tcp',
+    'from_port': '53',
+    'to_port': '53',
+  },
+  'http': {
+    'name': 'HTTP',
+    'ip_protocol': 'tcp',
+    'from_port': '80',
+    'to_port': '80',
+  },
+  'pop3': {
+    'name': 'POP3',
+    'ip_protocol': 'tcp',
+    'from_port': '110',
+    'to_port': '110',
+  },
+  'imap': {
+    'name': 'IMAP',
+    'ip_protocol': 'tcp',
+    'from_port': '143',
+    'to_port': '143',
+  },
+  'ldap': {
+    'name': 'LDAP',
+    'ip_protocol': 'tcp',
+    'from_port': '389',
+    'to_port': '389',
+  },
+  'https': {
+    'name': 'HTTPS',
+    'ip_protocol': 'tcp',
+    'from_port': '443',
+    'to_port': '443',
+  },
+  'smtps': {
+    'name': 'SMTPS',
+    'ip_protocol': 'tcp',
+    'from_port': '465',
+    'to_port': '465',
+  },
+  'imaps': {
+    'name': 'IMAPS',
+    'ip_protocol': 'tcp',
+    'from_port': '993',
+    'to_port': '993',
+  },
+  'pop3s': {
+    'name': 'POP3S',
+    'ip_protocol': 'tcp',
+    'from_port': '995',
+    'to_port': '995',
+  },
+  'ms_sql': {
+    'name': 'MS SQL',
+    'ip_protocol': 'tcp',
+    'from_port': '1433',
+    'to_port': '1433',
+  },
+  'mysql': {
+    'name': 'MYSQL',
+    'ip_protocol': 'tcp',
+    'from_port': '3306',
+    'to_port': '3306',
+  },
+  'rdp': {
+    'name': 'RDP',
+    'ip_protocol': 'tcp',
+    'from_port': '3389',
+    'to_port': '3389',
+  },
+}
+

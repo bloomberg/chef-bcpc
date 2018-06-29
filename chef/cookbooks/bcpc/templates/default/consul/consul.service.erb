@@ -1,0 +1,17 @@
+[Unit]
+Description=Consul daemon
+Requires=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=~/etc/default/consul
+User=<%= @username %>
+ExecStart=<%= @executable %> agent $OPTIONS -config-dir=<%= @conf_dir %>
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=consul
+
+[Install]
+WantedBy=multi-user.target

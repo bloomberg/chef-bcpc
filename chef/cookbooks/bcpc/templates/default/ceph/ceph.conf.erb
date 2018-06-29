@@ -1,0 +1,20 @@
+[global]
+fsid = <%= @config['ceph']['fsid'] %>
+public network = <%= @public_network %>
+cluster network = <%= @cluster_network %>
+mon initial members = <%= @nodes.map{ |n| "#{n['hostname']}" }.join(',') %>
+mon host = <%= @nodes.map{ |n| "#{n['ipaddress']}" }.join(',') %>
+auth cluster required = cephx
+auth service required = cephx
+auth client required = cephx
+mon osd allow primary affinity = true
+
+[client.cinder]
+rbd cache = true
+rbd cache writethrough until flush = true
+rbd concurrent management ops = 20
+
+[client.glance]
+rbd cache = true
+rbd cache writethrough until flush = true
+rbd concurrent management ops = 20

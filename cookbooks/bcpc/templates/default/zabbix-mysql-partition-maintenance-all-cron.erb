@@ -1,4 +1,0 @@
-#!/bin/sh
-
-export MYSQL_PWD="<%= get_config('mysql-zabbix-password') %>"
-pgrep -u zabbix zabbix_server >/dev/null && mysql -u<%= get_config('mysql-zabbix-user') %> <%= node['bcpc']['dbname']['zabbix'] %> -e 'CALL partition_maintenance_all("<%= node['bcpc']['dbname']['zabbix'] %>")'

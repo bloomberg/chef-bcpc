@@ -1,0 +1,7 @@
+---
+
+<%- os_adminrc.each do |name, val| %>
+<%= name %>: <%= val %>
+<% end %>
+timeout: 300
+cluster: <%=@node['bcpc']['region_name']%>

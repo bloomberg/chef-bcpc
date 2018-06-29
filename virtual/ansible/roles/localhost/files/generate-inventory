@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import paramiko
+import yaml
+
+def is_valid_file(parser, arg):
+  if not os.path.isfile(arg):
+    parser.error('The file {} does not exist!'.format(arg))
+  else:
+    return arg
+
+def parse_ssh_config(ssh_config_file):
+
+  with open(ssh_config_file) as f:
+    cfg = paramiko.SSHConfig()
+    cfg.parse(f)
+    ssh_config = {}
+    hostnames = cfg.get_hostnames()
+
+    for hostname in hostnames:
+
+      if ('?' in hostname) or ('*' in hostname):
+        continue
+
+      options = cfg.lookup(hostname)
+
+      # We want the ssh config to point to the real hostname, but we dont want to
+      # set ansible_ssh_host to the real name, but the ssh_config alias
+      if options['hostname'] == 'localhost':
+        options['hostname'] = hostname
+
+      ssh_config[hostname] = options
+
+    return ssh_config
+
+def parse_topology_config(topology_config_file):
+
+  with open(topology_config_file) as f:
+    return yaml.load(f)
+
+def get_group_hosts(group,hosts,nodes):
+
+  group_hosts = {}
+
+  for host,config in hosts.iteritems():
+    node = filter(lambda node: node['host'] == host, nodes)
+
+    if len(node) > 2:
+      msg = "more than 1 node with the hostname {host} found".format(host=host)
+      raise ValueError(msg)
+
+    node = node[0]
+
+    if node['group'] == group:
+
+      networks = node['networking']['networks']
+      primary_ip = [n['ip'] for n in networks if n['type'] == 'primary']
+
+      host_vars = {
+        'ansible_host': config['hostname'],
+        'ansible_port': config['port'],
+        'run_list': node['run_list']
+      }
+
+      if len(primary_ip):
+        host_vars['primary_ip'] = primary_ip[0]
+
+      group_hosts.update({ host: host_vars })
+
+  return group_hosts
+
+def generate_inventory(ssh_config,nodes):
+
+  inventory = {
+    'all': {
+      'children': {
+        'localhost': {'hosts': {'127.0.0.1': {'ansible_connection':'local'}}},
+      }
+    }
+  }
+
+  cluster = {'children': {}}
+
+  for group in [n['group'] for n in nodes]:
+
+    hosts = get_group_hosts(group,ssh_config,nodes)
+
+    if len(hosts):
+      cluster['children'].update({group: {'hosts': hosts}})
+
+  if len(cluster['children']):
+    inventory['all']['children'].update({'virtual': cluster})
+
+  return inventory
+
+def main():
+  import argparse
+
+  desc = "Generate Ansible Inventory File"
+  parser = argparse.ArgumentParser(description=desc)
+
+  parser.add_argument(
+    "--ssh-config",
+    dest="ssh_conf",
+    required=True,
+    help="Path to SSH config file",
+    metavar="FILE",
+    type=lambda x: is_valid_file(parser, x)
+  )
+
+  parser.add_argument(
+    "--topology-config",
+    dest="topology_conf",
+    required=True,
+    help="Path to topology config file",
+    metavar="FILE",
+    type=lambda x: is_valid_file(parser, x)
+  )
+
+  args = parser.parse_args()
+
+  ssh_config = parse_ssh_config(args.ssh_conf)
+  topology = parse_topology_config(args.topology_conf)
+  inventory = generate_inventory(ssh_config,topology['nodes'])
+
+  yaml.dump(inventory, sys.stdout, default_flow_style=False)
+
+if __name__ == "__main__":
+  main()

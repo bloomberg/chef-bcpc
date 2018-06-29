@@ -1,0 +1,8 @@
+- import_tasks: virtual/create.yml
+  tags: [never,create]
+
+- import_tasks: virtual/destroy.yml
+  tags: [never,destroy]
+
+- import_tasks: virtual/snapshot.yml
+  tags: [never,snapshot]

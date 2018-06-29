@@ -1,0 +1,8 @@
+---
+
+cidr: <%= @node["bcpc"]["management"]["cidr"] %>
+interface: <%= @node["bcpc"]["management"]["interface"] %>
+
+<%- os_adminrc.each do |name, val| %>
+<%= name %>: <%= val %>
+<% end %>

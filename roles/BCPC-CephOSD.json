@@ -1,9 +1,0 @@
-{
-  "chef_type": "role",
-  "description": "Run list for Ceph OSD",
-  "json_class": "Chef::Role",
-  "name": "BCPC-CephOSD",
-  "run_list": [
-    "recipe[bcpc::ceph-osd]"
-  ]
-}

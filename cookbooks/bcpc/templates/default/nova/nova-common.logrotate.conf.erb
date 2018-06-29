@@ -1,8 +1,0 @@
-/var/log/nova/*.log {
-    rotate <%=node['bcpc']['nova']['days_to_keep_logs']%>
-    daily
-    missingok
-    compress
-    delaycompress
-    copytruncate
-}
