@@ -26,7 +26,6 @@ package "iperf"
 package "curl"
 package "conntrack"
 package "dhcpdump"
-package "jq"
 
 # I/O troubleshooting tools
 package "fio"
@@ -53,6 +52,6 @@ package "xinetd"
 package "python-openstackclient"
 
 # packages used for operatons and file edits
-
+package "jq"
 package 'screen'
 package 'tmux'

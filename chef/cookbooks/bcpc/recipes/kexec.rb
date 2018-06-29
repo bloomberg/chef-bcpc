@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc-extra
 # Recipe:: kexec
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,14 +17,9 @@
 # limitations under the License.
 #
 
-package 'kexec-tools' do
-  action :upgrade
-end
+package 'kexec-tools'
 
-cookbook_file 'etc-default-kexec' do
-  path '/etc/default/kexec'
-  owner 'root'
-  group 'root'
+cookbook_file '/etc/default/kexec' do
+  source "kexec/default"
   mode '0644'
-  action :create
 end
