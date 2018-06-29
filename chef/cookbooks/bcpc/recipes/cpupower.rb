@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: cpupower
 #
-# Copyright 2015, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,29 +17,25 @@
 # limitations under the License.
 #
 
-package "cpufrequtils" do
-  action :purge
-end
-
-if node['bcpc']['hardware']['powersave']
+if node['bcpc']['hardware']['powersave']['enabled']
   service 'ondemand' do
     action [:start, :enable]
   end
+
 else
+
   service 'ondemand' do
     action [:stop, :disable]
   end
 
-  # on VirtualBox there are no scaling governors, so exit peacefully
   bash 'enable CPU performance mode' do
     code <<-EOH
-      if [ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]
-      then
-        for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-        do
-          echo performance > $CPUFREQ
-        done
-      fi
+      for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+      do
+        echo performance > $CPUFREQ
+      done
     EOH
+    only_if "test -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
   end
+
 end

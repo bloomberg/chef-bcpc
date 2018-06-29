@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 node['bcpc']['getty']['ttys'].each do |ttyname|
   systemd_unit "getty@#{ttyname}.service" do
     action [:enable, :start]
