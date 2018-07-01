@@ -1,8 +1,0 @@
----
-- name: destroy environment
-  shell: |
-    vagrant destroy -f
-    git checkout {{ inventory_file }}
-    git update-index --no-assume-unchanged {{ inventory_file }}
-  args:
-    chdir: "{{ virtual_dir }}"

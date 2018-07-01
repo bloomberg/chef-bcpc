@@ -1,0 +1,18 @@
+all:
+  children:
+    localhost:
+      hosts:
+        127.0.0.1:
+          ansible_connection: local
+    cloud:
+      children:
+      {% for group,group_data in children.items() %}
+        {{ group }}:
+          hosts:
+          {% for host,data in group_data['hosts'].items() %}
+            {{ host }}:
+            {% for key,value in data.items() %}
+              {{ key }}: {{ json.dumps(value) }}
+            {% endfor %}
+          {% endfor %}
+      {% endfor %}

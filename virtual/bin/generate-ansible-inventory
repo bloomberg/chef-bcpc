@@ -2,8 +2,8 @@
 
 import os
 import sys
-import paramiko
-import yaml
+import json
+from jinja2 import Environment, FileSystemLoader
 
 def is_valid_file(parser, arg):
   if not os.path.isfile(arg):
@@ -13,39 +13,36 @@ def is_valid_file(parser, arg):
 
 def parse_ssh_config(ssh_config_file):
 
+  hosts = []
+
   with open(ssh_config_file) as f:
-    cfg = paramiko.SSHConfig()
-    cfg.parse(f)
-    ssh_config = {}
-    hostnames = cfg.get_hostnames()
+    lines = f.readlines()
+    host = {}
 
-    for hostname in hostnames:
+    for line in lines:
 
-      if ('?' in hostname) or ('*' in hostname):
-        continue
+      line = line.strip()
 
-      options = cfg.lookup(hostname)
+      if line != '':
+        key,value = line.split(' ')
+        host[key] = value
+      else:
+        hosts.append(host)
+        host = {}
 
-      # We want the ssh config to point to the real hostname, but we dont want to
-      # set ansible_ssh_host to the real name, but the ssh_config alias
-      if options['hostname'] == 'localhost':
-        options['hostname'] = hostname
-
-      ssh_config[hostname] = options
-
-    return ssh_config
+  return hosts
 
 def parse_topology_config(topology_config_file):
 
   with open(topology_config_file) as f:
-    return yaml.load(f)
+    return json.load(f)
 
-def get_group_hosts(group,hosts,nodes):
+def get_group_hosts(group,ssh_config,nodes):
 
   group_hosts = {}
 
-  for host,config in hosts.iteritems():
-    node = filter(lambda node: node['host'] == host, nodes)
+  for host in ssh_config:
+    node = filter(lambda node: node['host'] == host['Host'], nodes)
 
     if len(node) > 2:
       msg = "more than 1 node with the hostname {host} found".format(host=host)
@@ -59,19 +56,19 @@ def get_group_hosts(group,hosts,nodes):
       primary_ip = [n['ip'] for n in networks if n['type'] == 'primary']
 
       host_vars = {
-        'ansible_host': config['hostname'],
-        'ansible_port': config['port'],
+        'ansible_host': host['HostName'],
+        'ansible_port': host['Port'],
         'run_list': node['run_list']
       }
 
       if len(primary_ip):
         host_vars['primary_ip'] = primary_ip[0]
 
-      group_hosts.update({ host: host_vars })
+      group_hosts.update({ host['Host']: host_vars })
 
   return group_hosts
 
-def generate_inventory(ssh_config,nodes):
+def get_inventory_data(ssh_config,nodes):
 
   inventory = {
     'all': {
@@ -81,17 +78,37 @@ def generate_inventory(ssh_config,nodes):
     }
   }
 
-  cluster = {'children': {}}
+  cloud = {'children': {}}
 
   for group in [n['group'] for n in nodes]:
 
     hosts = get_group_hosts(group,ssh_config,nodes)
 
     if len(hosts):
-      cluster['children'].update({group: {'hosts': hosts}})
+      cloud['children'].update({group: {'hosts': hosts}})
 
-  if len(cluster['children']):
-    inventory['all']['children'].update({'virtual': cluster})
+  if len(cloud['children']):
+    inventory['all']['children'].update({'cloud': cloud})
+
+  return inventory
+
+def generate_inventory(inventory_data):
+
+  # capture path to template directory
+  tmpl = os.path.dirname(os.path.abspath(__file__)) + '/tmpl'
+
+  # create the jinja2 environment
+  # use trim_blocks to help control whitespace
+  j2_env = Environment(
+    loader=FileSystemLoader(tmpl),
+    trim_blocks=True,
+    lstrip_blocks=True
+  )
+
+  inventory = j2_env.get_template('inventory.yml.j2').render(
+    json=json,
+    children=inventory_data['all']['children']['cloud']['children']
+  )
 
   return inventory
 
@@ -123,9 +140,10 @@ def main():
 
   ssh_config = parse_ssh_config(args.ssh_conf)
   topology = parse_topology_config(args.topology_conf)
-  inventory = generate_inventory(ssh_config,topology['nodes'])
-
-  yaml.dump(inventory, sys.stdout, default_flow_style=False)
+  inventory_data = get_inventory_data(ssh_config,topology['nodes'])
+  print generate_inventory(inventory_data)
 
 if __name__ == "__main__":
   main()
+
+
