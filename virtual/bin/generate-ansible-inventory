@@ -64,7 +64,7 @@ def get_group_hosts(group, ssh_config, nodes):
     group_hosts = {}
 
     for host in ssh_config:
-        node = filter(lambda node: node['host'] == host['Host'], nodes)
+        node = list(filter(lambda node: node['host'] == host['Host'], nodes))
 
         if len(node) > 2:
             msg = "more than 1 node with the hostname {host} found"
