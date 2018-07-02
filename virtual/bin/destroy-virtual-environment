@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -xe
+
+bin_dir=$(dirname $0)
+virtual_dir=$(dirname $bin_dir)
+(cd $virtual_dir; vagrant destroy -f)
