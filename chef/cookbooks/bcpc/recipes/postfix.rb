@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: bcpc-extra
+# Cookbook Name:: bcpc
 # Recipe:: postfix
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,37 +17,24 @@
 # limitations under the License.
 #
 
-return unless node['bcpc-extra']['postfix']['enabled']
+return unless node['bcpc']['postfix']['enabled']
 
 package 'exim4' do
   action :remove
 end
 
-package 'bsd-mailx' do
-  action :install
-end
+package 'bsd-mailx'
+package 'postfix'
+service 'postfix'
 
-package 'postfix' do
-  action :install
-end
-
-template 'postfix-main.cf' do
-  path '/etc/postfix/main.cf'
-  owner 'root'
-  group 'root'
-  mode '0644'
-  action :create
-  notifies :restart, 'service[postfix]'
-end
-
-service 'postfix' do
-  supports status: true, restart: true, reload: true
-  action [:enable, :start]
+template '/etc/postfix/main.cf' do
+  source 'postfix/main.cf.erb'
+  notifies :restart, 'service[postfix]', :immediately
 end
 
 ruby_block 'add_root_mail_alias' do
   block do
-    mail_alias = 'root: ' + node['bcpc-extra']['postfix']['root_mail_alias']
+    mail_alias = 'root: ' + node['bcpc']['postfix']['root_mail_alias']
     file = Chef::Util::FileEdit.new('/etc/aliases')
     file.search_file_replace_line(/^root:/, mail_alias)
     file.insert_line_if_no_match(/^root:/, mail_alias)
@@ -57,7 +44,7 @@ ruby_block 'add_root_mail_alias' do
 end
 
 execute 'run-newaliases' do
-  command '/usr/bin/newaliases'
   action :nothing
-  notifies :restart, 'service[postfix]'
+  command '/usr/bin/newaliases'
+  notifies :restart, 'service[postfix]', :immediately
 end

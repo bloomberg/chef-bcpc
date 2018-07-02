@@ -160,8 +160,8 @@ template '/etc/nova/nova-compute.conf' do
     :virt_type => node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
   )
 
-  notifies :restart, 'service[nova-compute]', :immediately 
-  notifies :restart, 'service[nova-api-metadata]', :immediately 
+  notifies :restart, 'service[nova-compute]', :immediately
+  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 execute 'wait for compute host' do

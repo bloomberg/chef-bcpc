@@ -23,7 +23,7 @@ vip = IPAddress(node['bcpc']['cloud']['vip']['ip']).address
 # proxy
 ###############################################################################
 
-#default['bcpc']['proxy']['enabled'] = true
+default['bcpc']['proxy']['enabled'] = false
 #default['bcpc']['proxy']['proxies']['http'] = ''
 #default['bcpc']['proxy']['proxies']['https'] = ''
 
@@ -155,27 +155,28 @@ default['bcpc']['powerdns']['repo']['distro'] = "bionic-auth-master"
 # (don't set it in the environment!)
 default['bcpc']['in_maintenance'] = false
 
-###########################################
-#
-#  Flags to enable/disable BCPC cluster features
-#
-###########################################
-# This will enable elasticsearch & kibana on monitoring nodes and fluentd on
-# all nodes
-default['bcpc']['enabled']['logging'] = true
-# This will enable iptables firewall on all nodes
-default['bcpc']['enabled']['host_firewall'] = true
 
-# This will enable TPM features
-default['bcpc']['enabled']['tpm'] = false
-# This will enable using a hardware RNG
-default['bcpc']['enabled']['hwrng'] = false
-# Toggle to enable apport for debugging process crashes
-default['bcpc']['enabled']['apport'] = true
+###############################################################################
+# misc settings
+###############################################################################
 
-# if 'interface' is a VLAN interface, specifying a parent allows MTUs
-# to be set properly
-default['bcpc']['management']['interface-parent'] = nil
+# pin the system kernel to a fixed version
+default['bcpc']['kernel']['pin_version'] = false
+default['bcpc']['kernel']['version'] = ''
+
+# debugging process crashes
+default['bcpc']['apport']['enabled'] = true
+
+# enable/disable trusted platform module
+default['bcpc']['tpm']['enabled'] = true
+
+# enable/disable feed random data from hardware to kernel
+default['bcpc']['hwrng']['enabled'] = true
+default['bcpc']['hwrng']['source'] = nil
+
+# enable/disable local firewall on hypervisor
+default['bcpc']['host_firewall']['enabled'] = true
+
 # list of extra TCP ports that should be open on the management interface
 # (generally stuff served via HAProxy)
 # some ports are hardcoded - see bcpc-firewall.erb template
@@ -183,9 +184,28 @@ default['bcpc']['management']['firewall_tcp_ports'] = [
   8088,7480,35357,8004,8000
 ]
 
-# Proxy server URL for recipes to use
-# Example: http://proxy-hostname:port
-default['bcpc']['proxy_server_url'] = nil
+# use this to *add* more reserved ports; i.e. modify value of
+# net.ipv4.ip_local_reserved_ports
+default['bcpc']['system']['additional_reserved_ports'] = []
+
+# any other sysctl parameters (register under parameters)
+default['bcpc']['system']['parameters']['kernel.pid_max'] = 4194303
+
+# connection tracking table max size
+default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
+
+# readhead value for all disks in the system, in kb
+default['bcpc']['system']['readahead_kb'] = 512
+
+# used for SOL (serial over lan) communication
+default['bcpc']['getty']['ttys'] = ['ttyS0','ttyS1']
+
+# select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
+default['bcpc']['hardware']['io_scheduler'] = 'deadline'
+
+# enable power-saving CPU scaling governor
+default['bcpc']['hardware']['powersave']['enabled'] = false
+
 
 ###############################################################################
 # horizon
@@ -194,53 +214,12 @@ default['bcpc']['proxy_server_url'] = nil
 default['bcpc']['horizon']['disable_panels'] = ['containers']
 
 
-###########################################
-#
-#  Metadata Settings
-#
-###########################################
+###############################################################################
+# metadata settings
+###############################################################################
 
-# load a custom vendor driver,
-# e.g. "nova.api.metadata.bcpc_metadata.BcpcMetadata",
-# comment out to use default
-#default['bcpc']['vendordata_driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
-
-###########################################
-#
-# BCPC system (sysctl) settings
-#
-###########################################
-#
-# Use this to *add* more reserved ports; i.e. modify value of
-# net.ipv4.ip_local_reserved_ports
-default['bcpc']['system']['additional_reserved_ports'] = []
-# Any other sysctl parameters (register under parameters)
-default['bcpc']['system']['parameters']['kernel.pid_max'] = 4194303
-# Connection tracking table max size
-default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
-# readhead value for all disks in the system, in kb
-default['bcpc']['system']['readahead_kb'] = 512
-# set to HWRNG source or leave as nil for rng-tools autodetect
-default['bcpc']['system']['hwrng_source'] = nil
-
-###########################################
-#
-# BCPC system hardware settings
-#
-###########################################
-#
-# Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
-default['bcpc']['hardware']['io_scheduler'] = 'deadline'
-# Enable power-saving CPU scaling governor (ondemand <3.19, powersave >=3.19)
-default['bcpc']['hardware']['powersave'] = false
-
-
-###########################################
-#
-#  Getty settings
-#
-###########################################
-default['bcpc']['getty']['ttys'] = %w( ttyS0 ttyS1 )
+default['bcpc']['metadata']['vendordata']['enabled'] = false
+#default['bcpc']['metadata']['vendordata']['driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
 
 
 ###############################################################################
