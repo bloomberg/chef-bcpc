@@ -1,149 +1,178 @@
 #!/usr/bin/env python
 
+"""
+Copyright 2018, Bloomberg Finance L.P.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import os
 import sys
 import json
 from jinja2 import Environment, FileSystemLoader
 
+
 def is_valid_file(parser, arg):
-  if not os.path.isfile(arg):
-    parser.error('The file {} does not exist!'.format(arg))
-  else:
-    return arg
+
+    if not os.path.isfile(arg):
+        parser.error('The file {} does not exist!'.format(arg))
+    else:
+        return arg
+
 
 def parse_ssh_config(ssh_config_file):
 
-  hosts = []
+    hosts = []
 
-  with open(ssh_config_file) as f:
-    lines = f.readlines()
-    host = {}
-
-    for line in lines:
-
-      line = line.strip()
-
-      if line != '':
-        key,value = line.split(' ')
-        host[key] = value
-      else:
-        hosts.append(host)
+    with open(ssh_config_file) as f:
+        lines = f.readlines()
         host = {}
 
-  return hosts
+        for line in lines:
+
+            line = line.strip()
+
+            if line != '':
+                key, value = line.split(' ')
+                host[key] = value
+            else:
+                hosts.append(host)
+                host = {}
+
+    return hosts
+
 
 def parse_topology_config(topology_config_file):
 
-  with open(topology_config_file) as f:
-    return json.load(f)
+    with open(topology_config_file) as f:
+        return json.load(f)
 
-def get_group_hosts(group,ssh_config,nodes):
 
-  group_hosts = {}
+def get_group_hosts(group, ssh_config, nodes):
 
-  for host in ssh_config:
-    node = filter(lambda node: node['host'] == host['Host'], nodes)
+    group_hosts = {}
 
-    if len(node) > 2:
-      msg = "more than 1 node with the hostname {host} found".format(host=host)
-      raise ValueError(msg)
+    for host in ssh_config:
+        node = filter(lambda node: node['host'] == host['Host'], nodes)
 
-    node = node[0]
+        if len(node) > 2:
+            msg = "more than 1 node with the hostname {host} found"
+            msg = msg.format(host=host)
+            raise ValueError(msg)
 
-    if node['group'] == group:
+        node = node[0]
 
-      networks = node['networking']['networks']
-      primary_ip = [n['ip'] for n in networks if n['type'] == 'primary']
+        if node['group'] == group:
 
-      host_vars = {
-        'ansible_host': host['HostName'],
-        'ansible_port': host['Port'],
-        'run_list': node['run_list']
-      }
+            networks = node['networking']['networks']
+            primary_ip = [n['ip'] for n in networks if n['type'] == 'primary']
 
-      if len(primary_ip):
-        host_vars['primary_ip'] = primary_ip[0]
+            host_vars = {
+                'ansible_host': host['HostName'],
+                'ansible_port': host['Port'],
+                'run_list': node['run_list']
+            }
 
-      group_hosts.update({ host['Host']: host_vars })
+            if len(primary_ip):
+                host_vars['primary_ip'] = primary_ip[0]
 
-  return group_hosts
+            group_hosts.update({host['Host']: host_vars})
 
-def get_inventory_data(ssh_config,nodes):
+    return group_hosts
 
-  inventory = {
-    'all': {
-      'children': {
-        'localhost': {'hosts': {'127.0.0.1': {'ansible_connection':'local'}}},
-      }
+
+def get_inventory_data(ssh_config, nodes):
+
+    inventory = {
+        'all': {
+              'children': {
+                    'localhost': {
+                        'hosts': {
+                            '127.0.0.1': {'ansible_connection': 'local'}
+                        }
+                    },
+              }
+        }
     }
-  }
 
-  cloud = {'children': {}}
+    cloud = {'children': {}}
 
-  for group in [n['group'] for n in nodes]:
+    for group in [n['group'] for n in nodes]:
 
-    hosts = get_group_hosts(group,ssh_config,nodes)
+        hosts = get_group_hosts(group, ssh_config, nodes)
 
-    if len(hosts):
-      cloud['children'].update({group: {'hosts': hosts}})
+        if len(hosts):
+            cloud['children'].update({group: {'hosts': hosts}})
 
-  if len(cloud['children']):
-    inventory['all']['children'].update({'cloud': cloud})
+        if len(cloud['children']):
+            inventory['all']['children'].update({'cloud': cloud})
 
-  return inventory
+    return inventory
+
 
 def generate_inventory(inventory_data):
 
-  # capture path to template directory
-  tmpl = os.path.dirname(os.path.abspath(__file__)) + '/tmpl'
+    # capture path to template directory
+    tmpl = os.path.dirname(os.path.abspath(__file__)) + '/tmpl'
 
-  # create the jinja2 environment
-  # use trim_blocks to help control whitespace
-  j2_env = Environment(
-    loader=FileSystemLoader(tmpl),
-    trim_blocks=True,
-    lstrip_blocks=True
-  )
+    # create the jinja2 environment
+    # use trim_blocks to help control whitespace
+    j2_env = Environment(
+        loader=FileSystemLoader(tmpl),
+        trim_blocks=True,
+        lstrip_blocks=True
+    )
 
-  inventory = j2_env.get_template('inventory.yml.j2').render(
-    json=json,
-    children=inventory_data['all']['children']['cloud']['children']
-  )
+    inventory = j2_env.get_template('inventory.yml.j2').render(
+        json=json,
+        children=inventory_data['all']['children']['cloud']['children']
+    )
 
-  return inventory
+    return inventory
+
 
 def main():
-  import argparse
 
-  desc = "Generate Ansible Inventory File"
-  parser = argparse.ArgumentParser(description=desc)
+    import argparse
 
-  parser.add_argument(
-    "--ssh-config",
-    dest="ssh_conf",
-    required=True,
-    help="Path to SSH config file",
-    metavar="FILE",
-    type=lambda x: is_valid_file(parser, x)
-  )
+    desc = "Generate Ansible Inventory File"
+    parser = argparse.ArgumentParser(description=desc)
 
-  parser.add_argument(
-    "--topology-config",
-    dest="topology_conf",
-    required=True,
-    help="Path to topology config file",
-    metavar="FILE",
-    type=lambda x: is_valid_file(parser, x)
-  )
+    parser.add_argument(
+        "--ssh-config",
+        dest="ssh_conf",
+        required=True,
+        help="Path to SSH config file",
+        metavar="FILE",
+        type=lambda x: is_valid_file(parser, x)
+    )
 
-  args = parser.parse_args()
+    parser.add_argument(
+        "--topology-config",
+        dest="topology_conf",
+        required=True,
+        help="Path to topology config file",
+        metavar="FILE",
+        type=lambda x: is_valid_file(parser, x)
+    )
 
-  ssh_config = parse_ssh_config(args.ssh_conf)
-  topology = parse_topology_config(args.topology_conf)
-  inventory_data = get_inventory_data(ssh_config,topology['nodes'])
-  print generate_inventory(inventory_data)
+    args = parser.parse_args()
+
+    ssh_config = parse_ssh_config(args.ssh_conf)
+    topology = parse_topology_config(args.topology_conf)
+    inventory_data = get_inventory_data(ssh_config, topology['nodes'])
+    print generate_inventory(inventory_data)
+
 
 if __name__ == "__main__":
-  main()
-
-
+    main()
