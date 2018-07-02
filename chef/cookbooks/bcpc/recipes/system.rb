@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: system
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,124 +17,137 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
+package 'tpm-tools'
 
-# if a particular kernel version is being specified, place holds on the
-# packages so that nothing can automatically remove them
-if node['bcpc']['kernel_version']
-  ["linux-image-#{node['bcpc']['kernel_version']}",
-   "linux-image-extra-#{node['bcpc']['kernel_version']}",
-   "linux-headers-#{node['bcpc']['kernel_version']}",
-   "linux-tools-#{node['bcpc']['kernel_version']}"].each do |pkg|
+if node['bcpc']['kernel']['pin_version']
+
+  version = "#{node['bcpc']['kernel']['version']}"
+
+  packages = [
+    "linux-image-#{version}",
+    "linux-headers-#{version}",
+    "linux-tools-#{version}"
+  ]
+
+  packages.each do |pkg|
     package pkg
 
-    bash "place-hold-on-#{pkg}" do
-      code "echo #{pkg} hold | dpkg --set-selections"
+    execute "place hold on #{pkg}" do
+      command "echo #{pkg} hold | dpkg --set-selections"
       not_if "dpkg -s #{pkg} | grep ^Status: | grep -q ' hold '"
     end
   end
+
 end
 
-package "linux-image-extra-#{node['kernel']['release']}"
 
-# after installing linux-image-extra:
-# ensure ipmi_devintf module is inserted to create /dev/ipmi0 for monitoring
-# (on platforms without IPMI, the module will load but not create the dev node)
-bash 'modprobe-ipmi_devintf' do
-  code 'modprobe ipmi_devintf'
+# ipmi module loading and configuration
+#
+execute 'load ipmi_devintf kernel module' do
+  command 'modprobe ipmi_devintf'
   not_if 'lsmod | grep ipmi_devintf'
 end
 
+execute 'load ipmi_devintf kernel module at boot' do
+  command "echo ipmi_devintf >> /etc/modules"
+  not_if "grep ipmi_devintf /etc/modules"
+end
+
+
+# configure grub
+#
 template "/etc/default/grub" do
-  source "system.etc_default_grub.erb"
-  owner  "root"
-  group  "root"
-  mode   00644
-  notifies :run, "execute[system-update-grub]", :immediately
+  source "grub/default.erb"
+
+  io_scheduler = node['bcpc']['hardware']['io_scheduler']
+  cmdline = [].push("elevator=#{io_scheduler}")
+  cmdline = cmdline + node['bcpc']['grub']['cmdline_linux']
+
+  variables(
+    :cmdline => cmdline.join(' ')
+  )
+
+  notifies :run, "execute[update-grub]", :immediately
 end
 
-execute "system-update-grub" do
-  command "update-grub"
-  user "root"
+execute "update-grub" do
   action :nothing
+  command "update-grub2"
 end
 
+
+# sysctl configuration
+#
 template "/etc/sysctl.d/70-bcpc.conf" do
-    source "sysctl-70-bcpc.conf.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables(
-        :additional_reserved_ports => node['bcpc']['system']['additional_reserved_ports'],
-        :parameters                => node['bcpc']['system']['parameters']
-    )
-    notifies :run, "execute[reload-sysctl]", :immediately
+  source "sysctl/bcpc.conf.erb"
+  mode 00644
+
+  system = node['bcpc']['system']
+
+  variables(
+    :parameters => system['parameters'],
+    :additional_reserved_ports => system['additional_reserved_ports']
+  )
+  notifies :run, "execute[reload-sysctl]", :immediately
 end
+
 
 execute "reload-sysctl" do
-    action :nothing
-    command "sysctl -p /etc/sysctl.d/70-bcpc.conf"
+  action :nothing
+  command "sysctl -p /etc/sysctl.d/70-bcpc.conf"
 end
+
 
 template "/etc/udev/rules.d/99-readahead.rules" do
-    source "readahead-udev.rules.erb"
-    owner "root"
-    group "root"
-    mode 00644
+  source "udev/readahead.rules.erb"
+  mode 00644
 end
 
-ruby_block "set-nf_conntrack-hashsize" do
-    block do
-        %x[ echo $((#{node['bcpc']['system']['parameters']['net.nf_conntrack_max']}/8)) > /sys/module/nf_conntrack/parameters/hashsize ]
-    end
-    not_if { system "grep -q ^$((#{node['bcpc']['system']['parameters']['net.nf_conntrack_max']}/8))$ /sys/module/nf_conntrack/parameters/hashsize" }
+
+# ip_conntrack module loading and configuration
+#
+execute 'load ip_conntrack kernel module' do
+  command 'modprobe ip_conntrack'
+  not_if 'lsmod | grep nf_conntrack'
 end
 
-ruby_block "swap-toggle" do
-  block do
-    rc = Chef::Util::FileEdit.new("/etc/fstab")
-    if node['bcpc']['enabled']['swap'] then
-      rc.search_file_replace(
-        /^#([A-Z].*|\/.*)swap(.*)/,
-        '\\1swap\\2'
-      )
-      rc.write_file
-      system 'swapon -a'
-    else
-      system 'swapoff -a'
-      rc.search_file_replace(
-        /^([A-Z].*|\/.*)swap(.*)/,
-        '#\\1swap\\2'
-      )
-      rc.write_file
-    end
+begin
+  sys_params = node['bcpc']['system']['parameters']
+  nf_conntrack_max = sys_params['net.nf_conntrack_max']
+  hashsize = nf_conntrack_max / 8
+
+  template '/etc/modprobe.d/nf_conntrack.conf' do
+    source 'modprobe.d/nf_conntrack.conf.erb'
+    variables(
+      :hashsize => hashsize
+    )
+  end
+
+  execute 'set nf conntrack hashsize' do
+    hashsize_fp = '/sys/module/nf_conntrack/parameters/hashsize'
+    command "echo #{hashsize} > #{hashsize_fp}"
+    not_if "grep -w #{hashsize} #{hashsize_fp}"
   end
 end
 
-# converge I/O scheduler
-ruby_block 'converge-io-scheduler' do
-  block do
-    block_devices = ::Dir.glob('/dev/sd?').map { |d| d.split('/').last }
-    block_devices.each do |device|
-      %x[ echo #{node['bcpc']['hardware']['io_scheduler']} > /sys/block/#{device}/queue/scheduler ]
-    end
+
+# configure I/O scheduler
+#
+block_devices = ::Dir.glob('/dev/sd?').map { |d| d.split('/').last }
+
+block_devices.each do |dev|
+
+  io_scheduler = node['bcpc']['hardware']['io_scheduler']
+
+  execute "set #{dev} io-scheduler to #{io_scheduler}" do
+    command "echo #{io_scheduler} > /sys/block/#{dev}/queue/scheduler"
+    not_if "grep '[#{io_scheduler}]' /sys/block/#{dev}/queue/scheduler"
   end
-  not_if do
-    block_devices = ::Dir.glob('/dev/sd?').map { |d| d.split('/').last }
-    devices_to_converge = []
-    block_devices.each do |device|
-      scheduler = %x[ cat /sys/block/#{device}/queue/scheduler ]
-      if scheduler.index("[#{node['bcpc']['hardware']['io_scheduler']}]").nil?
-        devices_to_converge << device
-      end
-    end
-    devices_to_converge.length.zero?
-  end
+
 end
+
 
 template '/etc/updatedb.conf' do
-  source 'updatedb.conf.erb'
-  owner 'root'
-  group 'root'
+  source 'updatedb/conf.erb'
   mode 00644
 end

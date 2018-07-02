@@ -26,5 +26,8 @@
     "recipe[bcpc::horizon]",
     "recipe[bcpc::os-quota]",
     "recipe[bcpc::flavors]"
+    /*
+    "recipe[bcpc::mysql-backup]"
+    */
   ]
 }

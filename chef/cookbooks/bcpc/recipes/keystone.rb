@@ -189,7 +189,7 @@ end
 # generate admin-openrc for openstack cli usage
 #
 template '/root/admin-openrc' do
-  source 'admin-openrc.erb'
+  source 'keystone/admin-openrc.erb'
   variables(
     'os_adminrc' => os_adminrc()
   )
