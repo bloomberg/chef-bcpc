@@ -39,8 +39,16 @@ template '/etc/bird/bird.conf' do
   racks = topology['racks']
   networks = topology['networks']
 
+  pod_id = node['bcpc']['networking']['pod_id']
   rack_id = node['bcpc']['networking']['rack_id']
-  rack = racks[rack_id]
+
+  rack = racks.find{ |r|
+    r['id'] == rack_id and r['pod'] == pod_id
+  }
+
+  if rack.nil?
+    raise "no rack found with an ID #{rack_id} and POD #{pod_id}"
+  end
 
   variables(
     :is_worknode => is_worknode(node),
