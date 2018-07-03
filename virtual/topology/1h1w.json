@@ -33,7 +33,7 @@
       }
     },
     {
-      "host": "r1n1",
+      "host": "r1an1",
       "group": "headnodes",
       "hardware_profile": "cloudnode",
       "run_list": [
@@ -55,7 +55,7 @@
       }
     },
     {
-      "host": "r1n2",
+      "host": "r1an2",
       "group": "worknodes",
       "hardware_profile": "cloudnode",
       "run_list": [

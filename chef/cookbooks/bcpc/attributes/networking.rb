@@ -6,50 +6,73 @@ require 'ipaddr'
 require 'ipaddress'
 
 default['bcpc']['networking']['topology'] = {
-  "default_rack": "1",
-  "networks": {
-    "primary": {"cidr": "10.121.84.0/22", 'dev': 'eth1'},
-    "storage": {"cidr": "10.121.88.0/22", 'dev': 'eth2'}
+  'networks': {
+    'primary': {'cidr': '10.121.84.0/22', 'dev': 'eth1'},
+    'storage': {'cidr': '10.121.88.0/22', 'dev': 'eth2'}
   },
-  "racks": {
-    "1": {
-      "bgp_as": 64111,
-      "networks": {
-        "primary": { "cidr": "10.121.84.0/28", "gateway": "10.121.84.1" },
-        "storage": { "cidr": "10.121.88.0/28", "gateway": "10.121.88.1" }
+  'racks': [
+    {
+      'id': 1,
+      'pod': 'a',
+      'bgp_as': 64111,
+      'networks': {
+        'primary': { 'cidr': '10.121.84.0/28', 'gateway': '10.121.84.1' },
+        'storage': { 'cidr': '10.121.88.0/28', 'gateway': '10.121.88.1' }
       }
     },
-    "2": {
-      "bgp_as": 64112,
-      "networks": {
-        "primary": { "cidr": "10.121.85.0/28", "gateway": "10.121.85.1" },
-        "storage": { "cidr": "10.121.89.0/28", "gateway": "10.121.89.1" }
+    {
+      'id': 2,
+      'pod': 'a',
+      'bgp_as': 64112,
+      'networks': {
+        'primary': { 'cidr': '10.121.85.0/28', 'gateway': '10.121.85.1' },
+        'storage': { 'cidr': '10.121.89.0/28', 'gateway': '10.121.89.1' }
       }
     },
-    "3": {
-      "bgp_as": 64113,
-      "networks": {
-        "primary": { "cidr": "10.121.86.0/28", "gateway": "10.121.86.1" },
-        "storage": { "cidr": "10.121.90.0/28", "gateway": "10.121.90.1" }
+    {
+      'id': 3,
+      'pod': 'a',
+      'bgp_as': 64113,
+      'networks': {
+        'primary': { 'cidr': '10.121.86.0/28', 'gateway': '10.121.86.1' },
+        'storage': { 'cidr': '10.121.90.0/28', 'gateway': '10.121.90.1' }
       }
     }
-  }
+  ]
 }
 
 # try to get node information via the hostname
-# eg. ob-cloud-r(01)(a)n(01) = rack_id,pod_id,node_id
+# eg. cloud-r(01)(a)n(01) = rack_id,pod_id,node_id
 #
+rack_id,pod_id,node_id = [nil,nil,nil]
+racks = default['bcpc']['networking']['topology']['racks']
 
 if match = node['hostname'].match(/.*r(\d+)(\w+)?n(\d+)$/i)
+
   rack_id,pod_id,node_id = match.captures
+
 else
-  rack_id = default['bcpc']['networking']['topology']['default_rack']
+
+  # choose the first rack/pod as a sane default
+  #
+  default_rack = default['bcpc']['networking']['topology']['racks'][0]
+  pod_id = default_rack['pod']
+  rack_id = default_rack['id']
+
 end
 
-default['bcpc']['networking']['rack_id'] = rack_id
-# get the rack that this node belongs to
+default['bcpc']['networking']['pod_id'] = pod_id
+default['bcpc']['networking']['rack_id'] = rack_id.to_i
+
+# get the rack/pod that this node belongs to
 #
-rack = default['bcpc']['networking']['topology']['racks'][rack_id]
+rack = racks.find{ |r|
+  r['id'] == rack_id.to_i and r['pod'] == pod_id
+}
+
+if rack.nil?
+  raise "no rack found with an ID #{rack_id} and POD #{pod_id}"
+end
 
 rack['networks'].each do |net,spec|
 
