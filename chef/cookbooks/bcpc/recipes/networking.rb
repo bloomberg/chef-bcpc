@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+service 'systemd-resolved'
+
 vip = get_address(node['bcpc']['cloud']['vip']['ip'])
 
 cookbook_file "/etc/modules-load.d/8021q.conf" do
@@ -118,4 +120,17 @@ end
 
 execute "netplan apply" do
   command "netplan apply"
+end
+
+template "/etc/systemd/resolved.conf" do
+  source 'systemd/resolved.conf.erb'
+
+  vip = get_address(node['bcpc']['cloud']['vip']['ip'])
+
+  variables(
+    :dns => vip,
+    :fallback => node['bcpc']['dns_servers'].dup.join(' ')
+  )
+
+  notifies :restart, 'service[systemd-resolved]', :immediately
 end
