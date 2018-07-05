@@ -9,7 +9,12 @@ default['bcpc']['cloud']['fqdn'] = "openstack.#{default['bcpc']['cloud']['domain
 default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['cloud']['vip'] = {'ip': '10.10.254.254/32'}
 
+# list of dns servers to use
 default['bcpc']['dns_servers'] = ["8.8.8.8", "8.8.4.4"]
+
+# list of ntp servers to use
+default['bcpc']['ntp']['servers'] = ["time.google.com"]
+
 default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
 
 # Hypervisor domain (domain used by actual machines)
@@ -18,6 +23,16 @@ default['bcpc']['hypervisor_domain'] = "hypervisor-bcpc.example.com"
 # convenience variable
 #
 vip = IPAddress(node['bcpc']['cloud']['vip']['ip']).address
+
+###############################################################################
+# ubuntu
+###############################################################################
+
+default['bcpc']['ubuntu']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
+default['bcpc']['ubuntu']['security_url'] = 'http://security.ubuntu.com/ubuntu'
+default['bcpc']['ubuntu']['codename'] = node['lsb']['codename']
+default['bcpc']['ubuntu']['components'] = ['main','restricted','universe','multiverse']
+default['bcpc']['ubuntu']['arch'] = 'amd64'
 
 ###############################################################################
 # proxy
@@ -228,18 +243,6 @@ default['bcpc']['metadata']['vendordata']['enabled'] = false
 
 default['bcpc']['bird']['repo']['enabled'] = false
 default['bcpc']['bird']['repo']['url'] = ""
-
-
-###############################################################################
-# calico/calicoctl
-###############################################################################
-
-default['bcpc']['calico']['repo']['enabled'] = true
-default['bcpc']['calico']['repo']['url'] = "http://ppa.launchpad.net/project-calico/calico-3.1/ubuntu"
-
-default['bcpc']['calico']['remote']['file'] = 'calicoctl'
-default['bcpc']['calico']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/calicoctl"
-default['bcpc']['calico']['remote']['checksum'] = '62ae2334f62ca5e5501022845a885efdae8cd10cfbe40293a58e3d85d39bc120'
 
 
 ###############################################################################
