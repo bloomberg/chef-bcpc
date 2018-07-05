@@ -1,7 +1,7 @@
 # -*- mode: Makefile -*-
 # vim:list:listchars=tab\:>-:
 
-export inventory = virtual/ansible/inventory
+export inventory = ansible/inventory
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 all : \
@@ -74,7 +74,7 @@ upload-all :
 		-i ${inventory} ansible/site.yml \
 		-t upload-extra-cookbooks
 
-	ansible-playbook \
+	ansible-playbook -v \
 		-i ${inventory} ansible/site.yml \
 		-t upload-bcpc
 
