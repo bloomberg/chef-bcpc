@@ -10,17 +10,6 @@
           "net.ifnames=0",
           "biosdevname=0"
         ]
-      },
-      "proxy": {
-        "enabled": false,
-        "proxies": {
-          "http": "",
-          "https": ""
-        }
-      },
-      "dns_servers" : [ "10.10.10.10" ],
-      "ntp": {
-        "servers" : [ "10.10.10.10" ]
       }
     }
   }

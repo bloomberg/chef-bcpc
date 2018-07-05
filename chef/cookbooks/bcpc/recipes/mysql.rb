@@ -18,6 +18,7 @@
 #
 if node['bcpc']['mysql']['apt']['enabled']
   apt_repository "percona" do
+    arch 'amd64'
     uri node['bcpc']['mysql']['apt']['url']
     distribution node['lsb']['codename']
     components ["main"]

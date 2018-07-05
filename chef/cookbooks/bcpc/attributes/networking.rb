@@ -48,8 +48,8 @@ racks = default['bcpc']['networking']['topology']['racks']
 
 if (match = node['hostname'].match(/.*r(\d+)(\w+)?n(\d+)$/i))
 
-  default['bcpc']['networking']['rack_id'] = match.captures[1].to_i
-  default['bcpc']['networking']['pod_id'] = match.captures[2]
+  default['bcpc']['networking']['rack_id'] = match.captures[0].to_i
+  default['bcpc']['networking']['pod_id'] = match.captures[1]
 
 else
 
