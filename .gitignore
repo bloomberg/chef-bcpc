@@ -6,4 +6,4 @@
 .DS_Store
 assets/
 id_ed25519*
-virtual/ansible/inventory
+ansible/inventory
