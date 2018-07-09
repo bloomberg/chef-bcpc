@@ -1,8 +1,0 @@
-# Create client.rb
-
-log_level               :info
-log_location            "/var/log/chef/client.log"
-chef_server_url         "{{ chef_server.url }}"
-validation_client_name  "{{ bcpc.chef.org.short_name }}-validator"
-validation_key          "{{ bcpc.chef.org.validator_pem }}"
-node_name               "{{ node.fqdn }}"
