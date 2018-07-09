@@ -7,3 +7,7 @@
 assets/
 id_ed25519*
 ansible/inventory
+chef/roles/node.json
+chef/roles/bootstrap.json
+chef/roles/headnode.json
+chef/roles/worknode.json

@@ -1,0 +1,18 @@
+- name: create file server assets folder
+  file:
+    path: /var/bcpc/file-server
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: upload file server assets
+  copy:
+    src: "{{ item }}"
+    dest: "/var/bcpc/file-server/"
+  with_items:
+    - "{{ assets_download_dir }}/calicoctl"
+    - "{{ assets_download_dir }}/chef_14.1.1-1_amd64.deb"
+    - "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
+    - "{{ assets_download_dir }}/etcd-v3.3.7-linux-amd64.tar.gz"
+    - "{{ assets_download_dir }}/chef-server-core_12.17.33-1_amd64.deb"
+    - "{{ assets_download_dir }}/consul_1.1.0_linux_amd64.zip"

@@ -1,0 +1,70 @@
+- name: set hostname
+  hostname:
+    name: "{{ node_hostname }}"
+
+- name: update /etc/hosts
+  copy:
+    dest: /etc/hosts
+    content: |
+      127.0.0.1	localhost
+      127.0.1.1	{{ node_fqdn }}	{{ node_hostname }}
+      {{ node_ip }}	{{ node_fqdn }}	{{ node_hostname }}
+
+- name: upload chef-server deb package
+  copy:
+    src: "{{ assets_download_dir }}/chef-server-core_12.17.33-1_amd64.deb"
+    dest: "/var/tmp/chef-server-core_12.17.33-1_amd64.deb"
+
+- name: install chef-server deb package
+  apt:
+    deb: /var/tmp/chef-server-core_12.17.33-1_amd64.deb
+
+- name: configure chef server
+  shell: |
+    if chef-server-ctl reconfigure; then
+      touch /opt/opscode/.reconfigured
+    fi
+  args:
+    creates: /opt/opscode/.reconfigured
+
+- name: create chef server rsa private keys folder
+  file:
+    path: /etc/chef
+    state: directory
+    recurse: true
+
+- name: check for association user
+  shell: |
+    chef-server-ctl \
+      user-show "{{ chef_admin_username }}"
+  register: association_check
+  failed_when: association_check.rc != 0
+  ignore_errors: true
+
+- name: create chef association user
+  when: association_check is failed
+  shell: |
+    username="{{ chef_admin_username }}"
+    first_name="{{ chef_admin_first_name }}"
+    last_name="{{ chef_admin_last_name }}"
+    email="{{ chef_admin_email }}"
+    password="{{ chef_admin_password }}"
+    client_key_file="{{ chef_admin_client_key }}"
+    user="${username} ${first_name} ${last_name} ${email} ${password}"
+
+    chef-server-ctl user-create ${user} --filename ${client_key_file}
+
+- name: check for organization
+  command: chef-server-ctl org-show "{{ chef_org_short_name }}"
+  register: organization_check
+  failed_when: organization_check.rc != 0
+  ignore_errors: true
+
+- name: create organization
+  when: organization_check is failed
+  shell: |
+    org="{{ chef_org_short_name }} {{ chef_org_long_name }}"
+
+    chef-server-ctl org-create ${org} \
+      --association_user "{{ chef_admin_username }}" \
+      --filename "{{ chef_org_validator_pem }}"
