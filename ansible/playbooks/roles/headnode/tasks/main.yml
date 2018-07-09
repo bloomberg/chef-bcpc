@@ -1,0 +1,5 @@
+- name: discover compute nodes
+  become: true
+  shell: |
+    nova-manage cell_v2 discover_hosts --verbose
+  tags: [never,discover-compute-nodes]
