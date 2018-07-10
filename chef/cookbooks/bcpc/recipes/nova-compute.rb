@@ -172,9 +172,3 @@ execute 'wait for compute host' do
       --service nova-compute | grep #{node['hostname']}
   EOH
 end
-
-execute 'discover compute hosts' do
-  command <<-EOH
-    su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
-  EOH
-end
