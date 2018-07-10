@@ -49,6 +49,7 @@ Vagrant.configure("2") do |config|
 
         args = {}.tap do |args|
           args[:virtualbox__intnet] = n['network']
+          args[:nic_type] = '82543GC'
           args[:auto_config] = false
         end
 
@@ -67,6 +68,11 @@ Vagrant.configure("2") do |config|
         vb.cpus = hw_profile['cpus']
         vb.memory = hw_profile['ram_gb'] * 1024
         vb.customize ['modifyvm', :id, '--groups', project_name]
+        vb.customize ['modifyvm', :id, '--uart1', '0x3F8', '4']
+        vb.customize ['modifyvm', :id, '--uart2', '0x2F8', '3']
+        vb.customize ['modifyvm', :id, '--uartmode1', 'disconnected']
+        vb.customize ['modifyvm', :id, '--uartmode2', 'disconnected']
+        vb.customize ['modifyvm', :id, '--vram', '16']
 
         # extra hard drives
         #
