@@ -3,3 +3,4 @@
   shell: |
     nova-manage cell_v2 discover_hosts --verbose
   tags: [never,discover-compute-nodes]
+  run_once: true

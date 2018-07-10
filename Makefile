@@ -77,7 +77,7 @@ discover-compute-nodes:
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t discover-compute-nodes --limit headnodes[0]
+		-t discover-compute-nodes --limit headnodes
 
 
 upload-bcpc :
