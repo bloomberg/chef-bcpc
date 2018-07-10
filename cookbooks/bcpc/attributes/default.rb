@@ -135,8 +135,8 @@ default['bcpc']['management']['firewall_tcp_ports'] = [
 default['bcpc']['metadata']['ip'] = "169.254.169.254"
 
 default['bcpc']['storage']['netmask'] = "255.255.255.0"
-default['bcpc']['storage']['cidr'] = "100.100.0.0/24"
-default['bcpc']['storage']['gateway'] = "100.100.0.1"
+default['bcpc']['storage']['cidr'] = "10.17.2.0/24"
+default['bcpc']['storage']['gateway'] = "10.17.2.1"
 default['bcpc']['storage']['interface'] = nil
 # if 'interface' is a VLAN interface, specifying a parent allows MTUs
 # to be set properly
@@ -151,9 +151,9 @@ default['bcpc']['floating']['interface'] = nil
 # to be set properly
 default['bcpc']['floating']['interface-parent'] = nil
 
-default['bcpc']['fixed']['cidr'] = "1.127.0.0/16"
+default['bcpc']['fixed']['cidr'] = "10.17.16.0/20"
 default['bcpc']['fixed']['vlan_start'] = "1000"
-default['bcpc']['fixed']['num_networks'] = "100"
+default['bcpc']['fixed']['num_networks'] = "16"
 default['bcpc']['fixed']['network_size'] = "256"
 default['bcpc']['fixed']['dhcp_lease_time'] = "120"
 
