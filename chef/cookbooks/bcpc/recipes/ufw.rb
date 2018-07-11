@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: ufw
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,54 +17,25 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
-
 package "ufw"
+service "ufw"
 
 template "/etc/default/ufw" do
-    source "ufw.erb"
-    mode 00644
-    notifies :restart, "service[ufw]", :delayed
+  source "ufw/ufw.erb"
+  notifies :restart, "service[ufw]", :immediately
 end
 
 template "/etc/ufw/sysctl.conf" do
-    source "ufw.sysctl.conf.erb"
-    mode 00644
-    notifies :restart, "service[ufw]", :delayed
+  source "ufw/ufw.sysctl.conf.erb"
+  notifies :restart, "service[ufw]", :immediately
 end
 
-template "/etc/ufw/before.rules" do
-    source "ufw.before.rules.erb"
-    mode 00640
-    notifies :restart, "service[ufw]", :delayed
-end
-
-node['bcpc']['monitoring']['cidrs'].each do |cidr|
-  node['bcpc']['monitoring']['agent_tcp_ports'].each do |port|
-    bash "setup-allow-rules-ufw-#{cidr}-#{port}" do
-      user 'root'
-        code <<-EOH
-          ufw allow from #{cidr} to #{node['bcpc']['bootstrap']['server']} \
-          port #{port} proto tcp
-        EOH
-    end
-  end
-end
-
-bash "setup-allow-rules-ufw" do
-    user "root"
-    code <<-EOH
-        ufw allow 22/tcp
-        ufw allow 80/tcp
-        ufw allow 443/tcp
-        ufw allow 4000/tcp
-        ufw allow 4040/tcp
-        ufw allow in on #{node['bcpc']['bootstrap']['pxe_interface']} from any port 68 to any port 67 proto udp
-        ufw allow in on #{node['bcpc']['bootstrap']['pxe_interface']} from any to #{node['bcpc']['bootstrap']['server']} port tftp
-        ufw --force enable
-    EOH
-end
-
-service "ufw" do
-    action [:enable, :start]
+bash "setup allow rules for ufw" do
+  code <<-EOH
+    ufw allow 22/tcp
+    ufw allow 80/tcp
+    ufw allow 8080/tcp
+    ufw allow 443/tcp
+    ufw --force enable
+  EOH
 end
