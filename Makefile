@@ -103,3 +103,15 @@ file-server :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t file-server
+
+
+###############################################################################
+# helper targets
+###############################################################################
+
+generate-chef-roles :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t generate-chef-roles
+
