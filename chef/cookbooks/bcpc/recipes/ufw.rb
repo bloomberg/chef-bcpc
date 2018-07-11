@@ -30,10 +30,11 @@ template "/etc/ufw/sysctl.conf" do
   notifies :restart, "service[ufw]", :immediately
 end
 
-bash "setup-allow-rules-ufw" do
+bash "setup allow rules for ufw" do
   code <<-EOH
     ufw allow 22/tcp
     ufw allow 80/tcp
+    ufw allow 8080/tcp
     ufw allow 443/tcp
     ufw --force enable
   EOH
