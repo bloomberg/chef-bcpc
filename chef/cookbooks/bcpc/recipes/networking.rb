@@ -45,7 +45,6 @@ node['bcpc']['networking']['ifaces'].each do |network,spec|
     data = {
       "network" => {
         "version" => 2,
-        "renderer" => 'networkd',
         "ethernets" => {
           spec['dev'] => {
             "addresses" => [
@@ -71,7 +70,6 @@ node['bcpc']['networking']['ifaces'].each do |network,spec|
     data = {
       "network" => {
         "version" => 2,
-        "renderer" => 'networkd',
         "ethernets" => {
           "#{spec['dev']}" => {
             "addresses" => [
@@ -101,7 +99,6 @@ if is_headnode(node)
   data = {
     "network" => {
       "version" => 2,
-      "renderer" => 'networkd',
       "ethernets" => {
         "lo" => {
           "addresses" => [

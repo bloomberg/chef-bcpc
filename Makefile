@@ -52,12 +52,21 @@ chef-node :
 	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-node
 
 
-chef-client :
+chef-client : \
+  chef-client-bootstraps \
+  chef-client-headnodes \
+  chef-client-worknodes
+
+
+chef-client-bootstraps :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit bootstraps
 
+
+chef-client-headnodes :
+
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit headnodes \
@@ -67,6 +76,9 @@ chef-client :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit headnodes \
 		-e "step=1"
+
+
+chef-client-worknodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
