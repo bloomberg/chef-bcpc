@@ -39,8 +39,8 @@ default['bcpc']['ubuntu']['arch'] = 'amd64'
 ###############################################################################
 
 default['bcpc']['proxy']['enabled'] = false
-#default['bcpc']['proxy']['proxies']['http'] = ''
-#default['bcpc']['proxy']['proxies']['https'] = ''
+default['bcpc']['proxy']['proxies']['http'] = ''
+default['bcpc']['proxy']['proxies']['https'] = ''
 
 
 ###############################################################################
