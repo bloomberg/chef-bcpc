@@ -7,5 +7,4 @@ run_list:
   - "recipe[bcpc::ssl]"
   - "recipe[bcpc::ssh]"
   - "recipe[bcpc::file-server]"
-  #- "recipe[bcpc::ufw]"
-  #- "recipe[bcpc::backup-cluster]"
+  - "recipe[bcpc::ufw]"
