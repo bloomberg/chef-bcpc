@@ -1,15 +1,3 @@
-- name: generate chef roles
-  shell: |
-    "./{{ item.script }}" > "{{ item.output }}"
-  with_items:
-    - {script: node.py, output: node.json}
-    - {script: bootstrap.py, output: bootstrap.json}
-    - {script: headnode.py, output: headnode.json}
-    - {script: worknode.py, output: worknode.json}
-  args:
-    chdir: "{{ chef_roles_dir }}"
-  delegate_to: localhost
-
 - name: upload cookbooks
   synchronize:
     src: "{{ item }}"

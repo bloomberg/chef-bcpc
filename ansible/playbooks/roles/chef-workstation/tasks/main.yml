@@ -2,6 +2,9 @@
   become: true
   tags: [never,chef-workstation]
 
+- import_tasks: generate-chef-roles.yml
+  tags: [never,chef-workstation,generate-chef-roles,upload-bcpc]
+
 - import_tasks: upload-extra-cookbooks.yml
   tags: [never,chef-workstation,upload-extra-cookbooks]
 
