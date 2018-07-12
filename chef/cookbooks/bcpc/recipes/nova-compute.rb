@@ -174,7 +174,7 @@ execute 'wait for compute host' do
 end
 
 begin
-  az = get_availability_zone()
+  az = get_local_availability_zone()
 
   execute "add #{node['hostname']} to the #{az} availability zone" do
     environment (os_adminrc())

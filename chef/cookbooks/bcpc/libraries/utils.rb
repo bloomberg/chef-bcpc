@@ -191,7 +191,7 @@ def get_availability_zones()
 
 end
 
-def get_availability_zone()
+def get_local_availability_zone()
 
   az = nil
 
