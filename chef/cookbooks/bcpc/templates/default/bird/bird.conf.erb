@@ -55,7 +55,7 @@ protocol device {
 }
 
 protocol bgp {
-  description "connection to leaf";
+  description "connection to tor";
   local <%= node['ipaddress'] %> as <%= @as_number %>;
   neighbor <%= @upstream_peer %> as <%= @as_number %>;
   multihop;
