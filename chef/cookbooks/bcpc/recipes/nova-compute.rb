@@ -172,3 +172,16 @@ execute 'wait for compute host' do
       --service nova-compute | grep #{node['hostname']}
   EOH
 end
+
+begin
+  az = get_local_availability_zone()
+
+  execute "add #{node['hostname']} to the #{az} availability zone" do
+    environment (os_adminrc())
+    command "openstack aggregate add host #{az} #{node['hostname']}"
+    not_if "
+      aggregates=$(openstack hypervisor show #{node['fqdn']} -f value -c aggregates)
+      echo ${aggregates} | grep -w #{az}
+    "
+  end
+end
