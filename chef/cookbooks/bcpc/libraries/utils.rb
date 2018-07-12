@@ -177,3 +177,31 @@ end
 def get_address(cidr)
   return IPAddress(cidr).address
 end
+
+def get_availability_zones()
+
+  az = []
+  racks = node['bcpc']['networking']['topology']['racks']
+
+  racks.each do |rack|
+    az.append("AZ-#{rack['id']}")
+  end
+
+  return az
+
+end
+
+def get_availability_zone()
+
+  az = nil
+
+  if (match = node['hostname'].match(/.*r(\d+)(\w+)?n(\d+)$/i))
+    rack_id = match.captures[0].to_i
+    az = "AZ-#{rack_id}"
+  else
+    raise "Unable to get availability zone for #{node['hostname']}"
+  end
+
+  return az
+
+end

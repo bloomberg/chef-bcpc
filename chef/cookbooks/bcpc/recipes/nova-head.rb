@@ -391,3 +391,16 @@ execute 'wait for nova to come online' do
   retries 30
   command 'openstack compute service list'
 end
+
+begin
+  zones = get_availability_zones()
+
+  zones.each do | zone |
+    execute "creating the #{zone} availability zone" do
+      environment (os_adminrc())
+      command "openstack aggregate create #{zone}"
+      not_if "openstack aggregate show #{zone}"
+    end
+  end
+
+end
