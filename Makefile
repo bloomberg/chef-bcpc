@@ -19,12 +19,12 @@ all : \
 
 create :
 
-	virtual/bin/create-virtual-environment
+	virtual/bin/create-virtual-environment.sh
 
 
 destroy :
 
-	virtual/bin/destroy-virtual-environment
+	virtual/bin/destroy-virtual-environment.sh
 
 
 operator :

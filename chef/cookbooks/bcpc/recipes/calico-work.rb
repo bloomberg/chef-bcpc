@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: calico-work
 #
@@ -15,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 include_recipe 'bcpc::calico-apt'
 
 %w[
@@ -34,20 +33,19 @@ directory '/etc/calico'
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
   variables(
-    :nodes => ['http://localhost:2379']
+    nodes: ['http://localhost:2379']
   )
 end
 
 # these neutron services are installed/enabled by calico packages
 # these services are superseded by nova-metadata-agent and calico-dhcp-agent
 # so we don't need them to be enabled/running
-#
 service 'neutron-dhcp-agent' do
-  action [:disable,:stop]
+  action %i[disable stop]
 end
 
 service 'neutron-metadata-agent' do
-  action [:disable,:stop]
+  action %i[disable stop]
 end
 
 service 'calico-felix'
@@ -55,20 +53,21 @@ service 'calico-dhcp-agent'
 
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
+  mode '644'
   owner 'root'
   group 'neutron'
-  mode 00644
-  
+
   variables(
-    :vip => get_address(node['bcpc']['cloud']['vip']['ip'])
+    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
   )
+
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end
 
 systemd_unit 'calico-felix.service' do
-  action [:create,:enable,:restart]
+  action %i[create enable restart]
 
-  content <<-EOH.gsub(/^\s+/, '')
+  content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=Calico Felix agent
     After=syslog.target network.target
@@ -84,5 +83,5 @@ systemd_unit 'calico-felix.service' do
 
     [Install]
     WantedBy=multi-user.target
-  EOH
+  DOC
 end

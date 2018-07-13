@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: ssl
 #
@@ -15,32 +14,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
-directory "/etc/ssl/private" do
-  mode 00700
+directory '/etc/ssl/private' do
+  mode '700'
 end
 
-file "/etc/ssl/private/ssl-bcpc.key" do
-  content "#{Base64.decode64(config['ssl']['key'])}"
+file '/etc/ssl/private/ssl-bcpc.key' do
+  content Base64.decode64(config['ssl']['key'])
 end
 
-file "/usr/local/share/ca-certificates/ssl-bcpc.crt" do
-  content "#{Base64.decode64(config['ssl']['crt'])}"
-  notifies :run, "execute[update ca-certificates]", :immediately
+file '/usr/local/share/ca-certificates/ssl-bcpc.crt' do
+  content Base64.decode64(config['ssl']['crt'])
+  notifies :run, 'execute[update ca-certificates]', :immediately
 end
 
-if config['ssl']['intermediate']
-  file "/usr/local/share/ca-certificates/ssl-bcpc-intermediate.crt" do
-    content "#{Base64.decode64(config['ssl']['intermediate'])}"
-    notifies :run, "execute[update ca-certificates]", :immediately
+begin
+  intermediate = config['ssl']['intermediate']
+  intermediate = Base64.decode64(intermediate) unless intermediate.nil?
+
+  file '/usr/local/share/ca-certificates/ssl-bcpc-intermediate.crt' do
+    content intermediate
+    notifies :run, 'execute[update ca-certificates]', :immediately
+    not_if { intermediate.nil? }
   end
 end
 
-execute "update ca-certificates" do
+execute 'update ca-certificates' do
   action :nothing
-  command "update-ca-certificates"
+  command 'update-ca-certificates'
 end

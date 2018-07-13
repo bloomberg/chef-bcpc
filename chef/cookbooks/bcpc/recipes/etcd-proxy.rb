@@ -18,15 +18,17 @@
 include_recipe 'bcpc::etcd-packages'
 
 systemd_unit 'etcd.service' do
-  action [:create,:enable,:restart]
+  action %i[create enable restart]
 
-  headnodes = get_headnodes(all:true)
+  headnodes = get_headnodes(all: true)
 
-  endpoints = headnodes.collect{|h|
+  endpoints = headnodes.collect do |h|
     "http://#{h['ipaddress']}:2379"
-  }.join(',')
+  end
 
-  content <<-EOH.gsub(/^\s+/, '')
+  endpoints = endpoints.join(',')
+
+  content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=etcd
     Documentation=https://github.com/coreos/etcd
@@ -43,5 +45,5 @@ systemd_unit 'etcd.service' do
 
     [Install]
     WantedBy=multi-user.target
-  EOH
+  DOC
 end

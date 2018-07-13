@@ -18,40 +18,40 @@
 #
 
 # Network troubleshooting tools
-package "ethtool"
-package "bmon"
-package "tshark"
-package "nmap"
-package "iperf"
-package "curl"
-package "conntrack"
-package "dhcpdump"
+package 'ethtool'
+package 'bmon'
+package 'tshark'
+package 'nmap'
+package 'iperf'
+package 'curl'
+package 'conntrack'
+package 'dhcpdump'
 
 # I/O troubleshooting tools
-package "fio"
-package "bc"
-package "iotop"
+package 'fio'
+package 'bc'
+package 'iotop'
 
 # System troubleshooting tools
-package "htop"
-package "sysstat"
-package "linux-tools-common"
-package "sosreport"
+package 'htop'
+package 'sysstat'
+package 'linux-tools-common'
+package 'sosreport'
 
 # various python packages
-package "python-pip"
-package "python-memcache"
-package "python-mysqldb"
-package "python-six"
-package "python-ldap"
+package 'python-pip'
+package 'python-memcache'
+package 'python-mysqldb'
+package 'python-six'
+package 'python-ldap'
 
 # used for monitoring various services
-package "xinetd"
+package 'xinetd'
 
 # openstack client cli
-package "python-openstackclient"
+package 'python-openstackclient'
 
 # packages used for operatons and file edits
-package "jq"
+package 'jq'
 package 'screen'
 package 'tmux'

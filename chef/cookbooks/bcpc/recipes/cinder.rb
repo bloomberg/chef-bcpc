@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: cinder
 #
@@ -15,10 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
 
@@ -42,9 +40,8 @@ openstack = {
 }
 
 # create client.cinder ceph user and keyring starts
-#
 execute 'get or create client.cinder user/keyring' do
-  command <<-EOH
+  command <<-DOC
     ceph auth get-or-create client.cinder \
       mon 'allow r' \
       osd 'allow class-read object_prefix rbd_children, \
@@ -52,118 +49,102 @@ execute 'get or create client.cinder user/keyring' do
            allow rwx pool=vms, \
            allow rx  pool=images' \
       -o /etc/ceph/ceph.client.cinder.keyring
-  EOH
+  DOC
   creates '/etc/ceph/ceph.client.cinder.keyring'
 end
-#
 # create client.cinder ceph user and keyring ends
 
-
 # create ceph rbd pool starts
-#
-bash "create ceph pool" do
+bash 'create ceph pool' do
   pool = node['bcpc']['cinder']['ceph']['pool']['name']
 
-  code <<-EOH
+  code <<-DOC
     ceph osd pool create #{pool} 128 128
     ceph osd pool application enable #{pool} rbd
-  EOH
+  DOC
 
   not_if "ceph osd pool ls | grep -w #{pool}"
 end
 
-execute "set ceph pool size" do
+execute 'set ceph pool size' do
   size = node['bcpc']['cinder']['ceph']['pool']['size']
   pool = node['bcpc']['cinder']['ceph']['pool']['name']
 
   command "ceph osd pool set #{pool} size #{size}"
   not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
 end
-#
 # create ceph rbd volume pools ends
 
-
 # create cinder openstack user starts
-#
 execute 'create cinder openstack user' do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack user create #{openstack['username']} \
       --domain #{openstack['domain']} --password #{openstack['password']}
-  EOH
+  DOC
 
-  not_if <<-EOH
+  not_if <<-DOC
     openstack user show #{openstack['username']} --domain #{openstack['domain']}
-  EOH
+  DOC
 end
 
 execute 'add openstack admin role to cinder user' do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack role add #{openstack['role']} \
       --project #{openstack['project']} --user #{openstack['username']}
-  EOH
+  DOC
 
-  not_if <<-EOH
+  not_if <<-DOC
     openstack role assignment list \
       --names \
       --role #{openstack['role']} \
       --project #{openstack['project']} \
       --user #{openstack['username']} | grep #{openstack['username']}
-  EOH
+  DOC
 end
-#
 # create cinder openstack user ends
 
-
 # create cinder volume services and endpoints starts
-#
 begin
-
   type = 'volumev3'
   service = node['bcpc']['catalog'][type]
   project = service['project']
 
   execute "create the #{project} #{type} service" do
-    environment (os_adminrc())
+    environment os_adminrc
 
     name = service['name']
     desc = service['description']
 
-    command <<-EOH
+    command <<-DOC
       openstack service create \
         --name "#{name}" --description "#{desc}" #{type}
-    EOH
+    DOC
 
     not_if "openstack service list | grep #{type}"
   end
 
-  %w(admin internal public).each{|uri|
-
-    url = generate_service_catalog_uri(service,uri)
+  %w[admin internal public].each do |uri|
+    url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
-      environment (os_adminrc())
+      environment os_adminrc
 
-      command <<-EOH
+      command <<-DOC
         openstack endpoint create \
           --region #{region} #{type} #{uri} '#{url}'
-      EOH
+      DOC
 
       not_if "openstack endpoint list | grep #{type} | grep #{uri}"
     end
-
-  }
-
+  end
 end
-#
 # create cinder volume services and endpoints ends
 
-
 # cinder package installation and service definition starts
-#
 package 'cinder-api'
 package 'cinder-scheduler'
 package 'cinder-volume'
@@ -173,22 +154,17 @@ service 'cinder-api' do
 end
 service 'cinder-volume'
 service 'cinder-scheduler'
-#
-# cinder package installation and service definition starts
-
+# cinder package installation and service definition ends
 
 # update the file permissions on ceph.client.cinder.keyring to allow the
 # cinder user to use ceph
-#
 file '/etc/ceph/ceph.client.cinder.keyring' do
-  mode '0640'
+  mode '640'
   owner 'root'
   group 'cinder'
 end
 
-
 # create/manage cinder database starts
-#
 file '/tmp/cinder-db.sql' do
   action :nothing
 end
@@ -197,7 +173,7 @@ template '/tmp/cinder-db.sql' do
   source 'cinder/cinder-db.sql.erb'
 
   variables(
-    :db => database
+    db: database
   )
 
   notifies :run, 'execute[create cinder database]', :immediately
@@ -207,17 +183,19 @@ template '/tmp/cinder-db.sql' do
     db=#{database['dbname']}
     count=$(mysql -u ${user} ${db} -e 'show tables' | wc -l)
     [ $count -gt 0 ]
-  ", :environment => {'MYSQL_PWD' => mysqladmin['password']}
+  ", environment: { 'MYSQL_PWD' => mysqladmin['password'] }
 end
 
 execute 'create cinder database' do
   action :nothing
-  environment ({'MYSQL_PWD' => mysqladmin['password']})
+  environment('MYSQL_PWD' => mysqladmin['password'])
 
   command "mysql -u #{mysqladmin['username']} < /tmp/cinder-db.sql"
 
   notifies :delete, 'file[/tmp/cinder-db.sql]', :immediately
-  notifies :create, 'template[/etc/apache2/conf-available/cinder-wsgi.conf]', :immediately
+  notifies :create,
+           'template[/etc/apache2/conf-available/cinder-wsgi.conf]',
+           :immediately
   notifies :create, 'template[/etc/cinder/cinder.conf]', :immediately
   notifies :run, 'execute[cinder-manage db sync]', :immediately
 end
@@ -226,21 +204,17 @@ execute 'cinder-manage db sync' do
   action :nothing
   command "su -s /bin/sh -c 'cinder-manage db sync' cinder"
 end
-#
 # create/manage cinder database ends
 
-
-
 # configure cinder service starts
-#
-template "/etc/apache2/conf-available/cinder-wsgi.conf" do
-  source "cinder/cinder-wsgi.conf.erb"
+template '/etc/apache2/conf-available/cinder-wsgi.conf' do
+  source 'cinder/cinder-wsgi.conf.erb'
   variables(
     'processes' => node['bcpc']['cinder']['wsgi']['processes'],
     'threads'   => node['bcpc']['cinder']['wsgi']['threads']
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
-  notifies :restart, "service[cinder-api]", :immediately
+  notifies :restart, 'service[cinder-api]', :immediately
 end
 
 execute 'enable cinder wsgi' do
@@ -248,43 +222,36 @@ execute 'enable cinder wsgi' do
   not_if 'a2query -c cinder-wsgi'
 end
 
-template "/etc/cinder/cinder.conf" do
-  source "cinder/cinder.conf.erb"
-  owner "cinder"
-  group "cinder"
-  mode "0600"
+template '/etc/cinder/cinder.conf' do
+  source 'cinder/cinder.conf.erb'
+  mode '600'
+  owner 'cinder'
+  group 'cinder'
 
   variables(
-    :db => database,
-    :config => config,
-    :nodes => get_headnodes(all:true)
+    db: database,
+    config: config,
+    nodes: get_headnodes(all: true)
   )
 
-  notifies :restart, "service[cinder-api]", :immediately
-  notifies :restart, "service[cinder-volume]", :immediately
-  notifies :restart, "service[cinder-scheduler]", :immediately
+  notifies :restart, 'service[cinder-api]', :immediately
+  notifies :restart, 'service[cinder-volume]', :immediately
+  notifies :restart, 'service[cinder-scheduler]', :immediately
 end
-#
 # configure cinder service ends
 
-
 execute 'wait for cinder to come online' do
-  environment (os_adminrc())
+  environment os_adminrc
   retries 30
   command 'openstack volume service list'
 end
 
-
-# create cinder volume types starts
-#
-execute "create ceph cinder backend type" do
-  environment (os_adminrc())
-  command <<-EOH
+execute 'create ceph cinder backend type' do
+  environment os_adminrc
+  command <<-DOC
     openstack volume type create ceph
     openstack volume type set ceph \
       --property volume_backend_name=ceph
-  EOH
-  not_if "openstack volume type show ceph"
+  DOC
+  not_if 'openstack volume type show ceph'
 end
-#
-# create cinder volume types ends

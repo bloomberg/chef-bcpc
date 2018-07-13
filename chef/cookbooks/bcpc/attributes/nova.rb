@@ -1,7 +1,8 @@
+# rubocop:disable Metrics/LineLength
+
 ###############################################################################
 # nova
 ###############################################################################
-
 
 # database
 default['bcpc']['nova']['db']['dbname'] = 'nova'
@@ -59,7 +60,7 @@ default['bcpc']['nova']['default_log_levels'] = nil
 default['bcpc']['nova']['metadata_listen'] = '127.0.0.1'
 
 # Nova scheduler default filters
-default['bcpc']['nova']['scheduler_default_filters'] = %w(
+default['bcpc']['nova']['scheduler_default_filters'] = %w[
   AggregateInstanceExtraSpecsFilter
   RetryFilter
   AvailabilityZoneFilter
@@ -72,7 +73,7 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ImagePropertiesFilter
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
-)
+]
 
 # configure optional Nova notification system
 default['bcpc']['nova']['notifications']['enabled'] = false
@@ -86,60 +87,44 @@ default['bcpc']['nova']['flavors']['generic1.tiny']['vcpus'] = 1
 default['bcpc']['nova']['flavors']['generic1.tiny']['ram'] = 512
 default['bcpc']['nova']['flavors']['generic1.tiny']['disk'] = 1
 
-default['bcpc']['nova']['flavors']["generic1.small"]["vcpus"] = 1
-default['bcpc']['nova']['flavors']["generic1.small"]["ram"] = 2048
-default['bcpc']['nova']['flavors']["generic1.small"]["disk"] = 20
+default['bcpc']['nova']['flavors']['generic1.small']['vcpus'] = 1
+default['bcpc']['nova']['flavors']['generic1.small']['ram'] = 2048
+default['bcpc']['nova']['flavors']['generic1.small']['disk'] = 20
 
-default['bcpc']['nova']['flavors']["generic1.medium"]["vcpus"] = 2
-default['bcpc']['nova']['flavors']["generic1.medium"]["ram"] = 4096
-default['bcpc']['nova']['flavors']["generic1.medium"]["disk"] = 40
+default['bcpc']['nova']['flavors']['generic1.medium']['vcpus'] = 2
+default['bcpc']['nova']['flavors']['generic1.medium']['ram'] = 4096
+default['bcpc']['nova']['flavors']['generic1.medium']['disk'] = 40
 
-default['bcpc']['nova']['flavors']["generic1.large"]["vcpus"] = 4
-default['bcpc']['nova']['flavors']["generic1.large"]["ram"] = 8192
-default['bcpc']['nova']['flavors']["generic1.large"]["disk"] = 40
+default['bcpc']['nova']['flavors']['generic1.large']['vcpus'] = 4
+default['bcpc']['nova']['flavors']['generic1.large']['ram'] = 8192
+default['bcpc']['nova']['flavors']['generic1.large']['disk'] = 40
 
-default['bcpc']['nova']['flavors']["generic1.xlarge"]["vcpus"] = 8
-default['bcpc']['nova']['flavors']["generic1.xlarge"]["ram"] = 16384
-default['bcpc']['nova']['flavors']["generic1.xlarge"]["disk"] = 40
+default['bcpc']['nova']['flavors']['generic1.xlarge']['vcpus'] = 8
+default['bcpc']['nova']['flavors']['generic1.xlarge']['ram'] = 16_384
+default['bcpc']['nova']['flavors']['generic1.xlarge']['disk'] = 40
 
-default['bcpc']['nova']['flavors']["generic1.2xlarge"]["vcpus"] = 16
-default['bcpc']['nova']['flavors']["generic1.2xlarge"]["ram"] = 32768
-default['bcpc']['nova']['flavors']["generic1.2xlarge"]["disk"] = 40
+default['bcpc']['nova']['flavors']['generic1.2xlarge']['vcpus'] = 16
+default['bcpc']['nova']['flavors']['generic1.2xlarge']['ram'] = 32_768
+default['bcpc']['nova']['flavors']['generic1.2xlarge']['disk'] = 40
 
-default['bcpc']['nova']['flavors']["generic2.small"]["vcpus"] = 1
-default['bcpc']['nova']['flavors']["generic2.small"]["ram"] = 6144
-default['bcpc']['nova']['flavors']["generic2.small"]["disk"] = 50
+default['bcpc']['nova']['flavors']['generic2.small']['vcpus'] = 1
+default['bcpc']['nova']['flavors']['generic2.small']['ram'] = 6144
+default['bcpc']['nova']['flavors']['generic2.small']['disk'] = 50
 
-default['bcpc']['nova']['flavors']["generic2.medium"]["vcpus"] = 2
-default['bcpc']['nova']['flavors']["generic2.medium"]["ram"] = 12288
-default['bcpc']['nova']['flavors']["generic2.medium"]["disk"] = 100
+default['bcpc']['nova']['flavors']['generic2.medium']['vcpus'] = 2
+default['bcpc']['nova']['flavors']['generic2.medium']['ram'] = 12_288
+default['bcpc']['nova']['flavors']['generic2.medium']['disk'] = 100
 
-default['bcpc']['nova']['flavors']["generic2.large"]["vcpus"] = 4
-default['bcpc']['nova']['flavors']["generic2.large"]["ram"] = 24576
-default['bcpc']['nova']['flavors']["generic2.large"]["disk"] = 100
+default['bcpc']['nova']['flavors']['generic2.large']['vcpus'] = 4
+default['bcpc']['nova']['flavors']['generic2.large']['ram'] = 24_576
+default['bcpc']['nova']['flavors']['generic2.large']['disk'] = 100
 
-default['bcpc']['nova']['flavors']["generic2.xlarge"]["vcpus"] = 8
-default['bcpc']['nova']['flavors']["generic2.xlarge"]["ram"] = 49152
-default['bcpc']['nova']['flavors']["generic2.xlarge"]["disk"] = 100
-
-default['bcpc']['nova']['flavors']["generic2.2xlarge"]["vcpus"] = 16
-default['bcpc']['nova']['flavors']["generic2.2xlarge"]["ram"] = 98304
-default['bcpc']['nova']['flavors']["generic2.2xlarge"]["disk"] = 100
-
-default['bcpc']['flavor_access'] = { }
-
-default['bcpc']['host_aggregates'] = {
-  "general_compute" => {
-    "general_compute" => "yes",
-    "maintenance" => "no"
-  },
-  "maintenance" => {
-    "general_compute" => "no",
-    "maintenance" => "yes"
-  }
-}
-
-default['bcpc']['aggregate_membership'] = []
+default['bcpc']['nova']['flavors']['generic2.xlarge']['vcpus'] = 8
+default['bcpc']['nova']['flavors']['generic2.xlarge']['ram'] = 49_152
+default['bcpc']['nova']['flavors']['generic2.xlarge']['disk'] = 100
+default['bcpc']['nova']['flavors']['generic2.2xlarge']['vcpus'] = 16
+default['bcpc']['nova']['flavors']['generic2.2xlarge']['ram'] = 98_304
+default['bcpc']['nova']['flavors']['generic2.2xlarge']['disk'] = 100
 
 # default quota
 #
@@ -152,3 +137,5 @@ default['bcpc']['nova']['quota']['global']['floating-ips'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['floating-ips'] = -1
+
+# rubocop:enable Metrics/LineLength

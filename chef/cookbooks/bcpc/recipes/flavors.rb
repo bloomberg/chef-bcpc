@@ -17,20 +17,20 @@
 #
 
 execute 'wait for flavors' do
-  environment (os_adminrc())
+  environment os_adminrc
   retries 30
-  command "openstack flavor list"
+  command 'openstack flavor list'
 end
 
-node['bcpc']['nova']['flavors'].each do |flavor,spec|
+node['bcpc']['nova']['flavors'].each do |flavor, spec|
   execute "create #{flavor} flavor" do
-    environment (os_adminrc())
-    command <<-EOH
+    environment os_adminrc
+    command <<-DOC
       openstack flavor create "#{flavor}" \
         --vcpus #{spec['vcpus']} \
         --ram #{spec['ram']} \
         --disk #{spec['disk']}
-    EOH
+    DOC
     not_if "openstack flavor show #{flavor}"
   end
 end

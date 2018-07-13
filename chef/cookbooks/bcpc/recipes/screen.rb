@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: bcpc-extra
+# Cookbook Name:: bcpc
 # Recipe:: screen
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,14 +17,8 @@
 # limitations under the License.
 #
 
-package 'screen' do
-  action :install
-end
+package 'screen'
 
-cookbook_file 'screenrc' do
-  path '/etc/screenrc'
-  owner 'root'
-  group 'root'
-  mode '0644'
-  action :create
+cookbook_file '/etc/screenrc' do
+  source 'screen/screenrc'
 end

@@ -31,9 +31,10 @@
     done
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
+  changed_when: false
 
 - name: knife upload org
-  shell: |
-    knife upload .
+  command: knife upload .
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}"
+  changed_when: false

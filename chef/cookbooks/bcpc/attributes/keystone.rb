@@ -1,8 +1,9 @@
+# rubocop:disable Metrics/LineLength
 ###############################################################################
 # keystone
 ###############################################################################
 
-default['bcpc']['keystone']['db'] = "keystone"
+default['bcpc']['keystone']['db'] = 'keystone'
 
 # default log file
 default['bcpc']['keystone']['log_file'] = '/var/log/keystone/keystone.log'
@@ -74,3 +75,4 @@ default['bcpc']['ldap']['config'] = {}
 # <Name> => { description => {}, config => {} }
 default['bcpc']['keystone']['domain_config_dir'] = '/etc/keystone/domains'
 default['bcpc']['keystone']['domains'] = {}
+# rubocop:enable Metrics/LineLength

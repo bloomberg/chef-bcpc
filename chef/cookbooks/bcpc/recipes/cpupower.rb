@@ -1,4 +1,3 @@
-
 # Cookbook Name:: bcpc
 # Recipe:: cpupower
 #
@@ -15,27 +14,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 if node['bcpc']['hardware']['powersave']['enabled']
   service 'ondemand' do
-    action [:start, :enable]
+    action %i[start enable]
   end
 
 else
 
   service 'ondemand' do
-    action [:stop, :disable]
+    action %i[stop disable]
   end
 
   bash 'enable CPU performance mode' do
-    code <<-EOH
+    code <<-DOC
       for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
       do
         echo performance > $CPUFREQ
       done
-    EOH
-    only_if "test -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+    DOC
+    only_if 'test -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor'
   end
 
 end
