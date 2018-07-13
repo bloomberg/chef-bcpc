@@ -14,15 +14,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-fn = "#{node['bcpc']['etcd']['remote']['file']}"
+fn = node['bcpc']['etcd']['remote']['file']
 fp = "#{Chef::Config[:file_cache_path]}/#{fn}"
 
-remote_file "#{fp}" do
-  source "#{node['bcpc']['etcd']['remote']['source']}"
-  checksum "#{node['bcpc']['etcd']['remote']['checksum']}"
-  mode 00755
+remote_file fp do
+  source node['bcpc']['etcd']['remote']['source']
+  mode '755'
+
+  checksum node['bcpc']['etcd']['remote']['checksum']
   notifies :run, 'execute[unpack etcd]', :immediate
   notifies :create, 'remote_file[install etcd]', :immediate
   notifies :create, 'remote_file[install etcdctl]', :immediate
@@ -34,18 +34,18 @@ execute 'unpack etcd' do
   command "tar -xf #{fn}"
 end
 
-remote_file "install etcd" do
+remote_file 'install etcd' do
   action :nothing
+  mode '755'
   path '/usr/local/bin/etcd'
   source "file://#{fp.chomp('.tar.gz')}/etcd"
-  mode 0755
 end
 
-remote_file "install etcdctl" do
+remote_file 'install etcdctl' do
   action :nothing
+  mode '755'
   path '/usr/local/bin/etcdctl'
   source "file://#{fp.chomp('.tar.gz')}/etcdctl"
-  mode 0755
 end
 
 package 'python-etcd3gw'

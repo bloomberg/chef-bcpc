@@ -19,16 +19,20 @@
 
 if node['bcpc']['openstack']['repo']['enabled']
 
-  package "ubuntu-cloud-keyring" do
+  package 'ubuntu-cloud-keyring' do
     action :upgrade
   end
 
-  apt_repository "openstack" do
-    repo = node['bcpc']['repos']['openstack']
+  repo = node['bcpc']['repos']['openstack']
+  branch = repo['branch']
+  release = repo['release']
+  codename = node['lsb']['codename']
+
+  apt_repository 'openstack' do
     uri repo['url']
-    distribution "#{node['lsb']['codename']}-#{repo['branch']}/#{repo['release']}"
-    components ["main"]
-    key "openstack/release.key"
+    distribution "#{codename}-#{branch}/#{release}"
+    components ['main']
+    key 'openstack/release.key'
   end
 
 end

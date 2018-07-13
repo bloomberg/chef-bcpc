@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: horizon
 #
@@ -15,9 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
 package 'openstack-dashboard'
 
@@ -33,41 +32,8 @@ end
 template '/etc/openstack-dashboard/local_settings.py' do
   source 'horizon/local_settings.py.erb'
   variables(
-    :config => config,
-    :nodes => get_headnodes(all:true)
+    config: config,
+    nodes: get_headnodes(all: true)
   )
   notifies :restart, 'service[horizon]', :delayed
 end
-
-=begin
-
-# this adds a way to override and customize Horizon's behavior
-horizon_customize_dir = ::File.join('/', 'usr', 'local', 'bcpc-horizon', 'bcpc')
-directory horizon_customize_dir do
-  action    :create
-  recursive true
-end
-
-file ::File.join(horizon_customize_dir, '__init__.py') do
-  action :create
-end
-
-template ::File.join(horizon_customize_dir, 'overrides.py') do
-  source   'horizon.overrides.py.erb'
-  notifies :restart, 'service[apache2]', :delayed
-end
-
-horizon_policy_path = \
-  '/usr/share/openstack-dashboard/openstack_dashboard/conf/'
-
-%w[cinder glance heat keystone nova].each do |component|
-  template horizon_policy_path + component + '_policy.json' do
-    source "#{component}-policy.json.erb"
-    owner 'root'
-    group 'root'
-    mode 00644
-    variables('policy' =>
-              JSON.pretty_generate(node['bcpc'][component]['policy']))
-  end
-end
-=end

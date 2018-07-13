@@ -23,11 +23,11 @@ topology="${virtual_dir}/topology/topology.yml"
 ssh_config=$(mktemp)
 
 (
-  cd "${virtual_dir}"
-  vagrant up
-  vagrant ssh-config > "${ssh_config}"
+    cd "${virtual_dir}"
+    vagrant up
+    vagrant ssh-config > "${ssh_config}"
 )
 
-"${virtual_dir}/bin/generate-ansible-inventory" \
-  --ssh-config "${ssh_config}" \
-  --topology-config "${topology}" > "${ansible_dir}/inventory"
+"${virtual_dir}/bin/generate-ansible-inventory.py" \
+    --ssh-config "${ssh_config}" \
+    --topology-config "${topology}" > "${ansible_dir}/inventory"

@@ -18,7 +18,7 @@
 #
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
 %w[
   apache2
@@ -42,26 +42,28 @@ service 'apache2'
   execute "enable #{mod} apache2 module" do
     command "a2enmod #{mod}"
     not_if "a2query -m #{mod}"
-    notifies :restart, "service[apache2]", :delayed
+    notifies :restart, 'service[apache2]', :delayed
   end
 end
 
-template "/etc/apache2/sites-available/000-default.conf" do
-  source "apache2/default.conf.erb"
-  notifies :restart, "service[apache2]", :delayed
+template '/etc/apache2/sites-available/000-default.conf' do
+  source 'apache2/default.conf.erb'
+  notifies :restart, 'service[apache2]', :delayed
 end
 
-template "/var/www/html/index.html" do
-  source "apache2/index.html.erb"
+template '/var/www/html/index.html' do
+  source 'apache2/index.html.erb'
 
-  variables ({
-    :config => config,
-    :vip => get_address(node['bcpc']['cloud']['vip']['ip']),
-    :cookbook_version => run_context.cookbook_collection[cookbook_name].metadata.version
-  })
+  version = run_context.cookbook_collection[cookbook_name].metadata.version
+
+  variables(
+    config: config,
+    vip: get_address(node['bcpc']['cloud']['vip']['ip']),
+    cookbook_version: version
+  )
 end
 
-template "/etc/apache2/ports.conf" do
-  source "apache2/ports.conf.erb"
-  notifies :restart, "service[apache2]", :immediately
+template '/etc/apache2/ports.conf' do
+  source 'apache2/ports.conf.erb'
+  notifies :restart, 'service[apache2]', :immediately
 end

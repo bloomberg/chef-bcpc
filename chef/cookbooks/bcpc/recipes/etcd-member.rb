@@ -14,21 +14,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 include_recipe 'bcpc::etcd-packages'
 
-# attempt to register this node with an existing etcd cluster if one exists
-#
 begin
-  if not is_init_cloud()
+  # attempt to register this node with an existing etcd cluster if one exists
+  unless init_cloud?
 
     members = get_headnodes(exclude: node['hostname'])
-    endpoints = members.map{|m| "#{m['ipaddress']}:2380"}.join(' ')
+    endpoints = members.map { |m| "#{m['ipaddress']}:2380" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
-      environment ({'ETCDCTL_API' => '3'})
-      code <<-EOH
+      environment('ETCDCTL_API' => '3')
+      code <<-DOC
         member=''
 
         # try to find a healthy cluster member
@@ -66,30 +64,32 @@ begin
 
         echo "failed to register #{node['fqdn']}"
         exit 1
-      EOH
+      DOC
     end
   end
 end
 
 systemd_unit 'etcd.service' do
-  action [:create,:enable,:restart]
+  action %i[create enable restart]
 
   initial_cluster = []
   initial_cluster_state = 'existing'
 
-  if is_init_cloud()
+  if init_cloud?
     initial_cluster = "#{node['fqdn']}=http://#{node['ipaddress']}:2380"
     initial_cluster_state = 'new'
   else
     headnodes = get_headnodes(exclude: node['hostname'])
     headnodes.push(node)
 
-    initial_cluster = headnodes.collect{|h|
+    initial_cluster = headnodes.collect do |h|
       "#{h['fqdn']}=http://#{h['ipaddress']}:2380"
-    }.join(',')
+    end
+
+    initial_cluster = initial_cluster.join(',')
   end
 
-  content <<-EOH.gsub(/^\s+/, '')
+  content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=etcd - highly-available key value store
     Documentation=https://github.com/coreos/etcd
@@ -117,11 +117,11 @@ systemd_unit 'etcd.service' do
 
     [Install]
     WantedBy=multi-user.target
-  EOH
+  DOC
 end
 
 execute 'wait for etcd membership' do
-  environment ({'ETCDCTL_API' => '3'})
+  environment('ETCDCTL_API' => '3')
   retries 5
   command "etcdctl member list | grep #{node['fqdn']}"
 end

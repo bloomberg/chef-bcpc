@@ -14,13 +14,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
-# used for database creation and access
-#
 database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
@@ -39,8 +36,7 @@ service 'nova-api-metadata'
 service 'libvirtd'
 
 # configure nova user starts
-#
-user "nova" do
+user 'nova' do
   shell '/bin/bash'
 end
 
@@ -49,105 +45,96 @@ end
 #
 group 'ceph' do
   action :modify
-  members 'nova'
   append true
+  members 'nova'
 end
 
-directory "/var/lib/nova/.ssh" do
-  owner "nova"
-  group "nova"
-  mode 00700
+directory '/var/lib/nova/.ssh' do
+  mode '700'
+  owner 'nova'
+  group 'nova'
 end
 
-file "/var/lib/nova/.ssh/authorized_keys" do
-  content "#{Base64.decode64(config['nova']['ssh']['crt'])}"
-  owner "nova"
-  group "nova"
-  mode 00644
+file '/var/lib/nova/.ssh/authorized_keys' do
+  content Base64.decode64(config['nova']['ssh']['crt']).to_s
+  mode '644'
+  owner 'nova'
+  group 'nova'
 end
 
-file "/var/lib/nova/.ssh/id_rsa" do
-  content "#{Base64.decode64(config['nova']['ssh']['key'])}"
-  owner "nova"
-  group "nova"
-  mode 00600
+file '/var/lib/nova/.ssh/id_rsa' do
+  content Base64.decode64(config['nova']['ssh']['key']).to_s
+  mode '600'
+  owner 'nova'
+  group 'nova'
 end
 
-cookbook_file "/var/lib/nova/.ssh/config" do
-  source "nova/ssh-config"
-  owner "nova"
-  group "nova"
-  mode 00600
-end
-#
-# configure nova user ends
-
-
-# configure libvirt starts
-#
-template "/etc/libvirt/libvirtd.conf" do
-  source "libvirt/libvirtd.conf.erb"
-  mode 00644
-  notifies :restart, "service[libvirtd]", :immediately
+cookbook_file '/var/lib/nova/.ssh/config' do
+  source 'nova/ssh-config'
+  mode '600'
+  owner 'nova'
+  group 'nova'
 end
 
-cookbook_file "/etc/default/libvirtd" do
-  source "libvirt/default"
-  mode 00644
-  notifies :restart, "service[libvirtd]", :immediately
+# configure libvirt
+template '/etc/libvirt/libvirtd.conf' do
+  source 'libvirt/libvirtd.conf.erb'
+  notifies :restart, 'service[libvirtd]', :immediately
 end
 
-cookbook_file "/etc/libvirt/qemu.conf" do
-  source "libvirt/qemu.conf"
-  mode 00644
-  notifies :restart, "service[libvirtd]", :immediately
+cookbook_file '/etc/default/libvirtd' do
+  source 'libvirt/default'
+  notifies :restart, 'service[libvirtd]', :immediately
+end
+
+cookbook_file '/etc/libvirt/qemu.conf' do
+  source 'libvirt/qemu.conf'
+  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 execute 'export client.cinder ceph keyring' do
   user 'root'
   group 'ceph'
-  command "ceph auth get client.cinder -o /etc/ceph/ceph.client.cinder.keyring"
+  command 'ceph auth get client.cinder -o /etc/ceph/ceph.client.cinder.keyring'
 end
 
-template "/etc/nova/virsh-secret.xml" do
-  source "nova/virsh-secret.xml.erb"
+template '/etc/nova/virsh-secret.xml' do
+  source 'nova/virsh-secret.xml.erb'
 
   variables(
-    :config => config
+    config: config
   )
 
-  notifies :run, "bash[load virsh secrets]", :immediately
+  notifies :run, 'bash[load virsh secrets]', :immediately
   not_if "virsh secret-list | grep -i #{config['libvirt']['secret']}"
 end
 
-bash "load virsh secrets" do
+bash 'load virsh secrets' do
   action :nothing
 
-  code <<-EOH
+  code <<-DOC
     virsh secret-define --file /etc/nova/virsh-secret.xml
     virsh secret-set-value \
       --secret #{config['libvirt']['secret']} \
       --base64 $(ceph auth get-key client.cinder)
-  EOH
+  DOC
 end
 
-bash "remove-default-virsh-net" do
-  code <<-EOH
-      virsh net-destroy default
-      virsh net-undefine default
-  EOH
-  only_if "virsh net-list | grep -i default"
+bash 'remove default virsh net' do
+  code <<-DOC
+    virsh net-destroy default
+    virsh net-undefine default
+  DOC
+  only_if 'virsh net-list | grep -i default'
 end
-#
-# configure libvirt ends
 
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
   variables(
-    :db => database,
-    :config => config,
-    :nodes => get_headnodes(),
-    :vip => get_address(node['bcpc']['cloud']['vip']['ip'])
+    db: database,
+    config: config,
+    nodes: get_headnodes,
+    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
   )
   notifies :restart, 'service[nova-compute]', :immediately
 end
@@ -156,8 +143,8 @@ template '/etc/nova/nova-compute.conf' do
   source 'nova/nova-compute.conf.erb'
 
   variables(
-    :config => config,
-    :virt_type => node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
+    config: config,
+    virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
   )
 
   notifies :restart, 'service[nova-compute]', :immediately
@@ -165,23 +152,23 @@ template '/etc/nova/nova-compute.conf' do
 end
 
 execute 'wait for compute host' do
-  environment (os_adminrc())
+  environment os_adminrc
   retries 15
-  command <<-EOH
+  command <<-DOC
     openstack compute service list \
       --service nova-compute | grep #{node['hostname']}
-  EOH
+  DOC
 end
 
 begin
-  az = get_local_availability_zone()
+  az = local_availability_zone
 
   execute "add #{node['hostname']} to the #{az} availability zone" do
-    environment (os_adminrc())
+    environment os_adminrc
     command "openstack aggregate add host #{az} #{node['hostname']}"
     not_if "
-      aggregates=$(openstack hypervisor show #{node['fqdn']} -f value -c aggregates)
-      echo ${aggregates} | grep -w #{az}
+      agg=$(openstack hypervisor show #{node['fqdn']} -f value -c aggregates)
+      echo ${agg} | grep -w #{az}
     "
   end
 end

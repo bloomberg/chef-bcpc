@@ -31,10 +31,12 @@ upgrade_os_linux () {
 }
 
 install_linters_linux () {
+    shellcheck_deb='shellcheck_0.4.7-1_amd64.deb'
     sudo pip install bashate flake8 ansible-lint
+    gem install rubocop
     gem install foodcritic
-    wget http://ftp.debian.org/debian/pool/main/s/shellcheck/shellcheck_0.4.7-1_amd64.deb
-    sudo dpkg -i shellcheck_0.4.7-1_amd64.deb
+    wget http://ftp.debian.org/debian/pool/main/s/shellcheck/${shellcheck_deb}
+    sudo dpkg -i ${shellcheck_deb}
     git clone https://github.com/russell/git-lint-diff.git
 }
 
