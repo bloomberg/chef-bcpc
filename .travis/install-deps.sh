@@ -22,6 +22,7 @@ install_linters_osx () {
     sudo pip2 install -U pip setuptools
     sudo pip install bashate flake8 ansible-lint
     gem install foodcritic
+    gem install rubocop
     git clone https://github.com/russell/git-lint-diff.git
 }
 
