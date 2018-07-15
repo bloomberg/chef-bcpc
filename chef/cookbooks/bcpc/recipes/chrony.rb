@@ -22,6 +22,6 @@ service 'chrony'
 template '/etc/chrony/chrony.conf' do
   source 'chrony/chrony.conf.erb'
   variables(
-    :servers => node['bcpc']['ntp']['servers']
+    servers: node['bcpc']['ntp']['servers']
   )
 end

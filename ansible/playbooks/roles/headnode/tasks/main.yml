@@ -1,6 +1,6 @@
 - name: discover compute nodes
   become: true
-  shell: |
-    nova-manage cell_v2 discover_hosts --verbose
+  command: nova-manage cell_v2 discover_hosts --verbose
+  changed_when: false
   tags: [never,discover-compute-nodes]
   run_once: true

@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/LineLength,Style/NumericLiterals
+
 require 'ipaddress'
 
 ###############################################################################
@@ -7,18 +9,18 @@ require 'ipaddress'
 default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
 default['bcpc']['cloud']['fqdn'] = "openstack.#{default['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
-default['bcpc']['cloud']['vip'] = {'ip': '10.10.254.254/32'}
+default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254/32' }
 
 # list of dns servers to use
-default['bcpc']['dns_servers'] = ["8.8.8.8", "8.8.4.4"]
+default['bcpc']['dns_servers'] = %w[8.8.8.8 8.8.4.4]
 
 # list of ntp servers to use
-default['bcpc']['ntp']['servers'] = ["time1.google.com","time2.google.com"]
+default['bcpc']['ntp']['servers'] = %w[time1.google.com time2.google.com]
 
 default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
 
 # Hypervisor domain (domain used by actual machines)
-default['bcpc']['hypervisor_domain'] = "hypervisor-bcpc.example.com"
+default['bcpc']['hypervisor_domain'] = 'hypervisor-bcpc.example.com'
 
 # convenience variable
 #
@@ -31,7 +33,7 @@ vip = IPAddress(node['bcpc']['cloud']['vip']['ip']).address
 default['bcpc']['ubuntu']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['security_url'] = 'http://security.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['codename'] = node['lsb']['codename']
-default['bcpc']['ubuntu']['components'] = ['main','restricted','universe','multiverse']
+default['bcpc']['ubuntu']['components'] = %w[main restricted universe multiverse]
 default['bcpc']['ubuntu']['arch'] = 'amd64'
 
 ###############################################################################
@@ -42,20 +44,9 @@ default['bcpc']['proxy']['enabled'] = false
 default['bcpc']['proxy']['proxies']['http'] = ''
 default['bcpc']['proxy']['proxies']['https'] = ''
 
-
-###############################################################################
-# pdns
-###############################################################################
-
-default['bcpc']['pdns']['interface'] = {'ip': '10.10.254.253/30'}
-
-
 ###############################################################################
 # unbound
 ###############################################################################
-
-pdns = IPAddress(node['bcpc']['pdns']['interface']['ip']).address
-domain = default['bcpc']['cloud']['domain']
 
 default['bcpc']['unbound']['default']['root_trust_anchor_update'] = false
 default['bcpc']['unbound']['server']['access-control'] = '0.0.0.0/0 allow'
@@ -76,19 +67,17 @@ default['bcpc']['unbound']['server']['verbosity'] = 1
 # TLD quieries to forward to other name servers
 #
 default['bcpc']['unbound']['forward-zone']['consul'] = [vip + '@8600']
-default['bcpc']['unbound']['forward-zone'][domain] = [pdns + '@53']
 default['bcpc']['unbound']['forward-zone']['.'] = node['bcpc']['dns_servers']
-
 
 ###############################################################################
 # rabbitmq
 ###############################################################################
 
 default['bcpc']['rabbitmq']['repo']['enabled'] = false
-default['bcpc']['rabbitmq']['repo']['url'] = "http://www.rabbitmq.com/debian"
+default['bcpc']['rabbitmq']['repo']['url'] = 'http://www.rabbitmq.com/debian'
 
 default['bcpc']['erlang']['repo']['enabled'] = false
-default['bcpc']['erlang']['repo']['url'] = "http://packages.erlang-solutions.com/ubuntu"
+default['bcpc']['erlang']['repo']['url'] = 'http://packages.erlang-solutions.com/ubuntu'
 
 # if changing this setting, you will need to reset Mnesia
 # on all RabbitMQ nodes in the cluster
@@ -100,7 +89,6 @@ default['bcpc']['rabbitmq']['ulimit']['nofile'] = 4096
 # Heartbeat timeout to detect dead RabbitMQ brokers
 default['bcpc']['rabbitmq']['heartbeat'] = 60
 
-
 ###############################################################################
 # libvirt
 ###############################################################################
@@ -108,13 +96,12 @@ default['bcpc']['rabbitmq']['heartbeat'] = 60
 # ulimits for libvirt-bin
 default['bcpc']['libvirt-bin']['ulimit']['nofile'] = 4096
 
-
 ###############################################################################
 # mysql
 ###############################################################################
 
 default['bcpc']['mysql']['apt']['enabled'] = true
-default['bcpc']['mysql']['apt']['url'] = "http://repo.percona.com/apt"
+default['bcpc']['mysql']['apt']['url'] = 'http://repo.percona.com/apt'
 
 # fqdn of mysql server
 #
@@ -143,33 +130,12 @@ default['bcpc']['mysql']['long_query_time'] = 10
 default['bcpc']['mysql']['log_queries_not_using_indexes'] = false
 default['bcpc']['mysql']['service_hostname'] = 'primary.mysql.service.consul'
 
-
 ###############################################################################
 # haproxy
 ###############################################################################
 
 default['bcpc']['haproxy']['apt']['enabled'] = false
-default['bcpc']['haproxy']['apt']['url'] = "http://ppa.launchpad.net/vbernat/haproxy-1.8/ubuntu"
-
-
-###############################################################################
-# powerdns
-###############################################################################
-
-default['bcpc']['powerdns']['repo']['enabled'] = true
-default['bcpc']['powerdns']['repo']['url'] = "http://repo.powerdns.com/ubuntu"
-default['bcpc']['powerdns']['repo']['distro'] = "bionic-auth-master"
-
-
-###########################################
-#
-#  Maintenance attribute for nodes
-#
-###########################################
-# Use this attribute to mark a node as in maintenance
-# (don't set it in the environment!)
-default['bcpc']['in_maintenance'] = false
-
+default['bcpc']['haproxy']['apt']['url'] = 'http://ppa.launchpad.net/vbernat/haproxy-1.8/ubuntu'
 
 ###############################################################################
 # misc settings
@@ -196,7 +162,7 @@ default['bcpc']['host_firewall']['enabled'] = true
 # (generally stuff served via HAProxy)
 # some ports are hardcoded - see bcpc-firewall.erb template
 default['bcpc']['management']['firewall_tcp_ports'] = [
-  8088,7480,35357,8004,8000
+  8088, 7480, 35357, 8004, 8000
 ]
 
 # use this to *add* more reserved ports; i.e. modify value of
@@ -213,7 +179,7 @@ default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
 default['bcpc']['system']['readahead_kb'] = 512
 
 # used for SOL (serial over lan) communication
-default['bcpc']['getty']['ttys'] = ['ttyS0','ttyS1']
+default['bcpc']['getty']['ttys'] = %w[ttyS0 ttyS1]
 
 # select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
 default['bcpc']['hardware']['io_scheduler'] = 'deadline'
@@ -221,29 +187,25 @@ default['bcpc']['hardware']['io_scheduler'] = 'deadline'
 # enable power-saving CPU scaling governor
 default['bcpc']['hardware']['powersave']['enabled'] = false
 
-
 ###############################################################################
 # horizon
 ###############################################################################
 
 default['bcpc']['horizon']['disable_panels'] = ['containers']
 
-
 ###############################################################################
 # metadata settings
 ###############################################################################
 
 default['bcpc']['metadata']['vendordata']['enabled'] = false
-#default['bcpc']['metadata']['vendordata']['driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
-
+# default['bcpc']['metadata']['vendordata']['driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
 
 ###############################################################################
 # bird
 ###############################################################################
 
 default['bcpc']['bird']['repo']['enabled'] = false
-default['bcpc']['bird']['repo']['url'] = ""
-
+default['bcpc']['bird']['repo']['url'] = ''
 
 ###############################################################################
 # memcached
@@ -254,7 +216,6 @@ default['bcpc']['memcached']['debug'] = false
 # Set number of memcached connections.
 default['bcpc']['memcached']['connections'] = 10240
 
-
 ###############################################################################
 # etcd
 ###############################################################################
@@ -262,7 +223,6 @@ default['bcpc']['memcached']['connections'] = 10240
 default['bcpc']['etcd']['remote']['file'] = 'etcd-v3.3.7-linux-amd64.tar.gz'
 default['bcpc']['etcd']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/etcd-v3.3.7-linux-amd64.tar.gz"
 default['bcpc']['etcd']['remote']['checksum'] = '251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c'
-
 
 ###############################################################################
 # consul
@@ -284,10 +244,9 @@ default['bcpc']['consul']['config']['enable_script_checks'] = true
 default['bcpc']['consul']['config']['server'] = true
 default['bcpc']['consul']['config']['log_level'] = 'INFO'
 default['bcpc']['consul']['config']['node_name'] = node['hostname']
-default['bcpc']['consul']['config']['addresses']['dns'] = "#{vip}"
+default['bcpc']['consul']['config']['addresses']['dns'] = vip
 default['bcpc']['consul']['config']['ports']['dns'] = 8600
-default['bcpc']['consul']['config']['recursors'] = ["#{vip}"]
-
+default['bcpc']['consul']['config']['recursors'] = [vip]
 
 # Service definitions reference:
 # https://www.consul.io/docs/agent/services.html
@@ -348,3 +307,5 @@ default['bcpc']['consul']['watches'] = [
     'args' => ['/usr/local/bcpc/bin/dns-watch']
   }
 ]
+
+# rubocop:enable Metrics/LineLength,Style/NumericLiterals

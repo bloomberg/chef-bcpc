@@ -17,25 +17,25 @@
 # limitations under the License.
 #
 
-package "ufw"
-service "ufw"
+package 'ufw'
+service 'ufw'
 
-template "/etc/default/ufw" do
-  source "ufw/ufw.erb"
-  notifies :restart, "service[ufw]", :immediately
+template '/etc/default/ufw' do
+  source 'ufw/ufw.erb'
+  notifies :restart, 'service[ufw]', :immediately
 end
 
-template "/etc/ufw/sysctl.conf" do
-  source "ufw/ufw.sysctl.conf.erb"
-  notifies :restart, "service[ufw]", :immediately
+template '/etc/ufw/sysctl.conf' do
+  source 'ufw/ufw.sysctl.conf.erb'
+  notifies :restart, 'service[ufw]', :immediately
 end
 
-bash "setup allow rules for ufw" do
-  code <<-EOH
+bash 'setup allow rules for ufw' do
+  code <<-UFW
     ufw allow 22/tcp
     ufw allow 80/tcp
     ufw allow 8080/tcp
     ufw allow 443/tcp
     ufw --force enable
-  EOH
+  UFW
 end

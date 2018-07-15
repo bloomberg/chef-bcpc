@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
 
@@ -42,55 +42,53 @@ openstack = {
 # create client.glance ceph user and keyring starts
 #
 execute 'get or create client.glance user/keyring' do
-  command <<-EOH
+  command <<-DOC
     ceph auth get-or-create client.glance \
       mon 'allow r' \
       osd 'allow class-read object_prefix rbd_children, \
            allow rwx pool=images' \
       -o /etc/ceph/ceph.client.glance.keyring
-  EOH
+  DOC
   creates '/etc/ceph/ceph.client.glance.keyring'
 end
 #
 # create client.glance ceph user and keyring ends
 
-
 # create/configure glance openstack user starts
 #
-execute "create the glance user" do
-  environment (os_adminrc())
+execute 'create the glance user' do
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack user create \
       --domain default \
       --password #{openstack['password']} \
       #{openstack['username']}
-  EOH
+  DOC
 
   not_if "openstack user show --domain default #{openstack['username']}"
 end
 
-execute "add admin role to the glance user" do
-  environment (os_adminrc())
+execute 'add admin role to the glance user' do
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack role add \
       --project #{openstack['project']} \
       --user #{openstack['username']} \
       #{openstack['role']}
-  EOH
+  DOC
 
-  not_if <<-EOH
+  not_if <<-DOC
     openstack role assignment list \
       --role #{openstack['role']} \
       --user #{openstack['username']} \
       --project #{openstack['project']} \
       --names | grep #{openstack['username']}
-  EOH
+  DOC
 end
 #
 # create/configure glance openstack user ends
-
 
 # create image service and endpoints starts
 #
@@ -100,50 +98,46 @@ begin
   project = service['project']
 
   execute "create the #{project} #{type} service" do
-    environment (os_adminrc())
+    environment os_adminrc
 
     name = service['name']
     desc = service['description']
 
-    command <<-EOH
+    command <<-DOC
       openstack service create \
         --name "#{name}" --description "#{desc}" #{type}
-    EOH
+    DOC
 
     not_if "openstack service list | grep #{type}"
   end
 
-  %w(admin internal public).each{|uri|
-
-    url = generate_service_catalog_uri(service,uri)
+  %w[admin internal public].each do |uri|
+    url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
-      environment (os_adminrc())
+      environment os_adminrc
 
-      command <<-EOH
+      command <<-DOC
         openstack endpoint create \
           --region #{region} #{type} #{uri} '#{url}'
-      EOH
+      DOC
 
       not_if "openstack endpoint list \
         | grep #{type} | grep #{uri}
       "
     end
-  }
+  end
 end
 #
 # create image service and endpoints ends
 
-
 # glance package installation and service definition starts
 #
 package 'glance'
-package "qemu-utils"
-
+package 'qemu-utils'
 service 'glance-api'
 #
 # glance package installation and service definition ends
-
 
 # update file permisssions on ceph.client.glance.keyring to allow the
 # glance user to use ceph
@@ -153,7 +147,6 @@ file '/etc/ceph/ceph.client.glance.keyring' do
   owner 'root'
   group 'glance'
 end
-
 
 # create/manage glance database starts
 #
@@ -172,12 +165,12 @@ template '/tmp/glance-create-db.sql' do
     db=#{database['dbname']}
     count=$(mysql -u ${user} ${db} -e 'show tables' | wc -l)
     [ $count -gt 0 ]
-  ", :environment => {'MYSQL_PWD' => mysqladmin['password']}
+  ", environment: { 'MYSQL_PWD' => mysqladmin['password'] }
 end
 
 execute 'create glance database' do
   action :nothing
-  environment ({'MYSQL_PWD' => mysqladmin['password']})
+  environment('MYSQL_PWD' => mysqladmin['password'])
 
   command "mysql -u #{mysqladmin['username']} < /tmp/glance-create-db.sql"
 
@@ -188,9 +181,9 @@ end
 
 execute 'glance-manage db_sync' do
   action :nothing
-  command <<-EOH
-    su -s /bin/sh -c "glance-manage db_sync" glance
-  EOH
+  command <<-DOC
+    su -s /bin/sh -c 'glance-manage db_sync' glance
+  DOC
 end
 #
 # create/manage glance database ends
@@ -200,10 +193,10 @@ end
 template '/etc/glance/glance-api.conf' do
   source 'glance/glance-api.conf.erb'
   variables(
-    :db => database,
-    :os => openstack,
-    :config => config,
-    :nodes => get_headnodes(all:true)
+    db: database,
+    os: openstack,
+    config: config,
+    nodes: get_headnodes(all: true)
   )
   notifies :restart, 'service[glance-api]', :immediately
 end
@@ -211,25 +204,25 @@ end
 # install and configure components ends
 
 execute 'wait for glance to come online' do
-  environment (os_adminrc())
+  environment os_adminrc
   retries 15
   command 'openstack image list'
 end
 
 # create ceph rbd pool starts
 #
-bash "create ceph pool" do
+bash 'create ceph pool' do
   pool = node['bcpc']['glance']['ceph']['pool']['name']
 
-  code <<-EOH
+  code <<-DOC
     ceph osd pool create #{pool} 128 128
     ceph osd pool application enable #{pool} rbd
-  EOH
+  DOC
 
   not_if "ceph osd pool ls | grep -w #{pool}"
 end
 
-execute "set ceph pool size" do
+execute 'set ceph pool size' do
   size = node['bcpc']['glance']['ceph']['pool']['size']
   pool = node['bcpc']['glance']['ceph']['pool']['name']
 
@@ -239,40 +232,39 @@ end
 #
 # create ceph rbd volume pools ends
 
-
 # create/upload cirros image starts
 #
 cirros = node['bcpc']['glance']['images']['cirros']
 
-remote_file "#{cirros['target']}" do
-  source "#{cirros['source']}"
+remote_file cirros['target'] do
+  source cirros['source']
   notifies :run, 'execute[convert cirros image]', :immediately
-  not_if 'openstack image list | grep -i cirros', :environment => os_adminrc()
+  not_if 'openstack image list | grep -i cirros', environment: os_adminrc
 end
 
 execute 'convert cirros image' do
   action :nothing
 
-  command <<-EOH
+  command <<-DOC
     qemu-img convert -f qcow2 -O raw \
       #{cirros['target']} \
       #{Chef::Config[:file_cache_path]}/cirros.raw
-  EOH
+  DOC
 
   notifies :run, 'execute[add cirros image]', :immediately
 end
 
-execute "add cirros image" do
-  environment (os_adminrc())
+execute 'add cirros image' do
+  environment os_adminrc
   action :nothing
 
-  command <<-EOH
+  command <<-DOC
     openstack image create 'cirros' \
       --public \
       --container-format=bare \
       --disk-format=raw \
       --file #{Chef::Config[:file_cache_path]}/cirros.raw
-  EOH
+  DOC
 end
 #
 # create/upload cirros image ends

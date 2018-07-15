@@ -16,17 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-template "/etc/apt/apt.conf.d/00bcpc" do
+template '/etc/apt/apt.conf.d/00bcpc' do
   source 'apt/bcpc-apt.conf.erb'
   variables(
-    :conf => node['bcpc']['apt']
+    conf: node['bcpc']['apt']
   )
 end
 
-template "/etc/apt/sources.list" do
+template '/etc/apt/sources.list' do
   source 'apt/sources.list.erb'
   variables(
-    :config => node['bcpc']['ubuntu']
+    config: node['bcpc']['ubuntu']
   )
 end
 

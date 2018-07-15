@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Library:: utils
 #
@@ -15,193 +14,101 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+return Chef::Log.warn('requires chef-server') if Chef::Config[:solo]
 
 require 'ipaddress'
 
-def is_queens?
-  node['bcpc']['openstack']['release'] == 'queens'
+def init_cloud?
+  nodes = search(:node, 'roles:headnode')
+  nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
+  nodes.empty? ? true : false
 end
 
-def get_bootstrap_node()
-  nodes = get_nodes("role:bootstrap")
-
-  if nodes.size != 1
-    raise 'There is not exactly one bootstrap node found.'
-  end
-
-  return nodes.first
+def headnode?(node)
+  search(:node, "role:headnode AND hostname:#{node['hostname']}").any?
 end
 
-def is_init_cloud()
-  nodes = search(:node, "roles:headnode")
-  nodes = nodes.reject{|n| n['hostname'] == node['hostname']}
-  return nodes.length == 0 ? true : false
+def worknode?(node)
+  search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
 end
 
-def is_headnode(node)
-  return search(:node, "role:headnode AND hostname:#{node['hostname']}").any?
-end
-
-def is_worknode(node)
-  return search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
-end
-
-def get_headnodes(exclude: nil,all: false)
-
+def get_headnodes(exclude: nil, all: false)
   nodes = []
 
-  if exclude != nil
-    nodes = search(:node, "roles:headnode")
-    nodes = nodes.reject{|h| h['hostname'] == exclude}
+  if !exclude.nil?
+    nodes = search(:node, 'roles:headnode')
+    nodes = nodes.reject { |h| h['hostname'] == exclude }
   elsif all == true
-    nodes = search(:node, "role:headnode")
+    nodes = search(:node, 'role:headnode')
   else
-    nodes = search(:node, "roles:headnode")
+    nodes = search(:node, 'roles:headnode')
   end
 
-  return nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
-
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
 def get_worknodes(all: false)
+  nodes = if all
+            search(:node, 'role:worknode')
+          else
+            search(:node, 'roles:worknode')
+          end
 
-  nodes = []
-
-  if all == true
-    nodes = search(:node, "role:worknode")
-  else
-    nodes = search(:node, "roles:worknode")
-  end
-
-  return nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
-
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
-def get_all_nodes()
-  nodes = search(:node, "*:*")
-  return nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
-end
-
-def get_ceph_replica_count(pool)
-  replicas = [get_ceph_osd_nodes.length, node['bcpc']['ceph'][pool]['replicas']].min
-  replicas = 1 if replicas < 1
-  return replicas
-end
-
-def get_ceph_optimal_pg_count(pool)
-  power_of_2(
-    get_ceph_osd_nodes.length *
-    node['bcpc']['ceph']['pgs_per_node'] /
-    node['bcpc']['ceph'][pool]['replicas'] *
-    node['bcpc']['ceph'][pool]['portion'] / 100)
-end
-
-
-# Nearest power_of_2
-def power_of_2(number)
-#    result = 1
-#    while (result < number) do result <<= 1 end
-#    return result
-  result = 1
-  last_pwr = 1
-  while result < number
-    last_pwr = result
-    result <<= 1
-  end
-
-  low_delta = number - last_pwr
-  high_delta = result - number
-  if high_delta > low_delta
-    result = last_pwr
-  end
-
-  result
-end
-
-
-def calc_octets_to_drop(cidr)
-  cidr = IPAddress(cidr)
-  prefix = cidr.prefix.to_i
-  prefix = 24 if prefix != 8 && prefix != 16
-  4 - prefix / 8 # octets to drop
-end
-
-# Generates an array of classful reverse DNS zone(s) by dividing provided CIDR
-# (min /24) in the form of '1.2.3.0/24'.
-def calc_reverse_dns_zone(cidr)
-  cidr = IPAddress(cidr)
-  prefix = cidr.prefix.to_i
-  prefix = 24 if prefix != 8 && prefix != 16
-  subnets = cidr.subnet(prefix)
-  octets = 4 - prefix / 8 # octets to drop
-  subnets.map {
-    |x| x.reverse.to_s.split('.')[octets, x.reverse.length].join('.') }
+def all_nodes
+  nodes = search(:node, '*:*')
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
 def generate_service_catalog_uri(svcprops, access_level)
-  "https://#{node['bcpc']['cloud']['fqdn']}:#{svcprops['ports'][access_level]}/#{svcprops['uris'][access_level]}"
+  fqdn = node['bcpc']['cloud']['fqdn']
+  port = svcprops['ports'][access_level]
+  path = svcprops['uris'][access_level]
+  "https://#{fqdn}:#{port}/#{path}"
 end
 
-def mysqladmin()
+def mysqladmin
   region = node['bcpc']['cloud']['region']
-  config = data_bag_item(region,'config')
-  return {
-    "username" => "root",
-    "password" => config['mysql']['users']['root']['password']
+  config = data_bag_item(region, 'config')
+  {
+    'username' => 'root',
+    'password' => config['mysql']['users']['root']['password']
   }
 end
 
-def os_adminrc()
+def os_adminrc # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   region = node['bcpc']['cloud']['region']
-  config = data_bag_item(region,'config')
+  config = data_bag_item(region, 'config')
 
-  project   = node['bcpc']['openstack']['admin']['project']
-  username  = node['bcpc']['openstack']['admin']['username']
-  password  = config['openstack']['admin']['password']
-  identity  = node['bcpc']['catalog']['identity']
+  identity = node['bcpc']['catalog']['identity']
 
-  return {
+  {
     'OS_PROJECT_DOMAIN_ID' => 'default',
     'OS_USER_DOMAIN_ID' => 'default',
-    'OS_PROJECT_NAME' => "#{project}",
-    'OS_USERNAME' => "#{username}",
-    'OS_PASSWORD' => "#{password}",
-    'OS_AUTH_URL' => generate_service_catalog_uri(identity,'admin'),
-    'OS_REGION_NAME' => "#{region}",
+    'OS_PROJECT_NAME' => node['bcpc']['openstack']['admin']['project'],
+    'OS_USERNAME' => node['bcpc']['openstack']['admin']['username'],
+    'OS_PASSWORD' => config['openstack']['admin']['password'],
+    'OS_AUTH_URL' => generate_service_catalog_uri(identity, 'admin'),
+    'OS_REGION_NAME' => region,
     'OS_IDENTITY_API_VERSION' => '3',
-    'OS_VOLUME_API_VERSION'=> '3'
+    'OS_VOLUME_API_VERSION' => '3'
   }
 end
 
 def get_address(cidr)
-  return IPAddress(cidr).address
+  IPAddress(cidr).address
 end
 
-def get_availability_zones()
-
-  az = []
+def availability_zones
   racks = node['bcpc']['networking']['topology']['racks']
-
-  racks.each do |rack|
-    az.append("AZ-#{rack['id']}")
-  end
-
-  return az
-
+  racks.map { |rack| "AZ-#{rack['id']}" }
 end
 
-def get_local_availability_zone()
-
-  az = nil
-
-  if (match = node['hostname'].match(/.*r(\d+)(\w+)?n(\d+)$/i))
-    rack_id = match.captures[0].to_i
-    az = "AZ-#{rack_id}"
-  else
-    raise "Unable to get availability zone for #{node['hostname']}"
-  end
-
-  return az
-
+def local_availability_zone
+  match = node['hostname'].match(/.*r(\d+)(\w+)?n(\d+)$/i)
+  raise "Unable to get availability zone for #{node['hostname']}" unless match
+  "AZ-#{match.captures[0].to_i}"
 end

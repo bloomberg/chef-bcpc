@@ -1,8 +1,4 @@
-###########################################
-#
-# Service catalog (API versions/endpoints)
-#
-###########################################
+# rubocop:disable Style/NumericLiterals
 
 default['bcpc']['catalog'] = {
   'identity' => {
@@ -96,3 +92,5 @@ default['bcpc']['catalog'] = {
     }
   }
 }
+
+# rubocop:enable Style/NumericLiterals

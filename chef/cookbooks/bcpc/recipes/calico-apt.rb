@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: calico-apt
 #
@@ -15,31 +14,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-fn = "#{node['bcpc']['calico']['remote']['file']}"
+fn = node['bcpc']['calico']['remote']['file']
 fp = "#{Chef::Config[:file_cache_path]}/#{fn}"
 
-remote_file "#{fp}" do
-  source "#{node['bcpc']['calico']['remote']['source']}"
-  checksum "#{node['bcpc']['calico']['remote']['checksum']}"
-  mode 00755
+remote_file fp do
+  mode '755'
+  source node['bcpc']['calico']['remote']['source']
+  checksum node['bcpc']['calico']['remote']['checksum']
   notifies :create, 'remote_file[install calicoctl]', :immediate
 end
 
-remote_file "install calicoctl" do
+remote_file 'install calicoctl' do
   action :nothing
+  mode '755'
   path '/usr/local/bin/calicoctl'
   source "file://#{fp}"
-  mode 0755
 end
 
 return unless node['bcpc']['calico']['repo']['enabled']
 
-apt_repository "calico" do
+apt_repository 'calico' do
   arch 'amd64'
   uri node['bcpc']['calico']['repo']['url']
   distribution 'xenial'
-  components ["main"]
-  key "calico/release.key"
+  components ['main']
+  key 'calico/release.key'
 end

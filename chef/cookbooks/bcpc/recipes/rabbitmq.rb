@@ -14,87 +14,85 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-if node['bcpc']['rabbitmq']['repo']['enabled']
-  apt_repository "rabbitmq" do
-    uri node['bcpc']['rabbitmq']['repo']['url']
-    distribution 'testing'
-    components ["main"]
-    key "rabbitmq/rabbitmq.key"
-  end
+
+apt_repository 'rabbitmq' do
+  uri node['bcpc']['rabbitmq']['repo']['url']
+  distribution 'testing'
+  components ['main']
+  key 'rabbitmq/rabbitmq.key'
+  only_if { node['bcpc']['rabbitmq']['repo']['enabled'] }
 end
 
-if node['bcpc']['erlang']['repo']['enabled']
-  apt_repository "erlang" do
-    uri node['bcpc']['erlang']['repo']['url']
-    distribution node['lsb']['codename']
-    components ["contrib"]
-    key "rabbitmq/erlang.key"
-  end
+apt_repository 'erlang' do
+  uri node['bcpc']['erlang']['repo']['url']
+  distribution node['lsb']['codename']
+  components ['contrib']
+  key 'rabbitmq/erlang.key'
+  only_if { node['bcpc']['erlang']['repo']['enabled'] }
 end
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
-package "rabbitmq-server"
+package 'rabbitmq-server'
 
 service 'rabbitmq-server'
 service 'xinetd'
 
-cookbook_file "/etc/sudoers.d/rabbitmqctl" do
-  source "rabbitmq/sudoers"
-  mode 00440
+cookbook_file '/etc/sudoers.d/rabbitmqctl' do
+  source 'rabbitmq/sudoers'
+  mode '440'
 end
 
-template "/etc/rabbitmq/rabbitmq-env.conf" do
-  source "rabbitmq/rabbitmq-env.conf.erb"
-  mode 0644
+template '/etc/rabbitmq/rabbitmq-env.conf' do
+  source 'rabbitmq/rabbitmq-env.conf.erb'
+  mode '644'
 end
 
-directory "/etc/rabbitmq/rabbitmq.conf.d" do
+directory '/etc/rabbitmq/rabbitmq.conf.d' do
   action :create
 end
 
-template "/etc/rabbitmq/rabbitmq.conf.d/bcpc.conf" do
-  source "rabbitmq/bcpc.conf.erb"
-  notifies :restart, "service[rabbitmq-server]", :delayed
+template '/etc/rabbitmq/rabbitmq.conf.d/bcpc.conf' do
+  source 'rabbitmq/bcpc.conf.erb'
+  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
-template "/etc/default/rabbitmq-server" do
-  source "rabbitmq/default.erb"
-  notifies :restart, "service[rabbitmq-server]", :delayed
+template '/etc/default/rabbitmq-server' do
+  source 'rabbitmq/default.erb'
+  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
-file "/var/lib/rabbitmq/.erlang.cookie" do
-  mode 00400
-  content "#{config['rabbit']['cookie']}"
-  notifies :restart, "service[rabbitmq-server]", :delayed
+file '/var/lib/rabbitmq/.erlang.cookie' do
+  mode '400'
+  content config['rabbit']['cookie']
+  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
-execute "enable rabbitmq web mgmt" do
-  command "/usr/sbin/rabbitmq-plugins enable rabbitmq_management"
-  not_if "/usr/sbin/rabbitmq-plugins list -m -e | grep '^rabbitmq_management$'"
-  notifies :restart, "service[rabbitmq-server]", :delayed
+execute 'enable rabbitmq web mgmt' do
+  command '/usr/sbin/rabbitmq-plugins enable rabbitmq_management'
+  not_if '/usr/sbin/rabbitmq-plugins list -m -e | grep "^rabbitmq_management$"'
+  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
-template "/etc/rabbitmq/rabbitmq.config" do
-  source "rabbitmq/rabbitmq.config.erb"
-  notifies :restart, "service[rabbitmq-server]", :immediately
+template '/etc/rabbitmq/rabbitmq.config' do
+  source 'rabbitmq/rabbitmq.config.erb'
+  notifies :restart, 'service[rabbitmq-server]', :immediately
 end
 
-# add this node to the existing rabbitmq cluster if one exists
-#
 begin
-
-  if not is_init_cloud()
+  # add this node to the existing rabbitmq cluster if one exists
+  unless init_cloud?
     members = get_headnodes(exclude: node['hostname'])
 
-    hosts = members.collect{|m|
-      "#{'rabbit@' + m['hostname']}"
-    }.join(' ')
+    hosts = members.collect do |m|
+      "rabbit@#{m['hostname']}"
+    end
 
-    bash "join rabbitmq cluster" do
-      code <<-EOH
+    hosts = hosts.join(' ')
+
+    bash 'join rabbitmq cluster' do
+      code <<-DOC
         member=''
 
         # try to find a healthy cluster member
@@ -125,51 +123,50 @@ begin
         rabbitmqctl reset
         rabbitmqctl join_cluster ${member}
         rabbitmqctl start_app
-      EOH
+      DOC
     end
   end
-
 end
 
 execute 'wait for rabbitmq to come online' do
   retries 30
-  command "rabbitmqctl list_users"
+  command 'rabbitmqctl list_users'
 end
 
-execute "set rabbitmq user password" do
+execute 'set rabbitmq user password' do
   username = config['rabbit']['username']
   password = config['rabbit']['password']
-  command %Q[rabbitmqctl change_password #{username} #{password}]
+  command "rabbitmqctl change_password #{username} #{password}"
 end
 
-execute "set rabbitmq ha policy" do
-  command <<-EOH
+execute 'set rabbitmq ha policy' do
+  command <<-DOC
     rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '{"ha-mode": "all"}'
-  EOH
+  DOC
 end
 
-cookbook_file "/usr/local/bin/rabbitmqcheck" do
-  source "rabbitmq/rabbitmq-check"
-  mode 0755
+cookbook_file '/usr/local/bin/rabbitmqcheck' do
+  source 'rabbitmq/rabbitmq-check'
+  mode '755'
 end
 
-execute "add amqpchk to etc services" do
-  command <<-EOH
-    printf "amqpchk\t5673/tcp\n" >> /etc/services
-  EOH
-  not_if "grep amqpchk /etc/services"
+execute 'add amqpchk to etc services' do
+  command <<-DOC
+    printf 'amqpchk\t5673/tcp\n' >> /etc/services
+  DOC
+  not_if 'grep amqpchk /etc/services'
 end
 
-template "/etc/xinetd.d/amqpchk" do
-  source "rabbitmq/xinetd-amqpchk.erb"
-  mode 00440
+template '/etc/xinetd.d/amqpchk' do
+  source 'rabbitmq/xinetd-amqpchk.erb'
+  mode '440'
 
   networks = node['bcpc']['networking']['topology']['networks']
   primary = networks['primary']
 
   variables(
-    :only_from => primary['cidr']
+    only_from: primary['cidr']
   )
 
-  notifies :restart, "service[xinetd]", :immediately
+  notifies :restart, 'service[xinetd]', :immediately
 end

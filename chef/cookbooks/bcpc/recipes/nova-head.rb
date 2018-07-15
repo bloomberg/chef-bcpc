@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: nova-head
 #
@@ -15,9 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
 
@@ -42,18 +41,18 @@ openstack = {
 
 # create ceph rbd pool starts
 #
-bash "create ceph pool" do
+bash 'create ceph pool' do
   pool = node['bcpc']['nova']['ceph']['pool']['name']
 
-  code <<-EOH
+  code <<-DOC
     ceph osd pool create #{pool} 128 128
     ceph osd pool application enable #{pool} rbd
-  EOH
+  DOC
 
   not_if "ceph osd pool ls | grep -w #{pool}"
 end
 
-execute "set ceph pool size" do
+execute 'set ceph pool size' do
   size = node['bcpc']['nova']['ceph']['pool']['size']
   pool = node['bcpc']['nova']['ceph']['pool']['name']
 
@@ -66,37 +65,39 @@ end
 # create nova user starts
 #
 execute 'create openstack nova user' do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack user create #{openstack['username']} \
       --domain #{openstack['domain']} \
       --password #{openstack['password']}
-  EOH
+  DOC
 
-  not_if "openstack user show #{openstack['username']} --domain #{openstack['domain']}"
+  not_if "
+    openstack user show #{openstack['username']} \
+      --domain #{openstack['domain']}
+  "
 end
 
 execute "add #{openstack['role']} role to #{openstack['username']} user" do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack role add #{openstack['role']} \
       --project #{openstack['project']} \
       --user #{openstack['username']}
-  EOH
+  DOC
 
-  not_if <<-EOH
+  not_if <<-DOC
     openstack role assignment list \
       --names \
       --role #{openstack['role']} \
       --project #{openstack['project']} \
       --user #{openstack['username']} | grep #{openstack['username']}
-  EOH
+  DOC
 end
 #
 # create nova user ends
-
 
 # create compute service and endpoints starts
 #
@@ -106,37 +107,34 @@ begin
   project = service['project']
 
   execute "create the #{project} service" do
-    environment (os_adminrc())
+    environment os_adminrc
 
     name = service['name']
     desc = service['description']
 
-    command <<-EOH
+    command <<-DOC
       openstack service create --name "#{name}" --description "#{desc}" #{type}
-    EOH
+    DOC
 
     not_if "openstack service list | grep #{type}"
   end
 
-  %w(admin internal public).each{|uri|
-
-    url = generate_service_catalog_uri(service,uri)
+  %w[admin internal public].each do |uri|
+    url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
-      environment (os_adminrc())
+      environment os_adminrc
 
-      command <<-EOH
+      command <<-DOC
         openstack endpoint create --region #{region} #{type} #{uri} '#{url}'
-      EOH
+      DOC
 
       not_if "openstack endpoint list | grep #{type} | grep #{uri}"
     end
-
-  }
+  end
 end
 #
 # create compute service and endpoints ends
-
 
 # nova openstack access
 #
@@ -151,37 +149,36 @@ placement = {
 # create placement user starts
 #
 execute 'create openstack placement user' do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack user create #{placement['username']} \
       --domain #{placement['domain']} \
       --password #{placement['password']}
-  EOH
+  DOC
 
   not_if "openstack user show #{placement['username']} --domain default"
 end
 
 execute 'add admin role to placement user' do
-  environment (os_adminrc())
+  environment os_adminrc
 
-  command <<-EOH
+  command <<-DOC
     openstack role add #{placement['role']} \
       --project #{placement['project']} \
       --user #{placement['username']}
-  EOH
+  DOC
 
-  not_if <<-EOH
+  not_if <<-DOC
     openstack role assignment list \
       --names \
       --role #{placement['role']} \
       --project #{placement['project']} \
       --user #{placement['username']} | grep #{placement['username']}
-  EOH
+  DOC
 end
 #
 # create placement user ends
-
 
 # create placement service and endpoints starts
 #
@@ -191,39 +188,36 @@ begin
   project = service['project']
 
   execute "create the #{project} #{type} service" do
-    environment (os_adminrc())
+    environment os_adminrc
 
     name = service['name']
     desc = service['description']
 
-    command <<-EOH
+    command <<-DOC
       openstack service create \
         --name "#{name}" --description "#{desc}" #{type}
-    EOH
+    DOC
 
     not_if "openstack service list | grep #{type}"
   end
 
-  %w(admin internal public).each{|uri|
-
-    url = generate_service_catalog_uri(service,uri)
+  %w[admin internal public].each do |uri|
+    url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
-      environment (os_adminrc())
+      environment os_adminrc
 
-      command <<-EOH
+      command <<-DOC
         openstack endpoint create \
           --region #{region} #{type} #{uri} '#{url}'
-      EOH
+      DOC
 
       not_if "openstack endpoint list | grep #{type} | grep #{uri}"
     end
-
-  }
+  end
 end
 #
 # create placement service and endpoints ends
-
 
 # nova package installation and service definition starts
 #
@@ -245,22 +239,21 @@ end
 #
 # nova package installation and service definition ends
 
-file "/etc/nova/ssl-bcpc.pem" do
-  content "#{Base64.decode64(config['ssl']['crt'])}"
-  owner "nova"
-  group "nova"
-  mode 00644
+file '/etc/nova/ssl-bcpc.pem' do
+  content Base64.decode64(config['ssl']['key']).to_s
+  mode '644'
+  owner 'nova'
+  group 'nova'
 end
 
-file "/etc/nova/ssl-bcpc.key" do
-  content "#{Base64.decode64(config['ssl']['key'])}"
-  owner "nova"
-  group "nova"
-  mode 00600
+file '/etc/nova/ssl-bcpc.key' do
+  content Base64.decode64(config['ssl']['key']).to_s
+  mode '600'
+  owner 'nova'
+  group 'nova'
 end
 #
 # ssl certs ends
-
 
 # create/manage nova databases starts
 #
@@ -272,7 +265,7 @@ template '/tmp/nova-create-db.sql' do
   source 'nova/nova-create-db.sql.erb'
 
   variables(
-    :db => database
+    db: database
   )
 
   notifies :run, 'execute[create nova databases]', :immediately
@@ -281,12 +274,12 @@ template '/tmp/nova-create-db.sql' do
     db=#{database['dbname']}
     count=$(mysql -u ${user} ${db} -e 'show tables' | wc -l)
     [ $count -gt 0 ]
-  ", :environment => {'MYSQL_PWD' => mysqladmin['password']}
+  ", environment: { 'MYSQL_PWD' => mysqladmin['password'] }
 end
 
 execute 'create nova databases' do
   action :nothing
-  environment ({'MYSQL_PWD' => mysqladmin['password']})
+  environment('MYSQL_PWD' => mysqladmin['password'])
 
   command "mysql -u #{mysqladmin['username']} < /tmp/nova-create-db.sql"
 
@@ -311,23 +304,22 @@ end
 
 execute 'register the cell0 database' do
   action :nothing
-  command "su -s /bin/sh -c 'nova-manage cell_v2 map_cell0' nova"
-  not_if "nova-manage cell_v2 list_cells | grep cell0"
+  command 'su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova'
+  not_if 'nova-manage cell_v2 list_cells | grep cell0'
 end
 
 execute 'create the cell1 cell' do
   action :nothing
-  command "su -s /bin/sh -c 'nova-manage cell_v2 create_cell --name=cell1' nova"
-  not_if "nova-manage cell_v2 list_cells | grep cell1"
+  command 'su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1" nova'
+  not_if 'nova-manage cell_v2 list_cells | grep cell1'
 end
 
 execute 'nova-manage db sync' do
   action :nothing
-  command "su -s /bin/sh -c 'nova-manage db sync' nova"
+  command 'su -s /bin/sh -c "nova-manage db sync" nova'
 end
 #
 # create/manage nova databases ends
-
 
 # configure nova starts
 #
@@ -335,12 +327,12 @@ template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
 
   variables(
-    :db => database,
-    :os => openstack,
-    :config => config,
-    :nodes => get_headnodes(all:true),
-    :is_headnode => is_headnode(node),
-    :vip => get_address(node['bcpc']['cloud']['vip']['ip'])
+    db: database,
+    os: openstack,
+    config: config,
+    nodes: get_headnodes(all: true),
+    is_headnode: headnode?(node),
+    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
   )
 
   notifies :run, 'execute[update cell1]', :immediately
@@ -353,30 +345,28 @@ end
 
 execute 'update cell1' do
   action :nothing
-  command <<-EOH
+  command <<-DOC
     nova-manage cell_v2 update_cell --cell_uuid \
       $(nova-manage cell_v2 list_cells | grep cell1 | awk '{print $4}')
-  EOH
+  DOC
 
-  only_if "nova-manage cell_v2 list_cells | grep cell1"
+  only_if 'nova-manage cell_v2 list_cells | grep cell1'
 end
 #
 # configure nova ends
 
-
 # configure placement-api starts
 #
-template "/etc/apache2/sites-available/nova-placement-api.conf" do
-  source   "nova/nova-placement-api.conf.erb"
-  mode     "0644"
+template '/etc/apache2/sites-available/nova-placement-api.conf' do
+  source 'nova/nova-placement-api.conf.erb'
 
   variables(
-    :threads => node['bcpc']['placement']['wsgi']['threads'],
-    :processes => node['bcpc']['placement']['wsgi']['processes']
+    threads: node['bcpc']['placement']['wsgi']['threads'],
+    processes: node['bcpc']['placement']['wsgi']['processes']
   )
 
-  notifies :run, "execute[enable placement-api]", :immediately
-  notifies :restart, "service[placement-api]", :immediately
+  notifies :run, 'execute[enable placement-api]', :immediately
+  notifies :restart, 'service[placement-api]', :immediately
 end
 #
 # configure placement-api ends
@@ -387,20 +377,19 @@ execute 'enable placement-api' do
 end
 
 execute 'wait for nova to come online' do
-  environment (os_adminrc())
+  environment os_adminrc
   retries 30
   command 'openstack compute service list'
 end
 
 begin
-  zones = get_availability_zones()
+  zones = availability_zones
 
-  zones.each do | zone |
+  zones.each do |zone|
     execute "creating the #{zone} availability zone" do
-      environment (os_adminrc())
+      environment os_adminrc
       command "openstack aggregate create #{zone}"
       not_if "openstack aggregate show #{zone}"
     end
   end
-
 end

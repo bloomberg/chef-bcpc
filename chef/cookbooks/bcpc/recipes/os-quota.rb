@@ -17,22 +17,23 @@
 # limitations under the License.
 #
 
-
 node['bcpc']['cinder']['quota'].each do |quota, limit|
   execute "set openstack #{quota} quota" do
-    environment (os_adminrc())
+    environment os_adminrc
     retries 20
     command "openstack quota set --class --#{quota} #{limit} default"
   end
 end
 
-node['bcpc']['nova']['quota']['project'] do |project, quotas|
-  quotas.each do |quota,limit|
+node['bcpc']['nova']['quota']['project'].each do |project, quotas|
+  quotas.each do |quota, limit|
     execute "set #{quota} quota for #{project} project" do
-      environment (os_adminrc())
+      environment os_adminrc
       retries 20
       command "openstack quota set --#{quota} #{limit} #{project}"
-      not_if "openstack quota show -f value -c #{quota} #{project} | grep -w #{limit}"
+      not_if "
+        openstack quota show -f value -c #{quota} #{project} | grep -w #{limit}
+      "
     end
   end
 end
