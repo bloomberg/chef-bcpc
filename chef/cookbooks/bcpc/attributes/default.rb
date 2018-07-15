@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/LineLength
+# rubocop:disable Metrics/LineLength,Style/NumericLiterals
 
 require 'ipaddress'
 
@@ -162,7 +162,7 @@ default['bcpc']['host_firewall']['enabled'] = true
 # (generally stuff served via HAProxy)
 # some ports are hardcoded - see bcpc-firewall.erb template
 default['bcpc']['management']['firewall_tcp_ports'] = [
-  8088, 7480, 35_357, 8004, 8000
+  8088, 7480, 35357, 8004, 8000
 ]
 
 # use this to *add* more reserved ports; i.e. modify value of
@@ -170,10 +170,10 @@ default['bcpc']['management']['firewall_tcp_ports'] = [
 default['bcpc']['system']['additional_reserved_ports'] = []
 
 # any other sysctl parameters (register under parameters)
-default['bcpc']['system']['parameters']['kernel.pid_max'] = 4_194_303
+default['bcpc']['system']['parameters']['kernel.pid_max'] = 4194303
 
 # connection tracking table max size
-default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262_144
+default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
 
 # readhead value for all disks in the system, in kb
 default['bcpc']['system']['readahead_kb'] = 512
@@ -214,7 +214,7 @@ default['bcpc']['bird']['repo']['url'] = ''
 # Enable memcached double verbose logging.
 default['bcpc']['memcached']['debug'] = false
 # Set number of memcached connections.
-default['bcpc']['memcached']['connections'] = 10_240
+default['bcpc']['memcached']['connections'] = 10240
 
 ###############################################################################
 # etcd
@@ -307,4 +307,5 @@ default['bcpc']['consul']['watches'] = [
     'args' => ['/usr/local/bcpc/bin/dns-watch']
   }
 ]
-# rubocop:enable Metrics/LineLength
+
+# rubocop:enable Metrics/LineLength,Style/NumericLiterals

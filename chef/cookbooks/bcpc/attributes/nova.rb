@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/LineLength
+# rubocop:disable Metrics/LineLength,Style/NumericLiterals
 
 ###############################################################################
 # nova
@@ -100,11 +100,11 @@ default['bcpc']['nova']['flavors']['generic1.large']['ram'] = 8192
 default['bcpc']['nova']['flavors']['generic1.large']['disk'] = 40
 
 default['bcpc']['nova']['flavors']['generic1.xlarge']['vcpus'] = 8
-default['bcpc']['nova']['flavors']['generic1.xlarge']['ram'] = 16_384
+default['bcpc']['nova']['flavors']['generic1.xlarge']['ram'] = 16384
 default['bcpc']['nova']['flavors']['generic1.xlarge']['disk'] = 40
 
 default['bcpc']['nova']['flavors']['generic1.2xlarge']['vcpus'] = 16
-default['bcpc']['nova']['flavors']['generic1.2xlarge']['ram'] = 32_768
+default['bcpc']['nova']['flavors']['generic1.2xlarge']['ram'] = 32768
 default['bcpc']['nova']['flavors']['generic1.2xlarge']['disk'] = 40
 
 default['bcpc']['nova']['flavors']['generic2.small']['vcpus'] = 1
@@ -112,18 +112,18 @@ default['bcpc']['nova']['flavors']['generic2.small']['ram'] = 6144
 default['bcpc']['nova']['flavors']['generic2.small']['disk'] = 50
 
 default['bcpc']['nova']['flavors']['generic2.medium']['vcpus'] = 2
-default['bcpc']['nova']['flavors']['generic2.medium']['ram'] = 12_288
+default['bcpc']['nova']['flavors']['generic2.medium']['ram'] = 12288
 default['bcpc']['nova']['flavors']['generic2.medium']['disk'] = 100
 
 default['bcpc']['nova']['flavors']['generic2.large']['vcpus'] = 4
-default['bcpc']['nova']['flavors']['generic2.large']['ram'] = 24_576
+default['bcpc']['nova']['flavors']['generic2.large']['ram'] = 24576
 default['bcpc']['nova']['flavors']['generic2.large']['disk'] = 100
 
 default['bcpc']['nova']['flavors']['generic2.xlarge']['vcpus'] = 8
-default['bcpc']['nova']['flavors']['generic2.xlarge']['ram'] = 49_152
+default['bcpc']['nova']['flavors']['generic2.xlarge']['ram'] = 49152
 default['bcpc']['nova']['flavors']['generic2.xlarge']['disk'] = 100
 default['bcpc']['nova']['flavors']['generic2.2xlarge']['vcpus'] = 16
-default['bcpc']['nova']['flavors']['generic2.2xlarge']['ram'] = 98_304
+default['bcpc']['nova']['flavors']['generic2.2xlarge']['ram'] = 98304
 default['bcpc']['nova']['flavors']['generic2.2xlarge']['disk'] = 100
 
 # default quota
@@ -138,4 +138,4 @@ default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['floating-ips'] = -1
 
-# rubocop:enable Metrics/LineLength
+# rubocop:enable Metrics/LineLength,Style/NumericLiterals
