@@ -1,0 +1,11 @@
+Style/ConditionalAssignment:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Style/RedundantReturn:
+  Enabled: false
