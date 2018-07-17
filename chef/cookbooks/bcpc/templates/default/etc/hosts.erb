@@ -20,5 +20,9 @@ ff02::2 ip6-allrouters
 # nodes
 #
 <% @nodes.each do |n| -%>
+  <% if n['roles'].include? 'bootstrap' %>
+<%= "#{n['ipaddress']}\t#{n['fqdn']}\t#{n['hostname']} bootstrap" %>
+  <% else %>
 <%= "#{n['ipaddress']}\t#{n['fqdn']}\t#{n['hostname']}" %>
+  <% end %>
 <% end -%>
