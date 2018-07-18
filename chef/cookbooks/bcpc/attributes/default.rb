@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/LineLength,Style/NumericLiterals
-
 require 'ipaddress'
 
 ###############################################################################
@@ -307,5 +305,3 @@ default['bcpc']['consul']['watches'] = [
     'args' => ['/usr/local/bcpc/bin/dns-watch']
   }
 ]
-
-# rubocop:enable Metrics/LineLength,Style/NumericLiterals

@@ -161,7 +161,7 @@ template '/etc/xinetd.d/amqpchk' do
   source 'rabbitmq/xinetd-amqpchk.erb'
   mode '440'
 
-  networks = node['bcpc']['networking']['topology']['networks']
+  networks = node['bcpc']['networking']['networks']
   primary = networks['primary']
 
   variables(

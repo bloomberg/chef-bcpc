@@ -39,10 +39,8 @@ end
 # primary interface configuration
 #
 begin
-  ifaces = node['bcpc']['networking']['ifaces']
-  raise 'could not find a primary interface' unless ifaces.key?('primary')
-
-  primary = ifaces['primary']
+  primary = node_interfaces.find { |i| i['type'] == 'primary' }
+  raise 'unable to find primary interface' if primary.nil?
 
   data = {
     'network' => {
@@ -61,6 +59,11 @@ begin
     }
   }
 
+  if primary.key?('mtu')
+    mtu = primary['mtu']
+    data['network']['ethernets'][primary['dev']]['mtu'] = mtu
+  end
+
   file "/etc/netplan/#{primary['dev']}.yaml" do
     content data.to_yaml(Indent: 2).to_s
   end
@@ -69,10 +72,8 @@ end
 # storage interface configuration
 #
 begin
-  ifaces = node['bcpc']['networking']['ifaces']
-  raise 'could not find a storage interface' unless ifaces.key?('storage')
-
-  storage = ifaces['storage']
+  storage = node_interfaces.find { |i| i['type'] == 'storage' }
+  raise 'unable to find the storage interface' if storage.nil?
 
   data = {
     'network' => {
@@ -92,6 +93,27 @@ begin
       }
     }
   }
+
+  if storage.key?('mtu')
+    mtu = storage['mtu']
+    data['network']['ethernets'][storage['dev']]['mtu'] = mtu
+  end
+
+  if storage.key?('vlan')
+    vlan = storage['vlan']
+
+    data['network']['vlans'] = {
+      "vlan#{vlan}" => {
+        'id' => vlan,
+        'link' => storage['dev'],
+        'addresses' => [
+          "#{storage['ip']}/#{storage['prefix']}"
+        ]
+      }
+    }
+
+    data['network']['ethernets'][storage['dev']].delete('addresses')
+  end
 
   file "/etc/netplan/#{storage['dev']}.yaml" do
     content data.to_yaml(Indent: 2).to_s

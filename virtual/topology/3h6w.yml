@@ -10,7 +10,8 @@ hardware_profiles:
       size_gb: 20
 
 nodes:
-  - host: bootstrap
+  - host: r1an0
+    name: bootstrap
     group: bootstraps
     hardware_profile: bootstrap
     run_list:
