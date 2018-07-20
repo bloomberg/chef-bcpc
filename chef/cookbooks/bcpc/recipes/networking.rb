@@ -39,8 +39,8 @@ end
 # primary interface configuration
 #
 begin
-  primary = node_interfaces.find { |i| i['type'] == 'primary' }
-  raise 'unable to find primary interface' if primary.nil?
+  primary = node_interfaces(type: 'primary')
+  raise 'unable to find the primary interface' if primary.nil?
 
   data = {
     'network' => {
@@ -72,7 +72,7 @@ end
 # storage interface configuration
 #
 begin
-  storage = node_interfaces.find { |i| i['type'] == 'storage' }
+  storage = node_interfaces(type: 'storage')
   raise 'unable to find the storage interface' if storage.nil?
 
   data = {
@@ -120,7 +120,7 @@ begin
   end
 end
 
-if headnode?(node)
+if headnode?
 
   data = {
     'network' => {

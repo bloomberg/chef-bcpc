@@ -23,17 +23,15 @@ config = data_bag_item(region, 'config')
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
 
-  networks = node['bcpc']['networking']['networks']
+  networks = cloud_networks
   primary = networks['primary']
   storage = networks['storage']
-
-  nodes = init_cloud? ? [node] : get_headnodes
 
   variables(
     config: config,
     public_network: primary['cidr'],
     cluster_network: storage['cidr'],
-    nodes: nodes
+    headnodes: init_cloud? ? [node] : headnodes
   )
 end
 
@@ -91,5 +89,5 @@ ruby_block 'set primary anti-affinity for headnode osds' do
     end
   end
 
-  only_if { headnode?(node) }
+  only_if { headnode? }
 end

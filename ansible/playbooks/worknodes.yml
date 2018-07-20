@@ -1,5 +1,6 @@
 - hosts: worknodes
   gather_facts: false
+  run_once: "{{ run_once | default(false) }}"
   roles:
     - common
     - chef-node

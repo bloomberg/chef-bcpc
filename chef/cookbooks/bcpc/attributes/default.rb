@@ -5,7 +5,7 @@ require 'ipaddress'
 ###############################################################################
 
 default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
-default['bcpc']['cloud']['fqdn'] = "openstack.#{default['bcpc']['cloud']['domain']}"
+default['bcpc']['cloud']['fqdn'] = "openstack.#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254/32' }
 

@@ -21,7 +21,7 @@ begin
   # attempt to register this node with an existing etcd cluster if one exists
   unless init_cloud?
 
-    members = get_headnodes(exclude: node['hostname'])
+    members = headnodes(exclude: node['hostname'])
     endpoints = members.map { |m| "#{m['ipaddress']}:2380" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
@@ -79,7 +79,7 @@ systemd_unit 'etcd.service' do
     initial_cluster = "#{node['fqdn']}=http://#{node['ipaddress']}:2380"
     initial_cluster_state = 'new'
   else
-    headnodes = get_headnodes(exclude: node['hostname'])
+    headnodes = headnodes(exclude: node['hostname'])
     headnodes.push(node)
 
     initial_cluster = headnodes.collect do |h|

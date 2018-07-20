@@ -231,7 +231,7 @@ template '/etc/cinder/cinder.conf' do
   variables(
     db: database,
     config: config,
-    nodes: get_headnodes(all: true)
+    headnodes: headnodes(all: true)
   )
 
   notifies :restart, 'service[cinder-api]', :immediately

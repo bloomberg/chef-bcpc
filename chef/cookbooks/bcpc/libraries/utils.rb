@@ -26,11 +26,11 @@ def init_cloud?
   nodes.empty? ? true : false
 end
 
-def headnode?(node)
+def headnode?
   search(:node, "role:headnode AND hostname:#{node['hostname']}").any?
 end
 
-def worknode?(node)
+def worknode?
   search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
 end
 
@@ -39,7 +39,7 @@ def bootstraps
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
-def get_headnodes(exclude: nil, all: false)
+def headnodes(exclude: nil, all: false)
   nodes = []
 
   if !exclude.nil?
@@ -54,7 +54,7 @@ def get_headnodes(exclude: nil, all: false)
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
-def get_worknodes(all: false)
+def worknodes(all: false)
   nodes = []
 
   if all
@@ -132,32 +132,57 @@ def node_network_map
   }
 end
 
-def node_networking
-  {
-    'rack' => node_rack,
-    'interfaces' => node_interfaces
-  }
-end
-
-def node_rack
-  node_map = node_network_map
+def cloud_racks(rack_id: nil)
   racks = node['bcpc']['networking']['racks']
 
-  racks.find do |r|
-    r['id'] == node_map['rack_id'] && r['pod'] == node_map['pod_id']
+  return racks if rack_id.nil?
+
+  rack = racks.select do |r|
+    r['id'] == rack_id
   end
+
+  raise "could not find rack #{rack_id}" if rack.nil?
+
+  return rack
 end
 
-def node_interfaces
-  [node_primary_interface, node_storage_interface]
+def node_pod
+  node_map = node_network_map
+  rack = cloud_racks(rack_id: node_map['rack_id'])
+  pod_id = node_map['pod_id']
+
+  pod = rack.find do |p|
+    p['pod'] == node_map['pod_id']
+  end
+
+  raise "could not find pod #{pod_id}" if pod.nil?
+
+  return pod
+end
+
+def node_interfaces(type: nil)
+  interfaces = [node_primary_interface, node_storage_interface]
+  return interfaces if type.nil?
+
+  iface = node_interfaces.find { |i| i['type'] == type }
+  raise "could not find interface #{type}" if iface.nil?
+
+  return iface
+end
+
+def cloud_networks(network: nil)
+  networks = node['bcpc']['networking']['networks']
+  return networks if network.nil?
+  raise "#{network} not found" unless networks.key?(network)
+  return networks[network]
 end
 
 def node_primary_interface
-  rack = node_rack
-  rack_network = rack['networks']['primary']
-  cloud_network = node['bcpc']['networking']['networks']['primary']
-  prefix = IPAddress(rack_network['cidr']).prefix.to_i
-  gateway = rack_network['gateway']
+  pod = node_pod
+  pod_network = pod['networks']['primary']
+  cloud_network = cloud_networks(network: 'primary')
+  prefix = IPAddress(pod_network['cidr']).prefix.to_i
+  gateway = pod_network['gateway']
   primary_ip = node['ipaddress']
 
   iface = {
@@ -175,23 +200,25 @@ def node_primary_interface
 end
 
 def node_storage_interface
-  rack = node_rack
+  pod = node_pod
+  pod_network = pod['networks']['storage']
+  prefix = IPAddress(pod_network['cidr']).prefix.to_i
   primary_ip = node['ipaddress']
-  rack_network = rack['networks']['storage']
-  cloud_network = node['bcpc']['networking']['networks']['storage']
-  prefix = IPAddress(rack_network['cidr']).prefix.to_i
+
   host_id = (IPAddr.new(primary_ip) << prefix >> prefix).to_i
-  host_network = IPAddr.new(rack_network['cidr'])
+  host_network = IPAddr.new(pod_network['cidr'])
   host_network = host_network >> (32 - prefix) << (32 - prefix)
   storage_ip = (host_network | host_id).to_s
+
+  cloud_network = cloud_networks(network: 'storage')
 
   iface = {
     'type' => 'storage',
     'ip' => storage_ip,
     'prefix' => prefix,
     'route' => {
-      'to' => rack_network['cidr'],
-      'via' => rack_network['gateway']
+      'to' => cloud_network['cidr'],
+      'via' => pod_network['gateway']
     },
     'dev' => cloud_network['interface']
   }
