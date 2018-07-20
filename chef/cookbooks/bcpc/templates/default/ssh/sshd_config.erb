@@ -7,10 +7,9 @@ Port 22
 # Use these options to restrict which interfaces/protocols sshd will bind to
 #ListenAddress ::
 <% if node['virtualization']['system'] == 'vbox' %>
-ListenAddress 10.0.2.15
+ListenAddress <%= node['bcpc']['virtualbox']['nat_ip'] %>
 <% end %>
 ListenAddress <%= @primary['ip'] %>
-ListenAddress <%= @storage['ip'] %>
 
 Protocol 2
 # HostKeys for protocol version 2
