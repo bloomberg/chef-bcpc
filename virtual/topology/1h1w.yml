@@ -14,7 +14,7 @@ nodes:
 
   - host: r1an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -28,7 +28,7 @@ nodes:
 
   - host: r1an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:

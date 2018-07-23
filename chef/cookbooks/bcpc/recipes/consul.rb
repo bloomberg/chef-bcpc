@@ -68,7 +68,7 @@ begin
   if init_cloud?
     config = config.merge('bootstrap' => true)
   else
-    headnodes = get_headnodes
+    headnodes = headnodes(exclude: node['hostname'])
     retry_join = headnodes.collect { |h| h['ipaddress'].to_s }
     config = config.merge('bootstrap' => false, 'retry_join' => retry_join)
   end

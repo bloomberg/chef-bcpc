@@ -45,7 +45,10 @@ end
 template '/etc/ssh/sshd_config' do
   source 'ssh/sshd_config.erb'
   variables(
-    primary: node_interfaces(type: 'primary')
+    interfaces: [
+      node_interfaces(type: 'primary'),
+      node_interfaces(type: 'storage')
+    ]
   )
   notifies :restart, 'service[ssh]', :immediately
 end

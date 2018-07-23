@@ -14,7 +14,7 @@ nodes:
 
   - host: r1an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -28,7 +28,7 @@ nodes:
 
   - host: r2an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -42,7 +42,7 @@ nodes:
 
   - host: r3an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -56,7 +56,7 @@ nodes:
 
   - host: r1an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -70,7 +70,7 @@ nodes:
 
   - host: r1an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -84,7 +84,7 @@ nodes:
 
   - host: r2an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -98,7 +98,7 @@ nodes:
 
   - host: r2an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -112,7 +112,7 @@ nodes:
 
   - host: r3an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -126,7 +126,7 @@ nodes:
 
   - host: r3an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:

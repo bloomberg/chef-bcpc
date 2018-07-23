@@ -9,7 +9,9 @@ Port 22
 <% if node['virtualization']['system'] == 'vbox' %>
 ListenAddress <%= node['bcpc']['virtualbox']['nat_ip'] %>
 <% end %>
-ListenAddress <%= @primary['ip'] %>
+<% @interfaces.each do |iface| -%>
+ListenAddress <%= iface['ip'] %>
+<% end -%>
 
 Protocol 2
 # HostKeys for protocol version 2
