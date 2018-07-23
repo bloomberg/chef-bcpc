@@ -1,0 +1,11 @@
+profiles:
+  bootstrap:
+    ram_gb: 2
+    cpus: 2
+  cloudnode:
+    ram_gb: 8
+    cpus: 4
+    ext_disks:
+      count: 4
+      size_gb: 20
+    swap_gb: 10

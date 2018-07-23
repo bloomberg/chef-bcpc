@@ -6,10 +6,11 @@
     recurse: true
 
 - name: download assets
+  retries: 5
+  delay: 10
   get_url:
     url: "{{ item.url }}"
     checksum: "{{ item.checksum }}"
     dest: "{{ assets_download_dir }}/{{ item.filename }}"
-    validate_certs: no
   with_items:
     "{{ assets_files }}"

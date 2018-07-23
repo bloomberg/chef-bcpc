@@ -14,35 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-eth1_ip=${1}
-gateway=${2}
+swap_gb=${1}
+swap_file="/mnt/${swap_gb}G.swap"
 
-if netplan ip leases eth0 > /dev/null 2>&1; then
-  eth0_ip=$(netplan ip leases eth0 | grep -w ADDRESS | cut -d '=' -f 2)
-
-cat > /etc/netplan/01-netcfg.yaml <<EOF
----
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eth0:
-      addresses:
-        - ${eth0_ip}/24
-EOF
+if [ ! -e "${swap_file}" ]; then
+    fallocate -l "${swap_gb}G" "${swap_file}"
+    chmod 600 "${swap_file}"
+    mkswap "${swap_file}"
 fi
 
+if ! sudo swapon -s | grep "${swap_file}"; then
+    swapon "${swap_file}"
+fi
 
-cat > /etc/netplan/eth1.yaml <<EOF
----
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eth1:
-      addresses:
-        - ${eth1_ip}
-      gateway4: ${gateway}
-EOF
-
-netplan apply
+if ! grep "${swap_file}" /etc/fstab; then
+    echo "${swap_file}  none  swap  sw 0  0" >> /etc/fstab
+fi

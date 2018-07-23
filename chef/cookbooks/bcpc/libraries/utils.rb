@@ -178,53 +178,63 @@ def cloud_networks(network: nil)
 end
 
 def node_primary_interface
-  pod = node_pod
-  pod_network = pod['networks']['primary']
-  cloud_network = cloud_networks(network: 'primary')
-  prefix = IPAddress(pod_network['cidr']).prefix.to_i
-  gateway = pod_network['gateway']
-  primary_ip = node['ipaddress']
+  interface = node_interface(
+    type: 'primary',
+    ip_address: node['ipaddress']
+  )
 
-  iface = {
-    'type' => 'primary',
-    'ip' => primary_ip,
-    'prefix' => prefix,
-    'gw' => gateway,
-    'dev' => cloud_network['interface']
-  }
-
-  iface['vlan'] = cloud_network['vlan'] if cloud_network.key?('vlan')
-  iface['mtu'] = cloud_network['mtu'] if cloud_network.key?('mtu')
-
-  return iface
+  return interface
 end
 
 def node_storage_interface
+  type = 'storage'
   pod = node_pod
-  pod_network = pod['networks']['storage']
-  prefix = IPAddress(pod_network['cidr']).prefix.to_i
-  primary_ip = node['ipaddress']
+  pod_network = pod['networks'][type]
+  cloud_network = cloud_networks(network: type)
 
-  host_id = (IPAddr.new(primary_ip) << prefix >> prefix).to_i
-  host_network = IPAddr.new(pod_network['cidr'])
-  host_network = host_network >> (32 - prefix) << (32 - prefix)
-  storage_ip = (host_network | host_id).to_s
+  interface = node_interface(
+    type: type,
+    ip_address: generate_ip_address(
+      'source_ip': node['ipaddress'],
+      'network_cidr': pod_network['cidr']
+    )
+  )
 
-  cloud_network = cloud_networks(network: 'storage')
+  # add route to storage network
+  interface['route'] = {
+    'to' => cloud_network['cidr'],
+    'via' => pod_network['gateway']
+  }
 
-  iface = {
-    'type' => 'storage',
-    'ip' => storage_ip,
-    'prefix' => prefix,
-    'route' => {
-      'to' => cloud_network['cidr'],
-      'via' => pod_network['gateway']
-    },
+  return interface
+end
+
+def node_interface(type: nil, ip_address: nil)
+  pod = node_pod
+  pod_network = pod['networks'][type]
+  cloud_network = cloud_networks(network: type)
+
+  interface = {
+    'type' => type,
+    'ip' => ip_address,
+    'prefix' => IPAddress(pod_network['cidr']).prefix.to_i,
+    'gw' => pod_network['gateway'],
     'dev' => cloud_network['interface']
   }
 
-  iface['vlan'] = cloud_network['vlan'] if cloud_network.key?('vlan')
-  iface['mtu'] = cloud_network['mtu'] if cloud_network.key?('mtu')
+  interface['vlan'] = cloud_network['vlan'] if cloud_network.key?('vlan')
+  interface['mtu'] = cloud_network['mtu'] if cloud_network.key?('mtu')
 
-  return iface
+  return interface
+end
+
+def generate_ip_address(source_ip:, network_cidr:)
+  # generate ip address by using the source ip and applying
+  # the same ip host id to the desired network cidr
+  prefix = IPAddress(network_cidr).prefix.to_i
+  host_id = (IPAddr.new(source_ip) << prefix >> prefix).to_i
+  host_network = IPAddr.new(network_cidr)
+  host_network = host_network >> (32 - prefix) << (32 - prefix)
+
+  return (host_network | host_id).to_s
 end
