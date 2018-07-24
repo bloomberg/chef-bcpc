@@ -2,11 +2,12 @@
   synchronize:
     src: "{{ item }}"
     dest: "/var/bcpc/chef/{{ chef_org_short_name }}/"
+    delete: yes
     recursive: yes
     rsync_opts:
-      - --copy-links
-      - --exclude="*.swp"
-      - --exclude=".git"
+      - "--copy-links"
+      - "--exclude=*.swp"
+      - "--exclude=.git"
   with_items:
     - "{{ chef_cookbooks_dir }}"
 
