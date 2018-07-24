@@ -70,7 +70,7 @@ begin
 end
 
 systemd_unit 'etcd.service' do
-  action %i[create enable restart]
+  action [:create, :enable, :restart]
 
   initial_cluster = []
   initial_cluster_state = 'existing'

@@ -28,7 +28,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['neutron']['db']['dbname'],
   'username' => config['neutron']['creds']['db']['username'],
-  'password' => config['neutron']['creds']['db']['password']
+  'password' => config['neutron']['creds']['db']['password'],
 }
 
 # hash used for openstack access
@@ -38,7 +38,7 @@ openstack = {
   'project' => node['bcpc']['keystone']['service_project']['name'],
   'domain' => node['bcpc']['keystone']['service_project']['domain'],
   'username' => config['neutron']['creds']['os']['username'],
-  'password' => config['neutron']['creds']['os']['password']
+  'password' => config['neutron']['creds']['os']['password'],
 }
 
 # create neutron user starts
@@ -97,7 +97,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  ['admin', 'internal', 'public'].each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
