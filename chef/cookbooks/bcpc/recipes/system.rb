@@ -53,6 +53,31 @@ execute 'load ipmi_devintf kernel module at boot' do
   not_if "grep ipmi_devintf /etc/modules"
 end
 
+# ip_conntrack module loading and configuration
+#
+execute 'load ip_conntrack kernel module' do
+  command 'modprobe ip_conntrack'
+  not_if 'lsmod | grep nf_conntrack'
+end
+
+begin
+  sys_params = node['bcpc']['system']['parameters']
+  nf_conntrack_max = sys_params['net.nf_conntrack_max']
+  hashsize = nf_conntrack_max / 8
+
+  template '/etc/modprobe.d/nf_conntrack.conf' do
+    source 'modprobe.d/nf_conntrack.conf.erb'
+    variables(
+      :hashsize => hashsize
+    )
+  end
+
+  execute 'set nf conntrack hashsize' do
+    hashsize_fp = '/sys/module/nf_conntrack/parameters/hashsize'
+    command "echo #{hashsize} > #{hashsize_fp}"
+    not_if "grep -w #{hashsize} #{hashsize_fp}"
+  end
+end
 
 # configure grub
 #
@@ -101,33 +126,6 @@ end
 template "/etc/udev/rules.d/99-readahead.rules" do
   source "udev/readahead.rules.erb"
   mode 00644
-end
-
-
-# ip_conntrack module loading and configuration
-#
-execute 'load ip_conntrack kernel module' do
-  command 'modprobe ip_conntrack'
-  not_if 'lsmod | grep nf_conntrack'
-end
-
-begin
-  sys_params = node['bcpc']['system']['parameters']
-  nf_conntrack_max = sys_params['net.nf_conntrack_max']
-  hashsize = nf_conntrack_max / 8
-
-  template '/etc/modprobe.d/nf_conntrack.conf' do
-    source 'modprobe.d/nf_conntrack.conf.erb'
-    variables(
-      :hashsize => hashsize
-    )
-  end
-
-  execute 'set nf conntrack hashsize' do
-    hashsize_fp = '/sys/module/nf_conntrack/parameters/hashsize'
-    command "echo #{hashsize} > #{hashsize_fp}"
-    not_if "grep -w #{hashsize} #{hashsize_fp}"
-  end
 end
 
 
