@@ -17,8 +17,6 @@
 # limitations under the License.
 #
 
-package "ubuntu-cloud-keyring" do
+package 'ubuntu-cloud-keyring' do
   action :install
-end
-
 end

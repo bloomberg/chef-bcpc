@@ -22,11 +22,11 @@ mysqladmin = mysqladmin()
 database = {
   'dbname' => node['bcpc']['keystone']['db'],
   'username' => config['keystone']['db']['username'],
-  'password' => config['keystone']['db']['password']
+  'password' => config['keystone']['db']['password'],
 }
 
 # package installation and service definition starts
-%w[keystone python-ldap python-ldappool].each do |pkg|
+%w(keystone python-ldap python-ldappool).each do |pkg|
   package pkg
 end
 
@@ -43,28 +43,13 @@ end
 
 # fernet key installation starts
 #
-primary = make_config('fernet_primary_key', generate_fernet_key())
-secondary = make_config('fernet_secondary_key', generate_fernet_key())
-staged = make_config('fernet_staged_key', generate_fernet_key())
-make_config('fernet_last_rotation', Time.now.to_i)
 
 # these packages need to be updated in Liberty but are not upgraded when Keystone is upgraded
 %w( python-oslo.i18n python-oslo.serialization python-pyasn1 ).each do |pkg|
   package pkg do
     action :install
-    notifies :restart, "service[apache2]", :immediately
+    notifies :restart, 'service[apache2]', :immediately
   end
-end
-
-  # update data bag values with rotation
-  #
-  make_config('fernet_primary_key',staged,force=true)
-  make_config('fernet_secondary_key',primary,force=true)
-  make_config('fernet_staged_key',generate_fernet_key(),force=true)
-
-  # update last rotation timestamp
-  #
-  make_config('fernet_last_rotation', Time.now.to_i, force=true)
 end
 
 directory '/etc/keystone/fernet-keys' do

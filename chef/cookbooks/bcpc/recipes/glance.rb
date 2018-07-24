@@ -18,13 +18,6 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-glance_db = node['bcpc']['dbname']['glance']
-glance_db_user = make_config('glance-db-user', 'glance')
-glance_db_password = make_config('glance-db-password', secure_password())
-
-glance_os_user = make_config('glance-os-user', 'glance')
-glance_os_password = make_config('glance-os-password', secure_password())
-
 %w(glance glance-api glance-registry).each do |pkg|
   package pkg do
     action :install
