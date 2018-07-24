@@ -1,0 +1,9 @@
+server {
+  listen <%= node['ipaddress'] %>:8080;
+  server_name bootstrap.<%= node['bcpc']['cloud']['domain'] %>;
+
+  location / {
+    autoindex on;
+    root /var/bcpc/file-server;
+  }
+}

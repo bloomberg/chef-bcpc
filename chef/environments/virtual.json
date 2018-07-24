@@ -1,0 +1,21 @@
+{
+  "name": "virtual",
+  "description": "Virtualized BCPC Environment",
+  "json_class": "Chef::Environment",
+  "chef_type": "environment",
+  "override_attributes": {
+    "bcpc": {
+      "proxy": {
+        "enabled": false,
+        "proxies": {
+          "http": "",
+          "https": ""
+        }
+      },
+      "dns_servers" : [ "8.8.8.8" ],
+      "ntp": {
+        "servers" : [ "time.google.com" ]
+      }
+    }
+  }
+}

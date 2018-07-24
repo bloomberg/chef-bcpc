@@ -1,0 +1,6 @@
+- debug:
+    msg: "running chef-client on {{ inventory_hostname }}"
+
+- name: run chef-client
+  become: true
+  command: chef-client

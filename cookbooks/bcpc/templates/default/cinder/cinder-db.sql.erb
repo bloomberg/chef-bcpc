@@ -1,7 +1,0 @@
-CREATE DATABASE IF NOT EXISTS <%= @cinder_db %>;
-
-GRANT ALL PRIVILEGES ON <%= @cinder_db %>.* TO '<%= @cinder_db_user %>'@'localhost' \
-IDENTIFIED BY '<%= @cinder_db_password %>';
-
-GRANT ALL PRIVILEGES ON <%= @cinder_db %>.* TO '<%= @cinder_db_user %>'@'%' \
-IDENTIFIED BY '<%= @cinder_db_password %>';

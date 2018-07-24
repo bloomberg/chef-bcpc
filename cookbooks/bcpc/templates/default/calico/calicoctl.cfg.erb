@@ -1,6 +1,0 @@
-apiVersion: projectcalico.org/v3
-kind: CalicoAPIConfig
-metadata:
-spec:
-  datastoreType: "etcdv3"
-  etcdEndpoints: "<%= @etcd_nodes.map{|x| "#{x}"}.join(',') %>"

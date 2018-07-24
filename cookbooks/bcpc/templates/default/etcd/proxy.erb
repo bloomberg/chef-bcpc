@@ -1,4 +1,0 @@
-ETCD_PROXY=on
-ETCD_NAME=<%= node['fqdn'] %>
-ETCD_DATA_DIR=/var/lib/etcd/default
-ETCD_INITIAL_CLUSTER="<%= @headnodes.collect{|x| x['fqdn'] + '=' + 'http://' + x['bcpc']['management']['ip'] + ':2380'}.join(',')%>"

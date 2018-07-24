@@ -1,0 +1,9 @@
+- import_tasks: setup.yml
+  become: true
+  tags: [never,chef-workstation]
+
+- import_tasks: upload-extra-cookbooks.yml
+  tags: [never,chef-workstation,upload-extra-cookbooks]
+
+- import_tasks: upload-bcpc.yml
+  tags: [never,chef-workstation,upload-bcpc]

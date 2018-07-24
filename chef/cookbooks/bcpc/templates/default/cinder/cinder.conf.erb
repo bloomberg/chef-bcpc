@@ -1,0 +1,51 @@
+# for an overview of all the available configuration options for nova@pike
+# go to: https://docs.openstack.org/cinder/pike/configuration/block-storage/samples/cinder.conf.html
+#
+[DEFAULT]
+host = bcpc
+storage_availability_zone =
+allow_availability_zone_fallback = <%= node['bcpc']['cinder']['allow_az_fallback'] %>
+rootwrap_config = /etc/cinder/rootwrap.conf
+api_paste_confg = /etc/cinder/api-paste.ini
+auth_strategy = keystone
+state_path = /var/lib/cinder
+osapi_volume_listen = <%= node['ipaddress'] %>
+osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
+my_ip = <%= node['ipaddress'] %>
+transport_url = rabbit://<%= @nodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
+glance_api_insecure = true
+enabled_backends = ceph
+enable_v3_api = true
+
+[database]
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}/#{@db['dbname']}" %>
+max_overflow = <%= node['bcpc']['cinder']['database']['max_overflow'] %>
+max_pool_size = <%= node['bcpc']['cinder']['database']['max_pool_size'] %>
+idle_timeout = 3600
+
+[oslo_concurrency]
+lock_path = /var/lock/cinder
+
+[keystone_authtoken]
+www_authenticate_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
+auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
+memcached_servers = <%= @nodes.map{ |n| "#{n['ipaddress']}:11211" }.join(',') %>
+auth_type = password
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = <%= @config['cinder']['creds']['os']['username'] %>
+password = <%= @config['cinder']['creds']['os']['password'] %>
+
+[ceph]
+volume_driver = cinder.volume.drivers.rbd.RBDDriver
+volume_backend_name = ceph
+rbd_user = cinder
+rbd_pool = volumes
+rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
+rbd_flatten_volume_from_snapshot = <%= node['bcpc']['cinder']['rbd_flatten_volume_from_snapshot'] %>
+rbd_max_clone_depth = <%= node['bcpc']['cinder']['rbd_max_clone_depth'] %>
+rbd_store_chunk_size = 4
+rados_connect_timeout = -1
+glance_api_version = 2

@@ -1,8 +1,0 @@
-/var/log/glance/*.log {
-    rotate <%=node['bcpc']['glance']['days_to_keep_logs']%>
-    daily
-    missingok
-    compress
-    delaycompress
-    copytruncate
-}

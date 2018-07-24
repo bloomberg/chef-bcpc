@@ -1,0 +1,27 @@
+CREATE DATABASE IF NOT EXISTS <%= @db['dbname'] %>;
+CREATE DATABASE IF NOT EXISTS nova_api;
+CREATE DATABASE IF NOT EXISTS nova_cell0;
+
+GRANT ALL PRIVILEGES ON <%= @db['dbname'] %>.* \
+  TO '<%= @db['username'] %>'@'localhost' \
+  IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT ALL PRIVILEGES ON <%= @db['dbname'] %>.* \
+  TO '<%= @db['username'] %>'@'%' \
+  IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT ALL PRIVILEGES ON nova_api.* \
+  TO '<%= @db['username'] %>'@'localhost' \
+  IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT ALL PRIVILEGES ON nova_api.* \
+  TO '<%= @db['username'] %>'@'%' \
+  IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT ALL PRIVILEGES ON nova_cell0.* \
+  TO '<%= @db['username'] %>'@'localhost' \
+  IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT ALL PRIVILEGES ON nova_cell0.* \
+  TO '<%= @db['username'] %>'@'%' \
+  IDENTIFIED BY '<%= @db['password'] %>';

@@ -1,0 +1,7 @@
+- hosts: worknodes
+  gather_facts: false
+  roles:
+    - common
+    - chef-node
+  vars_files:
+    - shared_vars/shared.yml

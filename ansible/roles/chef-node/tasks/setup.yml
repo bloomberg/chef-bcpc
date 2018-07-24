@@ -1,0 +1,95 @@
+- name: set hostname
+  hostname:
+    name: "{{ node.hostname }}"
+
+- name: update /etc/hosts
+  blockinfile:
+    dest: /etc/hosts
+    content: |
+      127.0.0.1	localhost
+      127.0.1.1	{{ node.fqdn }}	{{ node.hostname }}
+      {{ node.ip }}	{{ node.fqdn }}	{{ node.hostname }}
+      {{ chef_server.ip }}	{{ chef_server.fqdn }}	{{ chef_server.host }}
+
+- name: upload chef-client
+  copy:
+    src: "{{ bcpc.assets.download_dir }}/chef_14.1.1-1_amd64.deb"
+    dest: "/var/tmp/chef_14.1.1-1_amd64.deb"
+
+- name: install chef-client
+  apt:
+    deb: "/var/tmp/chef_14.1.1-1_amd64.deb"
+
+- name: create /etc/chef directory
+  file:
+    path: /etc/chef
+    state: directory
+    mode: 0755
+
+- name: get contents of chef validation key
+  shell: |
+    cat "{{ bcpc.chef.org.validator_pem }}"
+  register: chef_validation_key
+  delegate_to: "{{ chef_server.host }}"
+
+- name: install chef validation key
+  copy:
+    dest: "{{ bcpc.chef.org.validator_pem }}"
+    content: "{{ chef_validation_key.stdout }}"
+
+- name: create trusted certs directory
+  file:
+    path: /etc/chef/trusted_certs
+    state: directory
+    recurse: true
+
+- name: get chef server ssl crt
+  shell: |
+    fqdn=$(echo "{{ chef_server.fqdn }}" | tr '.' '_')
+    crt="${fqdn}.crt"
+    cat /etc/chef/trusted_certs/${crt}
+  register: chef_server_ssl_crt
+  delegate_to: "{{ chef_server.host }}"
+
+- name: install chef server ssl crt
+  shell: |
+    fqdn=$(echo "{{ chef_server.fqdn }}" | tr '.' '_')
+    crt="${fqdn}.crt"
+    echo "{{ chef_server_ssl_crt.stdout }}" > /etc/chef/trusted_certs/${crt}
+
+- name: create chef client log directory
+  file:
+    path: /var/log/chef
+    state: directory
+    recurse: true
+
+- name: install client.rb
+  template:
+    src: client.rb.j2
+    dest: /etc/chef/client.rb
+
+- name: check if registered
+  become: false
+  shell: |
+    knife node show "{{ node.fqdn }}"
+  register: node_registered_check
+  failed_when: node_registered_check.rc != 0
+  ignore_errors: true
+  delegate_to: "{{ chef_server.host }}"
+
+- name: register with chef server
+  when: node_registered_check is failed
+  shell: |
+    chef-client
+
+- name: set environment
+  become: false
+  shell: |
+    knife node environment set "{{ node.fqdn }}" "{{ bcpc.chef.environment }}"
+  delegate_to: "{{ chef_server.host }}"
+
+- name: set run list
+  become: false
+  shell: |
+    knife node run_list add "{{ node.fqdn }}" "{{ node.runlist }}"
+  delegate_to: "{{ chef_server.host }}"

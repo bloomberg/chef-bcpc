@@ -1,5 +1,0 @@
----
-# run this playbook with ansible-playbook -k -K -e "ansible_ssh_user=ubuntu"
-- include: ../common_playbooks/validate_environment.yml
-
-- include: tasks-create-operations-user-on-target.yml target={{ target }}

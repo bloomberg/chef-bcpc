@@ -1,7 +1,0 @@
-api_fqdn "{{ chef_server }}"
-# allow connecting to http port directly
-nginx['enable_non_ssl'] = true
-# have nginx listen on port 4000
-nginx['non_ssl_port'] = 4000
-# allow long-running recipes not to die with an error due to auth
-opscode_erchef['s3_url_ttl'] = 3600
