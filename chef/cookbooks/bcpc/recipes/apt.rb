@@ -16,15 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-return unless node['bcpc']['proxy']['enabled']
-
-template "/etc/apt/apt.conf.d/00-bcpc-proxy" do
-  source 'apt/00-bcpc-proxy.erb'
+template "/etc/apt/apt.conf.d/00bcpc" do
+  source 'apt/bcpc-apt.conf.erb'
   variables(
-    :proxies => node['bcpc']['proxy']['proxies']
+    :conf => node['bcpc']['apt']
   )
-  notifies :run, 'execute[apt-get update]', :immediately
+end
+
+template "/etc/apt/sources.list" do
+  source 'apt/sources.list.erb'
+  variables(
+    :config => node['bcpc']['ubuntu']
+  )
 end
 
 # ensure percona-xtrabackup is updated before MySQL as Percona

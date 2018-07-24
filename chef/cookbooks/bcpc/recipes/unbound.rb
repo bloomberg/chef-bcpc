@@ -44,20 +44,6 @@ template "/etc/unbound/unbound.conf.d/server.conf" do
   notifies :restart, 'service[unbound]', :delayed
 end
 
-template "/etc/systemd/resolved.conf" do
-  source 'systemd/resolved.conf.erb'
-
-  vip = get_address(node['bcpc']['cloud']['vip']['ip'])
-  dns = [vip] + node['bcpc']['dns_servers'].dup
-  dns.join(' ')
-
-  variables(
-    :dns => dns
-  )
-
-  notifies :restart, 'service[systemd-resolved]', :immediately
-end
-
 # Disable DNSSEC
 file '/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf' do
   action :delete
