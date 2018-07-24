@@ -5,7 +5,7 @@ require 'ipaddress'
 ###############################################################################
 
 default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
-default['bcpc']['cloud']['fqdn'] = "openstack.#{default['bcpc']['cloud']['domain']}"
+default['bcpc']['cloud']['fqdn'] = "openstack.#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254/32' }
 
@@ -221,6 +221,12 @@ default['bcpc']['memcached']['connections'] = 10240
 default['bcpc']['etcd']['remote']['file'] = 'etcd-v3.3.7-linux-amd64.tar.gz'
 default['bcpc']['etcd']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/etcd-v3.3.7-linux-amd64.tar.gz"
 default['bcpc']['etcd']['remote']['checksum'] = '251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c'
+
+###############################################################################
+# virtualbox
+###############################################################################
+
+default['bcpc']['virtualbox']['nat_ip'] = '10.0.2.15'
 
 ###############################################################################
 # consul

@@ -2,8 +2,8 @@
 fsid = <%= @config['ceph']['fsid'] %>
 public network = <%= @public_network %>
 cluster network = <%= @cluster_network %>
-mon initial members = <%= @nodes.map{ |n| n['hostname'] }.join(',') %>
-mon host = <%= @nodes.map{ |n| n['ipaddress'] }.join(',') %>
+mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
+mon host = <%= @headnodes.map{ |n| n['ipaddress'] }.join(',') %>
 auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx

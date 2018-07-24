@@ -7,8 +7,10 @@ default['bcpc']['networking']['networks']['primary']['interface'] = 'eth1'
 
 default['bcpc']['networking']['networks']['storage']['cidr'] = '10.121.88.0/22'
 default['bcpc']['networking']['networks']['storage']['interface'] = 'eth2'
-default['bcpc']['networking']['networks']['storage']['vlan'] = 1337
-default['bcpc']['networking']['networks']['storage']['mtu'] = 9000
+
+# vlan and mtu examples
+# default['bcpc']['networking']['networks']['storage']['vlan'] = 1337
+# default['bcpc']['networking']['networks']['storage']['mtu'] = 9000
 
 default['bcpc']['networking']['racks'] = [
   {

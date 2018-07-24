@@ -8,7 +8,7 @@ from openstack_dashboard.settings import HORIZON_CONFIG
 DEBUG = False
 
 ALLOWED_HOSTS = '*'
-SITE_BRANDING = "<%= node['bcpc']['cloud']['region'] %>"
+SITE_BRANDING = "<%= @region %>"
 
 WEBROOT = '/horizon'
 LOGIN_URL = WEBROOT + '/auth/login/'
@@ -72,7 +72,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 CACHES = {
   'default': {
     'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
-    'LOCATION' : [<%= @nodes.map{|n| "'#{n['ipaddress']}:11211'"}.join(',') %>]
+    'LOCATION' : [<%= @headnodes.map{|n| "'#{n['ipaddress']}:11211'"}.join(',') %>]
   }
 }
 

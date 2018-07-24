@@ -83,12 +83,11 @@ end
 template '/etc/mysql/conf.d/wsrep.cnf' do
   source 'mysql/wsrep.cnf.erb'
 
-  headnodes = get_headnodes(exclude: node['hostname'])
-
   variables(
     config: config,
-    headnodes: headnodes
+    headnodes: headnodes(exclude: node['hostname'])
   )
+
   notifies :restart, 'service[mysql]', :immediately
 end
 

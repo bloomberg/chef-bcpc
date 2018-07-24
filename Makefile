@@ -53,9 +53,9 @@ chef-node :
 
 
 chef-client : \
-  chef-client-bootstraps \
-  chef-client-headnodes \
-  chef-client-worknodes
+	chef-client-bootstraps \
+	chef-client-headnodes \
+	chef-client-worknodes
 
 
 chef-client-bootstraps :
@@ -79,6 +79,11 @@ chef-client-headnodes :
 
 
 chef-client-worknodes :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-client --limit worknodes
+		-e 'run_once=true'
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \

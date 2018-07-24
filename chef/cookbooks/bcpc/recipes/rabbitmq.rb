@@ -83,7 +83,7 @@ end
 begin
   # add this node to the existing rabbitmq cluster if one exists
   unless init_cloud?
-    members = get_headnodes(exclude: node['hostname'])
+    members = headnodes(exclude: node['hostname'])
 
     hosts = members.collect do |m|
       "rabbit@#{m['hostname']}"

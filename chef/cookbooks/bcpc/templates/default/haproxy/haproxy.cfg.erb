@@ -32,7 +32,7 @@ listen keystone-admin-api
   option tcpka
   option httpchk
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:35357 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -42,7 +42,7 @@ listen keystone-public-api
   option tcpka
   option httpchk
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:5000 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -52,7 +52,7 @@ listen glance-api
   option tcpka
   option httpchk
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:9292 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -62,7 +62,7 @@ listen cinder-api
   option  tcpka
   option  httpchk
   option  tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8776 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -72,7 +72,7 @@ listen nova-api
   option  tcpka
   option  httpchk
   option  tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8774 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -81,7 +81,7 @@ listen nova-metadata-api
   balance source
   option tcpka
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8775 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -91,7 +91,7 @@ listen placement-api
   option tcplog
   option httpchk GET /
   http-check expect status 200
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8778 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -101,7 +101,7 @@ listen neutron-api
   option tcpka
   option httpchk
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:9696 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -111,7 +111,7 @@ listen heat-api
   option tcplog
   option httpchk GET /
   http-check expect status 300
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8004 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -121,7 +121,7 @@ listen heat-api-cfn
   option tcplog
   option httpchk GET /
   http-check expect status 300
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8000 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -130,7 +130,7 @@ listen novncproxy
   balance source
   option tcpka
   option tcplog
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:6080 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -160,7 +160,7 @@ backend http-backend
   balance source
   option httpchk GET /
   http-check expect status 200
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:80 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -168,7 +168,7 @@ backend horizon-backend
   balance source
   option httpchk GET /
   http-check expect status 200
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:9999 check inter 5s rise 1 fall 1
 <% end -%>
 
@@ -177,6 +177,6 @@ backend rabbitmq-web-backend
   option httpchk GET /
   http-check expect status 200
   reqrep ^([^\ :]*)\ /rabbitmq/(.*) \1\ /\2
-<% @nodes.each do |n| -%>
+<% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:55672 check inter 5s rise 1 fall 1
 <% end -%>

@@ -1,14 +1,3 @@
-hardware_profiles:
-  bootstrap:
-    ram_gb: 2
-    cpus: 2
-  cloudnode:
-    ram_gb: 8
-    cpus: 4
-    ext_disks:
-      count: 4
-      size_gb: 20
-
 nodes:
   - host: r1an0
     name: bootstrap
@@ -25,7 +14,7 @@ nodes:
 
   - host: r1an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -39,7 +28,7 @@ nodes:
 
   - host: r2an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -53,7 +42,7 @@ nodes:
 
   - host: r3an1
     group: headnodes
-    hardware_profile: cloudnode
+    hardware_profile: headnode
     run_list:
       - role[headnode]
     networking:
@@ -67,7 +56,7 @@ nodes:
 
   - host: r1an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -81,7 +70,7 @@ nodes:
 
   - host: r1an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -95,7 +84,7 @@ nodes:
 
   - host: r2an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -109,7 +98,7 @@ nodes:
 
   - host: r2an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -123,7 +112,7 @@ nodes:
 
   - host: r3an2
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:
@@ -137,7 +126,7 @@ nodes:
 
   - host: r3an3
     group: worknodes
-    hardware_profile: cloudnode
+    hardware_profile: worknode
     run_list:
       - role[worknode]
     networking:

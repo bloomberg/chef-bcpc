@@ -18,6 +18,8 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
+service 'ssh'
+
 directory '/root/.ssh' do
   mode '700'
 end
@@ -38,4 +40,15 @@ template '/root/.ssh/known_hosts' do
   variables(
     nodes: all_nodes
   )
+end
+
+template '/etc/ssh/sshd_config' do
+  source 'ssh/sshd_config.erb'
+  variables(
+    interfaces: [
+      node_interfaces(type: 'primary'),
+      node_interfaces(type: 'storage')
+    ]
+  )
+  notifies :restart, 'service[ssh]', :immediately
 end
