@@ -1,10 +1,12 @@
+# rubocop:disable Style/NumericLiterals
+
 default['bcpc']['catalog'] = {
   'identity' => {
     'name' => 'keystone',
     'project' => 'keystone',
     'description' => 'OpenStack Identity',
     'ports' => {
-      'admin' => 35_357,
+      'admin' => 35357,
       'internal' => 5000,
       'public' => 5000
     },
@@ -90,3 +92,5 @@ default['bcpc']['catalog'] = {
     }
   }
 }
+
+# rubocop:enable Style/NumericLiterals
