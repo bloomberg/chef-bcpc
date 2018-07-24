@@ -137,3 +137,10 @@ end
 cookbook_file '/etc/profile.d/bcpc.sh' do
   source 'profile.d/bcpc.sh'
 end
+
+disable_services = ['iscsid', 'lxcfs', 'lxd', 'rpcbind', 'snapd']
+disable_services.each do |svc|
+  service svc do
+    action [:stop, :disable]
+  end
+end
