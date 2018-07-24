@@ -1,7 +1,7 @@
 # -*- mode: yaml -*-
 # vi: set ft=yaml :
 
-ansible_python_interpreter: /usr/bin/python3
+ansible_python_interpreter: /usr/bin/env python3
 ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
 # cloud domain name
