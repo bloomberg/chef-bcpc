@@ -55,13 +55,11 @@ def headnodes(exclude: nil, all: false)
 end
 
 def worknodes(all: false)
-  nodes = []
-
-  if all
-    nodes = search(:node, 'role:worknode')
-  else
-    nodes = search(:node, 'roles:worknode')
-  end
+  nodes = if all
+            search(:node, 'role:worknode')
+          else
+            search(:node, 'roles:worknode')
+          end
 
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
@@ -143,7 +141,7 @@ def cloud_racks(rack_id: nil)
 
   raise "could not find rack #{rack_id}" if rack.nil?
 
-  return rack
+  rack
 end
 
 def node_pod
@@ -157,7 +155,7 @@ def node_pod
 
   raise "could not find pod #{pod_id}" if pod.nil?
 
-  return pod
+  pod
 end
 
 def node_interfaces(type: nil)
@@ -167,14 +165,14 @@ def node_interfaces(type: nil)
   iface = node_interfaces.find { |i| i['type'] == type }
   raise "could not find interface #{type}" if iface.nil?
 
-  return iface
+  iface
 end
 
 def cloud_networks(network: nil)
   networks = node['bcpc']['networking']['networks']
   return networks if network.nil?
   raise "#{network} not found" unless networks.key?(network)
-  return networks[network]
+  networks[network]
 end
 
 def node_primary_interface
@@ -183,7 +181,7 @@ def node_primary_interface
     ip_address: node['ipaddress']
   )
 
-  return interface
+  interface
 end
 
 def node_storage_interface
@@ -206,7 +204,7 @@ def node_storage_interface
     'via' => pod_network['gateway'],
   }
 
-  return interface
+  interface
 end
 
 def node_interface(type: nil, ip_address: nil)
@@ -225,7 +223,7 @@ def node_interface(type: nil, ip_address: nil)
   interface['vlan'] = cloud_network['vlan'] if cloud_network.key?('vlan')
   interface['mtu'] = cloud_network['mtu'] if cloud_network.key?('mtu')
 
-  return interface
+  interface
 end
 
 def generate_ip_address(source_ip:, network_cidr:)
@@ -236,5 +234,5 @@ def generate_ip_address(source_ip:, network_cidr:)
   host_network = IPAddr.new(network_cidr)
   host_network = host_network >> (32 - prefix) << (32 - prefix)
 
-  return (host_network | host_id).to_s
+  (host_network | host_id).to_s
 end

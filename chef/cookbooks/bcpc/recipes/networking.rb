@@ -48,15 +48,15 @@ begin
       'ethernets' => {
         primary['dev'] => {
           'addresses' => [
-            "#{primary['ip']}/#{primary['prefix']}"
+            "#{primary['ip']}/#{primary['prefix']}",
           ],
           'gateway4' => primary['gw'],
           'nameservers' => {
-            'addresses' => [vip] + node['bcpc']['dns_servers'].dup
-          }
-        }
-      }
-    }
+            'addresses' => [vip] + node['bcpc']['dns_servers'].dup,
+          },
+        },
+      },
+    },
   }
 
   if primary.key?('mtu')
@@ -81,17 +81,17 @@ begin
       'ethernets' => {
         storage['dev'] => {
           'addresses' => [
-            "#{storage['ip']}/#{storage['prefix']}"
+            "#{storage['ip']}/#{storage['prefix']}",
           ],
           'routes' => [
             {
               'to' => storage['route']['to'],
-              'via' => storage['route']['via']
-            }
-          ]
-        }
-      }
-    }
+              'via' => storage['route']['via'],
+            },
+          ],
+        },
+      },
+    },
   }
 
   if storage.key?('mtu')
@@ -107,9 +107,9 @@ begin
         'id' => vlan,
         'link' => storage['dev'],
         'addresses' => [
-          "#{storage['ip']}/#{storage['prefix']}"
-        ]
-      }
+          "#{storage['ip']}/#{storage['prefix']}",
+        ],
+      },
     }
 
     data['network']['ethernets'][storage['dev']].delete('addresses')
@@ -129,11 +129,11 @@ if headnode?
         'lo' => {
           'addresses' => [
             '127.0.0.1/8',
-            node['bcpc']['cloud']['vip']['ip']
-          ]
-        }
-      }
-    }
+            node['bcpc']['cloud']['vip']['ip'],
+          ],
+        },
+      },
+    },
   }
 
   file '/etc/netplan/lo.yaml' do

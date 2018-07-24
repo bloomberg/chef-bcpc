@@ -26,7 +26,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['cinder']['db']['dbname'],
   'username' => config['cinder']['creds']['db']['username'],
-  'password' => config['cinder']['creds']['db']['password']
+  'password' => config['cinder']['creds']['db']['password'],
 }
 
 # hash used for openstack access
@@ -36,7 +36,7 @@ openstack = {
   'project' => node['bcpc']['keystone']['service_project']['name'],
   'domain' => node['bcpc']['keystone']['service_project']['domain'],
   'username' => config['cinder']['creds']['os']['username'],
-  'password' => config['cinder']['creds']['os']['password']
+  'password' => config['cinder']['creds']['os']['password'],
 }
 
 # create client.cinder ceph user and keyring starts
@@ -127,7 +127,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do

@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-package "xinetd" do
-    action :install
+package 'xinetd' do
+  action :install
 end
 
-service "xinetd" do
-    action [:enable, :start]
-    provider Chef::Provider::Service::Init::Debian
-    supports :status => true, :restart => true
+service 'xinetd' do
+  action [:enable, :start]
+  provider Chef::Provider::Service::Init::Debian
+  supports status: true, restart: true
 end

@@ -17,12 +17,12 @@
 
 include_recipe 'bcpc::calico-apt'
 
-%w[
+%w(
   calico-common
   calico-compute
   calico-dhcp-agent
   calico-felix
-].each do |pkg|
+).each do |pkg|
   package pkg do
     action :upgrade
   end

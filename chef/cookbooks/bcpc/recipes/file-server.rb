@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::default"
+include_recipe 'bcpc::default'
 
-package "keepalived" do
-    action :install
+package 'keepalived' do
+  action :install
 end
 
 template '/etc/nginx/sites-available/default' do

@@ -9,12 +9,12 @@ default['bcpc']['neutron']['db']['dbname'] = 'neutron'
 #
 default['bcpc']['neutron']['network']['ext1'] = {
   'subnets' => [
-    { 'name' => 'primary', 'cidr' => '10.64.0.0/18' }
-  ]
+    { 'name' => 'primary', 'cidr' => '10.64.0.0/18' },
+  ],
 }
 
 default['bcpc']['neutron']['network']['ext2'] = {
   'subnets' => [
-    { 'name' => 'primary', 'cidr' => '10.65.0.0/18' }
-  ]
+    { 'name' => 'primary', 'cidr' => '10.65.0.0/18' },
+  ],
 }

@@ -18,14 +18,7 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-glance_db = node['bcpc']['dbname']['glance']
-glance_db_user = make_config('glance-db-user', "glance")
-glance_db_password = make_config('glance-db-password', secure_password())
-
-glance_os_user = make_config('glance-os-user', "glance")
-glance_os_password = make_config('glance-os-password', secure_password())
-
-%w{glance glance-api glance-registry}.each do |pkg|
+%w(glance glance-api glance-registry).each do |pkg|
   package pkg do
     action :install
   end
@@ -37,7 +30,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['glance']['db']['dbname'],
   'username' => config['glance']['creds']['db']['username'],
-  'password' => config['glance']['creds']['db']['password']
+  'password' => config['glance']['creds']['db']['password'],
 }
 
 # hash used for openstack access
@@ -46,7 +39,7 @@ openstack = {
   'username' => config['glance']['creds']['os']['username'],
   'password' => config['glance']['creds']['os']['password'],
   'role' => node['bcpc']['keystone']['roles']['admin'],
-  'project' => node['bcpc']['keystone']['service_project']['name']
+  'project' => node['bcpc']['keystone']['service_project']['name'],
 }
 
 # create client.glance ceph user and keyring starts
@@ -121,7 +114,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do

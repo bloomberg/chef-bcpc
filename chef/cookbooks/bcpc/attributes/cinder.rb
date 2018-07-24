@@ -14,7 +14,7 @@ default['bcpc']['cinder']['database']['max_pool_size'] = 5
 default['bcpc']['cinder']['quota'] = {
   'volumes' => -1,
   'snapshots' => 10,
-  'gigabytes' => 1000
+  'gigabytes' => 1000,
 }
 
 # Identity

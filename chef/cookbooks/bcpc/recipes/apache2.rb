@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-%w{apache2 libapache2-mod-fastcgi libapache2-mod-wsgi apache2-utils}.each do |pkg|
-    package pkg do
-        action :install
-    end
+%w(apache2 libapache2-mod-fastcgi libapache2-mod-wsgi apache2-utils).each do |pkg|
+  package pkg do
+    action :install
+  end
 end
 
 template '/etc/apache2/sites-available/000-default.conf' do

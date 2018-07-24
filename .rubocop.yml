@@ -1,5 +1,0 @@
-Style/ConditionalAssignment:
-  Enabled: false
-
-Style/RedundantReturn:
-  Enabled: false
