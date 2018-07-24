@@ -17,13 +17,13 @@
 
 if node['bcpc']['hardware']['powersave']['enabled']
   service 'ondemand' do
-    action %i[start enable]
+    action [:start, :enable]
   end
 
 else
 
   service 'ondemand' do
-    action %i[stop disable]
+    action [:stop, :disable]
   end
 
   bash 'enable CPU performance mode' do

@@ -83,7 +83,7 @@ def mysqladmin
   config = data_bag_item(region, 'config')
   {
     'username' => 'root',
-    'password' => config['mysql']['users']['root']['password']
+    'password' => config['mysql']['users']['root']['password'],
   }
 end
 
@@ -102,7 +102,7 @@ def os_adminrc
     'OS_AUTH_URL' => generate_service_catalog_uri(identity, 'admin'),
     'OS_REGION_NAME' => region,
     'OS_IDENTITY_API_VERSION' => '3',
-    'OS_VOLUME_API_VERSION' => '3'
+    'OS_VOLUME_API_VERSION' => '3',
   }
 end
 
@@ -128,7 +128,7 @@ def node_network_map
   {
     'rack_id' => match.captures[0].to_i,
     'pod_id' => match.captures[1],
-    'node_id' => match.captures[2]
+    'node_id' => match.captures[2],
   }
 end
 
@@ -203,7 +203,7 @@ def node_storage_interface
   # add route to storage network
   interface['route'] = {
     'to' => cloud_network['cidr'],
-    'via' => pod_network['gateway']
+    'via' => pod_network['gateway'],
   }
 
   return interface
@@ -219,7 +219,7 @@ def node_interface(type: nil, ip_address: nil)
     'ip' => ip_address,
     'prefix' => IPAddress(pod_network['cidr']).prefix.to_i,
     'gw' => pod_network['gateway'],
-    'dev' => cloud_network['interface']
+    'dev' => cloud_network['interface'],
   }
 
   interface['vlan'] = cloud_network['vlan'] if cloud_network.key?('vlan')

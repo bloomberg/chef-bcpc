@@ -18,7 +18,7 @@
 include_recipe 'bcpc::etcd-packages'
 
 systemd_unit 'etcd.service' do
-  action %i[create enable restart]
+  action [:create, :enable, :restart]
 
   headnodes = headnodes(all: true)
 

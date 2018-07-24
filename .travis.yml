@@ -16,4 +16,4 @@ script:
 - find . -name "*.py" -exec flake8 {} \;
 - find ansible -name "*.yml" -exec ansible-lint {} \;
 - foodcritic chef/cookbooks
-- rubocop .
+- cookstyle .

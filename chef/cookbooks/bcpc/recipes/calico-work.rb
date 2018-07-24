@@ -41,11 +41,11 @@ end
 # these services are superseded by nova-metadata-agent and calico-dhcp-agent
 # so we don't need them to be enabled/running
 service 'neutron-dhcp-agent' do
-  action %i[disable stop]
+  action [:disable, :stop]
 end
 
 service 'neutron-metadata-agent' do
-  action %i[disable stop]
+  action [:disable, :stop]
 end
 
 service 'calico-felix'
@@ -65,7 +65,7 @@ template '/etc/neutron/neutron.conf' do
 end
 
 systemd_unit 'calico-felix.service' do
-  action %i[create enable restart]
+  action [:create, :enable, :restart]
 
   content <<-DOC.gsub(/^\s+/, '')
     [Unit]

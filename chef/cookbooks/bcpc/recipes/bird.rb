@@ -23,14 +23,12 @@ apt_repository 'bird' do
   only_if { node['bcpc']['bird']['repo']['enabled'] }
 end
 
-package "bird" do
-  action :install
-end
+package 'bird'
 
 service 'bird'
 
 service 'bird6' do
-  action %i[disable stop]
+  action [:disable, :stop]
 end
 
 begin
@@ -45,7 +43,7 @@ begin
       is_headnode: headnode?,
       as_number: pod['bgp_as'],
       iface: primary['dev'],
-      upstream_peer: pod['networks']['primary']['gateway']
+      upstream_peer: pod['networks']['primary']['gateway'],
     )
 
     notifies :restart, 'service[bird]', :immediately

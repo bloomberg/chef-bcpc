@@ -74,5 +74,5 @@ systemd_unit 'consul.service' do
     WantedBy=multi-user.target
   DOC
 
-  action %i[create enable]
+  action [:create, :enable]
 end
