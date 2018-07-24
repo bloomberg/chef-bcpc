@@ -13,7 +13,7 @@ default['bcpc']['cloud']['vip'] = {'ip': '10.10.254.254/32'}
 default['bcpc']['dns_servers'] = ["8.8.8.8", "8.8.4.4"]
 
 # list of ntp servers to use
-default['bcpc']['ntp']['servers'] = ["time.google.com"]
+default['bcpc']['ntp']['servers'] = ["time1.google.com","time2.google.com"]
 
 default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
 
