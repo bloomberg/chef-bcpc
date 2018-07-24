@@ -26,7 +26,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
-  'password' => config['nova']['creds']['db']['password']
+  'password' => config['nova']['creds']['db']['password'],
 }
 
 # nova openstack access
@@ -36,7 +36,7 @@ openstack = {
   'project' => node['bcpc']['keystone']['service_project']['name'],
   'domain' => node['bcpc']['keystone']['service_project']['domain'],
   'username' => config['nova']['creds']['os']['username'],
-  'password' => config['nova']['creds']['os']['password']
+  'password' => config['nova']['creds']['os']['password'],
 }
 
 # create ceph rbd pool starts
@@ -119,7 +119,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do
@@ -143,7 +143,7 @@ placement = {
   'project' => node['bcpc']['keystone']['service_project']['name'],
   'domain' => node['bcpc']['keystone']['service_project']['domain'],
   'username' => config['placement']['creds']['os']['username'],
-  'password' => config['placement']['creds']['os']['password']
+  'password' => config['placement']['creds']['os']['password'],
 }
 
 # create placement user starts
@@ -201,7 +201,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do

@@ -26,7 +26,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['glance']['db']['dbname'],
   'username' => config['glance']['creds']['db']['username'],
-  'password' => config['glance']['creds']['db']['password']
+  'password' => config['glance']['creds']['db']['password'],
 }
 
 # hash used for openstack access
@@ -35,7 +35,7 @@ openstack = {
   'username' => config['glance']['creds']['os']['username'],
   'password' => config['glance']['creds']['os']['password'],
   'role' => node['bcpc']['keystone']['roles']['admin'],
-  'project' => node['bcpc']['keystone']['service_project']['name']
+  'project' => node['bcpc']['keystone']['service_project']['name'],
 }
 
 # create client.glance ceph user and keyring starts
@@ -110,7 +110,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  %w[admin internal public].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do

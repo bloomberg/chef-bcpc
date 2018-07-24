@@ -20,25 +20,25 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-%w[
+%w(
   apache2
   apache2-utils
   libapache2-mod-fcgid
   libapache2-mod-wsgi
-].each do |pkg|
+).each do |pkg|
   package pkg
 end
 
 service 'apache2'
 
-%w[
+%w(
   ssl
   wsgi
   proxy_http
   rewrite
   cache
   cache_disk
-].each do |mod|
+).each do |mod|
   execute "enable #{mod} apache2 module" do
     command "a2enmod #{mod}"
     not_if "a2query -m #{mod}"

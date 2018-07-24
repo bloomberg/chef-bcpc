@@ -37,5 +37,5 @@ logrotate_app 'memcached' do
   path '/var/log/memcached.log'
   frequency 'daily'
   rotate 10
-  options %w[compress delaycompress notifempty copytruncate]
+  options %w(compress delaycompress notifempty copytruncate)
 end

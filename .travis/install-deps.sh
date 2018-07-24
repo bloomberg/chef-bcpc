@@ -21,7 +21,7 @@ install_linters_osx () {
     brew install shellcheck ruby23
     sudo pip2 install -U pip setuptools
     sudo pip install bashate flake8 ansible-lint
-    gem install foodcritic rubocop
+    gem install foodcritic cookstyle
     git clone https://github.com/russell/git-lint-diff.git
 }
 
@@ -33,7 +33,7 @@ upgrade_os_linux () {
 install_linters_linux () {
     shellcheck_deb='shellcheck_0.4.7-1_amd64.deb'
     sudo pip install bashate flake8 ansible-lint
-    gem install foodcritic rubocop
+    gem install foodcritic cookstyle
     wget http://ftp.debian.org/debian/pool/main/s/shellcheck/${shellcheck_deb}
     sudo dpkg -i ${shellcheck_deb}
     git clone https://github.com/russell/git-lint-diff.git

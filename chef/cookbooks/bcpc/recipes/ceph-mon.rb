@@ -31,7 +31,7 @@ template '/etc/ceph/ceph.client.admin.keyring' do
       'caps mds = "allow *"',
       'caps mgr = "allow *"',
       'caps mon = "allow *"',
-      'caps osd = "allow *"'
+      'caps osd = "allow *"',
     ]
   )
 end

@@ -10,10 +10,10 @@ default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254/32' }
 
 # list of dns servers to use
-default['bcpc']['dns_servers'] = %w[8.8.8.8 8.8.4.4]
+default['bcpc']['dns_servers'] = %w(8.8.8.8 8.8.4.4)
 
 # list of ntp servers to use
-default['bcpc']['ntp']['servers'] = %w[time1.google.com time2.google.com]
+default['bcpc']['ntp']['servers'] = %w(time1.google.com time2.google.com)
 
 default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
 
@@ -31,7 +31,7 @@ vip = IPAddress(node['bcpc']['cloud']['vip']['ip']).address
 default['bcpc']['ubuntu']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['security_url'] = 'http://security.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['codename'] = node['lsb']['codename']
-default['bcpc']['ubuntu']['components'] = %w[main restricted universe multiverse]
+default['bcpc']['ubuntu']['components'] = %w(main restricted universe multiverse)
 default['bcpc']['ubuntu']['arch'] = 'amd64'
 
 ###############################################################################
@@ -177,7 +177,7 @@ default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
 default['bcpc']['system']['readahead_kb'] = 512
 
 # used for SOL (serial over lan) communication
-default['bcpc']['getty']['ttys'] = %w[ttyS0 ttyS1]
+default['bcpc']['getty']['ttys'] = %w(ttyS0 ttyS1)
 
 # select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
 default['bcpc']['hardware']['io_scheduler'] = 'deadline'
@@ -234,7 +234,7 @@ default['bcpc']['virtualbox']['nat_ip'] = '10.0.2.15'
 
 default['bcpc']['consul']['remote_file'] = {
   'file' => 'consul_1.1.0_linux_amd64.zip',
-  'checksum' => '09c40c8b5be868003810064916d8460bff334ccfb59a5046390224b27e052c45'
+  'checksum' => '09c40c8b5be868003810064916d8460bff334ccfb59a5046390224b27e052c45',
 }
 
 default['bcpc']['consul']['executable'] = '/usr/local/sbin/consul'
@@ -264,8 +264,8 @@ default['bcpc']['consul']['services'] = [
       'name' => 'mysql',
       'args' => ['/usr/local/bcpc/bin/mysql-check'],
       'interval' => '10s',
-      'timeout' => '2s'
-    }
+      'timeout' => '2s',
+    },
   },
   {
     'name' => 'haproxy',
@@ -273,8 +273,8 @@ default['bcpc']['consul']['services'] = [
       'name' => 'haproxy',
       'args' => ['/usr/local/bcpc/bin/haproxy-check'],
       'interval' => '10s',
-      'timeout' => '2s'
-    }
+      'timeout' => '2s',
+    },
   },
   {
     'name' => 'dns',
@@ -282,9 +282,9 @@ default['bcpc']['consul']['services'] = [
       'name' => 'dns',
       'args' => ['/usr/local/bcpc/bin/dns-check'],
       'interval' => '10s',
-      'timeout' => '2s'
-    }
-  }
+      'timeout' => '2s',
+    },
+  },
 ]
 
 # Watch definitions reference:
@@ -293,21 +293,21 @@ default['bcpc']['consul']['watches'] = [
   {
     'service' => 'haproxy',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/haproxy-watch']
+    'args' => ['/usr/local/bcpc/bin/haproxy-watch'],
   },
   {
     'service' => 'mysql',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-elect-watch']
+    'args' => ['/usr/local/bcpc/bin/mysql-elect-watch'],
   },
   {
     'service' => 'mysql',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-watch']
+    'args' => ['/usr/local/bcpc/bin/mysql-watch'],
   },
   {
     'service' => 'dns',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/dns-watch']
-  }
+    'args' => ['/usr/local/bcpc/bin/dns-watch'],
+  },
 ]

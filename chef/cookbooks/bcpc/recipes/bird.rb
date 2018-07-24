@@ -27,7 +27,7 @@ package 'bird'
 service 'bird'
 
 service 'bird6' do
-  action %i[disable stop]
+  action %i(disable stop)
 end
 
 begin

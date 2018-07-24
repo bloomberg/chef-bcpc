@@ -43,7 +43,7 @@ end
 
 [
   node['bcpc']['consul']['conf_dir'],
-  node['bcpc']['consul']['config']['data_dir']
+  node['bcpc']['consul']['config']['data_dir'],
 ].each do |dir|
   directory dir do
     recursive true
@@ -74,5 +74,5 @@ systemd_unit 'consul.service' do
     WantedBy=multi-user.target
   DOC
 
-  action %i[create enable]
+  action %i(create enable)
 end

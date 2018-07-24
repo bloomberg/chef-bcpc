@@ -23,7 +23,7 @@ directory '/usr/local/bcpc/bin' do
   recursive true
 end
 
-%w[if_primary_mysql.sh if_not_primary_mysql.sh].each do |script|
+%w(if_primary_mysql.sh if_not_primary_mysql.sh).each do |script|
   template "/usr/local/bcpc/bin/#{script}" do
     source "consul/#{script}.erb"
     mode '755'

@@ -53,7 +53,7 @@ template '/etc/ceph/ceph.client.admin.keyring' do
       'caps mds = "allow *"',
       'caps mgr = "allow *"',
       'caps mon = "allow *"',
-      'caps osd = "allow *"'
+      'caps osd = "allow *"',
     ]
   )
 end
@@ -80,7 +80,7 @@ ruby_block 'set primary anti-affinity for headnode osds' do
       host_node.fetch('children', {}).each do |osd_id|
         osd = osd_tree['nodes'].find { |n| n['id'] == osd_id }
 
-        next if osd['primary_affinity'].zero?
+        next if osd['primary_affinity'] == 0
 
         cmd = "ceph osd primary-affinity osd.#{osd_id} 0"
         affinity = Mixlib::ShellOut.new(cmd)

@@ -22,11 +22,11 @@ mysqladmin = mysqladmin()
 database = {
   'dbname' => node['bcpc']['keystone']['db'],
   'username' => config['keystone']['db']['username'],
-  'password' => config['keystone']['db']['password']
+  'password' => config['keystone']['db']['password'],
 }
 
 # package installation and service definition starts
-%w[keystone python-ldap python-ldappool].each do |pkg|
+%w(keystone python-ldap python-ldappool).each do |pkg|
   package pkg
 end
 

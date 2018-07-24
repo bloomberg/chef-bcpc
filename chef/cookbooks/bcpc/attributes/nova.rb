@@ -58,7 +58,7 @@ default['bcpc']['nova']['default_log_levels'] = nil
 default['bcpc']['nova']['metadata_listen'] = '127.0.0.1'
 
 # Nova scheduler default filters
-default['bcpc']['nova']['scheduler_default_filters'] = %w[
+default['bcpc']['nova']['scheduler_default_filters'] = %w(
   AggregateInstanceExtraSpecsFilter
   RetryFilter
   AvailabilityZoneFilter
@@ -71,7 +71,7 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w[
   ImagePropertiesFilter
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
-]
+)
 
 # configure optional Nova notification system
 default['bcpc']['nova']['notifications']['enabled'] = false

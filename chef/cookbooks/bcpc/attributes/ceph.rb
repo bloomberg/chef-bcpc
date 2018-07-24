@@ -5,7 +5,7 @@
 default['bcpc']['ceph']['repo']['enabled'] = false
 default['bcpc']['ceph']['repo']['url'] = ''
 
-default['bcpc']['ceph']['osds'] = %w[sdb sdc sdd sde]
+default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
 default['bcpc']['ceph']['pgp_auto_adjust'] = false
 default['bcpc']['ceph']['choose_leaf'] = 'node'
 
@@ -79,7 +79,7 @@ default['bcpc']['ceph']['expected_tunables'] = {
   'require_feature_tunables3' => 1,
   'has_v2_rules' => 0,
   'has_v3_rules' => 0,
-  'has_v4_buckets' => 1
+  'has_v4_buckets' => 1,
 }
 
 # sets the max open fds at the OS level

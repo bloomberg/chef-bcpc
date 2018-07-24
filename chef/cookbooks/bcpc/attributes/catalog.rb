@@ -6,13 +6,13 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 35357,
       'internal' => 5000,
-      'public' => 5000
+      'public' => 5000,
     },
     'uris' => {
       'admin' => 'v3',
       'internal' => 'v3',
-      'public' => 'v3'
-    }
+      'public' => 'v3',
+    },
   },
   'compute' => {
     'name' => 'nova',
@@ -21,13 +21,13 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 8774,
       'internal' => 8774,
-      'public' => 8774
+      'public' => 8774,
     },
     'uris' => {
       'admin' => 'v2.1/',
       'internal' => 'v2.1/',
-      'public' => 'v2.1/'
-    }
+      'public' => 'v2.1/',
+    },
   },
   'placement' => {
     'name' => 'placement',
@@ -36,13 +36,13 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 8778,
       'internal' => 8778,
-      'public' => 8778
+      'public' => 8778,
     },
     'uris' => {
       'admin' => '',
       'internal' => '',
-      'public' => ''
-    }
+      'public' => '',
+    },
   },
   'volumev3' => {
     'name' => 'cinderv3',
@@ -51,13 +51,13 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 8776,
       'internal' => 8776,
-      'public' => 8776
+      'public' => 8776,
     },
     'uris' => {
       'admin' => 'v3/%(project_id)s',
       'internal' => 'v3/%(project_id)s',
-      'public' => 'v3/%(project_id)s'
-    }
+      'public' => 'v3/%(project_id)s',
+    },
   },
   'image' => {
     'name' => 'glance',
@@ -66,13 +66,13 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 9292,
       'internal' => 9292,
-      'public' => 9292
+      'public' => 9292,
     },
     'uris' => {
       'admin' => '',
       'internal' => '',
-      'public' => ''
-    }
+      'public' => '',
+    },
   },
   'network' => {
     'name' => 'neutron',
@@ -81,12 +81,12 @@ default['bcpc']['catalog'] = {
     'ports' => {
       'admin' => 9696,
       'internal' => 9696,
-      'public' => 9696
+      'public' => 9696,
     },
     'uris' => {
       'admin' => '',
       'internal' => '',
-      'public' => ''
-    }
-  }
+      'public' => '',
+    },
+  },
 }
