@@ -8,7 +8,6 @@
       - "--copy-links"
       - "--exclude=*.swp"
       - "--exclude=.git"
-      - "--exclude=.rubocop.yml"
   with_items:
     - "{{ chef_cookbooks_dir }}"
 
