@@ -16,11 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import print_function
-
 import os
-import json
-from jinja2 import Environment, FileSystemLoader
+import yaml
+from __future__ import print_function
 
 
 def is_valid_file(parser, arg):
@@ -56,7 +54,7 @@ def parse_ssh_config(ssh_config_file):
 def parse_topology_config(topology_config_file):
 
     with open(topology_config_file) as f:
-        return json.load(f)
+        return yaml.load(f)
 
 
 def get_group_hosts(group, ssh_config, nodes):
@@ -121,27 +119,6 @@ def get_inventory_data(ssh_config, nodes):
     return inventory
 
 
-def generate_inventory(inventory_data):
-
-    # capture path to template directory
-    tmpl = os.path.dirname(os.path.abspath(__file__)) + '/tmpl'
-
-    # create the jinja2 environment
-    # use trim_blocks to help control whitespace
-    j2_env = Environment(
-        loader=FileSystemLoader(tmpl),
-        trim_blocks=True,
-        lstrip_blocks=True
-    )
-
-    inventory = j2_env.get_template('inventory.yml.j2').render(
-        json=json,
-        children=inventory_data['all']['children']['cloud']['children']
-    )
-
-    return inventory
-
-
 def main():
 
     import argparse
@@ -172,7 +149,8 @@ def main():
     ssh_config = parse_ssh_config(args.ssh_conf)
     topology = parse_topology_config(args.topology_conf)
     inventory_data = get_inventory_data(ssh_config, topology['nodes'])
-    print(generate_inventory(inventory_data))
+
+    print(yaml.dump(inventory_data, default_flow_style=False, indent=2))
 
 
 if __name__ == "__main__":
