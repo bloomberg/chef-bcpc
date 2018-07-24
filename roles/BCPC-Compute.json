@@ -3,15 +3,18 @@
     "json_class": "Chef::Role",
     "run_list": [
       "role[BCPC-Base]",
+      "recipe[bcpc::openstack]",
       "role[BCPC-CephOSD]",
+      "recipe[bcpc::etcd-work]",
+      "recipe[bcpc::bird-work]",
+      "recipe[bcpc::calico-work]",
       "recipe[bcpc::nova-work]",
       "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::tpm]",
       "recipe[bcpc::checks-work]",
       "recipe[bcpc::host-aggregates]",
-      "recipe[bcpc::zabbix-agent]",
-      "recipe[bcpc::upgrade-cleanup]"
+      "recipe[bcpc::zabbix-agent]"
     ],
     "description": "Run list for a general compute function. Building block, not designed as an applied role.",
     "chef_type": "role"

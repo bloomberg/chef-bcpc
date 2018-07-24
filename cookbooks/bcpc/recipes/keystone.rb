@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: keystone
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,57 +17,42 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::mysql-head"
-include_recipe "bcpc::openstack"
-include_recipe "bcpc::apache2"
+mysql_root_user     = get_config('mysql-root-user')
+mysql_root_password = get_config('mysql-root-password')
 
-# Override keystone from starting
-cookbook_file "/etc/init/keystone.override" do
-  owner "root"
-  group "root"
-  mode "0644"
-  source "keystone/init.keystone.override"
-end
+keystone_db = node['bcpc']['dbname']['keystone']
+keystone_db_user = make_config('mysql-keystone-user', "keystone")
+keystone_db_password = make_config('mysql-keystone-password', secure_password)
+make_config('keystone-local-admin-password', secure_password)
+make_config('keystone-local-admin-user',
+            node['bcpc']['keystone']['admin']['username'])
 
-begin
-  make_config('mysql-keystone-user', "keystone")
-  make_config('mysql-keystone-password', secure_password)
-  make_config('keystone-admin-token', secure_password)
-  make_config('keystone-local-admin-password', secure_password)
-  make_config('keystone-admin-user',
-              node["bcpc"]["ldap"]["admin_user"] || node["bcpc"]["keystone"]["admin"]["username"])
-  make_config('keystone-admin-password',
-              node["bcpc"]["ldap"]["admin_pass"] || get_config('keystone-local-admin-password'))
-  make_config('keystone-admin-project-name',
-              node['bcpc']['ldap']['admin_project_name'] || node["bcpc"]["keystone"]["admin"]["project_name"])
-  make_config('keystone-admin-project-domain',
-              node['bcpc']['ldap']['admin_project_domain'] || node["bcpc"]["keystone"]["admin"]["domain"])
-  make_config('keystone-admin-user-domain',
-              node['bcpc']['ldap']['admin_user_domain'] || node["bcpc"]["keystone"]["admin"]["domain"])
-  begin
-      get_config('keystone-pki-certificate')
-  rescue
-      temp = %x[openssl req -new -x509 -passout pass:temp_passwd -newkey rsa:2048 -out /dev/stdout -keyout /dev/stdout -days 1095 -subj "/C=#{node['bcpc']['country']}/ST=#{node['bcpc']['state']}/L=#{node['bcpc']['location']}/O=#{node['bcpc']['organization']}/OU=#{node['bcpc']['region_name']}/CN=keystone.#{node['bcpc']['cluster_domain']}/emailAddress=#{node['bcpc']['keystone']['admin']['email']}"]
-      make_config('keystone-pki-private-key', %x[echo "#{temp}" | openssl rsa -passin pass:temp_passwd -out /dev/stdout])
-      make_config('keystone-pki-certificate', %x[echo "#{temp}" | openssl x509])
+
+# package installation and service definition starts
+#
+%w(keystone python-ldappool).each do |pkg|
+  package pkg do
+    action :upgrade
   end
 end
 
 package 'python-ldappool' do
   action :install
 end
+#
+# package installation and service definition starts
 
 package 'keystone' do
   action :install
   notifies :run, 'bash[flush-memcached]', :immediately
 end
 
-# sometimes the way tokens are stored changes and causes issues,
-# so flush memcached if Keystone is upgraded
-bash 'flush-memcached' do
-  code "echo flush_all | nc #{node['bcpc']['management']['ip']} 11211"
-  action :nothing
-end
+# fernet key initialization and possible rotation starts
+#
+primary = make_config('fernet_primary_key', generate_fernet_key())
+secondary = make_config('fernet_secondary_key', generate_fernet_key())
+staged = make_config('fernet_staged_key', generate_fernet_key())
+make_config('fernet_last_rotation', Time.now.to_i)
 
 # these packages need to be updated in Liberty but are not upgraded when Keystone is upgraded
 %w( python-oslo.i18n python-oslo.serialization python-pyasn1 ).each do |pkg|
@@ -77,575 +62,282 @@ end
   end
 end
 
-# do not run or try to start standalone keystone service since it is now served by WSGI
-service "keystone" do
-    action [:disable, :stop]
+  # update data bag values with rotation
+  #
+  make_config('fernet_primary_key',staged,force=true)
+  make_config('fernet_secondary_key',primary,force=true)
+  make_config('fernet_staged_key',generate_fernet_key(),force=true)
+
+  # update last rotation timestamp
+  #
+  make_config('fernet_last_rotation', Time.now.to_i, force=true)
 end
 
-# if on Liberty, generate Fernet keys and persist the keys in the data bag (if not already
-# generated)
-fernet_key_directory = '/etc/keystone/fernet-keys'
-
-directory fernet_key_directory do
+directory '/etc/keystone/fernet-keys' do
   owner 'keystone'
   group 'keystone'
   mode "0700"
 end
 
-# write out keys if defined in the data bag
-# (there should always be at least 0 (staged) and 1 (primary) in the data bag)
-ruby_block 'write-out-fernet-keys-from-data-bag' do
-  block do
-    (0..2).each do |idx|
-      if config_defined("keystone-fernet-key-#{idx}")
-        key_path = ::File.join(fernet_key_directory, idx.to_s)
-        key_in_databag = get_config("keystone-fernet-key-#{idx}")
-        ::File.write(key_path, key_in_databag)
-      end
-    end
-    # remove any other keys present in the directory (not 0, 1, or 2)
-    ::Dir.glob(::File.join(fernet_key_directory, '*')).reject do |path|
-      path.end_with?(*(0..2).collect(&:to_s))
-    end.each do |file_to_delete|
-      ::File.delete(file_to_delete)
-    end
-  end
-  # if any key needs to be rewritten, then we'll rewrite them all
-  only_if do
-    need_to_write_keys = []
-    (0..2).each do |idx|
-      key_path = ::File.join(fernet_key_directory, idx.to_s)
-      if ::File.exist?(key_path)
-        key_on_disk = ::File.read(key_path)
-        if config_defined("keystone-fernet-key-#{idx}")
-          need_to_write_keys << (key_on_disk != get_config("keystone-fernet-key-#{idx}"))
-        end
-      else
-        # key does not exist on disk, ensure that it is written out
-        need_to_write_keys << true
-      end
-    end
-    need_to_write_keys.any?
-  end
-  notifies :restart, 'service[apache2]', :immediately
+file '/etc/keystone/fernet-keys/2' do
+  owner 'keystone'
+  group 'keystone'
+  mode "0600"
+  content "#{get_config('fernet_primary_key')}"
 end
 
-# generate Fernet keys if there are not any on disk (first time setup)
-ruby_block 'first-time-fernet-key-generation' do
-  block do
-    Mixlib::ShellOut.new('keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone').run_command.error!
-    make_config('keystone-fernet-last-rotation', Time.now)
-  end
-  not_if { ::File.exist?(::File.join(fernet_key_directory, '0')) }
-  notifies :restart, 'service[apache2]', :immediately
+file '/etc/keystone/fernet-keys/1' do
+  owner 'keystone'
+  group 'keystone'
+  mode "0600"
+  content "#{get_config('fernet_secondary_key')}"
 end
 
-# if the staged key's mtime is at least this many days old and the data bag
-# has recorded a last rotation timestamp , execute a rotation
-ruby_block 'rotate-fernet-keys' do
-  block do
-    fernet_keys = ::Dir.glob(::File.join(fernet_key_directory, '*')).sort
-
-    # the current staged key (0) will become the new master
-    new_master_key = ::File.read(fernet_keys.first)
-    # the current master key (highest index) will become a secondary key
-    old_master_key = ::File.read(fernet_keys.last)
-    # execute a rotation via keystone-manage so that we get a new staging key
-    Mixlib::ShellOut.new('keystone-manage fernet_rotate --keystone-user keystone --keystone-group keystone').run_command.error!
-    # 0 is now the new staging key so read that file again
-    new_staging_key = ::File.read(fernet_keys.first)
-
-    # destroy the on-disk keys before we rewrite them to disk
-    ::Dir.glob(::File.join(fernet_key_directory, '*')).each do |fk|
-      ::File.delete(fk)
-    end
-
-    # write new master key to 2
-    ::File.write(::File.join(fernet_key_directory, '2'), new_master_key)
-    # write staging key to 0
-    ::File.write(::File.join(fernet_key_directory, '0'), new_staging_key)
-    # write old master key to 1
-    ::File.write(::File.join(fernet_key_directory, '1'), old_master_key)
-
-    # re-permission all keys to ensure they are owned by keystone and chmod 600
-    Mixlib::ShellOut.new('chown keystone:keystone /etc/keystone/fernet-keys/*').run_command.error!
-    Mixlib::ShellOut.new('chmod 0600 /etc/keystone/fernet-keys/*').run_command.error!
-
-    # update keystone-fernet-last-rotation timestamp
-    make_config('keystone-fernet-last-rotation', Time.now.to_i, force=true)
-
-    # (writing these keys into the data bag will be done by the add-fernet-keys-to-data-bag resource)
-  end
-  only_if do
-    # if key rotation is disabled then skip out
-    if node['bcpc']['keystone']['rotate_fernet_tokens']
-      if config_defined('keystone-fernet-last-rotation')
-        Time.now.to_i - get_config('keystone-fernet-last-rotation').to_i > node['bcpc']['keystone']['fernet_token_max_age_seconds']
-      else
-        # always run if keystone-fernet-last-rotation is not defined
-        # (upgrade from 6.0.0)
-        true
-      end
-    else
-      false
-    end
-  end
-  notifies :restart, 'service[apache2]', :immediately
+file '/etc/keystone/fernet-keys/0' do
+  owner 'keystone'
+  group 'keystone'
+  mode "0600"
+  content "#{get_config('fernet_staged_key')}"
 end
+#
+# fernet key initialization and possible rotation ends
 
-# key indexes in the data bag will not necessarily match the files on disk
-# (staged key is always key 0, primary key is the highest-indexed one, any
-# keys in between are former primary keys that can only decrypt)
-ruby_block 'add-fernet-keys-to-data-bag' do
-  block do
-    fernet_keys = ::Dir.glob(::File.join(fernet_key_directory, '*')).sort
-    fernet_keys.each_with_index do |key_path, idx|
-      db_key = "keystone-fernet-key-#{idx}"
-      disk_key_value = ::File.read(key_path)
-      begin
-        db_key_value = get_config(db_key)
-        make_config(db_key, disk_key_value, force=true) unless db_key_value == disk_key_value
-        # save old key to backup slot Just In Case
-        make_config("#{db_key}-backup", db_key_value, force=true)
-      rescue
-        make_config(db_key, disk_key_value)
-      end
-    end
-  end
-  only_if do
-    need_to_add_keys = []
-    (0..2).each do |idx|
-      key_path = ::File.join(fernet_key_directory, idx.to_s)
-      if ::File.exist?(key_path)
-        key_on_disk = ::File.read(key_path)
-        if config_defined("keystone-fernet-key-#{idx}")
-          need_to_add_keys << (key_on_disk != get_config("keystone-fernet-key-#{idx}"))
-        else
-          need_to_add_keys << true
-        end
-      end
-    end
-    need_to_add_keys.any?
-  end
-end
 
-# standalone Keystone service has a window to start up in and create keystone.log with
-# wrong permissions, so ensure it's owned by keystone:keystone
-file "/var/log/keystone/keystone.log" do
+# additional domain configuration directory
+#
+domain_config_dir = node['bcpc']['keystone']['domain_config_dir']
+
+directory domain_config_dir do
   owner "keystone"
   group "keystone"
-  notifies :restart, "service[apache2]", :immediately
+  mode "2700"
 end
 
-domain_config_dir = node['bcpc']['keystone']['domain_config_dir']
-directory domain_config_dir do
-    owner "keystone"
-    group "keystone"
-    mode "2700"
+
+# configure apache2 wsgi proxy vhost starts
+#
+template "/etc/apache2/sites-available/keystone.conf" do
+  source "keystone/apache-keystone.conf.erb"
+  mode "0644"
+
+  variables(
+    'processes' => node['bcpc']['keystone']['wsgi']['processes'],
+    'threads'   => node['bcpc']['keystone']['wsgi']['threads']
+  )
+
+  notifies :reload, "service[keystone]", :immediately
+end
+#
+# configure apache2 wsgi proxy vhost ends
+
+
+# create/bootstrap keystone starts
+#
+file '/tmp/keystone-create-db.sql' do
+  action :nothing
 end
 
-template "/etc/keystone/keystone.conf" do
-    source "keystone/keystone.conf.erb"
-    owner "keystone"
-    group "keystone"
-    mode "0600"
-    variables(
-      lazy {
-        {
-          :servers => get_head_nodes
-        }
-      }
-    )
-    notifies :restart, "service[apache2]", :immediately
+template '/tmp/keystone-create-db.sql' do
+  source 'keystone/keystone-create-db.sql.erb'
+
+  variables(
+    'keystone_db' => keystone_db,
+    'keystone_db_user' => keystone_db_user,
+    'keystone_db_password' => keystone_db_password
+  )
+
+  notifies :run, 'execute[create keystone database]', :immediately
+  not_if "mysql -u #{mysql_root_user} \
+                -e 'show databases' | grep #{keystone_db}",
+         :environment => {'MYSQL_PWD' => mysql_root_password}
 end
 
-cookbook_file "/etc/keystone/keystone-paste.ini" do
-    source "keystone/keystone-paste.ini"
-    owner "keystone"
-    group "keystone"
-    mode "0600"
-    notifies :restart, "service[apache2]", :immediately
+execute 'create keystone database' do
+  action :nothing
+  environment ({'MYSQL_PWD' => mysql_root_password})
+
+  command "mysql -u #{mysql_root_user} < /tmp/keystone-create-db.sql"
+
+  notifies :delete, 'file[/tmp/keystone-create-db.sql]', :immediately
+  notifies :create, 'template[/etc/keystone/keystone.conf]', :immediately
+  notifies :run, 'execute[keystone-manage db_sync]', :immediately
+  notifies :run, 'execute[bootstrap the identity service]', :immediately
 end
 
-node['bcpc']['keystone']['domains'].each do |domain, config|
-  config_file = File.join domain_config_dir, "keystone.#{domain}.conf"
-  template config_file do
-      source "keystone/keystone.domain.conf.erb"
-      owner "keystone"
-      group "keystone"
-      mode "0600"
-      variables(
-        :domain => config
-      )
-      # should this be here..?
-      notifies :restart, "service[apache2]", :delayed
-  end
+execute 'keystone-manage db_sync' do
+action :nothing
+  command "su -s /bin/sh -c 'keystone-manage db_sync' keystone"
 end
 
-template "/etc/keystone/default_catalog.templates" do
-    source "keystone-default_catalog.templates.erb"
-    owner "keystone"
-    group "keystone"
-    mode "0644"
-    notifies :restart, "service[apache2]", :delayed
-end
+execute 'bootstrap the identity service' do
+  action :nothing
 
-template "/etc/keystone/cert.pem" do
-    source "keystone-cert.pem.erb"
-    owner "keystone"
-    group "keystone"
-    mode "0644"
-    notifies :restart, "service[apache2]", :delayed
-end
+  region_name           = node['bcpc']['region_name']
+  admin_username        = get_config('keystone-local-admin-user')
+  admin_password        = get_config('keystone-local-admin-password')
+  admin_role_name       = node['bcpc']['keystone']['admin_role']
+  admin_project_name    = node['bcpc']['keystone']['admin']['project_name']
 
-template "/etc/keystone/key.pem" do
-    source "keystone-key.pem.erb"
-    owner "keystone"
-    group "keystone"
-    mode "0600"
-    notifies :restart, "service[apache2]", :delayed
+  type = 'identity'
+  service = node['bcpc']['catalog'][type]
+  name = service['name']
+  admin_url = generate_service_catalog_uri(service,'admin')
+  internal_url = generate_service_catalog_uri(service,'internal')
+  public_url = generate_service_catalog_uri(service,'public')
+
+  command <<-EOH
+    keystone-manage bootstrap \
+      --bootstrap-service-name #{name} \
+      --bootstrap-region-id #{region_name} \
+      --bootstrap-username #{admin_username} \
+      --bootstrap-password #{admin_password} \
+      --bootstrap-role-name #{admin_role_name} \
+      --bootstrap-project-name #{admin_project_name} \
+      --bootstrap-admin-url #{admin_url} \
+      --bootstrap-internal-url #{internal_url} \
+      --bootstrap-public-url #{public_url}
+  EOH
+end
+#
+# create/bootstrap keystone ends
+
+
+# configure keystone service starts
+#
+template '/etc/keystone/keystone.conf' do
+  source 'keystone/keystone.conf.erb'
+
+  variables(
+    'servers' => get_head_nodes()
+  )
+
+  notifies :restart, 'service[keystone]', :immediately
 end
 
 template "/etc/keystone/policy.json" do
-    source "keystone-policy.json.erb"
+  source "keystone-policy.json.erb"
+  owner "keystone"
+  group "keystone"
+  mode "0600"
+
+  policy = node['bcpc']['keystone']['policy']
+
+  variables(
+    :policy => JSON.pretty_generate(policy)
+  )
+end
+
+execute 'wait for keystone to come online' do
+  environment (os_adminrc())
+  retries 15
+  command "openstack catalog list"
+end
+
+execute 'update admin project description' do
+  environment (os_adminrc())
+
+  desc = 'Admin Project'
+  admin_project_name = node['bcpc']['keystone']['admin']['project_name']
+
+  command <<-EOH
+    openstack project set \
+      --description "#{desc}" \
+      --domain default \
+      #{admin_project_name}
+  EOH
+
+  not_if <<-EOH
+    openstack project show \
+      -f value -c description #{admin_project_name} | grep "#{desc}"
+  EOH
+end
+
+execute "create the default member role" do
+  environment (os_adminrc())
+
+  role = node['bcpc']['keystone']['member_role']
+
+  command <<-EOH
+    openstack role create #{role}
+  EOH
+
+  not_if "openstack role show #{role}"
+end
+
+execute 'create the service project' do
+  environment (os_adminrc())
+
+  service_project = node['bcpc']['keystone']['service_project']
+  project_name    = service_project['name']
+  project_domain  = service_project['domain']
+
+  command <<-EOH
+    openstack project create \
+      --domain #{project_domain} \
+      --description "Service Project" \
+      #{project_name}
+  EOH
+
+  not_if "openstack project show --domain #{project_domain} #{project_name}"
+end
+#
+# configure keystone service ends
+
+
+# setup additional domains starts
+#
+node['bcpc']['keystone']['domains'].each do |domain, config|
+
+  config_file = File.join domain_config_dir, "keystone.#{domain}.conf"
+
+  template config_file do
+    source "keystone/keystone.domain.conf.erb"
+
     owner "keystone"
     group "keystone"
     mode "0600"
-    variables(:policy => JSON.pretty_generate(node['bcpc']['keystone']['policy']))
+
+    variables(
+      :domain => config
+    )
+
+    notifies :run, "execute[create openstack domain]", :immediately
+    not_if "openstack domain show #{domain}", :environment => os_adminrc()
+  end
+
+  execute "create openstack domain" do
+    action :nothing
+    environment (os_adminrc())
+
+    desc = domain['description'] || ''
+
+    command <<-EOH
+      openstack domain create --description "#{desc}" #{domain}
+    EOH
+
+    notifies :run, "execute[upload domain configuration]", :immediately
+  end
+
+  execute "upload domain configuration" do
+    action :nothing
+    environment (os_adminrc())
+
+    command <<-EOH
+       keystone-manage domain_config_upload --domain "#{domain}"
+    EOH
+  end
+
 end
+#
+# setup additional domains ends
 
-template "/root/api_versionsrc" do
-    source "api_versionsrc.erb"
-    owner "root"
-    group "root"
-    mode "0600"
-end
 
-template '/root/openrc-admin-token' do
-    source 'keystonerc.erb'
-    owner 'root'
-    group 'root'
-    mode '0600'
-end
-
-# configure WSGI
-
-# /var/www created by apache2 package, /var/www/cgi-bin created in bcpc::apache2
-#wsgi_keystone_dir = "/var/www/cgi-bin/keystone"
-#directory wsgi_keystone_dir do
-#  action :create
-#  owner  "root"
-#  group  "root"
-#  mode "0755"
-#end
-
-#%w{main admin}.each do |wsgi_link|
-#  link ::File.join(wsgi_keystone_dir, wsgi_link) do
-#    action :create
-#    to     "/usr/share/keystone/wsgi.py"
-#  end
-#end
-
-template "/etc/apache2/sites-available/wsgi-keystone.conf" do
-  source   "keystone/apache-wsgi-keystone.conf.erb"
-  owner    "root"
-  group    "root"
-  mode "0644"
+# generate admin-openrc for openstack cli usage
+#
+template '/root/admin-openrc' do
+  source 'admin-openrc.erb'
   variables(
-    :processes => node['bcpc']['keystone']['wsgi']['processes'],
-    :threads   => node['bcpc']['keystone']['wsgi']['threads']
-  )
-  notifies :restart, "service[apache2]", :immediately
-end
-
-bash "a2ensite-enable-wsgi-keystone" do
-  user     "root"
-  code     "a2ensite wsgi-keystone"
-  not_if   "test -r /etc/apache2/sites-enabled/wsgi-keystone.conf"
-  notifies :restart, "service[apache2]", :immediately
-end
-
-ruby_block "keystone-database-creation" do
-    block do
-        %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
-            mysql -uroot -e "CREATE DATABASE #{node['bcpc']['dbname']['keystone']};"
-            mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['keystone']}.* TO '#{get_config('mysql-keystone-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
-            mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['keystone']}.* TO '#{get_config('mysql-keystone-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-keystone-password')}';"
-            mysql -uroot -e "FLUSH PRIVILEGES;"
-        ]
-        self.notifies :run, "bash[keystone-database-sync]", :immediately
-        self.resolve_notification_references
-    end
-    not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['keystone']}\"'|grep \"#{node['bcpc']['dbname']['keystone']}\" >/dev/null" }
-end
-
-ruby_block 'update-keystone-db-schema' do
-  block do
-    self.notifies :run, "bash[keystone-database-sync]", :immediately
-    self.resolve_notification_references
-  end
-  only_if {
-    ::File.exist?('/usr/local/etc/openstack_upgrade')
-  }
-end
-
-bash 'keystone-database-sync' do
-  action :nothing
-  user 'root'
-  code 'keystone-manage db_sync'
-  notifies :restart, 'service[apache2]', :immediately
-end
-
-# this is a synchronization resource that polls Keystone on the VIP to verify that it's not returning 503s,
-# if something above has restarted Apache and Keystone isn't ready to play yet
-ruby_block 'wait-for-keystone-to-become-operational' do
-  keystone_timeout = node['bcpc']['keystone']['wait_for_keystone_timeout']
-  block do
-    begin
-      Timeout.timeout(keystone_timeout) do
-        until execute_in_keystone_admin_context('openstack region list')
-          sleep 1
-        end
-      end
-    rescue Timeout::Error
-      raise 'Timeout waiting for keystone to become operational'
-    end
-  end
-end
-
-region = node['bcpc']['region_name']
-ruby_block "keystone-create-region::#{region}" do
-  block do
-    cmd = "openstack region create #{region}"
-    raise unless execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack region list -f value -c Region | grep ^#{region}$"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-# TODO(kamidzi): each service should create its *own* catalog entry
-# create services and endpoint
-catalog = node['bcpc']['catalog'].dup
-catalog.delete('network') unless node['bcpc']['enabled']['neutron']
-catalog.each do |svc, svcprops|
-  ruby_block "keystone-create-service::#{svc}" do
-    block do
-      cmd = "openstack service create --name '#{svcprops['name']}' --description '#{svcprops['description']}' #{svc}"
-      raise unless execute_in_keystone_admin_context(cmd)
-    end
-    not_if { execute_in_keystone_admin_context("openstack service show #{svc}") }
-  end
-
-  service_ifaces = ['admin', 'public', 'internal']
-  service_ifaces.each do |svc_iface|
-    ruby_block "keystone-create-endpoint::#{svc}::#{svc_iface}" do
-      block do
-        svc_uri = generate_service_catalog_uri(svcprops, svc_iface)
-        cmd = "openstack endpoint create --region=#{region} '#{svcprops['name']}' #{svc_iface} '#{svc_uri}'"
-        raise unless execute_in_keystone_admin_context(cmd)
-      end
-      not_if {
-        cmd = "openstack endpoint list --region=#{region} --service '#{svcprops['name']}' -f value -c Interface | grep ^#{svc_iface}$"
-        execute_in_keystone_admin_context(cmd)
-      }
-    end
-  end
-end
-
-# Create domains, projects, and roles
-# NOTE(kamidzi): this is using legacy attribute. Maybe should change it?
-default_domain = node['bcpc']['keystone']['default_domain']
-member_role_name = node['bcpc']['keystone']['member_role']
-service_project_name = node['bcpc']['keystone']['service_project']['name']
-service_project_domain = node['bcpc']['keystone']['service_project']['domain']
-admin_username = node['bcpc']['keystone']['admin']['username']
-admin_project_name = node['bcpc']['keystone']['admin']['project_name']
-admin_role_name = node['bcpc']['keystone']['admin_role']
-# NB(kamidzi): Make sure admin project is in same domain as service project!
-admin_project_domain = node['bcpc']['keystone']['admin']['domain']
-admin_user_domain = node['bcpc']['keystone']['admin']['domain']
-
-# For case... mostly migratory where ldap-backed domain already exists, sql-backed is added
-admin_config = {
-  sql: {
-    project_name: admin_project_name,
-    project_domain: admin_project_domain,
-    user_domain: admin_user_domain,
-    user_name: admin_username
-  },
-  ldap: {
-    project_name: get_config('keystone-admin-project-name'),
-    project_domain: get_config('keystone-admin-project-domain'),
-    user_domain: get_config('keystone-admin-user-domain'),
-    user_name: get_config('keystone-admin-user')
-  }
-}
-
-# Create the domains
-node['bcpc']['keystone']['domains'].each do |domain, attrs|
-  ruby_block "keystone-create-domain::#{domain}" do
-    block do
-      desc = attrs['description'] || ''
-      cmd = "openstack domain create --description '#{desc}' #{domain}"
-      raise unless execute_in_keystone_admin_context(cmd)
-    end
-    not_if {
-      cmd = "openstack domain show #{domain}"
-      execute_in_keystone_admin_context(cmd)
-    }
-  end
-  ruby_block "keystone-upload-domain-config::#{domain}" do
-    block do
-      %x{ keystone-manage domain_config_upload --domain "#{domain}"}
-    end
-    only_if {
-      cmd = "openstack domain show #{domain}"
-      execute_in_keystone_admin_context(cmd)
-    }
-  end
-end
-
-ruby_block 'keystone-create-admin-user' do
-  block do
-    cmd = "openstack user create --domain #{admin_project_domain} --password " +
-          "#{get_config('keystone-local-admin-password')} #{admin_username}"
-    raise unless execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack user show --domain #{admin_project_domain} #{admin_username}"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-# FYI: https://blueprints.launchpad.net/keystone/+spec/domain-specific-roles
-ruby_block 'keystone-create-admin-role' do
-  block do
-    cmd = "openstack role create #{admin_role_name}"
-    raise unless execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack role show #{admin_role_name}"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-admin_config.each do |backend, config|
-  ruby_block "keystone-create-admin-project::#{config[:project_name]}" do
-    block do
-      cmd = "openstack project create --domain #{config[:project_domain]} " +
-            "--description 'Admin Project' #{config[:project_name]}"
-      raise unless execute_in_keystone_admin_context(cmd)
-    end
-    not_if {
-      cmd = "openstack project show --domain #{config[:project_domain]} " +
-            "#{config[:project_name]}"
-      execute_in_keystone_admin_context(cmd)
-    }
-  end
-  name = "keystone-assign-admin-role-to-project::#{config[:user_domain]}::#{config[:project_name]}::#{config[:user_name]}"
-  p_opts = [
-    "--user-domain #{config[:user_domain]}",
-    "--project-domain #{config[:project_domain]}",
-    "--project #{config[:project_name]}",
-    "--user #{config[:user_name]}"
-  ]
-  ruby_block name do
-    block do
-      cmd = 'openstack role add ' + p_opts.join(' ')  + '  ' + admin_role_name
-      raise unless execute_in_keystone_admin_context(cmd)
-    end
-    not_if {
-      cmd = 'openstack role assignment list '
-      gp_opts = p_opts + [
-        '-f value -c Role',
-        "--role #{admin_role_name}",
-        "| grep ^#{get_keystone_role_id(admin_role_name)}$"
-      ]
-      cmd += gp_opts.join(' ')
-      execute_in_keystone_admin_context(cmd)
-    }
-  end
-  name = "keystone-assign-admin-role-to-domain::#{config[:user_domain]}::#{config[:user_name]}"
-  d_opts = [
-    "--user-domain #{config[:user_domain]}",
-    "--domain #{config[:user_domain]}",
-    "--user #{config[:user_name]}",
-  ]
-  ruby_block name do
-    block do
-      cmd = 'openstack role add ' + d_opts.join(' ') + ' ' + admin_role_name
-      raise unless execute_in_keystone_admin_context(cmd)
-    end
-    not_if {
-      cmd = 'openstack role assignment list '
-      gd_opts = d_opts + [
-        '-f value -c Role',
-        "--role #{admin_role_name}",
-        "| grep ^#{get_keystone_role_id(admin_role_name)}$"
-      ]
-      cmd += gd_opts.join(' ')
-      execute_in_keystone_admin_context(cmd)
-    }
-  end
-end
-
-ruby_block 'keystone-create-service-project' do
-  block do
-    cmd = "openstack project create --domain #{service_project_domain} " +
-          "--description 'Service Project' #{service_project_name}"
-    return unless execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack project show --domain #{service_project_domain} #{service_project_name}"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-ruby_block 'keystone-create-member-role' do
-  block do
-    return unless execute_in_keystone_admin_context("openstack role create #{member_role_name}")
-  end
-  not_if {
-    cmd = "openstack role show #{member_role_name}"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-# FIXME(kamidzi): this is another level of indirection because of preference to ldap
-# This is an ldap project admin credentials file
-adminrc = "/root/openrc-admin-#{get_config('keystone-admin-user')}"
-template adminrc do
-  source 'keystone/openrc.erb'
-  mode '0600'
-  variables(
-    lazy {
-      {
-        username: get_config('keystone-admin-user'),
-        password: get_config('keystone-admin-password'),
-        project_name: get_config('keystone-admin-project-name'),
-        user_domain: get_config('keystone-admin-user-domain'),
-        project_domain: get_config('keystone-admin-project-domain')
-      }
-    }
-  )
-end
-
-# This is a *domain* admin in separate domain along with service accounts
-template '/root/openrc-admin-domain' do
-  source 'keystone/openrc.erb'
-  mode '0600'
-  variables(
-    lazy {
-      {
-        username: admin_username,
-        password: get_config('keystone-local-admin-password'),
-        domain: admin_user_domain,
-        user_domain: admin_user_domain,
-        project_domain: admin_project_domain
-      }
-    }
+    'os_adminrc' => os_adminrc()
   )
 end
 

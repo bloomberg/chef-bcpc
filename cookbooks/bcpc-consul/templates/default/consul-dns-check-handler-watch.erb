@@ -1,0 +1,11 @@
+#!/bin/bash
+
+status="`cat`"
+self="<%= @node['hostname'] %>"
+echo "$status" > /tmp/dns-handler.log
+echo "$status" | jq ".[] | select((.Node==\"$self\") and (.CheckID==\"service:dns\")) | .Status" | grep -q passing
+if [ $? -eq 0 ]; then
+  sudo /usr/sbin/birdc 'enable bgp1'
+else
+  sudo /usr/sbin/birdc 'disable bgp1'
+fi

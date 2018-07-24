@@ -24,6 +24,7 @@ directory "/var/www/cobbler/pub/scripts" do
     owner "root"
     group "adm"
     mode 02775
+    recursive true
 end
 
 template "/var/www/cobbler/pub/scripts/get-ssh-keys" do

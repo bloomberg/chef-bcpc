@@ -17,23 +17,6 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::packages-openstack"
-
-apt_repository "ceph" do
-  uri node['bcpc']['repos']['ceph']
-  distribution node['lsb']['codename']
-  components ["main"]
-  key "ceph-release.key"
-  notifies :run, "execute[apt-get update]", :immediately
-end
-
-# configure an apt preference to prefer hammer packages
-apt_preference 'ceph' do
-  glob 'python-rbd python-rados python-cephfs python-ceph librbd1 libradosstriper1 librados2 libcephfs1 ceph-mds ceph-fuse ceph-fs-common ceph-common ceph'
-  pin 'version 0.94.10-1trusty'
-  pin_priority '900'
-end
-
 if platform?("debian", "ubuntu")
     include_recipe "bcpc::networking"
 end
@@ -65,6 +48,8 @@ end
 
 template '/etc/ceph/ceph.conf' do
     source 'ceph.conf.erb'
+    owner 'ceph'
+    group 'ceph'
     mode '0644'
     variables(
       lazy {
@@ -112,5 +97,3 @@ bash "wait-for-pgs-creating" do
     user "root"
     code "sleep 1; while ceph -s | grep -v mdsmap | grep creating >/dev/null 2>&1; do echo Waiting for new pgs to create...; sleep 1; done"
 end
-
-include_recipe 'bcpc::ceph-cleanup'

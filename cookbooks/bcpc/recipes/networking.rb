@@ -145,10 +145,51 @@ template "/etc/network/interfaces.d/iface-#{node['bcpc']['storage']['interface']
     )
 end
 
-%w{ storage floating }.each do |net|
+# set up the DNS resolvers
+# we want the VIP which will be running powerdns to be first on the list
+# but the first entry in our master list is also the only one in pdns,
+# so make that the last entry to minimize double failures when upstream dies.
+resolvers=node['bcpc']['dns_servers'].dup
+resolvers.push resolvers.shift
+resolvers.unshift node['bcpc']['management']['vip']
+
+template "/etc/network/interfaces.d/iface-#{node['bcpc']['management']['interface']}" do
+  source 'network.iface.erb'
+  owner 'root'
+  group 'root'
+  mode 00644
+  variables(
+    :vlan_tagged => vlan['management']['tagged'],
+    :vlan_raw_device => vlan['management']['raw_device'],
+    :interface => node['bcpc']['management']['interface'],
+    :ip => node['bcpc']['management']['ip'],
+    :netmask => node['bcpc']['management']['netmask'],
+    :gateway => node['bcpc']['management']['gateway'],
+    :dns => resolvers,
+    :mtu => node['bcpc']['management']['mtu']
+  )
+end
+
+template "/etc/network/interfaces.d/iface-#{node['bcpc']['storage']['interface']}" do 
+  source 'network.iface.erb'
+  owner 'root'
+  group 'root'
+  mode 00644
+  variables(
+    :vlan_tagged => vlan['storage']['tagged'],
+    :vlan_raw_device => vlan['storage']['raw_device'],
+    :interface => node['bcpc']['storage']['interface'],
+    :ip => node['bcpc']['storage']['ip'],
+    :netmask => node['bcpc']['storage']['netmask'],
+    :dns => resolvers,
+    :mtu => node['bcpc']['storage']['mtu']
+  )
+end
+
+%w{ storage }.each do |net|
   if not node['bcpc'][net]['interface-parent'].nil?
     # safeguard to prevent cutting off management network access if
-    # the management interface is on the native VLAN and floating/storage
+    # the management interface is on the native VLAN and storage
     # is on a tagged VLAN on the same physical interface
     if node['bcpc'][net]['interface-parent'] == node['bcpc']['management']['interface']
       raise "#{net} interface parent is in use as the management interface, refusing to configure interface parent. Please unset interface parent on the #{net} interface in the hardware role."
@@ -202,7 +243,15 @@ bash "interface-mgmt-make-static-if-dhcp" do
     only_if "cat /etc/network/interfaces | grep #{node['bcpc']['management']['interface']} | grep dhcp"
 end
 
-%w{ management storage floating }.each do |iface|
+bash "stop dhclient on #{node['bcpc']['management']['interface']}" do
+  mgt_iface = node['bcpc']['management']['interface']
+  code <<-EOH
+    pkill -f dhclient.#{mgt_iface}
+  EOH
+  only_if "pgrep -f dhclient.#{mgt_iface}"
+end
+
+%w{ management storage }.each do |iface|
 
   if not node['bcpc'][iface]['interface-parent'].nil?
     bash "#{iface} up" do

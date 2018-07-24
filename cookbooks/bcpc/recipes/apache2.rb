@@ -23,13 +23,14 @@
     end
 end
 
-%w{ssl wsgi proxy_http rewrite cache cache_disk}.each do |mod|
-    bash "apache-enable-#{mod}" do
-        user "root"
-        code "a2enmod #{mod}"
-        not_if "test -r /etc/apache2/mods-enabled/#{mod}.load"
-        notifies :restart, "service[apache2]", :delayed
-    end
+%w[
+  python
+].each do |mod|
+  execute "disable #{mod} apache2 module" do
+    command "a2dismod #{mod}"
+    only_if "a2query -m #{mod}"
+    notifies :restart, "service[apache2]", :delayed
+  end
 end
 
 # Remove PHP packages from non-monitoring nodes
@@ -42,49 +43,24 @@ package 'php5-common' do
   end
 end
 
-%w{python}.each do |mod|
-    bash "apache-disable-#{mod}" do
-        user "root"
-        code "a2dismod #{mod}"
-        only_if "test -r /etc/apache2/mods-enabled/#{mod}.load"
-        notifies :restart, "service[apache2]", :delayed
-    end
-end
-
 template "/etc/apache2/sites-enabled/000-default" do
-    source "apache-000-default.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    notifies :restart, "service[apache2]", :delayed
-end
-
-bash "set-apache-bind-address" do
-    code <<-EOH
-        sed -i "s/\\\(^[\\\t ]*Listen[\\\t ]*\\\)80[\\\t ]*$/\\\\1#{node['bcpc']['management']['ip']}:80/g" /etc/apache2/ports.conf
-        sed -i "s/\\\(^[\\\t ]*Listen[\\\t ]*\\\)443[\\\t ]*$/\\\\1#{node['bcpc']['management']['ip']}:443/g" /etc/apache2/ports.conf
-    EOH
-    not_if "grep #{node['bcpc']['management']['ip']} /etc/apache2/ports.conf"
-    notifies :restart, "service[apache2]", :immediately
-end
-
-service "apache2" do
-    action [:enable, :start]
-    supports :status => true, :reload => true
-    provider Chef::Provider::Service::Init::Debian
+  source "apache-000-default.erb"
+  notifies :restart, "service[apache2]", :delayed
 end
 
 template "/var/www/html/index.html" do
-    source "index.html.erb"
-    owner "root"
-    group "root"
-    mode 00644
-    variables ({ :cookbook_version => run_context.cookbook_collection[cookbook_name].metadata.version })
+  source "index.html.erb"
+
+  variables ({
+    :cookbook_version => run_context.cookbook_collection[cookbook_name].metadata.version
+  })
 end
 
 directory "/var/www/cgi-bin" do
-  action :create
-  owner  "root"
-  group  "root"
-  mode   00755
+  mode 00755
+end
+
+template "/etc/apache2/ports.conf" do
+  source "apache2/ports.conf.erb"
+  notifies :restart, "service[apache2]", :immediately
 end

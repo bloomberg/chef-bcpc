@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: neutron-head
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,94 +17,241 @@
 # limitations under the License.
 #
 
-return unless node['bcpc']['enabled']['neutron']
+mysql_root_user     = get_config('mysql-root-user')
+mysql_root_password = get_config('mysql-root-password')
 
-include_recipe "bcpc::neutron-common"
+neutron_db = node['bcpc']['dbname']['neutron']
+neutron_db_user = make_config('neutron-db-user', "neutron")
+neutron_db_password = make_config('neutron-db-password', secure_password())
 
-ruby_block "neutron-database-creation" do
-  block do
-    %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
-        mysql -uroot -e "CREATE DATABASE #{node['bcpc']['dbname']['neutron']};"
-        mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['neutron']}.* TO '#{get_config('mysql-neutron-user')}'@'%' IDENTIFIED BY '#{get_config('mysql-neutron-password')}';"
-        mysql -uroot -e "GRANT ALL ON #{node['bcpc']['dbname']['neutron']}.* TO '#{get_config('mysql-neutron-user')}'@'localhost' IDENTIFIED BY '#{get_config('mysql-neutron-password')}';"
-        mysql -uroot -e "FLUSH PRIVILEGES;"
-    ]
-    self.notifies :run, "bash[neutron-database-sync]", :immediately
-    self.resolve_notification_references
-  end
-  not_if { system "MYSQL_PWD=#{get_config('mysql-root-password')} mysql -uroot -e 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"#{node['bcpc']['dbname']['neutron']}\"'|grep \"#{node['bcpc']['dbname']['neutron']}\" >/dev/null" }
-end
+# nova and neutron have a cross dependancy that requires neutron to know
+# about nova and vice versa in their configuration files so we need this
+# information available at template generation
+#
+neutron_os_user = make_config('neutron-os-user', "neutron")
+neutron_os_password = make_config('neutron-os-password', secure_password())
 
 package 'neutron-server' do
   action :install
 end
 
-service 'neutron-server' do
-  action [:enable, :start]
-  subscribes :restart, "template[/etc/neutron/neutron.conf]", :delayed
-  subscribes :restart, "template[/etc/neutron/plugins/ml2/ml2_conf.ini]", :delayed
-  subscribes :restart, "template[/etc/neutron/policy.json]", :delayed
+
+# create neutron user starts
+#
+execute 'create the neutron user' do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack user create \
+      --domain #{service_domain} \
+      --password #{neutron_os_password} \
+      #{neutron_os_user}
+  EOH
+
+  not_if "openstack user show \
+    --domain #{service_domain} #{neutron_os_user}
+  "
 end
 
-bash "neutron-database-sync" do
+execute 'add admin role to neutron user' do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack role add \
+      --project #{service_project} \
+      --user #{neutron_os_user} \
+      #{admin_role}
+  EOH
+
+  not_if "
+    openstack role assignment list \
+      --names \
+      --role #{admin_role} \
+      --project #{service_project} \
+      --user #{neutron_os_user} | grep #{neutron_os_user}
+  "
+end
+#
+# create neutron user ends
+
+
+# create network service and endpoints starts
+#
+begin
+  type = 'network'
+  service = node['bcpc']['catalog'][type]
+  project = service['project']
+
+  execute "create the #{project} #{type} service" do
+    environment (os_adminrc())
+
+    name = service['name']
+    desc = service['description']
+
+    command <<-EOH
+      openstack service create \
+        --name "#{name}" --description "#{desc}" #{type}
+    EOH
+
+    not_if "openstack service list | grep #{type}"
+  end
+
+  %w(admin internal public).each{|uri|
+
+    url = generate_service_catalog_uri(service,uri)
+
+    execute "create the #{project} #{type} #{uri} endpoint" do
+      environment (os_adminrc())
+
+      command <<-EOH
+        openstack endpoint create \
+          --region #{region} #{type} #{uri} '#{url}'
+      EOH
+
+      not_if "openstack endpoint list \
+        | grep #{type} | grep #{uri}
+      "
+    end
+
+  }
+end
+#
+# create network service and endpoints ends
+
+
+# neutron package installation and service definition starts
+#
+%w(neutron-server).each do |pkg|
+  package pkg do
+    action :upgrade
+  end
+end
+
+service 'neutron-server'
+#
+# neutron package installation and service definition ends
+
+
+# create/manage neutron database starts
+#
+file '/tmp/neutron-db.sql' do
   action :nothing
-  user "root"
-  code "neutron-db-manage upgrade heads"
 end
 
-domain = node['bcpc']['keystone']['service_project']['domain']
-neutron_username = node['bcpc']['neutron']['user']
-neutron_project_name = node['bcpc']['keystone']['service_project']['name']
-
-ruby_block 'keystone-create-neutron-user' do
-  block do
-    cmd = "openstack user create --domain #{domain} " +
-          "--password #{get_config('keystone-neutron-password')} #{neutron_username}"
-    execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = "openstack user show --domain #{domain} #{neutron_username}"
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-ruby_block 'keystone-assign-neutron-admin-role' do
-  opts = [
-    "--user-domain #{domain}",
-    "--project-domain #{domain}",
-    "--user #{neutron_username}",
-    "--project #{neutron_project_name}"
-  ]
-  block do
-    cmd = "openstack role add " + opts.join(' ') + ' ' + admin_role_name
-    execute_in_keystone_admin_context(cmd)
-  end
-  not_if {
-    cmd = 'openstack role assignment list '
-    g_opts = opts + [
-      '-f value -c Role',
-      "--role #{admin_role_name}",
-      "| grep ^#{get_keystone_role_id(admin_role_name)}$"
-    ]
-    cmd += g_opts.join(' ')
-    execute_in_keystone_admin_context(cmd)
-  }
-end
-
-# Write out neutron openrc
-template '/root/openrc-neutron' do
-  source 'keystone/openrc.erb'
-  mode '0600'
+template '/tmp/neutron-db.sql' do
+  source 'neutron/neutron-db.sql.erb'
   variables(
-    lazy {
-      {
-        username: neutron_username,
-        password: get_config('keystone-neutron-password'),
-        project_name: neutron_project_name,
-        domain: domain
-      }
-    }
+    'neutron_db' => neutron_db,
+    'neutron_db_user' => neutron_db_user,
+    'neutron_db_password' => neutron_db_password
   )
+  notifies :run, 'execute[create neutron database]', :immediately
+  not_if "mysql -u #{mysql_root_user} \
+                -e 'show databases' | grep #{neutron_db}",
+         :environment => {'MYSQL_PWD' => mysql_root_password}
 end
 
-include_recipe 'bcpc::calico-head'
+execute 'create neutron database' do
+  action :nothing
+  environment ({'MYSQL_PWD' => mysql_root_password})
+
+  command "mysql -u #{mysql_root_user} < /tmp/neutron-db.sql"
+
+  notifies :delete, 'file[/tmp/neutron-db.sql]', :immediately
+  notifies :create, 'template[/etc/neutron/neutron.conf]', :immediately
+  notifies :run, 'execute[neutron-db-manage upgrade heads]', :immediately
+end
+
+execute 'neutron-db-manage upgrade heads' do
+  action :nothing
+  command "su -s /bin/sh -c 'neutron-db-manage upgrade heads' neutron"
+end
+#
+# create/manage neutron database ends
+
+
+# configure neutron starts
+#
+template '/etc/neutron/neutron.conf' do
+  source 'neutron/neutron.conf.erb'
+  variables(
+    'servers' => get_head_nodes()
+  )
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
+execute 'wait for neutron to come online' do
+  environment (os_adminrc())
+  retries 15
+  command 'openstack network list'
+end
+
+node['bcpc']['guest_networks'].each{ |network|
+
+  network_name = network['name']
+  subnets = network['subnets']
+
+  execute "create #{network_name} network" do
+    environment (os_adminrc())
+
+    command <<-EOH
+      openstack network create \
+        --share --provider-network-type local #{network_name}
+    EOH
+
+    not_if "openstack network show #{network_name}"
+  end
+
+  subnets.each{ |subnet|
+
+    subnet_name = subnet['name']
+    cidr = subnet['cidr']
+
+    execute "create #{network_name} network #{subnet_name} subnet" do
+      environment (os_adminrc())
+
+      command <<-EOH
+        openstack subnet create \
+          --network #{network_name} \
+          --subnet-range #{cidr} \
+        #{subnet_name}
+      EOH
+
+      not_if <<-EOH
+        openstack subnet list \
+          --network #{network_name} | grep -w #{subnet_name}
+      EOH
+    end
+  }
+
+}
+#
+# configure neutron ends
+
+
+# configure default security group starts
+#
+execute 'update default security group to allow ping' do
+  environment (os_adminrc())
+
+  command "openstack security group rule create \
+    --proto icmp default"
+
+  not_if "openstack security group rule list \
+            --protocol icmp default | grep 'icmp'"
+end
+
+execute 'update default security group to allow ssh' do
+  environment (os_adminrc())
+
+  command <<-EOH
+    openstack security group rule create \
+      --proto tcp --dst-port 22 default
+  EOH
+
+  not_if "openstack security group rule list \
+            --protocol tcp default \
+            -c 'Port Range' | grep '22:22'"
+end
+#
+# configure default security group ends

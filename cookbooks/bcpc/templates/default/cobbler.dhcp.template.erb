@@ -22,17 +22,18 @@ allow bootp;
 ignore client-updates;
 set vendorclass = option vendor-class-identifier;
 
-subnet <%= @subnet %> netmask <%=node['bcpc']['management']['netmask']%> {
-     option routers             <%=node['bcpc']['management']['gateway']%>;
-     option domain-name-servers <%=@node['bcpc']['dns_servers'].join(', ') %>;
-     option subnet-mask         <%=node['bcpc']['management']['netmask']%>;
-     range dynamic-bootp        <%= @range %>;
+<% @networks.each do |network| %>
+subnet <%= network['subnet'] %> netmask <%= network['netmask'] %> {
+     option routers             <%= network['gateway'] %>;
+     option domain-name-servers <%= @node['bcpc']['dns_servers'].join(', ') %>;
+     option subnet-mask         <%= network['netmask'] %>;
      filename                   "/pxelinux.0";
      default-lease-time         21600;
      max-lease-time             43200;
      next-server                $next_server;
      deny                       unknown-clients;
 }
+<% end %>
 
 #for dhcp_tag in $dhcp_tags.keys():
     ## group could be subnet if your dhcp tags line up with your subnets

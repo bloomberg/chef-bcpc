@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: flavors
 #
-# Copyright 2013, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 # limitations under the License.
 #
 
-bash "wait-for-flavors-to-become-operational" do
-  code ". /root/openrc-nova; until openstack flavor list >/dev/null 2>&1; do sleep 1; done"
+bash 'wait-for-flavors-to-become-operational' do
+  environment os_adminrc
+  code 'until openstack flavor list >/dev/null 2>&1; do sleep 1; done'
   timeout 60
 end
 
@@ -38,8 +39,8 @@ node['bcpc']['flavors'].each do |name, flavor|
     if flavor['id']
       flavor_id flavor['id']
     end
-    if flavor['extra_specs']
-      extra_specs flavor['extra_specs']
+    if flavor['properties']
+      properties flavor['properties']
     end
   end
 end

@@ -19,7 +19,7 @@ service mysqlchk
         server          = /usr/bin/clustercheck
         server_args     = <%=get_config('mysql-check-user')%> <%=get_config('mysql-check-password')%> 1
         log_on_failure  += USERID
-        only_from       = <%=node['bcpc']['management']['cidr']%>
+        only_from       = <%=node['bcpc']['management']['aggregate']['cidr']%>
         # recommended to put the IPs that need
         # to connect exclusively (security purposes)
         per_source      = UNLIMITED

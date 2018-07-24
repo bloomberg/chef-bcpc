@@ -1,8 +1,0 @@
-description "Ceph monitor renicer"
-
-start on started ceph-mon-all
-
-post-start script
-  pgrep ceph-mon | xargs renice <%=node['bcpc']['ceph']['mon_niceness']%>
-end script
-

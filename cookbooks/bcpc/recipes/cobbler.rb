@@ -35,27 +35,109 @@ end
 package "isc-dhcp-server"
 package "cobbler"
 package "cobbler-web"
+package 'pxelinux'
+
+service "cobbler"
+
+bash 'disable-mod-python' do
+  code 'a2dismod python'
+end
+
+systemd_unit 'apache2.service' do
+  action [:enable, :start]
+end
+
+bash 'disable-mod-python' do
+  code 'a2dismod python'
+end
+
+cookbook_file '/etc/init.d/cobbler' do
+  source 'cobbler/cobbler.init.d'
+  notifies :enable, 'service[cobbler]', :immediately
+  notifies :restart, 'service[cobbler]', :immediately
+end
+
+# for pxelinux.0
+# https://bugs.launchpad.net/ubuntu/+source/cobbler/+bug/1570915
+link '/usr/lib/syslinux/pxelinux.0' do
+  to '/usr/lib/PXELINUX/pxelinux.0'
+  link_type 'hard'
+end
+
+link '/usr/lib/syslinux/chain.c32' do
+  to '/usr/lib/syslinux/modules/efi64/chain.c32'
+  link_type 'hard'
+end
+
+link '/usr/lib/syslinux/menu.c32' do
+  to '/usr/lib/syslinux/modules/efi64/menu.c32'
+  link_type 'hard'
+end
+
+link '/usr/lib/syslinux/ldlinux.c32' do
+  to '/usr/lib/syslinux/modules/bios/ldlinux.c32'
+  link_type 'hard'
+end
+
+bash 'create-syslinux-hard-links-for-tftp' do
+  user 'root'
+  code <<-EOH
+    cd /var/lib/tftpboot
+    for file in `ls -1 /usr/lib/syslinux/modules/bios | grep c32`; do
+      ln -fP /usr/lib/syslinux/modules/bios/$file $file;
+    done
+  EOH
+end
+
+cookbook_file "/var/lib/cobbler/distro_signatures.json" do
+  source "cobbler/distro_signatures.json"
+  notifies :restart, "service[cobbler]", :immediately
+end
 
 template "/etc/cobbler/settings" do
-    source "cobbler.settings.erb"
-    mode 00644
-    notifies :restart, "service[cobbler]", :delayed
+  source "cobbler.settings.erb"
+  mode 00644
+  notifies :restart, "service[cobbler]", :immediately
 end
 
 template "/etc/cobbler/users.digest" do
-    source "cobbler.users.digest.erb"
-    mode 00600
+  source "cobbler.users.digest.erb"
+  mode 00600
 end
 
-template "/etc/cobbler/dhcp.template" do
-    source "cobbler.dhcp.template.erb"
-    mode 00644
-    variables(
-        :range => node['bcpc']['bootstrap']['dhcp_range'],
-        :subnet => node['bcpc']['bootstrap']['dhcp_subnet']
-    )
-    notifies :restart, "service[cobbler]", :delayed
-    notifies :run, "bash[run-cobbler-sync]", :immediately
+# begin generate management networks for all pods for PXE booting
+networks = []
+management_net = node['bcpc']['management']
+management_net.keys.each do |rack|
+  next unless rack.start_with?('rack')
+  management_net[rack].keys.each do |pod|
+    network = {
+      'subnet' => management_net[rack][pod]['cidr'].split('/')[0],
+      'netmask' => management_net[rack][pod]['netmask'],
+      'gateway' => management_net[rack][pod]['gateway']
+    }
+    networks.push(network)
+  end
+end
+
+template '/etc/cobbler/dhcp.template' do
+  source 'cobbler.dhcp.template.erb'
+  mode 00644
+  variables(
+    'networks' => networks
+  )
+  notifies :restart, 'service[cobbler]', :immediately
+  notifies :run, 'bash[run-cobbler-sync]', :immediately
+end
+# end generate management subnets
+
+# Ensure first hard disk is used for local boot
+template '/etc/cobbler/pxe/pxelocal.template' do
+  source 'cobbler.pxelocal.template.erb'
+  mode 00644
+  owner 'root'
+  group 'root'
+  notifies :run, 'bash[run-cobbler-sync]', :immediately
 end
 
 node['bcpc']['cobbler']['kickstarts'].each do |kickstart|
@@ -137,10 +219,6 @@ template '/etc/default/tftpd-hpa' do
 end
 
 service "isc-dhcp-server" do
-    action [:enable, :start]
-end
-
-service "cobbler" do
     action [:enable, :start]
 end
 

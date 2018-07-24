@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: etcd-head
 #
@@ -17,16 +16,85 @@
 # limitations under the License.
 #
 
-return unless node['bcpc']['enabled']['neutron']
+include_recipe 'bcpc::etcd-packages'
 
-include_recipe 'bcpc::etcd-common'
+service 'etcd'
 
-ruby_block 'join-existing-etcd-cluster' do
-  block do
-    headnodes = get_head_nodes
-    headnodes.delete(node)
-    random_etcd_member = get_shuffled_servers(headnodes)[0]
-    Mixlib::ShellOut.new("curl -X POST http://#{random_etcd_member['bcpc']['management']['ip']}:2379/v2/members -H \"Content-Type: application/json\" -d '{ \"peerURLs\" : [\"http://#{node['bcpc']['management']['ip']}:2380\"] }'").run_command.error!
+# attempt to register this node with an existing etcd cluster if one exists
+#
+begin
+  members = get_head_nodes()
+  members.delete(node)
+
+  if members.any?
+
+    endpoints = members.collect{|m|
+      "#{m['bcpc']['management']['ip'] + ':2380'}"
+    }.join(' ')
+
+    bash "try to add #{node['hostname']} to existing etcd cluster" do
+      environment ({'ETCDCTL_API' => '3'})
+      code <<-EOH
+        member=''
+
+        # try to find a healthy cluster member
+        #
+        for e in #{endpoints}; do
+          if etcdctl --endpoints ${e} endpoint health; then
+            member=${e}
+            break
+          fi
+        done
+
+        # exit if we don't find a healthy member
+        #
+        [ -z "$member" ] && exit 1
+
+        # check to see if we're already a member
+        #
+        member_list=$(etcdctl --endpoints ${member} member list)
+        peer_url="http://#{node['bcpc']['management']['ip'] + ':2380'}"
+
+        if echo ${member_list} | grep ${peer_url}; then
+          echo "#{node['fqdn']} is already a member of this cluster"
+          exit 0
+        fi
+
+        # try to register this node with the cluster
+        #
+        cmd="etcdctl --endpoints ${member} --peer-urls=${peer_url}"
+        cmd="${cmd} member add #{node['fqdn']}"
+
+        if ${cmd}; then
+          echo "successfully registered #{node['fqdn']}"
+          exit 0
+        fi
+
+        echo "failed to register #{node['fqdn']}"
+        exit 1
+      EOH
+    end
   end
-  only_if { get_head_nodes.length > 1 }
+end
+
+template '/etc/systemd/system/etcd.service' do
+  source 'etcd/etcd.service.member.erb'
+  mode   '00644'
+
+  variables('headnodes' => get_head_nodes())
+
+  notifies :run, 'execute[systemctl enable etcd.service]', :immediately
+  notifies :run, 'execute[systemctl daemon-reload]', :immediately
+  notifies :restart, 'service[etcd]', :immediately
+end
+
+execute 'systemctl enable etcd.service' do
+  action :nothing
+  command 'systemctl enable etcd.service'
+  not_if 'systemctl is-enabled etcd.service'
+end
+
+execute 'systemctl daemon-reload' do
+  action :nothing
+  command 'systemctl daemon-reload'
 end

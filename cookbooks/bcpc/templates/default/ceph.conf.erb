@@ -5,18 +5,18 @@
 ################################################
 
 [global]
-    fsid = <%=get_config('ceph-fs-uuid')%>
-    auth cluster required = cephx
-    auth service required = cephx
-    auth client required = cephx
-    public network = <%= @node["bcpc"]["storage"]["cidr"] %>
-    cluster network = <%= @node["bcpc"]["storage"]["cidr"] %>
-    keyring = /etc/ceph/$cluster.$name.keyring
-    mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
-    mon_pg_warn_max_per_osd = <%= @node['bcpc']['ceph']['max_pgs_per_osd'] %>
-    mon pg warn max object skew = <%= @node['bcpc']['ceph']['pg_warn_max_obj_skew'] %>
-    max open files = <%= @node['bcpc']['ceph']['max_open_files'] %>
-    paxos propose interval = <%= @node['bcpc']['ceph']['paxos_propose_interval'] %>
+fsid = <%=get_config('ceph-fs-uuid')%>
+auth cluster required = cephx
+auth service required = cephx
+auth client required = cephx
+public network = <%= @node["bcpc"]["storage"]["cidr"] %>
+cluster network = <%= @node["bcpc"]["storage"]["cidr"] %>
+keyring = /etc/ceph/$cluster.$name.keyring
+mon host = <%= @servers.map{|s| s["bcpc"]["storage"]["ip"] + ":6789"}.join(', ') %>
+mon max pg per osd = <%= @node['bcpc']['ceph']['max_pgs_per_osd'] %>
+mon pg warn max object skew = <%= @node['bcpc']['ceph']['pg_warn_max_obj_skew'] %>
+max open files = <%= @node['bcpc']['ceph']['max_open_files'] %>
+paxos propose interval = <%= @node['bcpc']['ceph']['paxos_propose_interval'] %>
 
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring
@@ -24,49 +24,39 @@
     mon compact on start = true
     mon osd allow primary affinity = <%= @node['bcpc']['ceph']['allow_primary_affinity'] %>
 
-# Not using CephFS but mds remains until it's removed at some later point.
-#[mds]
-#    keyring = /var/lib/ceph/mds/$cluster-$id/keyring
-
 [osd]
-    keyring = /var/lib/ceph/osd/$cluster-$id/keyring
-    osd journal size = <%=node['bcpc']['ceph']['journal_size']%>
-    filestore xattr use omap = true
-    osd mkfs type = xfs
-    osd mkfs options xfs = -f -i size=2048
-    osd mount options xfs = noexec,nodev,noatime,nodiratime,barrier=0,discard
-    osd crush update on start = false
-    osd client op priority = 63
-    osd scrub load threshold = <%= @node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
+keyring = /var/lib/ceph/osd/$cluster-$id/keyring
+osd crush update on start = false
+osd client op priority = 63
+osd scrub load threshold = <%= @node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
 #Settings to throttle OSD scrubbing
-    osd scrub begin hour = <%= @node['bcpc']['ceph']['osd_scrub_begin_hour'] %>
-    osd scrub end hour = <%= @node['bcpc']['ceph']['osd_scrub_end_hour'] %>
-    osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
-    osd scrub chunk min = <%= @node['bcpc']['ceph']['osd_scrub_chunk_min'] %>
-    osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
+osd scrub begin hour = <%= @node['bcpc']['ceph']['osd_scrub_begin_hour'] %>
+osd scrub end hour = <%= @node['bcpc']['ceph']['osd_scrub_end_hour'] %>
+osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
+osd scrub chunk min = <%= @node['bcpc']['ceph']['osd_scrub_chunk_min'] %>
+osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
 #Settings to throttle OSD recovery parameters
-    osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
-    osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
-    osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
-    osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
-    osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
-    osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
+osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
+osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
+osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
+osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
+osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
+osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
+
 
 [client.admin]
-    # dont want the admin client creating sockets/logs
-    admin socket =
-    log file =
+# dont want the admin client creating sockets/logs
+admin socket =
+log file =
+
 
 [client.cinder]
-    rbd cache = true
-    rbd cache writethrough until flush = true
-    admin socket = /var/run/ceph/guests/$cluster-$type.$id.$pid.$cctid.asok # must be writable by QEMU and allowed by SELinux or AppArmor
-    log file = /var/log/qemu/qemu-guest-$pid.log
-    rbd concurrent management ops = 20
+rbd cache = true
+rbd cache writethrough until flush = true
+rbd concurrent management ops = 20
+
 
 [client.glance]
-    rbd cache = true
-    rbd cache writethrough until flush = true
-    admin socket = /var/run/ceph/guests/$cluster-$type.$id.$pid.$cctid.asok # must be writable by QEMU and allowed by SELinux or AppArmor
-    log file = /var/log/qemu/qemu-guest-$pid.log
-    rbd concurrent management ops = 20
+rbd cache = true
+rbd cache writethrough until flush = true
+rbd concurrent management ops = 20

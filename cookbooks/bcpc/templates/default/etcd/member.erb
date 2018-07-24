@@ -1,0 +1,9 @@
+ETCD_NAME=<%= node['fqdn'] %>
+ETCD_DATA_DIR=/var/lib/etcd/default
+ETCD_ADVERTISE_CLIENT_URLS="http://<%= node['bcpc']['management']['ip'] %>:2379,http://<%= node['bcpc']['management']['ip'] %>:4001"
+ETCD_LISTEN_CLIENT_URLS="http://<%= node['bcpc']['management']['ip'] %>:2379,http://<%= node['bcpc']['management']['ip'] %>:4001,http://127.0.0.1:4001,http://127.0.0.1:2379"
+ETCD_LISTEN_PEER_URLS="http://<%= node['bcpc']['management']['ip'] %>:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://<%=node['bcpc']['management']['ip']%>:2380"
+ETCD_INITIAL_CLUSTER_TOKEN=<%= node.chef_environment %>-etcd-cluster-01
+ETCD_INITIAL_CLUSTER="<%= @headnodes.collect{|x| x['fqdn'] + '=' + 'http://' + x['bcpc']['management']['ip'] + ':2380'}.join(',')%>"
+ETCD_INITIAL_CLUSTER_STATE=<%= (@headnodes.length == 1) ? 'new' : 'existing' %>

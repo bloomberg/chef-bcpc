@@ -40,7 +40,27 @@ function remove_DHCPservers {
 ###################################################################
 # Function to create all VMs using Vagrant
 function create_vagrant_vms {
-  cd "$REPO_ROOT"/bootstrap/vagrant_scripts && vagrant up
+  cd "$REPO_ROOT"/bootstrap/vagrant_scripts
+
+  # boot the machines without any changes made (no provisioning)
+  #
+  vagrant up --no-provision
+
+  # get a list of vms
+  #
+  vms=$(vagrant ssh-config | grep -w Host | awk '{print $2}')
+
+  # go in each box and update grub to no longer keep the old
+  # interface names (eth).
+  #
+  for vm in ${vms}; do
+    vagrant ssh ${vm} -c 'sudo sed -i s/^GRUB_CMDLINE_LINUX/GRUB_CMDLINE_LINUX=""/ /etc/default/grub'
+    vagrant ssh ${vm} -c 'sudo grub-mkconfig -o /boot/grub/grub.cfg'
+  done
+
+  # reboot all the machines and allow the provisioners to run
+  #
+  vagrant reload
 }
 
 # only execute functions if being run and not sourced

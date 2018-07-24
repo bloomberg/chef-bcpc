@@ -17,18 +17,6 @@
 # limitations under the License.
 #
 
-bash 'routing-management' do
-  user 'root'
-  code "echo '1 mgmt' >> /etc/iproute2/rt_tables"
-  not_if "grep -e '^1 mgmt' /etc/iproute2/rt_tables"
-end
-
-bash 'routing-storage' do
-  user 'root'
-  code "echo '2 storage' >> /etc/iproute2/rt_tables"
-  not_if "grep -e '^2 storage' /etc/iproute2/rt_tables"
-end
-
 if node['bcpc']['monitoring']['provider']
   function = 'ipset-monitoring'
   # ipset is used to maintain largish block(s) of IP addresses to be referred
@@ -59,8 +47,11 @@ if node['bcpc']['monitoring']['provider']
 end
 
 network_functions = ['firewall']
-network_functions += ['routing'] unless node['bcpc']['enabled']['neutron']
-
+if node['bcpc']['enabled']['neutron']
+  network_functions += ['l3-routing']
+else
+  network_functions += ['routing']
+end
 network_functions.each do |function|
   template "/etc/network/if-up.d/bcpc-#{function}" do
     mode 775

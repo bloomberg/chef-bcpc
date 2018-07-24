@@ -17,9 +17,12 @@
 # limitations under the License.
 #
 
-include_recipe "bcpc::ceph-common"
+include_recipe 'bcpc::packages_ceph'
+include_recipe 'bcpc::ceph_keys'
+include_recipe 'bcpc::ceph-common'
 
 bash 'ceph-mon-mkfs' do
+    user 'ceph'
     code <<-EOH
         mkdir -p /var/lib/ceph/mon/ceph-#{node['hostname']}
         ceph-mon --mkfs -i "#{node['hostname']}" --keyring "/etc/ceph/ceph.mon.keyring"
@@ -27,35 +30,49 @@ bash 'ceph-mon-mkfs' do
     not_if "test -f /var/lib/ceph/mon/ceph-#{node['hostname']}/keyring"
 end
 
-template '/etc/init/ceph-mon-renice.conf' do
-  source 'ceph-upstart.ceph-mon-renice.conf.erb'
-  mode 00644
-  notifies :restart, "service[ceph-mon-renice]", :immediately
+service "ceph-mon@#{node['hostname']}" do
+  action %w[enable start]
 end
 
-service 'ceph-mon-renice' do
-  provider Chef::Provider::Service::Upstart
-  action [:enable, :start]
-  restart_command 'service ceph-mon-renice restart'
+file '/usr/local/bin/ceph-mon-renice.sh' do
+  ceph_mon_renice = node['bcpc']['ceph']['mon_niceness']
+  content <<-EOH.gsub(/^\s+/,'')
+    #!/bin/bash
+    /usr/bin/pgrep ceph-mon | xargs renice #{ceph_mon_renice}
+  EOH
+  mode '0755'
 end
 
+systemd_unit 'ceph-mon-renice.service' do
 
-execute "ceph-mon-start" do
-    command "initctl emit ceph-mon id='#{node['hostname']}'"
+  content <<-EOH.gsub(/^\s+/,'')
+    [Unit]
+    Description=Ceph MON Renicer
+    After=ceph-mon.target
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/local/bin/ceph-mon-renice.sh
+
+    [Install]
+    WantedBy=multi-user.target
+  EOH
+
+  action [:create, :enable]
 end
 
 ruby_block "add-ceph-mon-hints" do
-    block do
-        get_ceph_mon_nodes.each do |server|
-            system "ceph --admin-daemon /var/run/ceph/ceph-mon.#{node['hostname']}.asok " +
-                "add_bootstrap_peer_hint #{server['bcpc']['storage']['ip']}:6789"
-        end
+  block do
+    get_ceph_mon_nodes.each do |server|
+      system "ceph --admin-daemon /var/run/ceph/ceph-mon.#{node['hostname']}.asok " +
+             "add_bootstrap_peer_hint #{server['bcpc']['storage']['ip']}:6789"
     end
-    # not_if checks to see if all head node IPs are in the mon list
-    not_if {
-      mon_list = %x[ceph mon stat]
-      get_ceph_mon_nodes.collect{ |x| x['bcpc']['storage']['ip'] }.map{ |ip| mon_list.include? ip }.uniq == [true]
-    }
+  end
+  # not_if checks to see if all head node IPs are in the mon list
+  not_if {
+    mon_list = %x[ceph mon stat]
+    get_ceph_mon_nodes.collect{ |x| x['bcpc']['storage']['ip'] }.map{ |ip| mon_list.include? ip }.uniq == [true]
+  }
 end
 
 ruby_block "wait-for-mon-quorum" do
@@ -97,142 +114,154 @@ end
   end
 end
 
-bash "initialize-ceph-admin-and-osd-config" do
-    code <<-EOH
-        ceph --name mon. --keyring /var/lib/ceph/mon/ceph-#{node['hostname']}/keyring \
-            auth get-or-create-key client.admin \
-            mon 'allow *' \
-            osd 'allow *' \
-            mds 'allow' > /dev/null
-        ceph --name mon. --keyring /var/lib/ceph/mon/ceph-#{node['hostname']}/keyring \
-            auth get-or-create-key client.bootstrap-osd \
-            mon 'allow profile bootstrap-osd' > /dev/null
-    EOH
-end
-
-bash "set-ceph-crush-tunables" do
-    code <<-EOH
-        ceph --name mon. --keyring /var/lib/ceph/mon/ceph-#{node['hostname']}/keyring \
-            osd crush tunables optimal
-    EOH
-    # do not apply if any tunables have been modified from their defaults
-    not_if do
-      show_tunables = Mixlib::ShellOut.new('ceph osd crush show-tunables')
-      show_tunables.run_command
-      raise 'Could not check Ceph tunables' if show_tunables.error!
-      JSON.load(show_tunables.stdout) != node['bcpc']['ceph']['expected_tunables']
-    end
-end
-
-template "/tmp/crush-map-additions.txt" do
-    source "ceph-crush.erb"
-    owner "root"
-    mode 00644
-end
-
 bash "ceph-get-crush-map" do
-    code <<-EOH
-        false; while (($?!=0)); do
-            echo Trying to get crush map...
-            sleep 1
-            ceph osd getcrushmap -o /tmp/crush-map
-        done
-        crushtool -d /tmp/crush-map -o /tmp/crush-map.txt
-    EOH
+  code <<-EOH
+    false; while (($?!=0)); do
+      echo Trying to get crush map...
+      sleep 1
+      ceph osd getcrushmap -o /tmp/crush-map
+    done
+    crushtool -d /tmp/crush-map -o /tmp/crush-map.txt
+  EOH
 end
 
-bash "ceph-add-crush-rules" do
-    code <<-EOH
-        cat /tmp/crush-map-additions.txt >> /tmp/crush-map.txt
-        crushtool -c /tmp/crush-map.txt -o /tmp/crush-map-new
-        ceph osd setcrushmap -i /tmp/crush-map-new
-    EOH
-    not_if "grep ssd /tmp/crush-map.txt"
-end
-
-# Create the VMs pool and any others that may need creating
-ruby_block "create-rados-pool-#{node['bcpc']['ceph']['vms']['name']}" do
-  block do
-    vms_rule = (node['bcpc']['ceph']['vms']['type'] == "ssd") ? node['bcpc']['ceph']['ssd']['ruleset'] : node['bcpc']['ceph']['hdd']['ruleset']
-    %x(
-      ceph osd pool create #{node['bcpc']['ceph']['vms']['name']} #{get_ceph_optimal_pg_count('vms')};
-      ceph osd pool set #{node['bcpc']['ceph']['vms']['name']} crush_ruleset #{vms_rule};
-      sleep 15
-    )
-  end
-  not_if "rados lspools | grep ^#{node['bcpc']['ceph']['vms']['name']}$"
-end
-
-# Commented out 'data' and 'metadata' since the number of pools can impact pgs
-# data metadata - removed from loop below - After firefly data and metadata are no longer default pools
-
-rule = (node['bcpc']['ceph']['default']['type'] == "ssd") ? node['bcpc']['ceph']['ssd']['ruleset'] : node['bcpc']['ceph']['hdd']['ruleset']
-
-["rbd"].each do |pool|
-  bash "move-#{pool}-rados-pool" do
-    user "root"
-    code "ceph osd pool set #{pool} crush_ruleset #{rule}"
-    only_if { get_ceph_mon_nodes.length == 1 }
+bash 'set-ceph-crush-tunables' do
+  user 'ceph'
+  code <<-EOH
+    ceph --name mon. --keyring \
+    /var/lib/ceph/mon/ceph-#{node['hostname']}/keyring \
+    osd crush tunables optimal
+  EOH
+  # do not apply if any tunables have been modified from their defaults
+  not_if do
+    show_tunables = Mixlib::ShellOut.new('ceph osd crush show-tunables')
+    show_tunables.run_command
+    raise 'Could not check Ceph tunables' if show_tunables.error!
+    JSON.load(show_tunables.stdout) != node['bcpc']['ceph']['expected_tunables']
   end
 end
 
+include_recipe 'bcpc::ceph_mgr'
 
-# data metadata - removed from list since they are no longer created by default in ceph
-["rbd", node['bcpc']['ceph']['vms']['name']].each do |pool|
-  ruby_block "set-#{pool}-rados-pool-replicas" do
+node['bcpc']['ceph']['enabled_pools'].each do |bucket|
+  user 'ceph'
+  bash "crush-add-bucket-#{bucket}" do
+    user 'ceph'
+    code <<-EOH
+      ceph osd crush add-bucket #{bucket} root
+    EOH
+    not_if {
+     system "grep -q 'root #{bucket}' /tmp/crush-map.txt"
+    }
+  end
+  bash "crush-add-rule-#{bucket}" do
+    user 'ceph'
+    code <<-EOH
+      ceph osd crush rule create-replicated #{bucket} #{bucket} \
+      #{node['bcpc']['ceph']['chooseleaf']}
+    EOH
+    not_if {
+     system "grep -q '^rule #{bucket}' /tmp/crush-map.txt"
+    }
+  end
+end
+
+# create vms ceph pool
+#
+vms_pool = node['bcpc']['ceph']['vms']
+
+bash "create-rados-pool-#{vms_pool['name']}" do
+  name      = vms_pool['name']
+  type      = vms_pool['type']
+  rule      = node['bcpc']['ceph'][type]['rule']
+  pg_count  = get_ceph_optimal_pg_count(name)
+  pgp_count = pg_count
+
+  code <<-EOH
+    ceph osd pool create #{name} #{pg_count} #{pgp_count} #{rule}
+    sleep 15
+  EOH
+
+  not_if "ceph osd lspools | grep #{name}"
+end
+
+bash "set rados-pool-#{vms_pool['name']} pool replication" do
+  name      = vms_pool['name']
+  rep_count = get_ceph_replica_count('default')
+
+  code <<-EOH
+    ceph osd pool set #{name} size #{rep_count}
+  EOH
+
+  not_if "ceph osd pool get #{name} size | grep #{rep_count}"
+end
+
+if node['bcpc']['ceph']['pgp_auto_adjust']
+  name = vms_pool['name']
+  target_pg = get_ceph_optimal_pg_count(name)
+  %w[pg_num pgp_num].each do |pg|
+    current_pg = %x(`ceph osd pool get #{name} #{pg} | awk '{print $2}'`).to_i
+    bash "set-#{name}-rados-pool-#{pg}" do
+      code <<-EOH
+        ceph osd pool set #{name} #{pg} #{target_pg}
+      EOH
+      only_if { current_pg < target_pg }
+    end
+  end
+end
+
+
+# Add application tags to Ceph OSD pools
+bash 'add-application-tags-to-pools' do
+  code <<-EOH
+    for pool in `ceph osd pool ls`; do \
+      ceph osd pool application enable $pool rbd; \
+    done
+  EOH
+end
+
+file "/var/lib/ceph/mon/ceph-#{node['hostname']}/done" do
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :create
+end
+
+
+=begin
+bash "initialize-ceph-glance-keyring" do
+  code <<-EOH
+    ceph-authtool /etc/ceph/ceph.client.glance.keyring \
+    --create-keyring --gen-key \
+    --name client.glance --set-uid=0 \
+    --cap mon 'allow r' \
+    --cap osd 'allow class-read object_prefix rbd_children, \
+               allow rwx pool=images' \ > /dev/null
+  EOH
+  not_if {
+    system "ceph-authtool /etc/ceph/ceph.client.glance.keyring -l \
+            >/dev/null 2>&1"
+  }
+end
+
+bash 'add ceph glance user' do
+  code <<-EOH
+    ceph auth add client.glance -i /etc/ceph/ceph.client.glance.keyring
+  EOH
+  not_if 'ceph auth get client.glance'
+end
+
+%w(cinder glance).each do |svc|
+  get_key_cmd = "ceph-authtool -n client.#{svc} -p /etc/ceph/ceph.client.#{svc}.keyring"
+  ruby_block "store-ceph-#{svc}-key" do
     block do
-      %x(ceph osd pool set #{pool} size #{get_ceph_replica_count('default')})
+      make_config("#{svc}-ceph-key", `#{get_key_cmd}`, force=true)
     end
-    not_if "ceph osd pool get #{pool} size | grep #{get_ceph_replica_count('default')}"
+    only_if { File.exist?("/etc/ceph/ceph.client.#{svc}.keyring") and
+              ((config_defined("#{svc}-ceph-key") and
+              (get_config("#{svc}-ceph-key") != `#{get_key_cmd}`)) or
+              (not config_defined("#{svc}-ceph-key")))
+    }
   end
 end
-
-# mds is only used by CephFS so need for it here at this time but will remain until mds is removed
-%w{mon}.each do |svc|
-    %w{done upstart}.each do |name|
-        file "/var/lib/ceph/#{svc}/ceph-#{node['hostname']}/#{name}" do
-            owner "root"
-            group "root"
-            mode "0644"
-            action :create
-        end
-    end
-end
-
-bash "create-ceph-cinder-user" do
-  user "root"
-  code "ceph auth get-or-create client.cinder mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=volumes-ssd,allow rwx pool=volumes-hdd, allow rwx pool=vms, allow rx pool=images'"
-  not_if "ceph auth get client.cinder"
-end
-
-bash "create-ceph-glance-user" do
-  user "root"
-  code "ceph auth get-or-create client.glance mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=images'"
-  not_if "ceph auth get client.glance"
-end
-
-bash "create-ceph-cinder-keyring" do
-  user "root"
-  code "ceph auth get-or-create client.cinder  > /etc/ceph/ceph.client.cinder.keyring"
-  not_if "test -f  /etc/ceph/ceph.client.cinder.keyring"
-end
-
-ruby_block "store-cinder-ceph-key" do
-  block do
-    make_config("cinder-ceph-key", `ceph auth get-key client.cinder`, force=true)
-  end
-  only_if { File.exist?('/etc/ceph/ceph.client.cinder.keyring') and ((config_defined('cinder-ceph-key') and (get_config('cinder-ceph-key') != `ceph auth get-key client.cinder`)) or (not config_defined('cinder-ceph-key'))) }
-end
-
-bash "create-ceph-glance-keyring" do
-  user "root"
-  code "ceph auth get-or-create client.glance  > /etc/ceph/ceph.client.glance.keyring"
-  not_if "test -f  /etc/ceph/ceph.client.glance.keyring"
-end
-
-ruby_block "store-glance-ceph-key" do
-  block do
-    make_config("glance-ceph-key", `ceph auth get-key client.glance`, force=true)
-  end
-  only_if { File.exist?('/etc/ceph/ceph.client.glance.keyring') and ((config_defined('glance-ceph-key') and (get_config('glance-ceph-key') != `ceph auth get-key client.glance`)) or (not config_defined('glance-ceph-key'))) }
-end
+=end

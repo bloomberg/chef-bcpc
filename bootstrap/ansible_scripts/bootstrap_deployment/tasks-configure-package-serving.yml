@@ -139,7 +139,7 @@
     with_items:
       - git
       - sshpass
-      - emacs23
+      - emacs24
       - vim
       - unzip
     tags:

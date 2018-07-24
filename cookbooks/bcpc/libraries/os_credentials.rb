@@ -50,7 +50,7 @@ def user_context_from_memory(username)
     'OS_PROJECT_NAME' => service_project_name,
     'OS_REGION_NAME' => region,
     'OS_USER_DOMAIN_NAME' => service_user_domain,
-    'OS_VOLUME_API_VERSION' => get_api_version(:volume),
+    'OS_VOLUME_API_VERSION' => get_api_version(:volumev2),
   }
 
   # prefer the local admin
@@ -58,7 +58,7 @@ def user_context_from_memory(username)
     'admin' => default_env.merge({
       'OS_PASSWORD' => get_config('keystone-local-admin-password'),
       'OS_PROJECT_NAME' => admin_project_name,
-      'OS_USERNAME' => 'admin',
+      'OS_USERNAME' => get_config('keystone-local-admin-user'),
     })
   }
 

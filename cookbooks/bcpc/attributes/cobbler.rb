@@ -16,12 +16,12 @@ default['bcpc']['cobbler']['kickstarts'] = %w(
 # if uri will expect a URI to where to find the ISO, and
 # the 'shasum' key must also be set to the SHA-256 hash of the ISO
 default['bcpc']['cobbler']['distributions'] = {
-  'ubuntu-14.04-mini' => {
+  'ubuntu-16.04-mini' => {
     'arch'       => 'x86_64',
     'breed'      => 'ubuntu',
     'iso_source' => 'bcpc-binary-files',
-    'os_version' => 'trusty',
-    'source'     => 'ubuntu-14.04-mini.iso',
+    'os_version' => 'xenial',
+    'source'     => 'ubuntu-16.04-mini.iso',
   }
 }
 
@@ -40,7 +40,7 @@ default['bcpc']['cobbler']['distributions'] = {
 # ubuntu-14.04-mini-x86_64)
 default['bcpc']['cobbler']['profiles'] = {
   'bcpc_host' => {
-    'distro' => 'ubuntu-14.04-mini-x86_64',
+    'distro' => 'ubuntu-16.04-mini-x86_64',
     'kickstart' => 'bcpc_ubuntu_host.preseed',
   }
 }

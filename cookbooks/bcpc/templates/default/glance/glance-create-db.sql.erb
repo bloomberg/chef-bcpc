@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS <%= @glance_db %>;
+
+GRANT ALL PRIVILEGES ON <%= @glance_db %>.* TO '<%= @glance_db_user %>'@'localhost' \
+IDENTIFIED BY '<%= @glance_db_password %>';
+
+GRANT ALL PRIVILEGES ON <%= @glance_db %>.* TO '<%= @glance_db_user %>'@'%' \
+IDENTIFIED BY '<%= @glance_db_password %>';

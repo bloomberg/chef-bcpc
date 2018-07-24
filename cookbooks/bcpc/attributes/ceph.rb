@@ -3,8 +3,6 @@
 #  Ceph settings for the cluster
 #
 ###########################################
-# Trusty is not available at this time for ceph-extras
-default['bcpc']['ceph']['extras']['dist'] = "precise"
 # To use apache instead of civetweb, make the following value anything but 'civetweb'
 default['bcpc']['ceph']['frontend'] = "civetweb"
 default['bcpc']['ceph']['chooseleaf'] = "rack"
@@ -39,9 +37,9 @@ default['bcpc']['ceph']['vms']['replicas'] = 3
 default['bcpc']['ceph']['vms']['portion'] = 33
 default['bcpc']['ceph']['vms']['type'] = 'ssd'
 default['bcpc']['ceph']['vms']['name'] = "vms"
-# Set up crush rulesets
-default['bcpc']['ceph']['ssd']['ruleset'] = 1
-default['bcpc']['ceph']['hdd']['ruleset'] = 2
+# Set up crush rules
+default['bcpc']['ceph']['ssd']['rule'] = 'ssd'
+default['bcpc']['ceph']['hdd']['rule'] = 'hdd'
 
 # Set the default niceness of Ceph OSD and monitor processes
 default['bcpc']['ceph']['osd_niceness'] = -10
