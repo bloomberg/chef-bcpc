@@ -1,79 +1,73 @@
-# Project Title
+# chef-bcpc
 
-One Paragraph of project description goes here
+chef-bcpc is a set of [Chef](https://github.com/opscode/chef) cookbooks that
+build a highly-available [OpenStack](http://www.openstack.org/) cloud.
+
+The cloud consists of head nodes (OpenStack controller services, Ceph Mons,
+etc.) and work nodes (hypervisors).
+
+Each head node runs all of the core services in a highly-available manner. Each
+work node runs the relevant services (nova-compute, Ceph OSDs, etc.).
+
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+The following instructions will get chef-bcpc up and running on your local
+machine for development and testing purposes.
+
+See the [Hardware Deployment][Hardware Deployment] section for notes on how to
+deploy the chef-bcpc on hardware.
+
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+* OS X or Linux
+* CPU that supports VT-x virtualization extensions
+* 16 GB of memory
+* 100 GB of free disk space
+* Vagrant 2.1+
+* VirtualBox 5.2+
+* git, curl, rsync, ssh, jq, make, ansible
 
-```
-Give examples
-```
 
-### Installing
+### Local Build
 
-A step by step series of examples that tell you have to get a development env running
+* Review `virtual/topology/topology.yml` for the topology you will build and
+make changes as required, e.g. assign more or less RAM based on your topology
+and your build environment. Other topologies exist in the same directory.
+* If a proxy server is required for internet access, set the variables TBD
+* If additional CA certificates are required (e.g. for a proxy), set the variables TBD
+* From the root of the chef-bcpc git repository run the following command:
 
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
+```shell
+make create all
 ```
 
-### And coding style tests
 
-Explain what these tests test and why
+## Hardware Deployment
 
-```
-Give an example
-```
+TBD
 
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Currently, most development is done by a team at Bloomberg L.P. but we would
+like to build a community around this project. PRs and issues are welcomed. If
+you are interested in joining the team at Bloomberg L.P. please see available
+opportunities at the [Bloomberg L.P. careers site](https://careers.bloomberg.com/job/search?qf=cloud).
+
 
 ## License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE.txt](LICENSE.txt) file for details
+This project is licensed under the Apache 2.0 License - see the
+[LICENSE.txt](LICENSE.txt) file for details.
 
-## Acknowledgments
 
-BCC is built using the following open-source software:
+## Built With
 
+chef-bcpc is built with the following open source software:
+
+ - [Ansible](https://www.ansible.com/)
  - [Apache HTTP Server](http://httpd.apache.org/)
  - [Ceph](http://ceph.com/)
  - [Chef](http://www.opscode.com/chef/)
@@ -84,33 +78,7 @@ BCC is built using the following open-source software:
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)
  - [Ubuntu](http://www.ubuntu.com/)
- - [Vagrant](http://www.vagrantup.com/) - 2.0.0 or better recommended
- - [VirtualBox](https://www.virtualbox.org/) - 5.2.0 or better recommended
+ - [Vagrant](http://www.vagrantup.com/)
+ - [VirtualBox](https://www.virtualbox.org/)
 
 Thanks to all of these communities for producing this software!
-
-Overview
-========
-This is a set of [Chef](https://github.com/opscode/chef) cookbooks to bring up
-an instance of an [OpenStack](http://www.openstack.org/)-based cluster of head
-and worker nodes.  In addition to hosting virtual machines, there are a number
-of additional services provided with these cookbooks - such as distributed
-storage, DNS, log aggregation/search, and monitoring - see below for a partial
-list of services provided by these cookbooks.
-
-Each head node runs all of the core services in a highly-available manner with
-no restriction upon how many head nodes there are.  The cluster is deemed
-operational as long as 50%+1 of the head nodes are online.  Otherwise, a
-network partition may occur with a split-brain scenario.  In practice,
-we currently recommend roughly one head node per rack.
-
-Each worker node runs the relevant services (nova-compute, Ceph OSDs, etc.).
-There is no limitation on the number of worker nodes.  In practice, we
-currently recommend that the cluster should not grow to more than 200 worker
-nodes.
-
-Setup
-=====
-To get going in a hurry, we recommend the Vagrant mechanism for building your cluster. Please read the [Vagrant Bootstrap Guide](https://github.com/bloomberg/chef-bcpc/blob/master/docs/vagrant_build_guide.md) for information on getting BCPC set up locally with Vagrant.
-
-If you are interested in building your cluster the hard way without Vagrant, there are Ansible scripts in `bootstrap/ansible_scripts` for creating a hardware cluster that can be applied to a virtualized cluster (manual work will be required). The Ansible scripts are documented at [Using Ansible (hardware build)](https://github.com/bloomberg/chef-bcpc/blob/master/docs/ansible_hardware_build_guide.md) and [Using Ansible (local build)](https://github.com/bloomberg/chef-bcpc/blob/master/docs/ansible_local_build_guide.md).
