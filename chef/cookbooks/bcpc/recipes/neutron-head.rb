@@ -97,7 +97,7 @@ begin
     not_if "openstack service list | grep #{type}"
   end
 
-  ['admin', 'internal', 'public'].each do |uri|
+  %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
     execute "create the #{project} #{type} #{uri} endpoint" do

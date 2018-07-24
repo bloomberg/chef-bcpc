@@ -43,7 +43,7 @@ end
 
 [
   node['bcpc']['consul']['conf_dir'],
-  node['bcpc']['consul']['config']['data_dir']
+  node['bcpc']['consul']['config']['data_dir'],
 ].each do |dir|
   directory dir do
     recursive true

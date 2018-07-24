@@ -43,7 +43,7 @@ begin
       is_headnode: headnode?,
       as_number: pod['bgp_as'],
       iface: primary['dev'],
-      upstream_peer: pod['networks']['primary']['gateway'],
+      upstream_peer: pod['networks']['primary']['gateway']
     )
 
     notifies :restart, 'service[bird]', :immediately

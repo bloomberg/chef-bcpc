@@ -47,7 +47,7 @@ template '/etc/ssh/sshd_config' do
   variables(
     interfaces: [
       node_interfaces(type: 'primary'),
-      node_interfaces(type: 'storage')
+      node_interfaces(type: 'storage'),
     ]
   )
   notifies :restart, 'service[ssh]', :immediately

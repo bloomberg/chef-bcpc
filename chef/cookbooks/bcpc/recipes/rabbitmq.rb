@@ -31,11 +31,11 @@ apt_repository 'erlang' do
   only_if { node['bcpc']['erlang']['repo']['enabled'] }
 end
 
-apt_repository "erlang" do
-    uri node['bcpc']['repos']['erlang']
-    distribution node['lsb']['codename']
-    components ["contrib"]
-    key "erlang.key"
+apt_repository 'erlang' do
+  uri node['bcpc']['repos']['erlang']
+  distribution node['lsb']['codename']
+  components ['contrib']
+  key 'erlang.key'
 end
 
 apt_preference 'erlang' do
@@ -44,16 +44,16 @@ apt_preference 'erlang' do
   pin_priority '900'
 end
 
-apt_repository "rabbitmq" do
-    uri node['bcpc']['repos']['rabbitmq']
-    distribution 'testing'
-    components ["main"]
-    key "rabbitmq.key"
+apt_repository 'rabbitmq' do
+  uri node['bcpc']['repos']['rabbitmq']
+  distribution 'testing'
+  components ['main']
+  key 'rabbitmq.key'
 end
 
-package "rabbitmq-server" do
-    action :install
-    notifies :stop, "service[rabbitmq-server]", :immediately
+package 'rabbitmq-server' do
+  action :install
+  notifies :stop, 'service[rabbitmq-server]', :immediately
 end
 
 service 'rabbitmq-server'

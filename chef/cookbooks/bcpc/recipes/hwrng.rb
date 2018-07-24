@@ -40,11 +40,11 @@ template '/etc/default/rng-tools' do
   )
 end
 
-package "rng-tools" do
+package 'rng-tools' do
   action :install
 end
 
-service "rng-tools" do
+service 'rng-tools' do
   action [:enable, :start]
-  subscribes :restart, "template[/etc/default/rng-tools]", :delayed
+  subscribes :restart, 'template[/etc/default/rng-tools]', :delayed
 end

@@ -18,7 +18,7 @@
 #
 include_recipe 'bcpc::calico-apt'
 
-%w[calico-control calico-common].each do |pkg|
+%w(calico-control calico-common).each do |pkg|
   package pkg do
     action :install
     notifies :restart, 'service[neutron-server]', :delayed

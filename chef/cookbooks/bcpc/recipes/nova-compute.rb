@@ -22,7 +22,7 @@ database = {
   'host' => node['bcpc']['mysql']['host'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
-  'password' => config['nova']['creds']['db']['password']
+  'password' => config['nova']['creds']['db']['password'],
 }
 
 package 'nova-compute'

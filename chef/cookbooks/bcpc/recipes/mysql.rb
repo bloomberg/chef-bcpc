@@ -106,7 +106,7 @@ template '/etc/xinetd.d/mysqlchk' do
   variables(
     user: {
       'username' => 'check',
-      'password' => config['mysql']['users']['check']['password']
+      'password' => config['mysql']['users']['check']['password'],
     },
     only_from: primary['cidr']
   )

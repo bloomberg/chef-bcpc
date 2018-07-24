@@ -23,7 +23,7 @@ if node['bcpc']['kernel']['pin_version']
   packages = [
     "linux-image-#{version}",
     "linux-headers-#{version}",
-    "linux-tools-#{version}"
+    "linux-tools-#{version}",
   ]
 
   packages.each do |pkg|
@@ -138,7 +138,7 @@ cookbook_file '/etc/profile.d/bcpc.sh' do
   source 'profile.d/bcpc.sh'
 end
 
-disable_services = ['iscsid', 'lxcfs', 'lxd', 'rpcbind', 'snapd']
+disable_services = %w(iscsid lxcfs lxd rpcbind snapd)
 disable_services.each do |svc|
   service svc do
     action [:stop, :disable]
