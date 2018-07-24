@@ -1,0 +1,42 @@
+---
+- name: generate operations ssh key
+  when: ssh_generate_private_key
+  become: false
+  run_once: true
+  shell: |
+    ssh-keygen -t ed25519 -f "{{ ansible_ssh_private_key_file }}" -C '' -N ''
+  args:
+    creates: "{{ ansible_ssh_private_key_file }}"
+  delegate_to: localhost
+
+- name: "create the cloud operator group"
+  group:
+    name: "{{ operator_group }}"
+    state: present
+
+- name: "create the cloud operator user"
+  user:
+    name: "{{ operator_username }}"
+    group: "{{ operator_group }}"
+    shell: /bin/bash
+
+- name: "setup cloud operator user environment"
+  copy:
+    src: "files/operator/{{ item }}"
+    dest: "/home/{{ operator_username }}/.{{item}}"
+    owner: "{{ operator_username }}"
+    group: "{{ operator_group }}"
+    mode: 0644
+  with_items:
+    - bashrc
+    - vimrc
+
+- name: "populate cloud operator authorized key file"
+  authorized_key:
+    user: "{{ operator_username }}"
+    key: "{{ lookup('file', ansible_ssh_private_key_file + '.pub') }}"
+
+- name: "install operators group sudoers file"
+  template:
+    src: operator/sudoers.j2
+    dest: "/etc/sudoers.d/{{ operator_username }}"

@@ -1,0 +1,8 @@
+- hosts: bootstraps
+  gather_facts: false
+  roles:
+    - common
+    - chef-server
+    - chef-workstation
+    - chef-node
+    - file-server

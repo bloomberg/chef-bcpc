@@ -1,0 +1,50 @@
+- name: generate chef roles
+  shell: |
+    "./{{ item.script }}" > "{{ item.output }}"
+  with_items:
+    - {script: node.py, output: node.json}
+    - {script: bootstrap.py, output: bootstrap.json}
+    - {script: headnode.py, output: headnode.json}
+    - {script: worknode.py, output: worknode.json}
+  args:
+    chdir: "{{ chef_roles_dir }}"
+  delegate_to: localhost
+
+- name: upload cookbooks
+  synchronize:
+    src: "{{ item }}"
+    dest: "/var/bcpc/chef/{{ chef_org_short_name }}/"
+    recursive: yes
+    rsync_opts:
+      - --copy-links
+      - --exclude="*.swp"
+      - --exclude=".git"
+  with_items:
+    - "{{ chef_cookbooks_dir }}"
+
+- name: upload environments, roles and databags
+  synchronize:
+    src: "{{ item }}"
+    dest: "/var/bcpc/chef/{{ chef_org_short_name }}/"
+    recursive: yes
+    rsync_opts:
+      - --include="*.json"
+      - --exclude="*"
+  with_items:
+    - "{{ chef_environments_dir }}"
+    - "{{ chef_roles_dir }}"
+    - "{{ chef_databags_dir }}"
+
+- name: import data bags
+  shell: |
+    for data_bag in $(ls *.json); do
+      knife data bag from file "{{ chef_environment }}" ${data_bag}
+    done
+  args:
+    chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
+
+- name: knife upload org
+  shell: |
+    knife upload .
+  args:
+    chdir: "/var/bcpc/chef/{{ chef_org_short_name }}"
