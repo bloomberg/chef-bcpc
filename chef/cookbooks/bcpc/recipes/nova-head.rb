@@ -313,8 +313,8 @@ template '/etc/nova/nova.conf' do
     db: database,
     os: openstack,
     config: config,
-    nodes: get_headnodes(all: true),
-    is_headnode: headnode?(node),
+    headnodes: headnodes(all: true),
+    is_headnode: headnode?,
     vip: get_address(node['bcpc']['cloud']['vip']['ip'])
   )
 

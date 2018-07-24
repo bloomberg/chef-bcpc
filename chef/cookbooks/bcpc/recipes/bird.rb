@@ -34,20 +34,18 @@ service 'bird6' do
 end
 
 begin
-  rack = node_rack
-  iface = node_interfaces.find { |i| i['type'] == 'primary' }
-
-  raise "no rack found with an ID #{rack_id} and POD #{pod_id}" if rack.nil?
+  pod = node_pod
+  primary = node_interfaces(type: 'primary')
 
   template '/etc/bird/bird.conf' do
     source 'bird/bird.conf.erb'
 
     variables(
-      is_worknode: worknode?(node),
-      is_headnode: headnode?(node),
-      as_number: rack['bgp_as'],
-      iface: iface['dev'],
-      upstream_peer: rack['networks']['primary']['gateway']
+      is_worknode: worknode?,
+      is_headnode: headnode?,
+      as_number: pod['bgp_as'],
+      iface: primary['dev'],
+      upstream_peer: pod['networks']['primary']['gateway']
     )
 
     notifies :restart, 'service[bird]', :immediately

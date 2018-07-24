@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/BlockLength
-
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -22,6 +20,9 @@ require 'yaml'
 topology = './topology/topology.yml'
 topology = YAML.load_file(File.expand_path(topology))
 
+hardware = './topology/hardware.yml'
+hardware = YAML.load_file(File.expand_path(hardware))
+
 project_name = '/' + File.basename(File.dirname(Dir.getwd))
 vb_folder = `VBoxManage list systemproperties | grep 'Default machine folder'`
 vb_folder = vb_folder.match(/^Default machine folder:\s+(.+)$/)[1]
@@ -34,14 +35,27 @@ Vagrant.configure('2') do |config|
   topology['nodes'].each do |node|
     vm_name = node['name'] || node['host']
 
+    # get hardware profile for node
+    hw_profiles = hardware['profiles']
+    hw_profile = hw_profiles[node['hardware_profile']]
+
     config.vm.define vm_name do |subconfig|
       networks = node['networking']['networks']
       gateway = node['networking']['gateway']
       primary = networks.find { |n| n['type'] == 'primary' }
 
+      # statically configure virtualbox NAT interface
       subconfig.vm.provision 'shell' do |s|
         s.path = 'provisioners/netcfg.sh'
         s.args = "#{primary['ip']} #{gateway}"
+      end
+
+      # add swap space
+      if hw_profile.key?('swap_gb')
+        subconfig.vm.provision 'shell' do |s|
+          s.path = 'provisioners/swap.sh'
+          s.args = hw_profile['swap_gb']
+        end
       end
 
       # network connections
@@ -55,9 +69,6 @@ Vagrant.configure('2') do |config|
 
         subconfig.vm.network('private_network', args)
       end
-
-      hw_profiles = topology['hardware_profiles']
-      hw_profile = hw_profiles[node['hardware_profile']]
 
       subconfig.vm.provider 'virtualbox' do |vb|
         vb.cpus = hw_profile['cpus']
@@ -104,4 +115,3 @@ Vagrant.configure('2') do |config|
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

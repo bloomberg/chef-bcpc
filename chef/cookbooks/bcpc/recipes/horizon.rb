@@ -34,8 +34,9 @@ end
 template '/etc/openstack-dashboard/local_settings.py' do
   source 'horizon/local_settings.py.erb'
   variables(
+    region: region,
     config: config,
-    nodes: get_headnodes(all: true)
+    headnodes: headnodes(all: true)
   )
   notifies :restart, 'service[horizon]', :delayed
 end

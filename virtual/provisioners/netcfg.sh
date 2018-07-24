@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-eth0_ip=$(netplan ip leases eth0 | grep -w ADDRESS | cut -d '=' -f 2)
 eth1_ip=${1}
 gateway=${2}
+
+if netplan ip leases eth0 > /dev/null 2>&1; then
+  eth0_ip=$(netplan ip leases eth0 | grep -w ADDRESS | cut -d '=' -f 2)
 
 cat > /etc/netplan/01-netcfg.yaml <<EOF
 ---
@@ -28,6 +30,8 @@ network:
       addresses:
         - ${eth0_ip}/24
 EOF
+fi
+
 
 cat > /etc/netplan/eth1.yaml <<EOF
 ---

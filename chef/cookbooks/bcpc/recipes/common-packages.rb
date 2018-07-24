@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: common-packages
 #
@@ -15,7 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+# system related packages
+package 'lldpd'
 
 # Network troubleshooting tools
 package 'ethtool'
@@ -53,5 +54,16 @@ package 'python-openstackclient'
 
 # packages used for operatons and file edits
 package 'jq'
-package 'screen'
 package 'tmux'
+
+package 'screen'
+
+cookbook_file '/etc/screenrc' do
+  source 'screen/screenrc'
+end
+
+package 'vim'
+
+cookbook_file '/etc/vim/vimrc' do
+  source 'vim/vimrc'
+end

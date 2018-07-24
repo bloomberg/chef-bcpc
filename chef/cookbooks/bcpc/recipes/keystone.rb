@@ -191,7 +191,7 @@ template '/etc/keystone/keystone.conf' do
 
   variables(
     db: database,
-    headnodes: get_headnodes(all: true)
+    headnodes: headnodes(all: true)
   )
 
   notifies :restart, 'service[keystone]', :immediately

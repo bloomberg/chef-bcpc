@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: glance
 #
@@ -15,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
@@ -207,7 +206,7 @@ template '/etc/glance/glance-api.conf' do
     db: database,
     os: openstack,
     config: config,
-    nodes: get_headnodes(all: true)
+    headnodes: headnodes(all: true)
   )
   notifies :restart, 'service[glance-api]', :immediately
 end

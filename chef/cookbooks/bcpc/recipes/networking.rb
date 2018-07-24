@@ -39,8 +39,8 @@ end
 # primary interface configuration
 #
 begin
-  primary = node_interfaces.find { |i| i['type'] == 'primary' }
-  raise 'unable to find primary interface' if primary.nil?
+  primary = node_interfaces(type: 'primary')
+  raise 'unable to find the primary interface' if primary.nil?
 
   data = {
     'network' => {
@@ -72,7 +72,7 @@ end
 # storage interface configuration
 #
 begin
-  storage = node_interfaces.find { |i| i['type'] == 'storage' }
+  storage = node_interfaces(type: 'storage')
   raise 'unable to find the storage interface' if storage.nil?
 
   data = {
@@ -120,7 +120,7 @@ begin
   end
 end
 
-if headnode?(node)
+if headnode?
 
   data = {
     'network' => {
@@ -145,15 +145,9 @@ execute 'netplan apply' do
   command 'netplan apply'
 end
 
-template '/etc/systemd/resolved.conf' do
-  source 'systemd/resolved.conf.erb'
-
-  vip = get_address(node['bcpc']['cloud']['vip']['ip'])
-
-  variables(
-    dns: vip,
-    fallback: node['bcpc']['dns_servers'].dup.join(' ')
-  )
-
+# update /etc/resolv.conf to point to the real resolv.conf to avoid using
+# systemds internal dns resolver
+link '/etc/resolv.conf' do
+  to '/run/systemd/resolve/resolv.conf'
   notifies :restart, 'service[systemd-resolved]', :immediately
 end

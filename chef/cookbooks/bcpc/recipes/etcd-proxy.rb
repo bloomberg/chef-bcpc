@@ -20,7 +20,7 @@ include_recipe 'bcpc::etcd-packages'
 systemd_unit 'etcd.service' do
   action %i[create enable restart]
 
-  headnodes = get_headnodes(all: true)
+  headnodes = headnodes(all: true)
 
   endpoints = headnodes.collect do |h|
     "http://#{h['ipaddress']}:2379"

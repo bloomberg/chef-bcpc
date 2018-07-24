@@ -132,3 +132,8 @@ template '/etc/updatedb.conf' do
   source 'updatedb/conf.erb'
   mode '644'
 end
+
+# configure system environment profile
+cookbook_file '/etc/profile.d/bcpc.sh' do
+  source 'profile.d/bcpc.sh'
+end

@@ -133,7 +133,7 @@ template '/etc/nova/nova.conf' do
   variables(
     db: database,
     config: config,
-    nodes: get_headnodes,
+    headnodes: headnodes,
     vip: get_address(node['bcpc']['cloud']['vip']['ip'])
   )
   notifies :restart, 'service[nova-compute]', :immediately
@@ -167,8 +167,8 @@ begin
     environment os_adminrc
     command "openstack aggregate add host #{az} #{node['hostname']}"
     not_if "
-      agg=$(openstack hypervisor show #{node['fqdn']} -f value -c aggregates)
-      echo ${agg} | grep -w #{az}
+      agg=$(openstack aggregate show #{az} -f value -c hosts)
+      echo ${agg} | grep -w #{node['hostname']}
     "
   end
 end
