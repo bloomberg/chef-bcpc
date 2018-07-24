@@ -16,8 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import print_function
+
 import os
-import sys
 import json
 from jinja2 import Environment, FileSystemLoader
 
@@ -171,7 +172,7 @@ def main():
     ssh_config = parse_ssh_config(args.ssh_conf)
     topology = parse_topology_config(args.topology_conf)
     inventory_data = get_inventory_data(ssh_config, topology['nodes'])
-    print generate_inventory(inventory_data)
+    print(generate_inventory(inventory_data))
 
 
 if __name__ == "__main__":
