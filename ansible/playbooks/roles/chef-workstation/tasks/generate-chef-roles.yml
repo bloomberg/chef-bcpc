@@ -1,49 +1,26 @@
-- name: import node role
-  include_vars:
-    file: "{{ playbook_dir }}/file_vars/chef/node.yml"
-    name: node
-
-- name: import bootstrap role
-  include_vars:
-    file: "{{ playbook_dir }}/file_vars/chef/bootstrap.yml"
-    name: bootstrap
-
-- name: import headnode role
-  include_vars:
-    file: "{{ playbook_dir }}/file_vars/chef/headnode.yml"
-    name: headnode
-
-- name: import worknode role
-  include_vars:
-    file: "{{ playbook_dir }}/file_vars/chef/worknode.yml"
-    name: worknode
-
 - name: create roles directory
   file:
     path: "{{ chef_roles_dir }}"
     state: directory
   delegate_to: localhost
 
-- name: generate node role
-  template:
-    src: chef-roles/node.json.j2
-    dest: "{{ chef_roles_dir }}/node.json"
-  delegate_to: localhost
+- name: import chef roles
+  include_vars:
+    file: "{{ playbook_dir }}/file_vars/chef/{{ item }}.yml"
+    name: "{{ item }}"
+  with_items:
+    - node
+    - bootstrap
+    - headnode
+    - worknode
 
-- name: generate bootstrap role
+- name: generate chef roles
   template:
-    src: chef-roles/bootstrap.json.j2
-    dest: "{{ chef_roles_dir }}/bootstrap.json"
-  delegate_to: localhost
-
-- name: generate headnode role
-  template:
-    src: chef-roles/headnode.json.j2
-    dest: "{{ chef_roles_dir }}/headnode.json"
-  delegate_to: localhost
-
-- name: generate worknode role
-  template:
-    src: chef-roles/worknode.json.j2
-    dest: "{{ chef_roles_dir }}/worknode.json"
+    src: "chef-roles/{{ item.role }}.json.j2"
+    dest: "{{ chef_roles_dir }}/{{ item.output }}"
+  with_items:
+    - {role: node, output: node.json}
+    - {role: bootstrap, output: bootstrap.json}
+    - {role: headnode, output: headnode.json}
+    - {role: worknode, output: worknode.json}
   delegate_to: localhost
