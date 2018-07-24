@@ -4,3 +4,4 @@
 - name: run chef-client
   become: true
   command: chef-client
+  changed_when: false

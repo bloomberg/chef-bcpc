@@ -15,20 +15,20 @@
     mode: 0755
 
 - name: get contents of chef validation key
-  shell: |
-    cat "/etc/chef/validator.pem"
+  slurp:
+    src: /etc/chef/validator.pem
   register: chef_validation_key
   delegate_to: "{{ chef_server_host }}"
 
 - name: install chef validation key
   become: false
   copy:
-    dest: "/etc/chef/validator.pem"
-    content: "{{ chef_validation_key.stdout }}"
+    dest: /etc/chef/validator.pem
+    content: "{{ chef_validation_key['content'] | b64decode }}"
 
 - name: get contents of chef client key
-  shell: |
-    cat "{{ chef_admin_client_key }}"
+  slurp:
+    src: '{{ chef_admin_client_key }}'
   register: chef_client_key
   delegate_to: "{{ chef_server_host }}"
 
@@ -36,7 +36,7 @@
   become: false
   copy:
     dest: "{{ chef_admin_client_key }}"
-    content: "{{ chef_client_key.stdout }}"
+    content: "{{ chef_client_key['content'] | b64decode }}"
 
 - name: create .chef/knife.rb
   become: false
@@ -48,6 +48,7 @@
 - name: fetch knife ssl certs
   become: false
   command: knife ssl fetch
+  changed_when: false
 
 - name: create /etc/chef/trusted_certs directory
   file:
@@ -80,9 +81,9 @@
   command: knife data bag show "{{ chef_environment }}"
   register: databag_check
   failed_when: databag_check.rc != 0
+  changed_when: false
   ignore_errors: true
 
 - name: create environment data bag
   when: databag_check is failed
-  shell: |
-    knife data bag create "{{ chef_environment }}"
+  command: knife data bag create '{{ chef_environment }}'

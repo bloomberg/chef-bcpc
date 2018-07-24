@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: system
 #
@@ -15,13 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 package 'tpm-tools'
 
 if node['bcpc']['kernel']['pin_version']
-
-  version = "#{node['bcpc']['kernel']['version']}"
+  version = node['bcpc']['kernel']['version']
 
   packages = [
     "linux-image-#{version}",
@@ -37,24 +34,20 @@ if node['bcpc']['kernel']['pin_version']
       not_if "dpkg -s #{pkg} | grep ^Status: | grep -q ' hold '"
     end
   end
-
 end
 
-
 # ipmi module loading and configuration
-#
 execute 'load ipmi_devintf kernel module' do
   command 'modprobe ipmi_devintf'
   not_if 'lsmod | grep ipmi_devintf'
 end
 
 execute 'load ipmi_devintf kernel module at boot' do
-  command "echo ipmi_devintf >> /etc/modules"
-  not_if "grep ipmi_devintf /etc/modules"
+  command 'echo ipmi_devintf >> /etc/modules'
+  not_if 'grep ipmi_devintf /etc/modules'
 end
 
 # ip_conntrack module loading and configuration
-#
 execute 'load ip_conntrack kernel module' do
   command 'modprobe ip_conntrack'
   not_if 'lsmod | grep nf_conntrack'
@@ -68,7 +61,7 @@ begin
   template '/etc/modprobe.d/nf_conntrack.conf' do
     source 'modprobe.d/nf_conntrack.conf.erb'
     variables(
-      :hashsize => hashsize
+      hashsize: hashsize
     )
   end
 
@@ -80,72 +73,62 @@ begin
 end
 
 # configure grub
-#
-template "/etc/default/grub" do
-  source "grub/default.erb"
+template '/etc/default/grub' do
+  source 'grub/default.erb'
 
   io_scheduler = node['bcpc']['hardware']['io_scheduler']
   cmdline = [].push("elevator=#{io_scheduler}")
-  cmdline = cmdline + node['bcpc']['grub']['cmdline_linux']
+  cmdline += node['bcpc']['grub']['cmdline_linux']
 
   variables(
-    :cmdline => cmdline.join(' ')
+    cmdline: cmdline.join(' ')
   )
 
-  notifies :run, "execute[update-grub]", :immediately
+  notifies :run, 'execute[update-grub]', :immediately
 end
 
-execute "update-grub" do
+execute 'update-grub' do
   action :nothing
-  command "update-grub2"
+  command 'update-grub2'
 end
-
 
 # sysctl configuration
-#
-template "/etc/sysctl.d/70-bcpc.conf" do
-  source "sysctl/bcpc.conf.erb"
-  mode 00644
+template '/etc/sysctl.d/70-bcpc.conf' do
+  source 'sysctl/bcpc.conf.erb'
+  mode '644'
 
   system = node['bcpc']['system']
 
   variables(
-    :parameters => system['parameters'],
-    :additional_reserved_ports => system['additional_reserved_ports']
+    parameters: system['parameters'],
+    additional_reserved_ports: system['additional_reserved_ports']
   )
-  notifies :run, "execute[reload-sysctl]", :immediately
+  notifies :run, 'execute[reload-sysctl]', :immediately
 end
 
-
-execute "reload-sysctl" do
+execute 'reload-sysctl' do
   action :nothing
-  command "sysctl -p /etc/sysctl.d/70-bcpc.conf"
+  command 'sysctl -p /etc/sysctl.d/70-bcpc.conf'
 end
 
-
-template "/etc/udev/rules.d/99-readahead.rules" do
-  source "udev/readahead.rules.erb"
-  mode 00644
+template '/etc/udev/rules.d/99-readahead.rules' do
+  source 'udev/readahead.rules.erb'
+  mode '644'
 end
-
 
 # configure I/O scheduler
-#
 block_devices = ::Dir.glob('/dev/sd?').map { |d| d.split('/').last }
 
 block_devices.each do |dev|
-
   io_scheduler = node['bcpc']['hardware']['io_scheduler']
 
   execute "set #{dev} io-scheduler to #{io_scheduler}" do
     command "echo #{io_scheduler} > /sys/block/#{dev}/queue/scheduler"
     not_if "grep '[#{io_scheduler}]' /sys/block/#{dev}/queue/scheduler"
   end
-
 end
-
 
 template '/etc/updatedb.conf' do
   source 'updatedb/conf.erb'
-  mode 00644
+  mode '644'
 end

@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: ceph-packages
 #
@@ -15,17 +14,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-if node['bcpc']['ceph']['repo']['enabled']
-  apt_repository 'ceph' do
-    uri node['bcpc']['ceph']['repo']['url']
-    distribution node['lsb']['codename']
-    components ['main']
-    key 'ceph/release.key'
-  end
+apt_repository 'ceph' do
+  uri node['bcpc']['ceph']['repo']['url']
+  distribution node['lsb']['codename']
+  components ['main']
+  key 'ceph/release.key'
+  only_if { node['bcpc']['ceph']['repo']['enabled'] }
 end
 
-['ceph','ceph-deploy'].each do |pkg|
+%w[ceph ceph-deploy].each do |pkg|
   package pkg
 end

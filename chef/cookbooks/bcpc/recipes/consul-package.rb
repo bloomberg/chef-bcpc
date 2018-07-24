@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc-consul
 # Recipe:: install
 #
@@ -15,17 +14,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 package 'unzip'
 
-consul_fn = "#{node['bcpc']['consul']['remote_file']['file']}"
+consul_fn = node['bcpc']['consul']['remote_file']['file']
 consul_fp = "#{Chef::Config[:file_cache_path]}/#{consul_fn}"
 
-remote_file "#{consul_fp}" do
+remote_file consul_fp do
   source "#{node['bcpc']['file_server']['url']}/#{consul_fn}"
-  checksum "#{node['bcpc']['consul']['remote_file']['checksum']}"
-  mode 00755
+  mode '755'
+  checksum node['bcpc']['consul']['remote_file']['checksum']
   notifies :run, 'execute[unpack consul]', :immediate
   notifies :create, 'remote_file[install consul]', :immediate
 end
@@ -36,11 +34,11 @@ execute 'unpack consul' do
   command "unzip -o #{consul_fn}"
 end
 
-remote_file "install consul" do
+remote_file 'install consul' do
   action :nothing
-  path "#{node['bcpc']['consul']['executable']}"
+  mode '755'
+  path node['bcpc']['consul']['executable']
   source "file://#{Chef::Config[:file_cache_path]}/consul"
-  mode 0755
 end
 
 [
@@ -53,11 +51,10 @@ end
 end
 
 systemd_unit 'consul.service' do
+  exec = node['bcpc']['consul']['executable']
+  conf = node['bcpc']['consul']['conf_dir']
 
-  exec = "#{node['bcpc']['consul']['executable']}"
-  conf = "#{node['bcpc']['consul']['conf_dir']}"
-
-  content <<-EOH.gsub(/^\s+/, '')
+  content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=consul agent
     Requires=network-online.target
@@ -75,7 +72,7 @@ systemd_unit 'consul.service' do
 
     [Install]
     WantedBy=multi-user.target
-  EOH
+  DOC
 
-  action [:create,:enable]
+  action %i[create enable]
 end

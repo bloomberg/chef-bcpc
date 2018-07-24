@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: memcached
 #
@@ -15,30 +14,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 package 'memcached' do
   action :install
 end
 
 file '/var/log/memcached.log' do
+  mode '644'
   owner 'memcache'
   group 'memcache'
-  mode  00644
 end
 
 template '/etc/memcached.conf' do
-  source   'memcached/memcached.conf.erb'
+  source 'memcached/memcached.conf.erb'
   variables(
-    :verbose => node['bcpc']['memcached']['debug'],
-    :connections => node['bcpc']['memcached']['connections']
+    verbose: node['bcpc']['memcached']['debug'],
+    connections: node['bcpc']['memcached']['connections']
   )
   notifies :restart, 'service[memcached]', :immediate
 end
 
 logrotate_app 'memcached' do
-  path      '/var/log/memcached.log'
+  path '/var/log/memcached.log'
   frequency 'daily'
-  rotate    10
-  options   ['compress', 'delaycompress', 'notifempty', 'copytruncate']
+  rotate 10
+  options %w[compress delaycompress notifempty copytruncate]
 end

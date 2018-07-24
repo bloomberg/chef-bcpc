@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: ssh
 #
@@ -15,29 +14,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 region = node['bcpc']['cloud']['region']
-config = data_bag_item(region,'config')
+config = data_bag_item(region, 'config')
 
-directory "/root/.ssh" do
-  mode 00700
+directory '/root/.ssh' do
+  mode '700'
 end
 
-file "/root/.ssh/authorized_keys" do
-  content "#{Base64.decode64(config['ssh']['public'])}"
-  mode 00640
+file '/root/.ssh/authorized_keys' do
+  mode '640'
+  content Base64.decode64(config['ssh']['public'])
 end
 
-file "/root/.ssh/id_rsa" do
-  content "#{Base64.decode64(config['ssh']['private'])}"
-  mode 00600
+file '/root/.ssh/id_rsa' do
+  mode '600'
+  content Base64.decode64(config['ssh']['private'])
 end
 
-template "/root/.ssh/known_hosts" do
-  source "ssh/known_hosts.erb"
-  mode 00644
+template '/root/.ssh/known_hosts' do
+  source 'ssh/known_hosts.erb'
+  mode '644'
   variables(
-    :nodes => get_all_nodes()
+    nodes: all_nodes
   )
 end

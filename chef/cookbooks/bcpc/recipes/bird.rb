@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: bird
 #
@@ -15,14 +14,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-if node['bcpc']['bird']['repo']['enabled']
-  apt_repository "bird" do
-    uri node['bcpc']['bird']['repo']['url']
-    distribution node['lsb']['codename']
-    components ["main"]
-    key "bird/release.key"
-  end
+
+apt_repository 'bird' do
+  uri node['bcpc']['bird']['repo']['url']
+  distribution node['lsb']['codename']
+  components ['main']
+  key 'bird/release.key'
+  only_if { node['bcpc']['bird']['repo']['enabled'] }
 end
 
 package "bird" do
@@ -32,12 +30,10 @@ end
 service 'bird'
 
 service 'bird6' do
-  action [:disable, :stop]
+  action %i[disable stop]
 end
 
-template '/etc/bird/bird.conf' do
-  source "bird/bird.conf.erb"
-
+begin
   topology = node['bcpc']['networking']['topology']
   racks = topology['racks']
   networks = topology['networks']
@@ -45,21 +41,23 @@ template '/etc/bird/bird.conf' do
   pod_id = node['bcpc']['networking']['pod_id']
   rack_id = node['bcpc']['networking']['rack_id']
 
-  rack = racks.find{ |r|
-    r['id'] == rack_id and r['pod'] == pod_id
-  }
-
-  if rack.nil?
-    raise "no rack found with an ID #{rack_id} and POD #{pod_id}"
+  rack = racks.find do |r|
+    r['id'] == rack_id && r['pod'] == pod_id
   end
 
-  variables(
-    :is_worknode => is_worknode(node),
-    :is_headnode => is_headnode(node),
-    :as_number => rack['bgp_as'],
-    :iface => networks['primary']['dev'],
-    :upstream_peer => rack['networks']['primary']['gateway']
-  )
+  raise "no rack found with an ID #{rack_id} and POD #{pod_id}" if rack.nil?
 
-  notifies :restart, 'service[bird]', :immediately
+  template '/etc/bird/bird.conf' do
+    source 'bird/bird.conf.erb'
+
+    variables(
+      is_worknode: worknode?(node),
+      is_headnode: headnode?(node),
+      as_number: rack['bgp_as'],
+      iface: networks['primary']['dev'],
+      upstream_peer: rack['networks']['primary']['gateway']
+    )
+
+    notifies :restart, 'service[bird]', :immediately
+  end
 end

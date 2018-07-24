@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: hwrng
 #
@@ -15,28 +14,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 return unless node['bcpc']['hwrng']['enabled']
 
-package "rng-tools"
-service "rng-tools"
+package 'rng-tools'
+service 'rng-tools'
 
 execute 'load rng kernel module' do
   command 'modprobe tpm_rng'
-  not_if "lsmod | grep -q tpm_rng"
+  not_if 'lsmod | grep -q tpm_rng'
 end
 
-execute "load rng kernel module on boot" do
-  command <<-EOH
+execute 'load rng kernel module on boot' do
+  command <<-DOC
     echo 'tpm_rng' >> /etc/modules
-  EOH
-  not_if "grep -w tpm_rng /etc/modules"
+  DOC
+  not_if 'grep -w tpm_rng /etc/modules'
 end
 
-template "/etc/default/rng-tools" do
+template '/etc/default/rng-tools' do
   source 'hwrng/rng-tools.erb'
-  mode   '00644'
+  mode '644'
   variables(
     rng_source: node['bcpc']['hwrng']['source']
   )

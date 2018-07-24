@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc-extra
 # Recipe:: kexec
 #
@@ -15,13 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 package 'kexec-tools' do
   action :install
 end
 
 cookbook_file '/etc/default/kexec' do
-  source "kexec/default"
-  mode '0644'
+  source 'kexec/default'
 end

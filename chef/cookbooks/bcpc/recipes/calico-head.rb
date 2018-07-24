@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: calico-head
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #
 include_recipe 'bcpc::calico-apt'
 
-%w(calico-control calico-common).each do |pkg|
+%w[calico-control calico-common].each do |pkg|
   package pkg do
     action :install
     notifies :restart, 'service[neutron-server]', :delayed
@@ -30,10 +30,9 @@ directory '/etc/calico'
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
 
-  headnodes = get_headnodes(all:true)
+  headnodes = get_headnodes(all: true)
 
   variables(
-    :nodes => headnodes.map{|h| "http://#{h['ipaddress']}:2379"}.join(',')
+    nodes: headnodes.map { |h| "http://#{h['ipaddress']}:2379" }.join(',')
   )
 end
-
