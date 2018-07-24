@@ -91,7 +91,7 @@ end
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
 
-  networks = node['bcpc']['networking']['topology']['networks']
+  networks = node['bcpc']['networking']['networks']
   primary = networks['primary']
   storage = networks['storage']
 

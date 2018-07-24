@@ -1,5 +1,3 @@
-# rubocop:disable Style/NumericLiterals
-
 default['bcpc']['catalog'] = {
   'identity' => {
     'name' => 'keystone',
@@ -92,5 +90,3 @@ default['bcpc']['catalog'] = {
     }
   }
 }
-
-# rubocop:enable Style/NumericLiterals

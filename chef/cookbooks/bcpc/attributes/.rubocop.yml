@@ -1,0 +1,4 @@
+Metrics/LineLength:
+  Enabled: false
+Style/NumericLiterals:
+  Enabled: false

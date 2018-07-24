@@ -102,7 +102,7 @@ end
 template '/etc/xinetd.d/mysqlchk' do
   source 'mysql/xinetd-mysqlchk.erb'
   mode '440'
-  networks = node['bcpc']['networking']['topology']['networks']
+  networks = node['bcpc']['networking']['networks']
   primary = networks['primary']
   variables(
     user: {

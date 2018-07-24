@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/LineLength,Style/NumericLiterals
-
 ###############################################################################
 # nova
 ###############################################################################
@@ -137,5 +135,3 @@ default['bcpc']['nova']['quota']['global']['floating-ips'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['floating-ips'] = -1
-
-# rubocop:enable Metrics/LineLength,Style/NumericLiterals

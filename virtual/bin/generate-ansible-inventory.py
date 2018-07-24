@@ -63,7 +63,12 @@ def get_group_hosts(group, ssh_config, nodes):
     group_hosts = {}
 
     for host in ssh_config:
-        node = list(filter(lambda node: node['host'] == host['Host'], nodes))
+
+        node = list(
+          filter(
+            lambda node: host['Host'] == node.get('name', node['host']), nodes
+          )
+        )
 
         if len(node) > 2:
             msg = "more than 1 node with the hostname {host} found"
@@ -86,7 +91,7 @@ def get_group_hosts(group, ssh_config, nodes):
             if len(primary_ip):
                 host_vars['primary_ip'] = primary_ip[0]
 
-            group_hosts.update({host['Host']: host_vars})
+            group_hosts.update({node['host']: host_vars})
 
     return group_hosts
 

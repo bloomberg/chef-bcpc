@@ -34,16 +34,8 @@ service 'bird6' do
 end
 
 begin
-  topology = node['bcpc']['networking']['topology']
-  racks = topology['racks']
-  networks = topology['networks']
-
-  pod_id = node['bcpc']['networking']['pod_id']
-  rack_id = node['bcpc']['networking']['rack_id']
-
-  rack = racks.find do |r|
-    r['id'] == rack_id && r['pod'] == pod_id
-  end
+  rack = node_rack
+  iface = node_interfaces.find { |i| i['type'] == 'primary' }
 
   raise "no rack found with an ID #{rack_id} and POD #{pod_id}" if rack.nil?
 
@@ -54,7 +46,7 @@ begin
       is_worknode: worknode?(node),
       is_headnode: headnode?(node),
       as_number: rack['bgp_as'],
-      iface: networks['primary']['dev'],
+      iface: iface['dev'],
       upstream_peer: rack['networks']['primary']['gateway']
     )
 
