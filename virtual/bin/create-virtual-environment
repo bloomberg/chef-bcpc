@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -xe
+
+bin_dir=$(dirname $0)
+virtual_dir=$(dirname $bin_dir)
+ansible_dir="${virtual_dir}/ansible"
+topology="${virtual_dir}/topology/topology.json"
+ssh_config=$(mktemp)
+
+(
+  cd $virtual_dir
+  vagrant up
+  vagrant ssh-config > ${ssh_config}
+)
+
+$bin_dir/generate-ansible-inventory \
+  --ssh-config ${ssh_config} \
+  --topology-config ${topology} > ${ansible_dir}/inventory

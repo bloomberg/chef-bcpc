@@ -1,11 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-require 'yaml'
+require 'json'
 
-topology_lp = 'topology/topology.yml'
-topology_fp = File.join(File.dirname(__FILE__), topology_lp)
-topology = YAML.load_file(topology_fp)
+topology = './topology/topology.json'
+topology = JSON.parse(File.read(File.expand_path(topology)))
 
 project_name = '/' + File.basename(File.dirname(Dir.getwd))
 vb_folder = %x[VBoxManage list systemproperties | grep 'Default machine folder']
@@ -26,7 +25,7 @@ Vagrant.configure("2") do |config|
       primary = networks.find {|n| n['type'] == 'primary'}
 
       subconfig.vm.provision "shell" do |s|
-        s.path = 'scripts/netcfg.sh'
+        s.path = 'provisioners/netcfg.sh'
         s.args = "#{primary['ip']} #{gateway}"
       end
 
