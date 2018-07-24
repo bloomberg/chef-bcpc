@@ -22,13 +22,6 @@ package "apport" do
 end
 
 template "/etc/default/apport" do
-  source "etc_default_apport.erb"
-  owner  "root"
-  group  "root"
-  mode   00644
+  source "apport/default.erb"
   notifies :restart, "service[apport]", :delayed
-end
-
-service "apport" do
-  action [:enable, :start]
 end

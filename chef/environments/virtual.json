@@ -5,6 +5,12 @@
   "chef_type": "environment",
   "override_attributes": {
     "bcpc": {
+      "grub": {
+        "cmdline_linux": [
+          "net.ifnames=0",
+          "biosdevname=0"
+        ]
+      },
       "proxy": {
         "enabled": false,
         "proxies": {
@@ -12,9 +18,9 @@
           "https": ""
         }
       },
-      "dns_servers" : [ "8.8.8.8" ],
+      "dns_servers" : [ "10.10.10.10" ],
       "ntp": {
-        "servers" : [ "time.google.com" ]
+        "servers" : [ "10.10.10.10" ]
       }
     }
   }

@@ -9,6 +9,14 @@
     "recipe[bcpc::ssl]",
     "recipe[bcpc::cloud-archive]",
     "recipe[bcpc::chrony]",
-    "recipe[bcpc::common-packages]"
+    "recipe[bcpc::postfix]",
+    "recipe[bcpc::common-packages]",
+    "recipe[bcpc::kexec]",
+    "recipe[bcpc::apport]",
+    "recipe[bcpc::etckeeper]",
+    "recipe[bcpc::cpupower]",
+    "recipe[bcpc::getty]",
+    "recipe[bcpc::hwrng]",
+    "recipe[bcpc::system]"
   ]
 }

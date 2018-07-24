@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: etckeeper
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 
-etckeeper_packages = ['git', 'etckeeper']
+package 'git'
+package 'etckeeper'
 
 package etckeeper_packages do
   action :install
@@ -34,12 +35,10 @@ end
 execute 'etckeeper-init' do
   command 'etckeeper init'
   creates '/etc/.git'
-  notifies :create, 'template[etckeeper-gitconfig]', :immediately
+  notifies :create, 'template[/etc/.git/config]', :immediately
 end
 
-template 'etckeeper-gitconfig' do
-  path '/etc/.git/config'
-  owner 'root'
-  group 'root'
+template '/etc/.git/config' do
+  source 'etckeeper/gitconfig.erb'
   mode '0644'
 end

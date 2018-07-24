@@ -2,7 +2,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: hwrng
 #
-# Copyright 2016, Bloomberg Finance L.P.
+# Copyright 2018, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,31 +17,28 @@
 # limitations under the License.
 #
 
-return unless node['bcpc']['enabled']['hwrng']
+return unless node['bcpc']['hwrng']['enabled']
 
-bash "ensure-tpm_rng-module-is-loaded" do
-  code <<-EOH
-    modprobe tpm_rng
-  EOH
+package "rng-tools"
+service "rng-tools"
+
+execute 'load rng kernel module' do
+  command 'modprobe tpm_rng'
   not_if "lsmod | grep -q tpm_rng"
 end
 
-bash "ensure-tpm_rng-module-loads-on-boot" do
-  code <<-EOH
+execute "load rng kernel module on boot" do
+  command <<-EOH
     echo 'tpm_rng' >> /etc/modules
   EOH
-  not_if "grep -q tpm_rng /etc/modules"
+  not_if "grep -w tpm_rng /etc/modules"
 end
 
-# note that changes to this template do not take effect until reboot
-# if rngd is already running
 template "/etc/default/rng-tools" do
-  source 'rng-tools.erb'
-  user   'root'
-  group  'root'
+  source 'hwrng/rng-tools.erb'
   mode   '00644'
   variables(
-    rng_source: node['bcpc']['system']['hwrng_source']
+    rng_source: node['bcpc']['hwrng']['source']
   )
 end
 
