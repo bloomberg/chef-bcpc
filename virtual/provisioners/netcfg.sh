@@ -24,7 +24,6 @@ cat > /etc/netplan/01-netcfg.yaml <<EOF
 ---
 network:
   version: 2
-  renderer: networkd
   ethernets:
     eth0:
       addresses:
@@ -37,7 +36,6 @@ cat > /etc/netplan/eth1.yaml <<EOF
 ---
 network:
   version: 2
-  renderer: networkd
   ethernets:
     eth1:
       addresses:
