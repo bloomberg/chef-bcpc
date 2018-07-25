@@ -250,8 +250,16 @@ execute 'create ceph cinder backend type' do
   environment os_adminrc
   command <<-DOC
     openstack volume type create ceph
-    openstack volume type set ceph \
-      --property volume_backend_name=ceph
   DOC
   not_if 'openstack volume type show ceph'
+end
+
+execute 'set ceph backend properties' do
+  environment os_adminrc
+  command <<-DOC
+    openstack volume type set ceph --property volume_backend_name=ceph
+  DOC
+  not_if "openstack volume type show ceph -c properties -f value | \
+    grep volume_backend_name=\'ceph\'
+  "
 end
