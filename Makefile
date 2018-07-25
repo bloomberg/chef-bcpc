@@ -18,7 +18,6 @@ all : \
 	chef-client \
 	discover-compute-nodes
 
-
 create :
 
 	virtual/bin/create-virtual-environment.sh
