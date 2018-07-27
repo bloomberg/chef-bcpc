@@ -13,7 +13,6 @@ run_list:
   - recipe[bcpc::consul]
   - recipe[bcpc::ceph-mon]
   - recipe[bcpc::ceph-mgr]
-  - recipe[bcpc::ceph-osd]
   - recipe[bcpc::haproxy]
   - recipe[bcpc::mysql]
   - recipe[bcpc::apache2]

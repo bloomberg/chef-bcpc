@@ -2,12 +2,32 @@
 fsid = <%= @config['ceph']['fsid'] %>
 public network = <%= @public_network %>
 cluster network = <%= @cluster_network %>
-mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
-mon host = <%= @headnodes.map{ |n| n['ipaddress'] }.join(',') %>
 auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx
-mon osd allow primary affinity = true
+mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
+mon host = <%= @headnodes.map{ |n| n['ipaddress'] }.join(',') %>
+max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
+osd crush chooseleaf type = <%= node['bcpc']['ceph']['choose_leaf_type'] %>
+
+[osd]
+osd crush update on start = false
+osd scrub load threshold = <%= node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
+
+#Settings to throttle OSD scrubbing
+osd scrub begin hour = <%= @node['bcpc']['ceph']['osd_scrub_begin_hour'] %>
+osd scrub end hour = <%= @node['bcpc']['ceph']['osd_scrub_end_hour'] %>
+osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
+osd scrub chunk min = <%= @node['bcpc']['ceph']['osd_scrub_chunk_min'] %>
+osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
+
+#Settings to throttle OSD recovery parameters
+osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
+osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
+osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
+osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
+osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
+osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
 
 [client.cinder]
 rbd cache = true

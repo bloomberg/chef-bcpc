@@ -57,9 +57,11 @@ end
 # create ceph rbd pool starts
 bash 'create ceph pool' do
   pool = node['bcpc']['cinder']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
 
   code <<-DOC
-    ceph osd pool create #{pool} 128 128
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
     ceph osd pool application enable #{pool} rbd
   DOC
 

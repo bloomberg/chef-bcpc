@@ -6,7 +6,6 @@ export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
-worknodes = $$(ansible worknodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
 	download-assets \
@@ -75,14 +74,7 @@ chef-client-worknodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t chef-client --limit worknodes \
-		-e 'run_once=true'
-
-	@if [ "${worknodes}" -gt 1 ]; then \
-		ansible-playbook -v \
-			-i ${inventory} ${playbooks}/site.yml \
-			-t chef-client --limit worknodes; \
-	fi
+		-t chef-client --limit worknodes
 
 discover-compute-nodes:
 

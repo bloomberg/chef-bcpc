@@ -59,35 +59,18 @@ template '/etc/ceph/ceph.client.admin.keyring' do
 end
 
 node['bcpc']['ceph']['osds'].each do |osd|
-  execute "ceph-deploy osd create #{osd}" do
+  bash "ceph-deploy osd create #{osd}" do
     cwd '/etc/ceph'
-    command "ceph-deploy osd create $(hostname):#{osd}; sleep 5"
+    code <<-EOH
+      ceph-deploy osd create #{node['hostname']}:#{osd}; sleep 5
+    EOH
     only_if "lsblk /dev/#{osd}"
     not_if "blkid /dev/#{osd}1 | grep 'ceph data'"
   end
 end
 
-# configure headnodes osds to have a low priority so they won't contain data
-ruby_block 'set primary anti-affinity for headnode osds' do
-  block do
-    ceph_osd_tree = Mixlib::ShellOut.new('ceph osd tree --format json')
-    ceph_osd_tree.run_command
-
-    osd_tree = JSON.parse(ceph_osd_tree.stdout)
-    host_node = osd_tree['nodes'].find { |n| n['name'] == node['hostname'] }
-
-    unless host_node.nil?
-      host_node.fetch('children', {}).each do |osd_id|
-        osd = osd_tree['nodes'].find { |n| n['id'] == osd_id }
-
-        next if osd['primary_affinity'] == 0
-
-        cmd = "ceph osd primary-affinity osd.#{osd_id} 0"
-        affinity = Mixlib::ShellOut.new(cmd)
-        affinity.run_command
-      end
-    end
-  end
-
-  only_if { headnode? }
+bash "move #{node['hostname']} host osds to ceph rack bucket" do
+  code <<-EOH
+    ceph osd crush move #{node['hostname']} rack=#{local_ceph_rack}
+  EOH
 end

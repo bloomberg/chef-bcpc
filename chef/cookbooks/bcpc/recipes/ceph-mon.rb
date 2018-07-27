@@ -156,3 +156,13 @@ begin
     end
   end
 end
+
+ceph_racks.each do |rack|
+  bash "create ceph #{rack} rack bucket" do
+    code <<-EOH
+      ceph osd crush add-bucket #{rack} rack
+      ceph osd crush move #{rack} root=default
+    EOH
+    not_if "ceph osd tree | grep #{rack}"
+  end
+end

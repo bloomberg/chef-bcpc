@@ -108,8 +108,18 @@ def get_address(cidr)
   IPAddress(cidr).address
 end
 
+def ceph_racks
+  racks = cloud_racks
+  racks.map { |rack| "rack#{rack['id']}" }
+end
+
+def local_ceph_rack
+  node_map = node_network_map
+  "rack#{node_map['rack_id']}"
+end
+
 def availability_zones
-  racks = node['bcpc']['networking']['racks']
+  racks = cloud_racks
   racks.map { |rack| "AZ-#{rack['id']}" }
 end
 

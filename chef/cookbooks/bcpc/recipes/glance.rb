@@ -212,9 +212,11 @@ end
 #
 bash 'create ceph pool' do
   pool = node['bcpc']['glance']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
 
   code <<-DOC
-    ceph osd pool create #{pool} 128 128
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
     ceph osd pool application enable #{pool} rbd
   DOC
 
@@ -231,6 +233,7 @@ end
 #
 # create ceph rbd volume pools ends
 
+=begin
 # create/upload cirros image starts
 #
 cirros = node['bcpc']['glance']['images']['cirros']
@@ -267,3 +270,4 @@ execute 'add cirros image' do
 end
 #
 # create/upload cirros image ends
+=end

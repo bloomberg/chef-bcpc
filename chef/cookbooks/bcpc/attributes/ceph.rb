@@ -5,12 +5,10 @@
 default['bcpc']['ceph']['repo']['enabled'] = false
 default['bcpc']['ceph']['repo']['url'] = ''
 
+default['bcpc']['ceph']['pg_num'] = 64
+default['bcpc']['ceph']['pgp_num'] = 64
 default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
-default['bcpc']['ceph']['pgp_auto_adjust'] = false
-default['bcpc']['ceph']['choose_leaf'] = 'node'
-
-default['bcpc']['ceph']['pgs_per_node'] = 128
-default['bcpc']['ceph']['max_pgs_per_osd'] = 512
+default['bcpc']['ceph']['choose_leaf_type'] = 0
 default['bcpc']['ceph']['osd_scrub_load_threshold'] = 0.5
 
 # Help minimize scrub influence on cluster performance
@@ -23,64 +21,12 @@ default['bcpc']['ceph']['osd_scrub_chunk_max'] = 5
 # Set to 0 to disable. See http://tracker.ceph.com/issues/8103
 default['bcpc']['ceph']['pg_warn_max_obj_skew'] = 10
 
-# Journal size could be 10GB or higher in some cases
-default['bcpc']['ceph']['journal_size'] = 2048
-
-# The 'portion' parameters should add up to ~100 across all pools
-default['bcpc']['ceph']['default']['replicas'] = 3
-default['bcpc']['ceph']['default']['type'] = 'hdd'
-default['bcpc']['ceph']['images']['replicas'] = 3
-default['bcpc']['ceph']['images']['portion'] = 33
-
-# Set images to hdd instead of sdd
-default['bcpc']['ceph']['images']['type'] = 'hdd'
-default['bcpc']['ceph']['images']['name'] = 'images'
-default['bcpc']['ceph']['volumes']['replicas'] = 3
-default['bcpc']['ceph']['volumes']['portion'] = 33
-default['bcpc']['ceph']['volumes']['name'] = 'volumes'
-
-# Created a new pool for VMs and set type to ssd
-default['bcpc']['ceph']['vms']['replicas'] = 3
-default['bcpc']['ceph']['vms']['portion'] = 33
-default['bcpc']['ceph']['vms']['type'] = 'ssd'
-default['bcpc']['ceph']['vms']['name'] = 'vms'
-
-# Set up crush rules
-default['bcpc']['ceph']['ssd']['rule'] = 'ssd'
-default['bcpc']['ceph']['hdd']['rule'] = 'hdd'
-
 # Set the default niceness of Ceph OSD and monitor processes
 default['bcpc']['ceph']['osd_niceness'] = -10
 default['bcpc']['ceph']['mon_niceness'] = -10
 
-# set the following 2 parameters to true to reduce
-# osds primary affinity to 0 on headnodes
-default['bcpc']['ceph']['allow_primary_affinity'] = true
-default['bcpc']['ceph']['set_headnode_affinity'] = true
-
 # set tcmalloc max total thread cache
 default['bcpc']['ceph']['tcmalloc_max_total_thread_cache_bytes'] = '128MB'
-
-# expected tunables when running ceph osd crush show-tunables
-# any deviation from these settings will stop the recipe from
-# reapplying optimal tunables
-default['bcpc']['ceph']['expected_tunables'] = {
-  'choose_local_tries' => 0,
-  'choose_local_fallback_tries' => 0,
-  'choose_total_tries' => 50,
-  'chooseleaf_descend_once' => 1,
-  'chooseleaf_vary_r' => 1,
-  'straw_calc_version' => 1,
-  'allowed_bucket_algs' => 54,
-  'optimal_tunables' => 0,
-  'legacy_tunables' => 0,
-  'require_feature_tunables' => 1,
-  'require_feature_tunables2' => 1,
-  'require_feature_tunables3' => 1,
-  'has_v2_rules' => 0,
-  'has_v3_rules' => 0,
-  'has_v4_buckets' => 1,
-}
 
 # sets the max open fds at the OS level
 default['bcpc']['ceph']['max_open_files'] = 2048
