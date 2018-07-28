@@ -11,7 +11,6 @@ max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 osd crush chooseleaf type = <%= node['bcpc']['ceph']['choose_leaf_type'] %>
 
 [osd]
-osd crush update on start = false
 osd scrub load threshold = <%= node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
 
 #Settings to throttle OSD scrubbing

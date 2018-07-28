@@ -58,19 +58,24 @@ template '/etc/ceph/ceph.client.admin.keyring' do
   )
 end
 
-node['bcpc']['ceph']['osds'].each do |osd|
-  bash "ceph-deploy osd create #{osd}" do
-    cwd '/etc/ceph'
-    code <<-EOH
-      ceph-deploy osd create #{node['hostname']}:#{osd}; sleep 5
-    EOH
-    only_if "lsblk /dev/#{osd}"
-    not_if "blkid /dev/#{osd}1 | grep 'ceph data'"
-  end
-end
+begin
+  rack = local_ceph_rack
+  host = node['hostname']
 
-bash "move #{node['hostname']} host osds to ceph rack bucket" do
-  code <<-EOH
-    ceph osd crush move #{node['hostname']} rack=#{local_ceph_rack}
-  EOH
+  node['bcpc']['ceph']['osds'].each do |osd|
+    bash "ceph-deploy osd create #{osd}" do
+      cwd '/etc/ceph'
+      code <<-EOH
+        ceph-deploy osd create #{host}:#{osd}; sleep 5
+      EOH
+      only_if "lsblk /dev/#{osd}"
+      not_if "blkid /dev/#{osd}1 | grep 'ceph data'"
+    end
+  end
+
+  bash "move #{host} host to ceph rack bucket" do
+    code <<-EOH
+      ceph osd crush move #{host} rack=#{rack}
+    EOH
+  end
 end
