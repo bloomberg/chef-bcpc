@@ -21,9 +21,8 @@ default['bcpc']['nova']['reserved_host_memory_mb'] = 1024
 default['bcpc']['nova']['cpu_allocation_ratio'] = 2.0
 
 # CPU passthrough/masking configurations
-default['bcpc']['nova']['cpu_config']['cpu_mode'] = nil
-default['bcpc']['nova']['cpu_config']['cpu_model'] = nil
-default['bcpc']['nova']['cpu_config']['vcpu_pin_set'] = nil
+default['bcpc']['nova']['cpu_config']['cpu_mode'] = 'none'
+default['bcpc']['nova']['cpu_config']['cpu_model'] = 'none'
 
 # select from between this many equally optimal hosts when launching an instance
 default['bcpc']['nova']['scheduler_host_subset_size'] = 3
@@ -72,12 +71,6 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
 )
-
-# configure optional Nova notification system
-default['bcpc']['nova']['notifications']['enabled'] = false
-default['bcpc']['nova']['notifications']['notification_topics'] = 'notifications'
-default['bcpc']['nova']['notifications']['notification_driver'] = 'messagingv2'
-default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_state'
 
 # flavors
 #

@@ -5,6 +5,7 @@
   "chef_type": "environment",
   "override_attributes": {
     "bcpc": {
+      "dns_servers": ["10.43.0.1"],
       "grub": {
         "cmdline_linux": [
           "net.ifnames=0",

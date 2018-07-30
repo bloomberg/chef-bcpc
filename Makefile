@@ -15,6 +15,7 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
+	enable-nova-compute-service \
 	discover-compute-nodes
 
 create :
@@ -75,6 +76,12 @@ chef-client-worknodes :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
+
+enable-nova-compute-service:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t enable-nova-compute-service --limit headnodes
 
 discover-compute-nodes:
 
