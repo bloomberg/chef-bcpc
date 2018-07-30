@@ -15,6 +15,7 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
+  upload-glance-images \
 	enable-nova-compute-service \
 	discover-compute-nodes
 
@@ -76,6 +77,12 @@ chef-client-worknodes :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
+
+upload-glance-images:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t upload-glance-images --limit headnodes
 
 enable-nova-compute-service:
 
