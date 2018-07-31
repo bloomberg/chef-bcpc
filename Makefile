@@ -15,8 +15,7 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
-  upload-glance-images \
-	enable-nova-compute-service \
+  glance-images \
 	discover-compute-nodes
 
 create :
@@ -78,11 +77,11 @@ chef-client-worknodes :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
 
-upload-glance-images:
+glance-images:
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-glance-images --limit headnodes
+		-t glance-images --limit headnodes
 
 enable-nova-compute-service:
 

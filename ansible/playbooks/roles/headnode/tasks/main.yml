@@ -1,77 +1,9 @@
-- name: discover compute nodes
+- import_tasks: discover-compute-nodes.yml
   become: true
   run_once: true
-  changed_when: false
-  command: nova-manage cell_v2 discover_hosts --verbose
   tags: [never,discover-compute-nodes]
 
-- name: enable nova compute service
+- import_tasks: glance-images.yml
   become: true
   run_once: true
-  changed_when: false
-  shell: |
-    set -x
-
-    source /root/admin-openrc
-
-    # get the status of all nova-compute servies in json format
-    services=$(openstack compute service list \
-      --service nova-compute -c Host -c Status -f json)
-
-    # filter status results for only hosts that have disabled services
-    disabled=$(echo ${services} | \
-      jq -r '.[] | select(.Status | contains("disabled")) .Host')
-
-    # enable nova-compute services on disabled hosts
-    echo "${disabled}" | \
-      xargs -n 1 -I % openstack compute service set --enable % nova-compute
-  args:
-    executable: /bin/bash
-  tags: [never,enable-nova-compute-service]
-
-- name: upload glance images
-  become: true
-  run_once: true
-  changed_when: false
-  shell: |
-    set -x
-
-    source /root/admin-openrc
-
-    cirros = node['bcpc']['glance']['images']['cirros']
-
-    remote_file cirros['target'] do
-      source cirros['source']
-      notifies :run, 'execute[convert cirros image]', :immediately
-      not_if 'openstack image list | grep -i cirros', environment: os_adminrc
-    end
-
-    execute 'convert cirros image' do
-      action :nothing
-
-      command <<-DOC
-        qemu-img convert -f qcow2 -O raw \
-          #{cirros['target']} \
-          #{Chef::Config[:file_cache_path]}/cirros.raw
-      DOC
-
-      notifies :run, 'execute[add cirros image]', :immediately
-    end
-
-    execute 'add cirros image' do
-      environment os_adminrc
-      action :nothing
-
-      command <<-DOC
-        openstack image create 'cirros' \
-          --public \
-          --container-format=bare \
-          --disk-format=raw \
-          --file #{Chef::Config[:file_cache_path]}/cirros.raw
-      DOC
-    end
-
-  args:
-    executable: /bin/bash
-  tags: [never,upload-glance-images]
-
+  tags: [never,glance-images]

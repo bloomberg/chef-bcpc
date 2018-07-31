@@ -1,0 +1,40 @@
+- name: check for image
+  shell: |
+    set -x
+    source /root/admin-openrc
+
+    openstack image show '{{ item.name }}'
+  register: image_check
+  failed_when: image_check.rc != 0
+  changed_when: false
+  ignore_errors: true
+  with_items:
+    "{{ bcpc.glance.images }}"
+
+- debug: var=image_check
+
+- name: upload glance image
+  when: image_check is failed
+  copy:
+    src: "{{ item.source }}"
+    dest: "/var/tmp/"
+  with_items:
+    "{{ bcpc.glance.images }}"
+
+- name: add glance image
+  changed_when: false
+  shell: |
+    set -x
+    source /root/admin-openrc
+
+    qemu-img convert -f qcow2 -O raw \
+      #{cirros['target']} \
+      #{Chef::Config[:file_cache_path]}/cirros.raw
+
+    openstack image create 'cirros' \
+      --public \
+      --container-format=bare \
+      --disk-format=raw \
+      --file #{Chef::Config[:file_cache_path]}/cirros.raw
+  args:
+    executable: /bin/bash

@@ -18,10 +18,3 @@ default['bcpc']['glance']['os']['username'] = 'glance'
 default['bcpc']['glance']['ceph']['user'] = 'glance'
 default['bcpc']['glance']['ceph']['pool']['name'] = 'images'
 default['bcpc']['glance']['ceph']['pool']['size'] = 1
-
-# images
-cirros = 'cirros-0.4.0-x86_64-disk.img'
-default['bcpc']['glance']['images']['cirros'] = {
-  'source' => "#{default['bcpc']['file_server']['url']}/#{cirros}",
-  'target' => "#{Chef::Config[:file_cache_path]}/#{cirros}",
-}
