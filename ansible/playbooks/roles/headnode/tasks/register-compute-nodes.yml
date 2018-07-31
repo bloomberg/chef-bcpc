@@ -1,8 +1,8 @@
-- name: discover compute nodes
+- name: nova-manage discover_hosts
   changed_when: false
   command: nova-manage cell_v2 discover_hosts --verbose
 
-- name: enable nova compute service
+- name: enable compute service
   changed_when: false
   shell: |
     set -x

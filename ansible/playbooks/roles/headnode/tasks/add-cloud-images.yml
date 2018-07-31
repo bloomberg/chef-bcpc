@@ -1,0 +1,28 @@
+- name: upload cloud images
+  copy:
+    src: "{{ item.source }}"
+    dest: "/var/tmp/"
+  with_items:
+    "{{ cloud.images }}"
+
+- name: add cloud images
+  shell: |
+    set -x
+    source /root/admin-openrc
+
+    if openstack image list | grep -w '{{ item.name }}'; then
+      exit 0
+    fi
+
+    qemu-img convert -f qcow2 -O raw "{{ item.input }}" "{{ item.output}}"
+
+    openstack image create "{{ item.name }}" \
+      --public \
+      --container-format=bare \
+      --disk-format=raw \
+      --file "{{ item.output }}"
+  args:
+    executable: /bin/bash
+  with_items:
+    "{{ cloud.images }}"
+

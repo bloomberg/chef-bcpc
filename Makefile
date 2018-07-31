@@ -15,8 +15,9 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
-  glance-images \
-	discover-compute-nodes
+	adjust-ceph-pool-pgs \
+	add-cloud-images \
+	register-compute-nodes
 
 create :
 
@@ -77,23 +78,23 @@ chef-client-worknodes :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
 
-glance-images:
+adjust-ceph-pool-pgs:
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t glance-images --limit headnodes
+		-t adjust-ceph-pool-pgs --limit headnodes
 
-enable-nova-compute-service:
-
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t enable-nova-compute-service --limit headnodes
-
-discover-compute-nodes:
+add-cloud-images:
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t discover-compute-nodes --limit headnodes
+		-t add-cloud-images --limit headnodes
+
+register-compute-nodes:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t register-compute-nodes --limit headnodes
 
 upload-bcpc :
 

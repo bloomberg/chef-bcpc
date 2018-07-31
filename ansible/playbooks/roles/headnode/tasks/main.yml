@@ -1,9 +1,14 @@
-- import_tasks: discover-compute-nodes.yml
+- import_tasks: register-compute-nodes.yml
   become: true
   run_once: true
-  tags: [never,discover-compute-nodes]
+  tags: [never,register-compute-nodes]
 
-- import_tasks: glance-images.yml
+- import_tasks: add-cloud-images.yml
   become: true
   run_once: true
-  tags: [never,glance-images]
+  tags: [never,add-cloud-images]
+
+- import_tasks: adjust-ceph-pool-pgs.yml
+  become: true
+  run_once: true
+  tags: [never,adjust-ceph-pool-pgs]
