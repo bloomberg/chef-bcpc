@@ -15,7 +15,6 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
-	adjust-ceph-pool-pgs \
 	add-cloud-images \
 	register-compute-nodes
 
@@ -33,15 +32,21 @@ operator :
 
 download-assets :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t download-assets
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t download-assets --limit localhost
 
 chef-server :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-server
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-server --limit bootstraps
 
 chef-workstation :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-workstation
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-workstation --limit bootstraps
 
 chef-node :
 
@@ -78,12 +83,6 @@ chef-client-worknodes :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
 
-adjust-ceph-pool-pgs:
-
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t adjust-ceph-pool-pgs --limit headnodes
-
 add-cloud-images:
 
 	ansible-playbook -v \
@@ -100,23 +99,23 @@ upload-bcpc :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc
+		-t upload-bcpc --limit bootstraps
 
 upload-all :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-extra-cookbooks
+		-t upload-extra-cookbooks --limit bootstraps
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc
+		-t upload-bcpc --limit bootstraps
 
 file-server :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t file-server
+		-t file-server --limit bootstraps
 
 ###############################################################################
 # helper targets
@@ -126,5 +125,11 @@ generate-chef-roles :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t generate-chef-roles
+		-t generate-chef-roles --limit bootstraps
+
+adjust-ceph-pool-pgs:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t adjust-ceph-pool-pgs --limit headnodes
 

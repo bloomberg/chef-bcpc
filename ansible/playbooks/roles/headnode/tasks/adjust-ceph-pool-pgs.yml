@@ -2,35 +2,54 @@
   changed_when: false
   shell: |
 
-    POOL_DETAIL=$(ceph osd pool ls detail 2> /dev/null)
-    DF=$(ceph df 2> /dev/null)
-    NUM_OSD=$(ceph osd ls 2> /dev/null | wc -l)
-
-    FORMAT="%-15s %8s %8s %8s %8s %8s %11s %11s %8s\n"
-    printf "$FORMAT" "POOL" "SIZE" "OSD#" "%DATA" "PG(100)" "PG(200)" "PG(100@80%)" "PG(200@80%)" "PG(NOW)"
-    printf "$FORMAT" | tr ' ' -
-
     power2() {
       if [ $1 -lt 1 ]; then echo 2; return; fi
       echo "x=l($1)/l(2); scale=0; 2^((x+0.5)/1)" | bc -l
     }
 
-    pgcalc() {
-      TARGET_POOL="$1"
-      SIZE=$(echo -n "$POOL_DETAIL" | grep $TARGET_POOL | awk '{print $6}')
-      PG_NOW=$(echo -n "$POOL_DETAIL" | grep $TARGET_POOL | awk '{print $16}')
-      PCT_DATA=$(echo -n "$DF" | grep $TARGET_POOL | awk '{print $4}')
+    pool_size() {
+      pool="$1"
+      echo $(ceph osd pool get ${pool} size -f json | jq '.size')
+    }
 
-      PG_100="$(power2 $(echo "(100 * $NUM_OSD * $PCT_DATA*0.01) / $SIZE" | bc))"
-      PG_100_80_PCT=$(power2 $(echo "(100 * $NUM_OSD * 80*0.01) / $SIZE" | bc))
-      PG_200=$(power2 $(echo "(200 * $NUM_OSD * $PCT_DATA*0.01) / $SIZE" | bc))
-      PG_200_80_PCT=$(power2 $(echo "(200 * $NUM_OSD * 80*0.01) / $SIZE" | bc))
+    pool_pg_num() {
+      pool="$1"
+      echo $(ceph osd pool get ${pool} pg_num -f json | jq '.pg_num')
+    }
 
-      printf "$FORMAT" "$TARGET_POOL" "$SIZE" "$NUM_OSD" "$PCT_DATA" "$PG_100" "$PG_200" "$PG_100_80_PCT" "$PG_200_80_PCT" "$PG_NOW"
+    pool_pg_num_calc() {
+      pool="$1"
+      size=$(pool_size ${pool})
+      pg_num=$(pool_pg_num ${pool})
+      num_osd=$(ceph osd ls 2> /dev/null | wc -l)
+      target_pg_num=$(power2 $(echo "(100 * $num_osd * 80*0.01) / $size" | bc))
+
+      echo "${target_pg_num}"
     }
 
     pools=$(ceph osd lspools -f json | jq -r '.[] .poolname')
 
-    for p in ${pools}; do
-      pgcalc $p
+    for pool in ${pools}; do
+      pg_num=$(pool_pg_num $pool)
+      target_pg_num=$(pool_pg_num_calc $pool)
+
+      if [ $pg_num -eq $target_pg_num ]; then
+        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+        continue
+      else
+        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+        while [ $pg_num -ne $target_pg_num ]; do
+          next_pg_num=$(echo $pg_num + 64 | bc)
+
+          ceph osd pool set $pool pg_num $next_pg_num
+          ceph osd pool set $pool pgp_num $next_pg_num
+
+          until ceph health | grep HEALTH_OK; do
+            ceph health
+          done
+
+          pg_num=${next_pg_num}
+        done
+        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+      fi
     done
