@@ -73,6 +73,11 @@ assets_files:
     checksum: sha256:a8dd75ecffd4cdd96072d60c2237b448e0c8b2bc94d57f10fdbc8c481d9005b8
     filename: cirros-0.4.0-x86_64-disk.img
 
+  - name: ubuntu-18.04
+    url: http://cloud-images.ubuntu.com/releases/18.04/release-20180724/ubuntu-18.04-server-cloudimg-amd64.img
+    checksum: sha256:6d663a8fd5eddd916f4aef4fd06d0f7f4cf0bb191f170b8c84cd2adf297bc5c3
+    filename: ubuntu-18.04-server-cloudimg-amd64.img
+
   - name: etcd
     url: https://github.com/coreos/etcd/releases/download/v3.3.7/etcd-v3.3.7-linux-amd64.tar.gz
     checksum: sha256:251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c
@@ -123,3 +128,7 @@ cloud:
       input: /var/tmp/cirros-0.4.0-x86_64-disk.img
       output: /var/tmp/cirros-0.4.0-x86_64-disk.raw
       source: "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
+    - name: ubuntu-18.04
+      input: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.img
+      output: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.raw
+      source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd64.img"
