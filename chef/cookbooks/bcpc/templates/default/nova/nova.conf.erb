@@ -140,8 +140,8 @@ novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_aut
 <% end %>
 
 [notifications]
-notify_on_state_change = <%= default['bcpc']['nova']['notifications']['notify_on_state_change'] %>
+notify_on_state_change = <%= node['bcpc']['nova']['notifications']['notify_on_state_change'] %>
 
 [oslo_messaging_notifications]
-driver = <%= default['bcpc']['nova']['notifications']['driver'] %>
-topics = <%= default['bcpc']['nova']['notifications']['topics'] %>
+driver = <%= node['bcpc']['nova']['notifications']['driver'] %>
+topics = <%= node['bcpc']['nova']['notifications']['topics'] %>
