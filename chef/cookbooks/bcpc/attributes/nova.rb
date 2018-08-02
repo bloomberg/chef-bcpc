@@ -13,6 +13,9 @@ default['bcpc']['nova']['ceph']['user'] = 'cinder'
 default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
 default['bcpc']['nova']['ceph']['pool']['size'] = 1
 
+# Defines which physical CPUs (pCPUs) can be used by instance virtual CPUs
+default['bcpc']['nova']['vcpu_pin_set'] = 'none'
+
 # Over-allocation settings. Set according to your cluster
 # SLAs. Default is to not allow over allocation of memory
 # a slight over allocation of CPU (x2).
