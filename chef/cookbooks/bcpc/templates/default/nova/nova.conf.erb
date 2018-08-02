@@ -10,14 +10,13 @@ ssl_only = false
 key = /etc/nova/ssl-bcpc.key
 cert = /etc/nova/ssl-bcpc.pem
 my_ip = <%= node['ipaddress'] %>
+enable_new_services = false
 
-<% if node['bcpc']['nova']['cpu_config']['vcpu_pin_set'] %>
-vcpu_pin_set = <%= node['bcpc']['nova']['cpu_config']['vcpu_pin_set'] %>
-<% end %>
-
-reserved_host_memory_mb = <%= node['bcpc']['nova']['reserved_host_memory_mb'] %>
 cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
+vcpu_pin_set =  <%= node['bcpc']['nova']['vcpu_pin_set'] %>
+
 ram_allocation_ratio = <%= node['bcpc']['nova']['ram_allocation_ratio'] %>
+reserved_host_memory_mb = <%= node['bcpc']['nova']['reserved_host_memory_mb'] %>
 resume_guests_state_on_host_boot = <%= node['bcpc']['nova']['resume_guests_state_on_host_boot'] %>
 max_concurrent_builds = <%= node['bcpc']['nova']['max_concurrent_builds'] %>
 sync_power_state_interval = <%= node['bcpc']['nova']['sync_power_state_interval'] %>
@@ -142,13 +141,9 @@ vncserver_proxyclient_address = <%= node['ipaddress'] %>
 novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_auto.html" %>
 <% end %>
 
-
-<% if node['bcpc']['nova']['notifications']['enabled'] %>
 [notifications]
 notify_on_state_change = <%= node['bcpc']['nova']['notifications']['notify_on_state_change'] %>
 
-
 [oslo_messaging_notifications]
-driver = <%= node['bcpc']['nova']['notifications']['notification_driver'] %>
-topics = <%= node['bcpc']['nova']['notifications']['notification_topics'] %>
-<% end %>
+driver = <%= node['bcpc']['nova']['notifications']['driver'] %>
+topics = <%= node['bcpc']['nova']['notifications']['topics'] %>

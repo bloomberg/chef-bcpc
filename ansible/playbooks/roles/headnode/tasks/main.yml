@@ -1,6 +1,14 @@
-- name: discover compute nodes
+- import_tasks: register-compute-nodes.yml
   become: true
-  command: nova-manage cell_v2 discover_hosts --verbose
-  changed_when: false
-  tags: [never,discover-compute-nodes]
   run_once: true
+  tags: [never,register-compute-nodes]
+
+- import_tasks: add-cloud-images.yml
+  become: true
+  run_once: true
+  tags: [never,add-cloud-images]
+
+- import_tasks: adjust-ceph-pool-pgs.yml
+  become: true
+  run_once: true
+  tags: [never,adjust-ceph-pool-pgs]

@@ -20,6 +20,31 @@ config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
 
+# create ceph rbd pool starts
+#
+bash 'create ceph pool' do
+  pool = node['bcpc']['glance']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
+
+  code <<-DOC
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
+    ceph osd pool application enable #{pool} rbd
+  DOC
+
+  not_if "ceph osd pool ls | grep -w #{pool}"
+end
+
+execute 'set ceph pool size' do
+  size = node['bcpc']['glance']['ceph']['pool']['size']
+  pool = node['bcpc']['glance']['ceph']['pool']['name']
+
+  command "ceph osd pool set #{pool} size #{size}"
+  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
+end
+#
+# create ceph rbd pool ends
+
 # hash used for database creation and access
 #
 database = {
@@ -207,63 +232,3 @@ execute 'wait for glance to come online' do
   retries 15
   command 'openstack image list'
 end
-
-# create ceph rbd pool starts
-#
-bash 'create ceph pool' do
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-
-  code <<-DOC
-    ceph osd pool create #{pool} 128 128
-    ceph osd pool application enable #{pool} rbd
-  DOC
-
-  not_if "ceph osd pool ls | grep -w #{pool}"
-end
-
-execute 'set ceph pool size' do
-  size = node['bcpc']['glance']['ceph']['pool']['size']
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-#
-# create ceph rbd volume pools ends
-
-# create/upload cirros image starts
-#
-cirros = node['bcpc']['glance']['images']['cirros']
-
-remote_file cirros['target'] do
-  source cirros['source']
-  notifies :run, 'execute[convert cirros image]', :immediately
-  not_if 'openstack image list | grep -i cirros', environment: os_adminrc
-end
-
-execute 'convert cirros image' do
-  action :nothing
-
-  command <<-DOC
-    qemu-img convert -f qcow2 -O raw \
-      #{cirros['target']} \
-      #{Chef::Config[:file_cache_path]}/cirros.raw
-  DOC
-
-  notifies :run, 'execute[add cirros image]', :immediately
-end
-
-execute 'add cirros image' do
-  environment os_adminrc
-  action :nothing
-
-  command <<-DOC
-    openstack image create 'cirros' \
-      --public \
-      --container-format=bare \
-      --disk-format=raw \
-      --file #{Chef::Config[:file_cache_path]}/cirros.raw
-  DOC
-end
-#
-# create/upload cirros image ends

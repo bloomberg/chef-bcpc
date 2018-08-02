@@ -13,6 +13,9 @@ default['bcpc']['nova']['ceph']['user'] = 'cinder'
 default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
 default['bcpc']['nova']['ceph']['pool']['size'] = 1
 
+# Defines which physical CPUs (pCPUs) can be used by instance virtual CPUs
+default['bcpc']['nova']['vcpu_pin_set'] = 'none'
+
 # Over-allocation settings. Set according to your cluster
 # SLAs. Default is to not allow over allocation of memory
 # a slight over allocation of CPU (x2).
@@ -20,13 +23,18 @@ default['bcpc']['nova']['ram_allocation_ratio'] = 1.0
 default['bcpc']['nova']['reserved_host_memory_mb'] = 1024
 default['bcpc']['nova']['cpu_allocation_ratio'] = 2.0
 
+# nova/oslo notification settings
+default['bcpc']['nova']['notifications']['topics'] = 'notifications'
+default['bcpc']['nova']['notifications']['driver'] = 'messagingv2'
+default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_state'
+
 # CPU passthrough/masking configurations
-default['bcpc']['nova']['cpu_config']['cpu_mode'] = nil
-default['bcpc']['nova']['cpu_config']['cpu_model'] = nil
-default['bcpc']['nova']['cpu_config']['vcpu_pin_set'] = nil
+default['bcpc']['nova']['cpu_config']['cpu_mode'] = 'none'
+default['bcpc']['nova']['cpu_config']['cpu_model'] = 'none'
 
 # select from between this many equally optimal hosts when launching an instance
 default['bcpc']['nova']['scheduler_host_subset_size'] = 3
+
 # maximum number of builds to allow the scheduler to run simultaneously
 # (setting too high may cause Three Stooges Syndrome, particularly on RBD-intensive operations)
 default['bcpc']['nova']['max_concurrent_builds'] = 4
@@ -72,12 +80,6 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
 )
-
-# configure optional Nova notification system
-default['bcpc']['nova']['notifications']['enabled'] = false
-default['bcpc']['nova']['notifications']['notification_topics'] = 'notifications'
-default['bcpc']['nova']['notifications']['notification_driver'] = 'messagingv2'
-default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_state'
 
 # flavors
 #

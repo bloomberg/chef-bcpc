@@ -61,12 +61,22 @@ chef_external_cookbooks:
   - hostsfile
   - cron
 
+node_hostname: "{{ inventory_hostname }}"
+node_fqdn: "{{ inventory_hostname }}.{{ cloud_domain }}"
+node_ip: "{{ primary_ip | default(ansible_host) | ipaddr('address') }}"
+node_runlist: "{{ hostvars[inventory_hostname].run_list | join (',') }}"
+
 assets_download_dir: "{{ root_dir }}/assets"
 assets_files:
   - name: cirros
     url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
     checksum: sha256:a8dd75ecffd4cdd96072d60c2237b448e0c8b2bc94d57f10fdbc8c481d9005b8
     filename: cirros-0.4.0-x86_64-disk.img
+
+  - name: ubuntu-18.04
+    url: http://cloud-images.ubuntu.com/releases/18.04/release-20180724/ubuntu-18.04-server-cloudimg-amd64.img
+    checksum: sha256:6d663a8fd5eddd916f4aef4fd06d0f7f4cf0bb191f170b8c84cd2adf297bc5c3
+    filename: ubuntu-18.04-server-cloudimg-amd64.img
 
   - name: etcd
     url: https://github.com/coreos/etcd/releases/download/v3.3.7/etcd-v3.3.7-linux-amd64.tar.gz
@@ -108,7 +118,17 @@ assets_files:
     checksum: sha256:7c2157550e8e4bd784580ec2bf127be44327333554f9bb7a37bd17ae4bd21dfe
     filename: cron-5.1.0.tar.gz
 
-node_hostname: "{{ inventory_hostname }}"
-node_fqdn: "{{ inventory_hostname }}.{{ cloud_domain }}"
-node_ip: "{{ primary_ip | default(ansible_host) | ipaddr('address') }}"
-node_runlist: "{{ hostvars[inventory_hostname].run_list | join (',') }}"
+###############################################################################
+# cloud images
+###############################################################################
+
+cloud:
+  images:
+    - name: cirros
+      input: /var/tmp/cirros-0.4.0-x86_64-disk.img
+      output: /var/tmp/cirros-0.4.0-x86_64-disk.raw
+      source: "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
+    - name: ubuntu-18.04
+      input: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.img
+      output: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.raw
+      source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd64.img"

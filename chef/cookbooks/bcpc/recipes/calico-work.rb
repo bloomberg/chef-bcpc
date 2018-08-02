@@ -33,7 +33,7 @@ directory '/etc/calico'
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
   variables(
-    nodes: ['http://localhost:2379']
+    etcd_endpoints: 'http://localhost:2379'
   )
 end
 

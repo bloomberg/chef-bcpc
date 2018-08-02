@@ -6,7 +6,6 @@ export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
-worknodes = $$(ansible worknodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
 	download-assets \
@@ -16,7 +15,8 @@ all : \
 	chef-node \
 	file-server \
 	chef-client \
-	discover-compute-nodes
+	add-cloud-images \
+	register-compute-nodes
 
 create :
 
@@ -32,15 +32,21 @@ operator :
 
 download-assets :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t download-assets
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t download-assets --limit localhost
 
 chef-server :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-server
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-server --limit bootstraps
 
 chef-workstation :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-workstation
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-workstation --limit bootstraps
 
 chef-node :
 
@@ -75,42 +81,41 @@ chef-client-worknodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t chef-client --limit worknodes \
-		-e 'run_once=true'
+		-t chef-client --limit worknodes
 
-	@if [ "${worknodes}" -gt 1 ]; then \
-		ansible-playbook -v \
-			-i ${inventory} ${playbooks}/site.yml \
-			-t chef-client --limit worknodes; \
-	fi
-
-discover-compute-nodes:
+add-cloud-images:
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t discover-compute-nodes --limit headnodes
+		-t add-cloud-images --limit headnodes
+
+register-compute-nodes:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t register-compute-nodes --limit headnodes
 
 upload-bcpc :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc
+		-t upload-bcpc --limit bootstraps
 
 upload-all :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-extra-cookbooks
+		-t upload-extra-cookbooks --limit bootstraps
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc
+		-t upload-bcpc --limit bootstraps
 
 file-server :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t file-server
+		-t file-server --limit bootstraps
 
 ###############################################################################
 # helper targets
@@ -120,5 +125,11 @@ generate-chef-roles :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t generate-chef-roles
+		-t generate-chef-roles --limit bootstraps
+
+adjust-ceph-pool-pgs:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t adjust-ceph-pool-pgs --limit headnodes
 

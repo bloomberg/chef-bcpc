@@ -1,0 +1,55 @@
+- name: adjust ceph pool pgs
+  changed_when: false
+  shell: |
+
+    power2() {
+      if [ $1 -lt 1 ]; then echo 2; return; fi
+      echo "x = l($1) / l(2); scale = 0; 2 ^ ((x + 0.5) / 1)" | bc -l
+    }
+
+    pool_size() {
+      pool="$1"
+      echo $(ceph osd pool get ${pool} size -f json | jq '.size')
+    }
+
+    pool_pg_num() {
+      pool="$1"
+      echo $(ceph osd pool get ${pool} pg_num -f json | jq '.pg_num')
+    }
+
+    pool_pg_num_calc() {
+      pool="$1"
+      size=$(pool_size ${pool})
+      pg_num=$(pool_pg_num ${pool})
+      num_osd=$(ceph osd ls 2> /dev/null | wc -l)
+      target_pg_num=$(power2 $(echo "(100 * $num_osd * 80 * 0.01) / $size" | bc))
+
+      echo "${target_pg_num}"
+    }
+
+    pools=$(ceph osd lspools -f json | jq -r '.[] .poolname')
+
+    for pool in ${pools}; do
+      pg_num=$(pool_pg_num $pool)
+      target_pg_num=$(pool_pg_num_calc $pool)
+
+      echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+
+      if [ $pg_num -eq $target_pg_num ]; then
+        continue
+      else
+        while [ $pg_num -ne $target_pg_num ]; do
+          next_pg_num=$(echo $pg_num + 64 | bc)
+
+          ceph osd pool set $pool pg_num $next_pg_num
+          ceph osd pool set $pool pgp_num $next_pg_num
+
+          until ceph health | grep HEALTH_OK; do
+            ceph health
+          done
+
+          pg_num=${next_pg_num}
+        done
+        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+      fi
+    done
