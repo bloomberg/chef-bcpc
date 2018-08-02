@@ -14,15 +14,12 @@
       exit 0
     fi
 
-    qemu-img convert -f qcow2 -O raw "{{ item.input }}" "{{ item.output}}"
+    qemu-img convert -f qcow2 -O raw "{{ item.input }}" "{{ item.output }}"
 
     openstack image create "{{ item.name }}" \
       --public \
-      --container-format=bare \
-      --disk-format=raw \
       --file "{{ item.output }}"
   args:
     executable: /bin/bash
   with_items:
     "{{ cloud.images }}"
-

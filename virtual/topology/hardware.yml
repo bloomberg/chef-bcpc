@@ -7,9 +7,9 @@ profiles:
     cpus: 2
     swap_gb: 10
   worknode:
-    ram_gb: 2
+    ram_gb: 3
     cpus: 2
     swap_gb: 10
     ext_disks:
       count: 4
-      size_gb: 5
+      size_gb: 10

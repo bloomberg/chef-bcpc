@@ -4,7 +4,7 @@
 
     power2() {
       if [ $1 -lt 1 ]; then echo 2; return; fi
-      echo "x=l($1)/l(2); scale=0; 2^((x+0.5)/1)" | bc -l
+      echo "x = l($1) / l(2); scale = 0; 2 ^ ((x + 0.5) / 1)" | bc -l
     }
 
     pool_size() {
@@ -22,7 +22,7 @@
       size=$(pool_size ${pool})
       pg_num=$(pool_pg_num ${pool})
       num_osd=$(ceph osd ls 2> /dev/null | wc -l)
-      target_pg_num=$(power2 $(echo "(100 * $num_osd * 80*0.01) / $size" | bc))
+      target_pg_num=$(power2 $(echo "(100 * $num_osd * 80 * 0.01) / $size" | bc))
 
       echo "${target_pg_num}"
     }
@@ -33,11 +33,11 @@
       pg_num=$(pool_pg_num $pool)
       target_pg_num=$(pool_pg_num_calc $pool)
 
+      echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
+
       if [ $pg_num -eq $target_pg_num ]; then
-        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
         continue
       else
-        echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
         while [ $pg_num -ne $target_pg_num ]; do
           next_pg_num=$(echo $pg_num + 64 | bc)
 
