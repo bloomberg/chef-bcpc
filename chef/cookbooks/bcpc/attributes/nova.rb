@@ -14,7 +14,7 @@ default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
 default['bcpc']['nova']['ceph']['pool']['size'] = 1
 
 # Defines which physical CPUs (pCPUs) can be used by instance virtual CPUs
-default['bcpc']['nova']['vcpu_pin_set'] = 'none'
+default['bcpc']['nova']['vcpu_pin_set'] = nil
 
 # Over-allocation settings. Set according to your cluster
 # SLAs. Default is to not allow over allocation of memory
