@@ -23,9 +23,9 @@ remote_file fp do
   mode '755'
 
   checksum node['bcpc']['etcd']['remote']['checksum']
-  notifies :run, 'execute[unpack etcd]', :immediate
-  notifies :create, 'remote_file[install etcd]', :immediate
-  notifies :create, 'remote_file[install etcdctl]', :immediate
+  notifies :run, 'execute[unpack etcd]', :immediately
+  notifies :create, 'remote_file[install etcd]', :immediately
+  notifies :create, 'remote_file[install etcdctl]', :immediately
 end
 
 execute 'unpack etcd' do

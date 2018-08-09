@@ -24,8 +24,8 @@ remote_file consul_fp do
   source "#{node['bcpc']['file_server']['url']}/#{consul_fn}"
   mode '755'
   checksum node['bcpc']['consul']['remote_file']['checksum']
-  notifies :run, 'execute[unpack consul]', :immediate
-  notifies :create, 'remote_file[install consul]', :immediate
+  notifies :run, 'execute[unpack consul]', :immediately
+  notifies :create, 'remote_file[install consul]', :immediately
 end
 
 execute 'unpack consul' do

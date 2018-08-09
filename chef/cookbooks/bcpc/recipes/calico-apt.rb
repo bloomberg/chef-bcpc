@@ -22,7 +22,7 @@ remote_file fp do
   mode '755'
   source node['bcpc']['calico']['remote']['source']
   checksum node['bcpc']['calico']['remote']['checksum']
-  notifies :create, 'remote_file[install calicoctl]', :immediate
+  notifies :create, 'remote_file[install calicoctl]', :immediately
 end
 
 remote_file 'install calicoctl' do

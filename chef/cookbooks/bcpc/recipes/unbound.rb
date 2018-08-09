@@ -44,5 +44,5 @@ end
 # Disable DNSSEC
 file '/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf' do
   action :delete
-  notifies :restart, 'service[unbound]', :immediate
+  notifies :restart, 'service[unbound]', :immediately
 end

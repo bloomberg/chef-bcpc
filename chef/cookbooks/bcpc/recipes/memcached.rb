@@ -30,7 +30,7 @@ template '/etc/memcached.conf' do
     verbose: node['bcpc']['memcached']['debug'],
     connections: node['bcpc']['memcached']['connections']
   )
-  notifies :restart, 'service[memcached]', :immediate
+  notifies :restart, 'service[memcached]', :immediately
 end
 
 logrotate_app 'memcached' do
