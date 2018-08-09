@@ -89,4 +89,19 @@ default['bcpc']['catalog'] = {
       'public' => '',
     },
   },
+  'dns' => {
+    'name' => 'designate',
+    'project' => 'designate',
+    'description' => 'OpenStack DNS Service',
+    'ports' => {
+      'public' => 9001,
+      'internal' => 9001,
+      'admin' => 9001,
+    },
+    'uris' => {
+      'admin' => '',
+      'internal' => '',
+      'public' => '',
+    },
+  },
 }

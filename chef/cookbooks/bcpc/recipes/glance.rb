@@ -128,8 +128,7 @@ begin
     desc = service['description']
 
     command <<-DOC
-      openstack service create \
-        --name "#{name}" --description "#{desc}" #{type}
+      openstack service create --name "#{name}" --description "#{desc}" #{type}
     DOC
 
     not_if "openstack service list | grep #{type}"
@@ -142,13 +141,10 @@ begin
       environment os_adminrc
 
       command <<-DOC
-        openstack endpoint create \
-          --region #{region} #{type} #{uri} '#{url}'
+        openstack endpoint create --region #{region} #{type} #{uri} '#{url}'
       DOC
 
-      not_if "openstack endpoint list \
-        | grep #{type} | grep #{uri}
-      "
+      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
     end
   end
 end

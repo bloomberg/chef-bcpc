@@ -26,7 +26,7 @@ default['bcpc']['nova']['cpu_allocation_ratio'] = 2.0
 # nova/oslo notification settings
 default['bcpc']['nova']['notifications']['topics'] = 'notifications'
 default['bcpc']['nova']['notifications']['driver'] = 'messagingv2'
-default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_state'
+default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_and_task_state'
 
 # CPU passthrough/masking configurations
 default['bcpc']['nova']['cpu_config']['cpu_mode'] = 'none'

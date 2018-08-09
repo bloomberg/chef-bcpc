@@ -50,7 +50,7 @@ template '/etc/haproxy/haproxy.cfg' do
   variables(
     headnodes: headnodes(all: true),
     user: config['haproxy'],
-    vip: get_address(node['bcpc']['cloud']['vip']['ip']),
+    vip: node['bcpc']['cloud']['vip']['ip'],
     max_connections: node['bcpc']['mysql']['max_connections']
   )
   notifies :restart, 'service[haproxy]', :immediately

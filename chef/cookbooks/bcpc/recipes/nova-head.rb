@@ -334,7 +334,7 @@ template '/etc/nova/nova.conf' do
     config: config,
     headnodes: headnodes(all: true),
     is_headnode: headnode?,
-    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
+    vip: node['bcpc']['cloud']['vip']['ip']
   )
 
   notifies :run, 'execute[update cell1]', :immediately

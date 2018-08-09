@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-service 'systemd-resolved'
+vip = node['bcpc']['cloud']['vip']
 
-vip = get_address(node['bcpc']['cloud']['vip']['ip'])
+service 'systemd-resolved'
 
 cookbook_file '/etc/modules-load.d/8021q.conf' do
   source 'modules-load.d/8021q.conf'
@@ -31,7 +31,7 @@ end
 template '/etc/hosts' do
   source 'etc/hosts.erb'
   variables(
-    vip: vip,
+    vip: vip['ip'],
     nodes: all_nodes
   )
 end
@@ -52,7 +52,7 @@ begin
           ],
           'gateway4' => primary['gw'],
           'nameservers' => {
-            'addresses' => [vip] + node['bcpc']['dns_servers'].dup,
+            'addresses' => [vip['ip'], node['bcpc']['dns_servers']].flatten,
           },
         },
       },
@@ -127,10 +127,7 @@ if headnode?
       'version' => 2,
       'ethernets' => {
         'lo' => {
-          'addresses' => [
-            '127.0.0.1/8',
-            node['bcpc']['cloud']['vip']['ip'],
-          ],
+          'addresses' => ['127.0.0.1/8', "#{vip['ip']}/#{vip['prefix']}"],
         },
       },
     },
