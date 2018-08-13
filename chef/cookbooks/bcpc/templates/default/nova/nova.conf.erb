@@ -15,7 +15,7 @@ cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
 <% if node['bcpc']['nova']['vcpu_pin_set'] %>
 vcpu_pin_set =  <%= node['bcpc']['nova']['vcpu_pin_set'] %>
 <% end %>
-
+force_config_drive = true
 ram_allocation_ratio = <%= node['bcpc']['nova']['ram_allocation_ratio'] %>
 reserved_host_memory_mb = <%= node['bcpc']['nova']['reserved_host_memory_mb'] %>
 resume_guests_state_on_host_boot = <%= node['bcpc']['nova']['resume_guests_state_on_host_boot'] %>

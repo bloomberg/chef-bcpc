@@ -36,6 +36,7 @@ openstack = {
   'password' => config['designate']['creds']['os']['password'],
   'role' => node['bcpc']['keystone']['roles']['admin'],
   'project' => node['bcpc']['keystone']['service_project']['name'],
+  'domain' => node['bcpc']['keystone']['service_project']['domain'],
 }
 
 # create/configure designate openstack user starts
@@ -45,22 +46,24 @@ execute 'create the designate user' do
 
   command <<-DOC
     openstack user create \
-      --domain default \
+      --domain #{openstack['domain']} \
       --password #{openstack['password']} \
       #{openstack['username']}
   DOC
 
-  not_if "openstack user show --domain default #{openstack['username']}"
+  not_if "
+    openstack user show #{openstack['username']} \
+      --domain #{openstack['domain']}
+  "
 end
 
 execute 'add admin role to the designate user' do
   environment os_adminrc
 
   command <<-DOC
-    openstack role add \
+    openstack role add #{openstack['role']} \
       --project #{openstack['project']} \
-      --user #{openstack['username']} \
-      #{openstack['role']}
+      --user #{openstack['username']}
   DOC
 
   not_if <<-DOC
@@ -134,7 +137,7 @@ file '/tmp/designate-create-db.sql' do
 end
 
 template '/tmp/designate-create-db.sql' do
-  source 'designate/create-db.sql.erb'
+  source 'designate/designate-create-db.sql.erb'
   variables(
     'db' => database
   )

@@ -27,10 +27,8 @@
       # List out the designate-mdns servers from which PowerDNS servers should
       # request zone transfers (AXFRs) from.
       masters:
-      <% @headnodes.each do |h| -%>
-        - host: <%= h['ipaddress'] %>
+        - host: <%= node['ipaddress'] %>
           port: 5354
-      <% end -%>
 
       # PowerDNS Configuration options
       options:

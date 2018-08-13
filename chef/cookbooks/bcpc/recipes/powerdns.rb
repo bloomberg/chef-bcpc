@@ -35,7 +35,7 @@ file '/tmp/pdns-create-db.sql' do
 end
 
 template '/tmp/pdns-create-db.sql' do
-  source 'powerdns/create-db.sql.erb'
+  source 'powerdns/pdns-create-db.sql.erb'
   variables(
     'db' => database
   )
