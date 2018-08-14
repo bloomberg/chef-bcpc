@@ -59,7 +59,7 @@ template '/var/www/html/index.html' do
   variables(
     config: config,
     cookbook_version: version,
-    vip: node['bcpc']['cloud']['vip']['ip']
+    vip: node['bcpc']['cloud']['vip']
   )
 end
 

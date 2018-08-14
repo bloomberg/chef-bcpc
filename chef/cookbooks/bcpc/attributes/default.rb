@@ -5,7 +5,7 @@
 default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
 default['bcpc']['cloud']['fqdn'] = "openstack.#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
-default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254', 'prefix' => '32' }
+default['bcpc']['cloud']['vip'] = '10.10.254.254'
 
 # list of dns servers to use
 default['bcpc']['dns_servers'] = %w(8.8.8.8 8.8.4.4)

@@ -2,7 +2,7 @@
 # unbound
 ###############################################################################
 
-vip = node['bcpc']['cloud']['vip']['ip']
+vip = node['bcpc']['cloud']['vip']
 cloud_domain = node['bcpc']['cloud']['domain']
 powerdns_port = node['bcpc']['powerdns']['local_port']
 
