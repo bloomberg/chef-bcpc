@@ -58,7 +58,7 @@ template '/etc/neutron/neutron.conf' do
   group 'neutron'
 
   variables(
-    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
+    vip: node['bcpc']['cloud']['vip']
   )
 
   notifies :restart, 'service[calico-dhcp-agent]', :immediately

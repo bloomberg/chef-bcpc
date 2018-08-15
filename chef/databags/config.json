@@ -19,6 +19,20 @@
       "glance": {"key": "AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ=="}
     }
   },
+  "powerdns": {
+    "creds": {
+      "db":{
+        "username": "pdns",
+        "password": "DUBSOwwBeqPj"
+      },
+      "webserver":{
+        "password": "DUBSOwwBeqPj"
+      },
+      "api":{
+        "key": "DUBSOwwBeqPj"
+      }
+    }
+  },
   "keystone": {
     "db": {
       "username": "keystone",
@@ -40,6 +54,18 @@
       },
       "os":{
         "username": "glance",
+        "password": "3Dhip8IKy_95O9LwOkpa"
+      }
+    }
+  },
+  "designate": {
+    "creds": {
+      "db":{
+        "username": "designate",
+        "password": "3Dhip8IKy_95O9LwOkpa"
+      },
+      "os":{
+        "username": "designate",
         "password": "3Dhip8IKy_95O9LwOkpa"
       }
     }

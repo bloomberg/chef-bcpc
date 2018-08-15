@@ -17,8 +17,6 @@
 
 service 'systemd-resolved'
 
-vip = get_address(node['bcpc']['cloud']['vip']['ip'])
-
 cookbook_file '/etc/modules-load.d/8021q.conf' do
   source 'modules-load.d/8021q.conf'
 end
@@ -31,7 +29,7 @@ end
 template '/etc/hosts' do
   source 'etc/hosts.erb'
   variables(
-    vip: vip,
+    vip: node['bcpc']['cloud']['vip'],
     nodes: all_nodes
   )
 end
@@ -52,7 +50,10 @@ begin
           ],
           'gateway4' => primary['gw'],
           'nameservers' => {
-            'addresses' => [vip] + node['bcpc']['dns_servers'].dup,
+            'addresses' => [
+              node['bcpc']['cloud']['vip'],
+              node['bcpc']['dns_servers'],
+            ].flatten,
           },
         },
       },
@@ -129,7 +130,7 @@ if headnode?
         'lo' => {
           'addresses' => [
             '127.0.0.1/8',
-            node['bcpc']['cloud']['vip']['ip'],
+            "#{node['bcpc']['cloud']['vip']}/32",
           ],
         },
       },

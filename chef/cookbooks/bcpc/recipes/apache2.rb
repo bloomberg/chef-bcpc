@@ -58,8 +58,8 @@ template '/var/www/html/index.html' do
 
   variables(
     config: config,
-    vip: get_address(node['bcpc']['cloud']['vip']['ip']),
-    cookbook_version: version
+    cookbook_version: version,
+    vip: node['bcpc']['cloud']['vip']
   )
 end
 

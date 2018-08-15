@@ -1,5 +1,3 @@
-require 'ipaddress'
-
 ###############################################################################
 # cloud
 ###############################################################################
@@ -7,7 +5,7 @@ require 'ipaddress'
 default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
 default['bcpc']['cloud']['fqdn'] = "openstack.#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
-default['bcpc']['cloud']['vip'] = { 'ip' => '10.10.254.254/32' }
+default['bcpc']['cloud']['vip'] = '10.10.254.254'
 
 # list of dns servers to use
 default['bcpc']['dns_servers'] = %w(8.8.8.8 8.8.4.4)
@@ -19,10 +17,6 @@ default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
 
 # Hypervisor domain (domain used by actual machines)
 default['bcpc']['hypervisor_domain'] = 'hypervisor-bcpc.example.com'
-
-# convenience variable
-#
-vip = IPAddress(node['bcpc']['cloud']['vip']['ip']).address
 
 ###############################################################################
 # ubuntu
@@ -41,31 +35,6 @@ default['bcpc']['ubuntu']['arch'] = 'amd64'
 default['bcpc']['proxy']['enabled'] = false
 default['bcpc']['proxy']['proxies']['http'] = ''
 default['bcpc']['proxy']['proxies']['https'] = ''
-
-###############################################################################
-# unbound
-###############################################################################
-
-default['bcpc']['unbound']['default']['root_trust_anchor_update'] = false
-default['bcpc']['unbound']['server']['access-control'] = '0.0.0.0/0 allow'
-default['bcpc']['unbound']['server']['chroot'] = '""'
-default['bcpc']['unbound']['server']['directory'] = '/etc/unbound'
-default['bcpc']['unbound']['server']['do-ip4'] = 'yes'
-default['bcpc']['unbound']['server']['do-udp'] = 'yes'
-default['bcpc']['unbound']['server']['do-tcp'] = 'yes'
-default['bcpc']['unbound']['server']['domain-insecure'] = '*'
-default['bcpc']['unbound']['server']['interface'] = vip
-default['bcpc']['unbound']['server']['logfile'] = '""'
-default['bcpc']['unbound']['server']['num-threads'] = 2
-default['bcpc']['unbound']['server']['pidfile'] = '/var/run/unbound.pid'
-default['bcpc']['unbound']['server']['port'] = 53
-default['bcpc']['unbound']['server']['use-syslog'] = 'yes'
-default['bcpc']['unbound']['server']['verbosity'] = 1
-
-# TLD quieries to forward to other name servers
-#
-default['bcpc']['unbound']['forward-zone']['consul'] = [vip + '@8600']
-default['bcpc']['unbound']['forward-zone']['.'] = node['bcpc']['dns_servers']
 
 ###############################################################################
 # rabbitmq
@@ -227,87 +196,3 @@ default['bcpc']['etcd']['remote']['checksum'] = '251605c618e789fe58e3b0c792ebf93
 ###############################################################################
 
 default['bcpc']['virtualbox']['nat_ip'] = '10.0.2.15'
-
-###############################################################################
-# consul
-###############################################################################
-
-default['bcpc']['consul']['remote_file'] = {
-  'file' => 'consul_1.1.0_linux_amd64.zip',
-  'checksum' => '09c40c8b5be868003810064916d8460bff334ccfb59a5046390224b27e052c45',
-}
-
-default['bcpc']['consul']['executable'] = '/usr/local/sbin/consul'
-default['bcpc']['consul']['conf_dir'] = '/etc/consul/conf.d'
-default['bcpc']['consul']['config']['datacenter'] = node.chef_environment
-default['bcpc']['consul']['config']['client_addr'] = '127.0.0.1'
-default['bcpc']['consul']['config']['advertise_addr'] = node['ipaddress']
-default['bcpc']['consul']['config']['data_dir'] = '/var/lib/consul'
-default['bcpc']['consul']['config']['disable_update_check'] = true
-default['bcpc']['consul']['config']['enable_script_checks'] = true
-default['bcpc']['consul']['config']['server'] = true
-default['bcpc']['consul']['config']['log_level'] = 'INFO'
-default['bcpc']['consul']['config']['node_name'] = node['hostname']
-default['bcpc']['consul']['config']['addresses']['dns'] = vip
-default['bcpc']['consul']['config']['ports']['dns'] = 8600
-default['bcpc']['consul']['config']['recursors'] = [vip]
-
-# Service definitions reference:
-# https://www.consul.io/docs/agent/services.html
-default['bcpc']['consul']['services'] = [
-  {
-    'name' => 'mysql',
-    'port' => 3306,
-    'enable_tag_override' => true,
-    'tags' => ['mysql'],
-    'check' => {
-      'name' => 'mysql',
-      'args' => ['/usr/local/bcpc/bin/mysql-check'],
-      'interval' => '10s',
-      'timeout' => '2s',
-    },
-  },
-  {
-    'name' => 'haproxy',
-    'check' => {
-      'name' => 'haproxy',
-      'args' => ['/usr/local/bcpc/bin/haproxy-check'],
-      'interval' => '10s',
-      'timeout' => '2s',
-    },
-  },
-  {
-    'name' => 'dns',
-    'check' => {
-      'name' => 'dns',
-      'args' => ['/usr/local/bcpc/bin/dns-check'],
-      'interval' => '10s',
-      'timeout' => '2s',
-    },
-  },
-]
-
-# Watch definitions reference:
-# https://www.consul.io/docs/agent/watches.html
-default['bcpc']['consul']['watches'] = [
-  {
-    'service' => 'haproxy',
-    'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/haproxy-watch'],
-  },
-  {
-    'service' => 'mysql',
-    'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-elect-watch'],
-  },
-  {
-    'service' => 'mysql',
-    'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-watch'],
-  },
-  {
-    'service' => 'dns',
-    'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/dns-watch'],
-  },
-]

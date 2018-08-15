@@ -48,9 +48,9 @@ end
 template '/etc/haproxy/haproxy.cfg' do
   source 'haproxy/haproxy.cfg.erb'
   variables(
-    headnodes: headnodes(all: true),
     user: config['haproxy'],
-    vip: get_address(node['bcpc']['cloud']['vip']['ip']),
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip'],
     max_connections: node['bcpc']['mysql']['max_connections']
   )
   notifies :restart, 'service[haproxy]', :immediately

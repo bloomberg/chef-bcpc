@@ -4,14 +4,14 @@
 
 default['bcpc']['keystone']['db'] = 'keystone'
 
+# caching
+default['bcpc']['keystone']['enable_caching'] = true
+
 # default log file
 default['bcpc']['keystone']['log_file'] = '/var/log/keystone/keystone.log'
 
 # enable debug logging (also caching debug logging).
 default['bcpc']['keystone']['debug'] = false
-
-# enable verbose logging.
-default['bcpc']['keystone']['verbose'] = false
 
 # Set the number of Keystone WSGI processes and threads to use by default on the
 # public API (experimentally threads > 1 may cause problems with the service

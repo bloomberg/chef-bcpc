@@ -332,9 +332,9 @@ template '/etc/nova/nova.conf' do
     db: database,
     os: openstack,
     config: config,
-    headnodes: headnodes(all: true),
     is_headnode: headnode?,
-    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
   )
 
   notifies :run, 'execute[update cell1]', :immediately

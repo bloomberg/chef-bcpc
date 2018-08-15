@@ -134,6 +134,17 @@ listen novncproxy
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:6080 check inter 5s rise 1 fall 1
 <% end -%>
 
+listen designate-api
+  bind <%= @vip %>:9001 ssl crt /etc/haproxy/haproxy.pem
+  reqadd X-Forwarded-Proto:\ https
+  balance source
+  option  tcpka
+  option  httpchk
+  option  tcplog
+<% @headnodes.each do |n| -%>
+  server <%= n['hostname'] %> <%= n['ipaddress'] %>:9001 check inter 5s rise 1 fall 1
+<% end -%>
+
 frontend http
   bind <%= @vip %>:80
   option tcplog

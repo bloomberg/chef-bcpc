@@ -26,6 +26,7 @@ database = {
 }
 
 package 'nova-compute'
+package 'ovmf'
 package 'nova-api-metadata'
 package 'pm-utils'
 package 'memcached'
@@ -134,7 +135,7 @@ template '/etc/nova/nova.conf' do
     db: database,
     config: config,
     headnodes: headnodes,
-    vip: get_address(node['bcpc']['cloud']['vip']['ip'])
+    vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
 end
