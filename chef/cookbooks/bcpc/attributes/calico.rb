@@ -3,8 +3,8 @@
 ###############################################################################
 
 default['bcpc']['calico']['repo']['enabled'] = true
-default['bcpc']['calico']['repo']['url'] = 'http://ppa.launchpad.net/project-calico/calico-3.1/ubuntu'
+default['bcpc']['calico']['repo']['url'] = 'http://ppa.launchpad.net/project-calico/calico-3.2/ubuntu'
 
 default['bcpc']['calico']['remote']['file'] = 'calicoctl'
 default['bcpc']['calico']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/calicoctl"
-default['bcpc']['calico']['remote']['checksum'] = '62ae2334f62ca5e5501022845a885efdae8cd10cfbe40293a58e3d85d39bc120'
+default['bcpc']['calico']['remote']['checksum'] = 'b0045e3f235d42618c3f4f6ec3e58715980995e2fab2424b39787cd72986a11d'
