@@ -71,13 +71,13 @@
     <p>For API endpoint information, please consult the Service Endpoint list in OpenStack Horizon under <strong>Project > Compute > Access & Security > API Access</strong>.
 
     <h3>SSL Certificate</h3>
-    <code style="width: 1024px">
+    <code>
       <%= @ssl_crt.gsub(/\n/, '<br/>') %>
     </code>
 
     <% if !@ssl_intermediate.nil? %>
       <h3>SSL CA certificate</h3>
-      <code style="width: 1024px">
+      <code>
         <%= @ssl_intermediate.gsub(/\n/, '<br/>') %>
       </code>
     <% end %>
