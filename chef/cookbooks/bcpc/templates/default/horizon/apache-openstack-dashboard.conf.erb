@@ -1,6 +1,6 @@
 Listen <%= node['ipaddress'] %>:9999
 
-<VirtualHost <%=node['ipaddress']%>:9999>
+<VirtualHost <%= node['ipaddress'] %>:9999>
   ServerName <%= node['bcpc']['cloud']['fqdn'] %>
 
   WSGIScriptAlias /horizon /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi process-group=horizon
@@ -20,7 +20,6 @@ Listen <%= node['ipaddress'] %>:9999
 
   # this rewrite rule is here to properly link certain fonts to their correct
   # location because they were not referenced correctly in various css files
-  #
   RewriteRule "^/horizon/static/horizon/lib/roboto_fontface/fonts/Roboto/(.+)"  "/horizon/static/horizon/lib/roboto_fontface/fonts/roboto/$1" [PT]
 
   <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>

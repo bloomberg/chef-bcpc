@@ -8,16 +8,16 @@ from openstack_dashboard.settings import HORIZON_CONFIG
 DEBUG = False
 
 ALLOWED_HOSTS = '*'
-SITE_BRANDING = "<%= @region %>"
+SITE_BRANDING = "<%= node['bcpc']['cloud']['region'] %>"
 
 WEBROOT = '/horizon'
 LOGIN_URL = WEBROOT + '/auth/login/'
 LOGOUT_URL = WEBROOT + '/auth/logout/'
 LOGIN_REDIRECT_URL = WEBROOT
 
-DEFAULT_THEME = 'material'
+DEFAULT_THEME = 'default'
 AVAILABLE_THEMES = [
-  ('material', 'Material', 'themes/material'),
+  ('default', 'Default', 'themes/default')
 ]
 
 COMPRESS_OFFLINE = True
@@ -40,7 +40,6 @@ REST_API_REQUIRED_SETTINGS = [
 ]
 
 OPENSTACK_API_VERSIONS = {
-  "data-processing": 1.1,
   "identity": 3,
   "image": 2,
   "volume": 3,

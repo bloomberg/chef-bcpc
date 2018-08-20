@@ -39,7 +39,7 @@
       }
     </style>
 
-    <h2><%= node['bcpc']['region'] %> - <%= node['bcpc']['fqdn'] %> (<%= @vip %>)</h2>
+    <h2><%= node['bcpc']['cloud']['region'] %> - <%= node['bcpc']['cloud']['fqdn'] %> (<%= @vip %>)</h2>
     <p class="version">BCPC cookbook <%= @cookbook_version %> (<%= node['bcpc']['openstack']['release'] %>-<%= node['bcpc']['openstack']['branch'] %>)</p>
 
     <h3>Web Interfaces</h3>
@@ -51,23 +51,18 @@
       </tr>
       <tr>
         <td><em>OpenStack</em></td>
-        <td><a href="https://<%= node['bcpc']['fqdn'] %>/horizon/">https://<%= node['bcpc']['fqdn'] %>/horizon/</a></td>
+        <td><a href="https://<%= node['bcpc']['cloud']['fqdn'] %>/horizon/">https://<%= node['bcpc']['cloud']['fqdn'] %>/horizon/</a></td>
         <td><a href="https://<%= @vip %>/horizon/">https://<%= @vip %>/horizon/</a></td>
       </tr>
       <tr>
         <td><em>HAProxy</em></td>
-        <td><a href="https://<%= node['bcpc']['fqdn'] %>/haproxy">https://<%= node['bcpc']['fqdn'] %>/haproxy</a></td>
+        <td><a href="https://<%= node['bcpc']['cloud']['fqdn'] %>/haproxy">https://<%= node['bcpc']['cloud']['fqdn'] %>/haproxy</a></td>
         <td><a href="https://<%= @vip %>/haproxy">https://<%= @vip %>/haproxy</a></td>
       </tr>
       <tr>
           <td><em>RabbitMQ</em></td>
-          <td><a href="https://<%= node['bcpc']['fqdn'] %>/rabbitmq/">https://<%= node['bcpc']['fqdn'] %>/rabbitmq/</a></td>
+          <td><a href="https://<%= node['bcpc']['cloud']['fqdn'] %>/rabbitmq/">https://<%= node['bcpc']['cloud']['fqdn'] %>/rabbitmq/</a></td>
           <td><a href="https://<%= @vip %>/rabbitmq/">https://<%= @vip %>/rabbitmq/</a></td>
-      </tr>
-      <tr>
-        <td><em>PDNS</em></td>
-        <td> - </td>
-        <td><a href="http://<%= @vip %>:8081">http://<%= @vip %>:8081</a></td>
       </tr>
     </table>
 
@@ -76,14 +71,14 @@
     <p>For API endpoint information, please consult the Service Endpoint list in OpenStack Horizon under <strong>Project > Compute > Access & Security > API Access</strong>.
 
     <h3>SSL Certificate</h3>
-    <code>
-      <%= @config['ssl']['crt'].gsub(/\n/, '<br/>') %>
+    <code style="width: 1024px">
+      <%= @ssl_crt.gsub(/\n/, '<br/>') %>
     </code>
 
-    <% if @config['ssl']['intermediate'] %>
+    <% if !@ssl_intermediate.nil? %>
       <h3>SSL CA certificate</h3>
-      <code>
-          <%= @config['ssl']['intermediate'].gsub(/\n/, '<br/>') %>
+      <code style="width: 1024px">
+        <%= @ssl_intermediate.gsub(/\n/, '<br/>') %>
       </code>
     <% end %>
   </body>

@@ -26,13 +26,12 @@ end
 
 template '/etc/apache2/conf-available/openstack-dashboard.conf' do
   source 'horizon/apache-openstack-dashboard.conf.erb'
-  notifies :reload, 'service[horizon]', :immediately
+  notifies :restart, 'service[horizon]', :immediately
 end
 
 template '/etc/openstack-dashboard/local_settings.py' do
   source 'horizon/local_settings.py.erb'
   variables(
-    region: region,
     config: config,
     headnodes: headnodes(all: true)
   )

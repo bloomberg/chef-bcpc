@@ -46,20 +46,29 @@ service 'apache2'
   end
 end
 
+# remote default ssl site conf
+file '/etc/apache2/sites-available/default-ssl.conf' do
+  action :delete
+end
+
 template '/etc/apache2/sites-available/000-default.conf' do
   source 'apache2/default.conf.erb'
   notifies :restart, 'service[apache2]', :delayed
 end
 
-template '/var/www/html/index.html' do
+template '/var/www/index.html' do
   source 'apache2/index.html.erb'
 
   version = run_context.cookbook_collection[cookbook_name].metadata.version
 
+  intermediate = config['ssl']['intermediate']
+  intermediate = Base64.decode64(intermediate) unless intermediate.nil?
+
   variables(
-    config: config,
     cookbook_version: version,
-    vip: node['bcpc']['cloud']['vip']
+    vip: node['bcpc']['cloud']['vip'],
+    ssl_crt: Base64.decode64(config['ssl']['crt']),
+    ssl_intermediate: intermediate
   )
 end
 
