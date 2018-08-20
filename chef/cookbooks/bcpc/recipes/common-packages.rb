@@ -55,15 +55,14 @@ package 'python-openstackclient'
 # packages used for operatons and file edits
 package 'jq'
 package 'tmux'
+package 'crudini'
 
 package 'screen'
-
 cookbook_file '/etc/screenrc' do
   source 'screen/screenrc'
 end
 
 package 'vim'
-
 cookbook_file '/etc/vim/vimrc' do
   source 'vim/vimrc'
 end
