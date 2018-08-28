@@ -18,7 +18,6 @@ run_list:
   - recipe[bcpc::powerdns]
   - recipe[bcpc::apache2]
   - recipe[bcpc::keystone]
-  - recipe[bcpc::designate]
   - recipe[bcpc::glance]
   - recipe[bcpc::neutron-head]
   - recipe[bcpc::nova-head]

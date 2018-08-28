@@ -14,5 +14,5 @@ default['bcpc']['powerdns']['axfr']['allow_axfr_ips'] = []
 default['bcpc']['powerdns']['receiver_threads'] = 3
 
 # webserver
-default['bcpc']['powerdns']['webserver']['address'] = '127.0.0.1'
+default['bcpc']['powerdns']['webserver']['address'] = node['ipaddress']
 default['bcpc']['powerdns']['webserver']['port'] = 8081

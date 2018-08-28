@@ -78,3 +78,45 @@ template '/etc/powerdns/pdns.conf' do
   )
   notifies :restart, 'service[pdns]', :immediately
 end
+
+begin
+  require 'ipaddress'
+
+  # build an array of network objects that have their fixed cidr
+  # information expanded via 'IPAddress' which can be iterated on
+  # in the zone.erb template file
+  networks = []
+  node['bcpc']['neutron']['networks'].each do |network|
+    data = { 'name' => network['name'], 'cidrs' => [] }
+    network['fixed'].each do |fixed|
+      data['cidrs'].push(IPAddress(fixed['cidr']))
+    end
+    networks.push(data)
+  end
+
+  zone = node['bcpc']['cloud']['domain']
+  zone_file = "/tmp/#{zone}.zone"
+
+  template zone_file do
+    source 'powerdns/zone.erb'
+
+    serial_number = Time.now.strftime('%Y%m%d01')
+    admin_email = node['bcpc']['keystone']['admin']['email'].tr('@', '.')
+
+    variables(
+      networks: networks,
+      admin_email: admin_email,
+      serial_number: serial_number
+    )
+
+    not_if "pdnsutil list-all-zones | grep #{zone}"
+    notifies :run, 'execute[load zone]', :immediately
+  end
+
+  execute 'load zone' do
+    action :nothing
+    command <<-EOH
+      pdnsutil load-zone #{zone} #{zone_file}
+    EOH
+  end
+end

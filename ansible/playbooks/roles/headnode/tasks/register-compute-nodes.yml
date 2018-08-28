@@ -15,7 +15,7 @@
 
     # filter status results for only hosts that have disabled services
     disabled=$(echo ${services} | \
-      jq -r '.[] | select(.Status | contains("disabled")) .Host')
+      jq -r '.[] | select(.Status == "disabled") .Host')
 
     # enable nova-compute services on disabled hosts
     echo "${disabled}" | \

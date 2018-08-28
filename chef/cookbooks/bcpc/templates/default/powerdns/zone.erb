@@ -1,0 +1,13 @@
+$ORIGIN <%= node['bcpc']['cloud']['domain'] %>.
+$TTL 3600
+
+@  IN SOA ns1.<%= node['bcpc']['cloud']['domain'] %>. <%= @admin_email %>. <%= @serial_number %> 3559 600 86400 3600
+@  IN NS ns1.<%= node['bcpc']['cloud']['domain'] %>.
+
+<% @networks.each do |network| %>
+<% network['cidrs'].each do |cidr| %>
+<% cidr.each_host do |ip| %>
+<%= network['name'] %>-<%= ip.octets.join('-') %> IN A <%= ip %>
+<% end %>
+<% end %>
+<% end %>
