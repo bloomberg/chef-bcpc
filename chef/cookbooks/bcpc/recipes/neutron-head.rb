@@ -203,7 +203,7 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   # create fixed subnets
   network.fetch('fixed', []).each do |fixed|
-    cidr = fixed['cidr']
+    cidr = "#{fixed['cidr'].network.address}/#{fixed['cidr'].prefix}"
     subnet_name = "#{fixed_network}-fixed-#{cidr}"
 
     execute "create the #{fixed_network} network #{subnet_name} subnet" do
@@ -237,7 +237,7 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   # create float subnets
   network.fetch('float', []).each do |float|
-    cidr = float['cidr']
+    cidr = "#{float['cidr'].network.address}/#{float['cidr'].prefix}"
     subnet_name = "#{float_network}-#{cidr}"
 
     execute "create the #{float_network} network #{subnet_name} subnet" do
@@ -276,11 +276,11 @@ node['bcpc']['neutron']['networks'].each do |network|
       subnets=$(openstack subnet list --network #{fixed_network} -c ID -f value)
       ifaces=$(openstack router show #{router_name} -f json | jq -r .interfaces_info)
 
-      for subnet in ${subnets}; do
-        exists=$(echo $ifaces | jq --arg SUBNETID "$subnet" '.[] | select(.subnet_id == $SUBNETID)')
+      for subnet_id in ${subnets}; do
+        exists=$(echo $ifaces | jq --arg SUBNET_ID "$subnet_id" '.[] | select(.subnet_id == $SUBNET_ID)')
 
         if [ ${#exists} -eq 0 ]; then
-          openstack router add subnet #{router_name} ${subnet}
+          openstack router add subnet #{router_name} ${subnet_id}
         fi
       done
     EOH
