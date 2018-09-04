@@ -98,6 +98,7 @@ begin
       serial: serial,
       networks: networks
     )
+    not_if "pdnsutil list-all-zones | grep #{zone}"
   end
 
   execute 'load zone' do
