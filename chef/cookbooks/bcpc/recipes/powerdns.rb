@@ -78,3 +78,67 @@ template '/etc/powerdns/pdns.conf' do
   )
   notifies :restart, 'service[pdns]', :immediately
 end
+
+# DNS forward zone creation/population
+#
+serial = Time.now.strftime('%Y%m%d01')
+email = node['bcpc']['keystone']['admin']['email'].tr('@', '.')
+networks = node['bcpc']['neutron']['networks']
+
+begin
+  zone = node['bcpc']['cloud']['domain']
+  zone_file = "#{Chef::Config[:file_cache_path]}/#{zone}.zone"
+
+  # create dns zone for the cloud domain and setup forward lookups for
+  # fixed and float ip ranges
+  template zone_file do
+    source 'powerdns/zone.erb'
+    variables(
+      email: email,
+      serial: serial,
+      networks: networks
+    )
+    not_if "pdnsutil list-all-zones | grep #{zone}"
+  end
+
+  execute 'load zone' do
+    command <<-EOH
+      pdnsutil load-zone #{zone} #{zone_file}
+    EOH
+    not_if "pdnsutil list-all-zones | grep #{zone}"
+  end
+end
+
+# DNS reverse zone for each fixed/float network
+#
+begin
+  networks.each do |network|
+    %w(fixed float).each do |type|
+      network.fetch(type, []).each do |subnet|
+        next unless subnet.key?('dns') && subnet['dns'].key?('reverse_zone')
+
+        reverse_zone = subnet['dns']['reverse_zone']
+        reverse_zone_file = "#{Chef::Config[:file_cache_path]}/#{reverse_zone}.zone"
+
+        template reverse_zone_file do
+          source 'powerdns/reverse-zone.erb'
+          variables(
+            email: email,
+            serial: serial,
+            subnet: subnet,
+            reverse_zone: reverse_zone,
+            hostname_prefix: subnet['dns']['hostname_prefix']
+          )
+          not_if "pdnsutil list-all-zones | grep #{reverse_zone}"
+        end
+
+        execute 'load reverse zone' do
+          command <<-EOH
+            pdnsutil load-zone #{reverse_zone} #{reverse_zone_file}
+          EOH
+          not_if "pdnsutil list-all-zones | grep #{reverse_zone}"
+        end
+      end
+    end
+  end
+end

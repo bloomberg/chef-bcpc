@@ -1,0 +1,16 @@
+$ORIGIN .
+$TTL 3600
+
+<%= @reverse_zone %> IN SOA ns1.<%= node['bcpc']['cloud']['domain'] %>. <%= @email %>. (
+    <%= @serial %> ; serial
+    3559 ; refresh
+    600 ; retry
+    86400 ; expire
+    3600 ; minimum
+)
+
+<%= @reverse_zone %> IN NS ns1.<%= node['bcpc']['cloud']['domain'] %>.
+
+<% @subnet['allocation'].each_host do |ip| %>
+<%= ip.reverse %> IN PTR <%= @hostname_prefix %>-<%= ip.octets.join('-') %>.<%= node['bcpc']['cloud']['domain'] %>
+<% end %>

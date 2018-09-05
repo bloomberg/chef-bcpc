@@ -174,6 +174,8 @@ template '/etc/neutron/neutron.conf' do
   )
   notifies :restart, 'service[neutron-server]', :immediately
 end
+#
+# configure neutron ends
 
 execute 'wait for neutron to come online' do
   environment os_adminrc
@@ -181,43 +183,128 @@ execute 'wait for neutron to come online' do
   command 'openstack network list'
 end
 
-node['bcpc']['neutron']['network'].each do |network, spec|
-  subnets = spec['subnets']
+# create networks starts
+node['bcpc']['neutron']['networks'].each do |network|
+  fixed_network = network['name']
 
-  execute "create #{network} network" do
+  raise "#{fixed_network}: no subnets defined" unless network.key?('fixed')
+
+  # create fixed network
+  execute "create the #{fixed_network} network" do
     environment os_adminrc
 
     command <<-DOC
-      openstack network create #{network} \
+      openstack network create #{fixed_network} \
         --share --provider-network-type local
     DOC
 
-    not_if "openstack network show #{network}"
+    not_if "openstack network show #{fixed_network}"
   end
 
-  subnets.each do |subnet|
-    subnet_name = subnet['name']
-    cidr = subnet['cidr']
+  # create fixed subnets
+  network.fetch('fixed', []).each do |fixed|
+    cidr = "#{fixed['allocation'].network.address}/#{fixed['allocation'].prefix}"
+    subnet_name = "#{fixed_network}-fixed-#{cidr}"
 
-    execute "create #{network} network #{subnet_name} subnet" do
+    execute "create the #{fixed_network} network #{subnet_name} subnet" do
       environment os_adminrc
 
       command <<-DOC
         openstack subnet create #{subnet_name} \
-          --network #{network} --subnet-range #{cidr}
+          --network #{fixed_network} --subnet-range #{cidr}
       DOC
 
       not_if <<-DOC
-        openstack subnet list --network #{network} | grep -w #{subnet_name}
+        openstack subnet list -c Subnet -f value | grep -w #{cidr}
       DOC
     end
   end
+
+  next unless network.key?('float')
+
+  # create float network
+  float_network = "#{network['name']}-float"
+
+  execute "create the #{float_network} network" do
+    environment os_adminrc
+
+    command <<-DOC
+      openstack network create #{float_network} --external
+    DOC
+
+    not_if "openstack network show #{float_network}"
+  end
+
+  # create float subnets
+  network.fetch('float', []).each do |float|
+    cidr = "#{float['allocation'].network.address}/#{float['allocation'].prefix}"
+    subnet_name = "#{float_network}-#{cidr}"
+
+    execute "create the #{float_network} network #{subnet_name} subnet" do
+      environment os_adminrc
+
+      command <<-DOC
+        openstack subnet create #{subnet_name} \
+          --network #{float_network} --subnet-range #{cidr}
+      DOC
+
+      not_if <<-DOC
+        openstack subnet list -c Subnet -f value | grep -w #{cidr}
+      DOC
+    end
+  end
+
+  # create router
+  router_name = fixed_network
+
+  execute "create the #{fixed_network} network router (#{router_name})" do
+    environment os_adminrc
+
+    command <<-DOC
+      openstack router create #{router_name}
+    DOC
+
+    not_if "openstack router show #{router_name}"
+  end
+
+  # add subnets to router
+  bash 'add subnets to router' do
+    environment os_adminrc
+    code <<-EOH
+      set -e
+
+      subnets=$(openstack subnet list --network #{fixed_network} -c ID -f value)
+      ifaces=$(openstack router show #{router_name} -f json | jq -r .interfaces_info)
+
+      for subnet_id in ${subnets}; do
+        exists=$(echo $ifaces | jq --arg SUBNET_ID "$subnet_id" '.[] | select(.subnet_id == $SUBNET_ID)')
+
+        if [ ${#exists} -eq 0 ]; then
+          openstack router add subnet #{router_name} ${subnet_id}
+        fi
+      done
+    EOH
+  end
+
+  # set router external gateway
+  bash 'set external gateway for router' do
+    environment os_adminrc
+
+    code <<-EOH
+      set -e
+
+      router=$(openstack router show #{router_name} -f json)
+      gateway=$(echo ${router} | jq -r .external_gateway_info)
+
+      if [ "${gateway}" = "null" ]; then
+        openstack router set #{router_name} --external-gateway #{float_network}
+      fi
+    EOH
+  end
 end
-#
-# configure neutron ends
+# create networks ends
 
 # configure default security group starts
-#
 bash 'update admin project default security group to allow ping' do
   environment os_adminrc
 
@@ -253,5 +340,4 @@ bash 'update admin project default security group to allow ssh' do
     openstack security group rule list $group_id --proto tcp | grep '22:22'
   ", environment: os_adminrc
 end
-#
 # configure default security group ends

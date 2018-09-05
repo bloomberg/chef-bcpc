@@ -4,6 +4,7 @@
 
 vip = node['bcpc']['cloud']['vip']
 cloud_domain = node['bcpc']['cloud']['domain']
+powerdns_address = node['bcpc']['powerdns']['local_address']
 powerdns_port = node['bcpc']['powerdns']['local_port']
 
 default['bcpc']['unbound']['default']['root_trust_anchor_update'] = false
@@ -25,8 +26,5 @@ default['bcpc']['unbound']['server']['verbosity'] = 1
 # TLD quieries to forward to other name servers
 #
 default['bcpc']['unbound']['forward-zone']['consul'] = [vip + '@8600']
-default['bcpc']['unbound']['forward-zone'][cloud_domain] = ["#{vip}@#{powerdns_port}"]
+default['bcpc']['unbound']['forward-zone'][cloud_domain] = ["#{powerdns_address}@#{powerdns_port}"]
 default['bcpc']['unbound']['forward-zone']['.'] = node['bcpc']['dns_servers']
-
-default['bcpc']['powerdns']['local_address'] = node['ipaddress']
-default['bcpc']['powerdns']['local_port'] = 5300

@@ -51,7 +51,7 @@ default['bcpc']['keystone']['identity']['domain_configurations_from_database'] =
 default['bcpc']['keystone']['roles']['admin'] = 'admin'
 default['bcpc']['keystone']['roles']['member'] = '_member_'
 
-default['bcpc']['keystone']['admin']['email'] = 'admin@bcpc.example.com'
+default['bcpc']['keystone']['admin']['email'] = "admin@#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['keystone']['admin']['username'] = 'admin'
 default['bcpc']['keystone']['admin']['project_name'] = 'admin'
 default['bcpc']['keystone']['admin']['domain'] = 'default'
