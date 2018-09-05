@@ -11,6 +11,6 @@ $TTL 3600
 
 <%= @reverse_zone %> IN NS ns1.<%= node['bcpc']['cloud']['domain'] %>.
 
-<% @subnet['cidr'].each_host do |ip| %>
+<% @subnet['allocation'].each_host do |ip| %>
 <%= ip.reverse %> IN PTR <%= @hostname_prefix %>-<%= ip.octets.join('-') %>.<%= node['bcpc']['cloud']['domain'] %>
 <% end %>

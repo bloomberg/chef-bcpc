@@ -14,7 +14,7 @@ $TTL 3600
 <% @networks.each do |network| %>
   <% %w[fixed float].each do |type| %>
     <% network.fetch(type, []).each do |subnet| %>
-      <% subnet['cidr'].each_host do |ip| %>
+      <% subnet['allocation'].each_host do |ip| %>
 <%= subnet['dns']['hostname_prefix'] %>-<%= ip.octets.join('-') %> IN A <%= ip %>
       <% end %>
     <% end %>

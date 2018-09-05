@@ -13,7 +13,7 @@ default['bcpc']['neutron']['networks'] = [
     'name' => 'ext1',
     'fixed' => [
       {
-        'cidr' => IPAddress('10.64.0.0/16'),
+        'allocation' => IPAddress('10.64.0.0/16'),
         'dns' => {
           'hostname_prefix' => 'ext1',
           'reverse_zone' => '64.10.in-addr.arpa',
@@ -22,7 +22,7 @@ default['bcpc']['neutron']['networks'] = [
     ],
     'float' => [
       {
-        'cidr' => IPAddress('10.65.0.0/16'),
+        'allocation' => IPAddress('10.65.0.0/16'),
         'dns' => {
           'hostname_prefix' => 'float',
           'reverse_zone' => '65.10.in-addr.arpa',
