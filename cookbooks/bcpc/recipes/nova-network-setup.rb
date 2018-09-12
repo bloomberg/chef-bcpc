@@ -77,6 +77,23 @@ bash "nova-floating-add" do
     only_if ". /root/openrc-nova; nova-manage floating list | grep \"No floating IP addresses have been defined\""
 end
 
+node['bcpc'].fetch('additional_floating',[]).each_with_index do |float,index|
+  pool_name = "#{node['bcpc']['region_name']}-#{index + 1}"
+
+  bash "nova create #{pool_name} floating ip pool" do
+    code <<-EOH
+      . /root/openrc-nova
+      nova-manage floating create \
+        --ip_range=#{float['cidr']} \
+        --pool #{pool_name}
+    EOH
+    not_if "
+      . /root/openrc-nova;
+      openstack ip floating pool list | grep #{pool_name}
+    "
+  end
+end
+
 bash "nova-fixed-add" do
     user "root"
     code <<-EOH

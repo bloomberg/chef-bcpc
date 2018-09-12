@@ -118,7 +118,14 @@ if node['bcpc']['enabled']['dns'] then
   reverse_fixed_zone = node['bcpc']['fixed']['reverse_dns_zone'] || calc_reverse_dns_zone(node['bcpc']['fixed']['cidr']).first
   reverse_fixed_zones.push(reverse_fixed_zone)
 
-  reverse_float_zone = node['bcpc']['floating']['reverse_dns_zone'] || calc_reverse_dns_zone(node['bcpc']['floating']['cidr'])
+  reverse_float_zones = []
+  reverse_float_zone = calc_reverse_dns_zone(node['bcpc']['floating']['cidr'])
+  reverse_float_zones.push(reverse_float_zone.first)
+
+  node['bcpc'].fetch('additional_floating',[]).each do |float|
+    reverse_float_zones.push(calc_reverse_dns_zone(float['cidr']).first)
+  end
+
   management_zone = calc_reverse_dns_zone(node['bcpc']['management']['cidr'])
 
   # Reverse fixed zone is assumed to be classful.
@@ -157,7 +164,7 @@ if node['bcpc']['enabled']['dns'] then
 
   }
 
-  reverse_float_zone.each do |zone|
+  reverse_float_zones.each do |zone|
     ruby_block "powerdns-table-domains-reverse-float-zone-#{zone}" do
       block do
         %x[ export MYSQL_PWD=#{get_config('mysql-root-password')};
@@ -305,6 +312,23 @@ if node['bcpc']['enabled']['dns'] then
   mgmt_octets = calc_octets_to_drop(node['bcpc']['management']['cidr'])
   float_octets = calc_octets_to_drop(node['bcpc']['floating']['cidr'])
 
+  float_cidrs = []
+  float_cidrs.push(
+    {
+      'subnet' => IPAddr.new(node['bcpc']['floating']['available_subnet']),
+      'octets' => calc_octets_to_drop(node['bcpc']['floating']['cidr'])
+    }
+  )
+
+  node['bcpc'].fetch('additional_floating',[]).each do |float|
+    float_cidrs.push(
+      {
+        'subnet' => IPAddr.new(float['cidr']),
+        'octets' => calc_octets_to_drop(float['cidr'])
+      }
+    )
+  end
+
   template float_records_file do
     source "powerdns_generate_float_records.sql.erb"
     owner "root"
@@ -315,13 +339,13 @@ if node['bcpc']['enabled']['dns'] then
       lazy {
         {
           :all_servers         => get_all_nodes,
-          :float_cidr          => IPAddr.new(node['bcpc']['floating']['available_subnet']),
+          :float_cidrs         => float_cidrs,
           :database_name       => node['bcpc']['dbname']['pdns'],
           :cluster_domain      => node['bcpc']['cluster_domain'],
           :management_vip      => node['bcpc']['management']['vip'],
           :monitoring_vip      => node['bcpc']['monitoring']['vip'],
           :reverse_fixed_zones => reverse_fixed_zones,
-          :reverse_float_zone  => reverse_float_zone,
+          :reverse_float_zones => reverse_float_zones,
           :management_zone     => management_zone,
           :mgmt_octets         => mgmt_octets,
           :float_octets        => float_octets

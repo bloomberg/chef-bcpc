@@ -9,7 +9,7 @@ INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_re
 -- MySQL does not allow deleting from a table and selecting from that same table in a subquery, so ids of old SOA records are written to a temporary table, records are deleted,
 -- then the temporary table is cleaned up
 CREATE TEMPORARY TABLE soa_records_to_delete_<%=get_config('powerdns-update-timestamp')%> (id int);
-<% [@cluster_domain, @reverse_float_zone, @reverse_fixed_zones, @management_zone].flatten.each do |zone| %>
+<% [@cluster_domain, @reverse_float_zones, @reverse_fixed_zones, @management_zone].flatten.each do |zone| %>
 
 -- delete malformed NS record where the content is the management VIP instead of cluster domain
 DELETE FROM <%= @database_name %>.records WHERE type='NS' and content='<%= @management_vip %>';
@@ -66,15 +66,19 @@ INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_re
     ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@cluster_domain%>'), name='kibana.<%=@cluster_domain%>', type='A', content='<%=@monitoring_vip%>', bcpc_record_type='STATIC';
 
 -- insert A and PTR records for every floating IP in this cluster's range
-<% @float_cidr.to_range.each do |ip| %>
-<% s_hostname = "public-" + ip.to_s.gsub(".", "-") + "." + @cluster_domain %>
-<% reverse_name = ip.reverse %>
+<% @float_cidrs.each do |float| %>
+  <% float['subnet'].to_range.each do |ip| %>
+  <% s_hostname = "public-" + ip.to_s.gsub(".", "-") + "." + @cluster_domain %>
+  <% reverse_name = ip.reverse %>
+
 INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
     ((SELECT id FROM domains WHERE name='<%=@cluster_domain%>'), '<%=s_hostname%>', 'A', '<%=ip.to_s%>', 'STATIC')
     ON DUPLICATE KEY UPDATE domain_id=(SELECT id FROM domains WHERE name='<%=@cluster_domain%>'), name='<%=s_hostname%>', type='A', content='<%=ip.to_s%>', bcpc_record_type='STATIC';
 INSERT INTO <%=@database_name%>.records (domain_id, name, type, content, bcpc_record_type) VALUES
-    (get_ptr_domain('<%=reverse_name%>', <%= @float_octets %>), '<%=reverse_name%>', 'PTR', '<%=s_hostname%>', 'STATIC')
-    ON DUPLICATE KEY UPDATE domain_id=get_ptr_domain('<%=reverse_name%>', <%= @float_octets %>), name='<%=reverse_name%>', type='PTR', content='<%=s_hostname%>', bcpc_record_type='STATIC';
+    (get_ptr_domain('<%=reverse_name%>', <%= float['octets'] %>), '<%=reverse_name%>', 'PTR', '<%=s_hostname%>', 'STATIC')
+    ON DUPLICATE KEY UPDATE domain_id=get_ptr_domain('<%=reverse_name%>', <%= float['octets'] %>), name='<%=reverse_name%>', type='PTR', content='<%=s_hostname%>', bcpc_record_type='STATIC';
+
+  <% end %>
 <% end %>
 
 -- fixed IPs are inserted by another template (look at powerdns-nova recipe)
