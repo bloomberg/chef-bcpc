@@ -2,10 +2,10 @@
 # openstack
 ###############################################################################
 
-default['bcpc']['openstack']['repo']['enabled'] = false
+default['bcpc']['openstack']['repo']['enabled'] = true
 default['bcpc']['openstack']['repo']['url'] = 'http://ubuntu-cloud.archive.canonical.com/ubuntu'
 
-default['bcpc']['openstack']['repo']['release'] = 'queens'
+default['bcpc']['openstack']['repo']['release'] = 'rocky'
 default['bcpc']['openstack']['repo']['branch'] = 'updates'
 
 default['bcpc']['openstack']['admin']['username'] = 'admin'
