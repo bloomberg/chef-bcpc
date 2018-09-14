@@ -11,6 +11,17 @@ index 382378f..369e2c9 100644
  """Instance Metadata information."""
 
  import base64
+@@ -157,6 +159,10 @@
+         if network_info is None:
+             network_info = instance.info_cache.network_info
+
++        if self.address is None:
++            fixed_ips = [ip['address'] for ip in network_info.fixed_ips() if ip['version'] == 4]
++            self.address = fixed_ips and fixed_ips[0] or None
++
+         # expose network metadata
+         if network_metadata is None:
+             self.network_metadata = netutils.get_network_metadata(network_info)
 @@ -223,6 +225,11 @@ class InstanceMetadata(object):
          fixed_ips = self.ip_info['fixed_ips']
          fixed_ip = fixed_ips and fixed_ips[0] or ''
