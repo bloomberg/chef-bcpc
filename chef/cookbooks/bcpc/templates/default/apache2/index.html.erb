@@ -40,7 +40,7 @@
     </style>
 
     <h2><%= node['bcpc']['cloud']['region'] %> - <%= node['bcpc']['cloud']['fqdn'] %> (<%= @vip %>)</h2>
-    <p class="version">BCPC cookbook <%= @cookbook_version %> (<%= node['bcpc']['openstack']['release'] %>-<%= node['bcpc']['openstack']['branch'] %>)</p>
+    <p class="version">BCPC cookbook <%= @cookbook_version %> (<%= node['bcpc']['openstack']['repo']['release'] %>-<%= node['bcpc']['openstack']['repo']['branch'] %>)</p>
 
     <h3>Web Interfaces</h3>
     <table>
