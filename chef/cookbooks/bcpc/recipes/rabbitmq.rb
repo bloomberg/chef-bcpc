@@ -15,22 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apt_repository 'rabbitmq' do
-  uri node['bcpc']['rabbitmq']['repo']['url']
-  distribution 'testing'
-  components ['main']
-  key 'rabbitmq/rabbitmq.key'
-  only_if { node['bcpc']['rabbitmq']['repo']['enabled'] }
-end
-
-apt_repository 'erlang' do
-  uri node['bcpc']['erlang']['repo']['url']
-  distribution node['lsb']['codename']
-  components ['contrib']
-  key 'rabbitmq/erlang.key'
-  only_if { node['bcpc']['erlang']['repo']['enabled'] }
-end
-
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 

@@ -40,12 +40,6 @@ default['bcpc']['proxy']['proxies']['https'] = ''
 # rabbitmq
 ###############################################################################
 
-default['bcpc']['rabbitmq']['repo']['enabled'] = false
-default['bcpc']['rabbitmq']['repo']['url'] = 'http://www.rabbitmq.com/debian'
-
-default['bcpc']['erlang']['repo']['enabled'] = false
-default['bcpc']['erlang']['repo']['url'] = 'http://packages.erlang-solutions.com/ubuntu'
-
 # if changing this setting, you will need to reset Mnesia
 # on all RabbitMQ nodes in the cluster
 default['bcpc']['rabbitmq']['durable_queues'] = true
@@ -96,13 +90,6 @@ default['bcpc']['mysql']['slow_query_log_file'] = '/var/log/mysql/slow.log'
 default['bcpc']['mysql']['long_query_time'] = 10
 default['bcpc']['mysql']['log_queries_not_using_indexes'] = false
 default['bcpc']['mysql']['service_hostname'] = 'primary.mysql.service.consul'
-
-###############################################################################
-# haproxy
-###############################################################################
-
-default['bcpc']['haproxy']['apt']['enabled'] = false
-default['bcpc']['haproxy']['apt']['url'] = 'http://ppa.launchpad.net/vbernat/haproxy-1.8/ubuntu'
 
 ###############################################################################
 # misc settings
