@@ -23,7 +23,7 @@ if node['bcpc']['openstack']['repo']['enabled']
     action :upgrade
   end
 
-  repo = node['bcpc']['repos']['openstack']
+  repo = node['bcpc']['openstack']['repo']
   branch = repo['branch']
   release = repo['release']
   codename = node['lsb']['codename']
