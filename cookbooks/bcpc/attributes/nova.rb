@@ -29,6 +29,8 @@ default['bcpc']['nova']['database']['max_pool_size'] = 5
 default['bcpc']['nova']['rpc_response_timeout'] = 120
 # whether to enable services by default (e.g. for new compute nodes)
 default['bcpc']['nova']['enable_new_services'] = true
+# whether to force config drive usage
+default['bcpc']['nova']['force_config_drive'] = false
 # set soft/hard ulimits in upstart unit file for nova-compute
 # as number of OSDs in cluster increases, soft limit needs to increase to avoid
 # nova-compute deadlocks

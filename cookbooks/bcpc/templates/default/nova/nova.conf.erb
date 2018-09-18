@@ -61,7 +61,7 @@ resume_guests_state_on_host_boot=<%= node['bcpc']['nova']['resume_guests_state_o
 <% if node['bcpc']['nova']['cpu_config']['vcpu_pin_set'] %>
 vcpu_pin_set = <%= node['bcpc']['nova']['cpu_config']['vcpu_pin_set'] %>
 <% end %>
-force_config_drive=true
+force_config_drive=<%= node['bcpc']['nova']['force_config_drive'] %>
 
 # Nova Volume settings
 volume_api_class=nova.volume.cinder.API
