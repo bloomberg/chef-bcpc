@@ -81,14 +81,11 @@ node['bcpc'].fetch('additional_floating',[]).each_with_index do |float,index|
   pool_name = node['bcpc']['region_name']
 
   bash "nova update #{pool_name} floating ip pool with #{float['cidr']}" do
-    # ignore_failure is set to true because if this cidr already exists
-    # in this pool, then the command will fail.
-    ignore_failure true
     code <<-EOH
       . /root/openrc-nova
       nova-manage floating create \
         --ip_range=#{float['cidr']} \
-        --pool #{pool_name}
+        --pool #{pool_name} || true
     EOH
   end
 end
