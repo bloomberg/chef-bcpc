@@ -237,6 +237,29 @@ end
     end
 end
 
+node['bcpc'].fetch('additional_floating',[]).each_with_index do |float,index|
+
+  iface = "#{node['bcpc']['floating']['interface']}:#{index}"
+  ip = calc_ip_address(float['cidr'])
+
+  template "/etc/network/interfaces.d/iface-#{iface}" do
+    source "network.iface-alias.erb"
+    variables(
+      :ip => ip,
+      :interface => iface,
+      :netmask => float['netmask']
+    )
+  end
+
+  execute "ifup #{iface}" do
+    command <<-EOH
+      ifup #{iface}
+    EOH
+    not_if "ip a show #{iface} up | grep #{iface}"
+  end
+
+end
+
 bash 'kill-dhclient-and-update-resolvconf' do
     code <<-EOH
        killall -9 dhclient

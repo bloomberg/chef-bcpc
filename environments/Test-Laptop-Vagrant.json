@@ -54,6 +54,15 @@
         "gateway" : "192.168.100.3",
         "available_subnet" : "192.168.100.128/25"
       },
+      "additional_floating": [
+        {
+          "cidr": "192.168.200.0/24",
+          "netmask": "255.255.255.0",
+          "ip_pools" : [
+            "192.168.200.128/25"
+          ]
+        }
+      ],
       "bootstrap": {
         "interface" : "eth0",
         "pxe_interface" : "eth1",

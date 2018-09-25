@@ -42,6 +42,10 @@ iptables-restore <<EOH
 # Allow anyone to ingress float iface to the float addresses
 -A INPUT -i <%=@node["bcpc"]["floating"]["interface"]%> -d <%=@node["bcpc"]["floating"]["cidr"]%> -j ACCEPT
 
+<% node['bcpc'].fetch('additional_floating',[]).each do |float| %>
+-A INPUT -i <%= @node['bcpc']['floating']['interface'] %> -d <%= float['cidr'] %> -j ACCEPT
+<% end %>
+
 # Allow vrrp traffic
 -A INPUT -i <%=@node["bcpc"]["floating"]["interface"]%> -p vrrp -j ACCEPT
 

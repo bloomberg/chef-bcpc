@@ -36,7 +36,7 @@ stor_bitlen = (node['bcpc']['storage']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/
 flot_bitlen = (node['bcpc']['floating']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
 
 # Save the host number on the mgmt network to the node_number for this node
-mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip'])<<mgmt_bitlen>>mgmt_bitlen
+mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip']) << mgmt_bitlen >> mgmt_bitlen
 node.set['bcpc']['node_number'] = mgmt_hostaddr.to_i.to_s
 
 # Keep the same host number for addresses on the storage and float networks

@@ -451,3 +451,16 @@ def load_user_context_vars(username,
   val_pairs = auth.collect {|tuple| filter.call(tuple) }.flatten
   auth_vars = Hash[ *val_pairs ]
 end
+
+def calc_ip_address(cidr)
+  mgmt_bitlen = (node['bcpc']['management']['cidr'].match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
+  mgmt_hostaddr = IPAddr.new(node['bcpc']['management']['ip']) << mgmt_bitlen >> mgmt_bitlen
+
+  bitlen = (cidr.match /\d+\.\d+\.\d+\.\d+\/(\d+)/)[1].to_i
+  ip = IPAddr.new(cidr)
+  ip = ip >> (32 - bitlen)
+  ip = ip << (32 - bitlen)
+  ip = (ip | mgmt_hostaddr).to_s
+
+  return ip
+end

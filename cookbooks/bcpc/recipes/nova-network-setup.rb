@@ -77,16 +77,16 @@ bash "nova-floating-add" do
     only_if ". /root/openrc-nova; nova-manage floating list | grep \"No floating IP addresses have been defined\""
 end
 
-node['bcpc'].fetch('additional_floating',[]).each_with_index do |float,index|
-  pool_name = node['bcpc']['region_name']
+node['bcpc'].fetch('additional_floating',[]).each do |float|
+  pool = node['bcpc']['region_name']
 
-  bash "nova update #{pool_name} floating ip pool with #{float['cidr']}" do
-    code <<-EOH
-      . /root/openrc-nova
-      nova-manage floating create \
-        --ip_range=#{float['cidr']} \
-        --pool #{pool_name} || true
-    EOH
+  float.fetch('ip_pools',[]).each do |ip_pool|
+    bash "nova update #{pool} floating ip pool with #{ip_pool}" do
+      code <<-EOH
+        . /root/openrc-nova
+        nova-manage floating create --ip_range=#{ip_pool} --pool #{pool} || true
+      EOH
+    end
   end
 end
 

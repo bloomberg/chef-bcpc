@@ -36,12 +36,6 @@ ip route add <%=@node["bcpc"]["management"]["cidr"]%> \
          table mgmt \
          proto static
 
-# add routes to addtional floating networks
-<% node["bcpc"].fetch("additional_floating",[]).each do |float| -%>
-ip route add <%= float["cidr"] %> \
-  dev <%= node["bcpc"]["floating"]["interface"] %>
-<% end %>
-
 # Move the local table ip rule up further in the list
 ip rule add from all lookup local pref 0
 ip rule del pref 1000
