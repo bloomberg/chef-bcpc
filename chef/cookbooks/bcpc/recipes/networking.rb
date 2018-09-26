@@ -70,6 +70,7 @@ begin
   end
 end
 
+=begin
 # storage interface configuration
 #
 begin
@@ -120,6 +121,7 @@ begin
     content data.to_yaml(Indent: 2).to_s
   end
 end
+=end
 
 if headnode?
 

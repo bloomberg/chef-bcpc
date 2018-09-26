@@ -1,7 +1,6 @@
 [DEFAULT]
 debug = <%= node['bcpc']['keystone']['debug'] ? 'true' : 'false' %>
 log_dir = /var/log/keystone
-member_role_name = <%= node['bcpc']['keystone']['roles']['member'] %>
 notification_format = <%= node['bcpc']['keystone']['notification_format'] %>
 notification_opt_out = identity.authenticate.success
 public_endpoint = https://<%= node["bcpc"]['cloud']["fqdn"]%>:5000/
@@ -48,9 +47,8 @@ key_repository = /etc/keystone/fernet-keys/
 max_active_keys = 3
 
 [identity]
-driver = <%= node['bcpc']['keystone']['drivers']['identity'] %>
 domain_specific_drivers_enabled = true
-domain_configurations_from_database = true
+domain_config_dir = /etc/keystone/domains
 cache_time = 600
 
 [identity_mapping]

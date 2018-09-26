@@ -78,7 +78,6 @@ CACHES = {
 OPENSTACK_HOST = "<%= node['bcpc']['cloud']['fqdn'] %>"
 OPENSTACK_KEYSTONE_URL = "https://%s:5000/<%= node['bcpc']['catalog']['identity']['uris']['internal'] %>" % OPENSTACK_HOST
 OPENSTACK_SSL_NO_VERIFY = False
-OPENSTACK_SSL_CACERT = '/etc/ssl/certs/ssl-bcpc.pem'
 
 OPENSTACK_KEYSTONE_ADMIN_ROLES = ["<%= node['bcpc']['keystone']['roles']['admin'] %>"]
 OPENSTACK_KEYSTONE_DEFAULT_ROLE = "<%= node['bcpc']['keystone']['roles']['member'] %>"

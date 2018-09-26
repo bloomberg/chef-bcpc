@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: packages-openstack
 #
@@ -15,24 +14,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-if node['bcpc']['openstack']['repo']['enabled']
+return unless node['bcpc']['openstack']['repo']['enabled']
 
-  package 'ubuntu-cloud-keyring' do
-    action :upgrade
-  end
+package 'ubuntu-cloud-keyring'
 
-  repo = node['bcpc']['openstack']['repo']
-  branch = repo['branch']
-  release = repo['release']
-  codename = node['lsb']['codename']
+repo = node['bcpc']['openstack']['repo']
+branch = repo['branch']
+release = repo['release']
+codename = node['lsb']['codename']
 
-  apt_repository 'openstack' do
-    uri repo['url']
-    distribution "#{codename}-#{branch}/#{release}"
-    components ['main']
-    key 'openstack/release.key'
-  end
-
+apt_repository 'openstack' do
+  uri repo['url']
+  distribution "#{codename}-#{branch}/#{release}"
+  components ['main']
+  key 'openstack/release.key'
 end

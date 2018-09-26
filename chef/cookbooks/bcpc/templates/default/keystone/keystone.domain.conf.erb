@@ -1,7 +1,7 @@
-<% @domain['config'].sort.each do |section, opts| %>
-[<%= section %>]
-<%  opts.each do |k, v| %>
-<%=   k %> = <%= v %>
-<%  end %>
+[identity]
+driver = <%= @identity['driver'] %>
 
+[<%= @identity['driver'] %>]
+<% @identity['config'].each do |key, value| %>
+<%= key %> = <%= value %>
 <% end %>
