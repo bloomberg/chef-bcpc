@@ -15,15 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+package 'cpufrequtils'
+
 if node['bcpc']['hardware']['powersave']['enabled']
   service 'ondemand' do
     action %i(start enable)
   end
-
 else
-
   service 'ondemand' do
     action %i(stop disable)
+  end
+
+  file '/etc/default/cpufrequtils' do
+    content 'GOVERNOR="performance"'
   end
 
   bash 'enable CPU performance mode' do
@@ -35,5 +39,4 @@ else
     DOC
     only_if 'test -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor'
   end
-
 end

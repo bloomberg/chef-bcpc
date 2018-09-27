@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: file-server
 #
@@ -15,14 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-directory '/etc/nginx/sites-available' do
-  recursive true
-end
+package 'nginx'
+service 'nginx'
 
 template '/etc/nginx/sites-available/default' do
   source 'file_server/default.erb'
+  notifies :restart, 'service[nginx]', :immediately
 end
-
-package 'nginx'

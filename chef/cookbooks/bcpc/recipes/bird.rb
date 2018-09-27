@@ -38,9 +38,9 @@ begin
     source 'bird/bird.conf.erb'
 
     variables(
+      bgp: pod['bgp'],
       is_worknode: worknode?,
       is_headnode: headnode?,
-      as_number: pod['bgp_as'],
       iface: primary['dev'],
       upstream_peer: pod['networks']['primary']['gateway']
     )

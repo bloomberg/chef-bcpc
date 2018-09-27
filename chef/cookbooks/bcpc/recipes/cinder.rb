@@ -250,6 +250,7 @@ end
 
 execute 'create ceph cinder backend type' do
   environment os_adminrc
+  retries 3
   command <<-DOC
     openstack volume type create ceph
   DOC

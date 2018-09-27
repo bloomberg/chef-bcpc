@@ -153,6 +153,11 @@ execute 'bootstrap the identity service' do
   DOC
 end
 
+# use multi-domain keystone policy
+remote_file '/etc/keystone/policy.json' do
+  source 'file:///usr/share/keystone/policy.v3cloudsample.json'
+end
+
 # configure keystone service starts
 template '/etc/keystone/keystone.conf' do
   source 'keystone/keystone.conf.erb'
@@ -197,6 +202,21 @@ execute 'update admin project description' do
   DOC
 end
 
+execute 'add admin role to admin user in default domain' do
+  environment os_adminrc
+  command <<-EOH
+    openstack role add --domain default --user admin admin
+  EOH
+
+  not_if <<-DOC
+    openstack role assignment list \
+      --names \
+      --user admin \
+      --role admin \
+      --domain default | grep admin
+  DOC
+end
+
 execute 'create the default member role' do
   environment os_adminrc
 
@@ -226,32 +246,45 @@ execute 'create the service project' do
 end
 
 # setup additional domains
-node['bcpc']['keystone']['domains'].each do |domain, spec|
-  template File.join(domain_config_dir, "keystone.#{domain}.conf") do
+node['bcpc']['keystone']['domains'].each do |domain|
+  domain_name = domain['name']
+
+  template File.join(domain_config_dir, "keystone.#{domain_name}.conf") do
     source 'keystone/keystone.domain.conf.erb'
     mode '600'
     owner 'keystone'
     group 'keystone'
-    variables(domain: spec)
-    notifies :run, 'execute[create openstack domain]', :immediately
-    not_if "openstack domain show #{domain}", environment: os_adminrc
+
+    variables(
+      identity: domain['identity']
+    )
   end
 
   execute 'create openstack domain' do
-    action :nothing
     environment os_adminrc
-    desc = domain['description'] || ''
+
+    description = domain['description'] || ''
+
     command <<-DOC
-      openstack domain create --description "#{desc}" #{domain}
+      openstack domain create --description "#{description}" #{domain_name}
     DOC
-    notifies :run, 'execute[upload domain configuration]', :immediately
+
+    not_if "openstack domain show #{domain_name}"
   end
 
-  execute 'upload domain configuration' do
-    action :nothing
+  execute "add admin role to admin user in the #{domain_name} domain" do
     environment os_adminrc
-    command <<-DOC
-       keystone-manage domain_config_upload --domain "#{domain}"
+
+    command <<-EOH
+      openstack role add --domain #{domain_name} --user admin admin
+    EOH
+
+    not_if <<-DOC
+      openstack role assignment list \
+        --names \
+        --user admin \
+        --role admin \
+        --domain #{domain_name} | grep admin
     DOC
   end
 end

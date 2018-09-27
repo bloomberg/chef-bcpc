@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddress'
 include_recipe 'bcpc::calico-head'
 
 region = node['bcpc']['cloud']['region']
@@ -203,7 +204,8 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   # create fixed subnets
   network.fetch('fixed', []).each do |fixed|
-    cidr = "#{fixed['allocation'].network.address}/#{fixed['allocation'].prefix}"
+    allocation = IPAddress(fixed['allocation'])
+    cidr = "#{allocation.network.address}/#{allocation.prefix}"
     subnet_name = "#{fixed_network}-fixed-#{cidr}"
 
     execute "create the #{fixed_network} network #{subnet_name} subnet" do
@@ -237,7 +239,8 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   # create float subnets
   network.fetch('float', []).each do |float|
-    cidr = "#{float['allocation'].network.address}/#{float['allocation'].prefix}"
+    allocation = IPAddress(float['allocation'])
+    cidr = "#{allocation.network.address}/#{allocation.prefix}"
     subnet_name = "#{float_network}-#{cidr}"
 
     execute "create the #{float_network} network #{subnet_name} subnet" do

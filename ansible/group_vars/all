@@ -78,6 +78,16 @@ assets_files:
     checksum: sha256:6d663a8fd5eddd916f4aef4fd06d0f7f4cf0bb191f170b8c84cd2adf297bc5c3
     filename: ubuntu-18.04-server-cloudimg-amd64.img
 
+  - name: ubuntu-16.04
+    url: http://cloud-images.ubuntu.com/releases/16.04/release-20180912/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+    checksum: sha256:7bb741d90f56a42bbde01633d1f6e9204693c6ae357edd42a0b363945a76812f
+    filename: ubuntu-16.04-server-cloudimg-amd64-disk1.img
+
+  - name: centos-7
+    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+    checksum: sha256:9cc2e9fefb7d8ac8e8a6973c20edb00f12c96614086b1fea5c4f02576be875f6
+    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+
   - name: etcd
     url: https://github.com/coreos/etcd/releases/download/v3.3.7/etcd-v3.3.7-linux-amd64.tar.gz
     checksum: sha256:251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c
@@ -132,3 +142,12 @@ cloud:
       input: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.img
       output: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.raw
       source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd64.img"
+    - name: ubuntu-16.04
+      input: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+      output: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.raw
+      source: "{{ assets_download_dir }}/ubuntu-16.04-server-cloudimg-amd64-disk1.img"
+    - name: centos-7
+      input: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+      output: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.raw
+      url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+      source: "{{ assets_download_dir }}/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz"

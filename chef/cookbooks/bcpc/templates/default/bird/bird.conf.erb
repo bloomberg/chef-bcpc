@@ -56,8 +56,8 @@ protocol device {
 
 protocol bgp {
   description "connection to tor";
-  local <%= node['ipaddress'] %> as <%= @as_number %>;
-  neighbor <%= @upstream_peer %> as <%= @as_number %>;
+  local <%= node['ipaddress'] %> as <%= @bgp['node_as'] %>;
+  neighbor <%= @upstream_peer %> as <%= @bgp['tor_as'] %>;
   multihop;
   import filter import_bgp;
   graceful restart;

@@ -18,7 +18,7 @@ eth1_ip=${1}
 gateway=${2}
 
 if netplan ip leases eth0 > /dev/null 2>&1; then
-  eth0_ip=$(netplan ip leases eth0 | grep -w ADDRESS | cut -d '=' -f 2)
+    eth0_ip=$(netplan ip leases eth0 | grep -w ADDRESS | cut -d '=' -f 2)
 
 cat > /etc/netplan/01-netcfg.yaml <<EOF
 ---

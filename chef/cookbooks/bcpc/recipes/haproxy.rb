@@ -29,20 +29,27 @@ config = data_bag_item(region, 'config')
 package 'haproxy'
 service 'haproxy'
 
-template '/etc/haproxy/haproxy.pem' do
-  source 'haproxy/haproxy.pem.erb'
-  mode '600'
+begin
 
-  inter = config['ssl']['intermediate']
-  inter = inter ? Base64.decode64(inter) : false
+  certs = []
+  certs.push(Base64.decode64(config['ssl']['key']))
+  certs.push(Base64.decode64(config['ssl']['crt']))
 
-  variables(
-    key: Base64.decode64(config['ssl']['key']),
-    crt: Base64.decode64(config['ssl']['crt']),
-    inter: inter
-  )
+  if config['ssl']['intermediate']
+    certs.push(Base64.decode64(config['ssl']['intermediate']))
+  end
 
-  notifies :restart, 'service[haproxy]', :delayed
+  template '/etc/haproxy/haproxy.pem' do
+    source 'haproxy/haproxy.pem.erb'
+    mode '600'
+
+    variables(
+      certs: certs
+    )
+
+    notifies :restart, 'service[haproxy]', :delayed
+  end
+
 end
 
 template '/etc/haproxy/haproxy.cfg' do

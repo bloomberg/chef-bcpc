@@ -14,6 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require 'ipaddress'
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
@@ -83,7 +84,17 @@ end
 #
 serial = Time.now.strftime('%Y%m%d01')
 email = node['bcpc']['keystone']['admin']['email'].tr('@', '.')
-networks = node['bcpc']['neutron']['networks']
+networks = node['bcpc']['neutron']['networks'].dup
+
+# expand subnet ip allocations
+
+networks.each do |network|
+  %w(fixed float).each do |type|
+    network.fetch(type, []).each do |subnet|
+      subnet['allocation'] = IPAddress(subnet['allocation'])
+    end
+  end
+end
 
 begin
   zone = node['bcpc']['cloud']['domain']

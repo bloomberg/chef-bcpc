@@ -14,11 +14,20 @@
       exit 0
     fi
 
-    qemu-img convert -f qcow2 -O raw "{{ item.input }}" "{{ item.output }}"
+    input='{{ item.input }}'
+    output='{{ item.output }}'
+    file_ext=${input##*.}
+
+    if [ ${file_ext} = 'xz' ]; then
+      unxz $input
+      input=${input%.xz}
+    fi
+
+    qemu-img convert -f qcow2 -O raw ${input} ${output}
 
     openstack image create "{{ item.name }}" \
       --public \
-      --file "{{ item.output }}"
+      --file ${output}
   args:
     executable: /bin/bash
   with_items:

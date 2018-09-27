@@ -169,7 +169,7 @@ def node_pod
 end
 
 def node_interfaces(type: nil)
-  interfaces = [node_primary_interface, node_storage_interface]
+  interfaces = [node_primary_interface]
   return interfaces if type.nil?
 
   iface = node_interfaces.find { |i| i['type'] == type }

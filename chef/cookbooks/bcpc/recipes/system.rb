@@ -17,22 +17,28 @@
 
 package 'tpm-tools'
 
+kernel_packages = %w(
+  linux-image
+  linux-headers
+  linux-tools
+  linux-cloud-tools
+)
+
 if node['bcpc']['kernel']['pin_version']
   version = node['bcpc']['kernel']['version']
 
-  packages = [
-    "linux-image-#{version}",
-    "linux-headers-#{version}",
-    "linux-tools-#{version}",
-  ]
-
-  packages.each do |pkg|
+  kernel_packages.each do |pkg|
+    pkg = "#{pkg}-#{version}"
     package pkg
 
     execute "place hold on #{pkg}" do
       command "echo #{pkg} hold | dpkg --set-selections"
       not_if "dpkg -s #{pkg} | grep ^Status: | grep -q ' hold '"
     end
+  end
+else
+  kernel_packages.each do |pkg|
+    package "#{pkg}-generic"
   end
 end
 
