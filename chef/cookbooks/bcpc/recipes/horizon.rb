@@ -17,11 +17,33 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+policy_dir = '/etc/openstack-dashboard/conf'
 
 package 'openstack-dashboard'
 
 service 'horizon' do
   service_name 'apache2'
+end
+
+directory policy_dir do
+  action :create
+end
+
+%w(keystone neutron glance).each do |srv|
+  remote_file "#{policy_dir}/#{srv}_policy.json" do
+    source "file:///etc/#{srv}/policy.json"
+  end
+end
+
+%w(nova cinder).each do |srv|
+  execute "generate #{srv} policy files" do
+    command <<-EOH
+      oslopolicy-sample-generator \
+        --format json \
+        --namespace #{srv} \
+        --output-file #{policy_dir}/#{srv}_policy.json
+    EOH
+  end
 end
 
 template '/etc/apache2/conf-available/openstack-dashboard.conf' do
@@ -33,7 +55,8 @@ template '/etc/openstack-dashboard/local_settings.py' do
   source 'horizon/local_settings.py.erb'
   variables(
     config: config,
-    headnodes: headnodes(all: true)
+    headnodes: headnodes(all: true),
+    domains: node['bcpc']['keystone'].fetch('domains', [])
   )
   notifies :restart, 'service[horizon]', :delayed
 end
