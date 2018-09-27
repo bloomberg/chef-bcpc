@@ -11,6 +11,9 @@ Listen <%= node['ipaddress'] %>:9999
   Alias /static /var/lib/openstack-dashboard/static/
   Alias /horizon/static /var/lib/openstack-dashboard/static/
 
+  ErrorLog /var/log/apache2/horizon_error.log
+  CustomLog /var/log/apache2/horizon_access.log combined
+
   RewriteEngine  on
 
   # make sure there is a trailing / so django will build a proper next query
