@@ -70,59 +70,6 @@ begin
   end
 end
 
-=begin
-# storage interface configuration
-#
-begin
-  storage = node_interfaces(type: 'storage')
-  raise 'unable to find the storage interface' if storage.nil?
-
-  data = {
-    'network' => {
-      'version' => 2,
-      'ethernets' => {
-        storage['dev'] => {
-          'addresses' => [
-            "#{storage['ip']}/#{storage['prefix']}",
-          ],
-          'routes' => [
-            {
-              'to' => storage['route']['to'],
-              'via' => storage['route']['via'],
-            },
-          ],
-        },
-      },
-    },
-  }
-
-  if storage.key?('mtu')
-    mtu = storage['mtu']
-    data['network']['ethernets'][storage['dev']]['mtu'] = mtu
-  end
-
-  if storage.key?('vlan')
-    vlan = storage['vlan']
-
-    data['network']['vlans'] = {
-      "vlan#{vlan}" => {
-        'id' => vlan,
-        'link' => storage['dev'],
-        'addresses' => [
-          "#{storage['ip']}/#{storage['prefix']}",
-        ],
-      },
-    }
-
-    data['network']['ethernets'][storage['dev']].delete('addresses')
-  end
-
-  file "/etc/netplan/#{storage['dev']}.yaml" do
-    content data.to_yaml(Indent: 2).to_s
-  end
-end
-=end
-
 if headnode?
 
   data = {

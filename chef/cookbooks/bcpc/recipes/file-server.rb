@@ -22,4 +22,3 @@ template '/etc/nginx/sites-available/default' do
   source 'file_server/default.erb'
   notifies :restart, 'service[nginx]', :immediately
 end
-

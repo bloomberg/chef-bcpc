@@ -39,7 +39,6 @@ begin
     certs.push(Base64.decode64(config['ssl']['intermediate']))
   end
 
-
   template '/etc/haproxy/haproxy.pem' do
     source 'haproxy/haproxy.pem.erb'
     mode '600'
