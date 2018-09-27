@@ -107,7 +107,7 @@ begin
     variables(
       email: email,
       serial: serial,
-      networks: networks,
+      networks: networks
     )
     not_if "pdnsutil list-all-zones | grep #{zone}"
   end
