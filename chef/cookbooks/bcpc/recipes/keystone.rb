@@ -154,8 +154,8 @@ execute 'bootstrap the identity service' do
 end
 
 # use multi-domain keystone policy
-cookbook_file '/etc/keystone/policy.json' do
-  source 'keystone/policy.json'
+remote_file '/etc/keystone/policy.json' do
+  source 'file:///usr/share/keystone/policy.v3cloudsample.json'
 end
 
 # configure keystone service starts
