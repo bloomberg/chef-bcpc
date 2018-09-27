@@ -89,7 +89,7 @@ networks = node['bcpc']['neutron']['networks'].dup
 # expand subnet ip allocations
 
 networks.each do |network|
-  %w[fixed float].each do |type|
+  %w(fixed float).each do |type|
     network.fetch(type, []).each do |subnet|
       subnet['allocation'] = IPAddress(subnet['allocation'])
     end
