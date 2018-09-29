@@ -236,9 +236,16 @@ template '/etc/cinder/cinder.conf' do
     headnodes: headnodes(all: true)
   )
 
-  notifies :restart, 'service[cinder-api]', :immediately
-  notifies :restart, 'service[cinder-volume]', :immediately
-  notifies :restart, 'service[cinder-scheduler]', :immediately
+  # the cinder services here are being stopped/started vs. restarted
+  # is because on some systems, the package installation and configuration
+  # happens so fast that it causes systemd to complain about the service
+  # restarting too fast.
+  notifies :stop, 'service[cinder-api]', :immediately
+  notifies :stop, 'service[cinder-volume]', :immediately
+  notifies :stop, 'service[cinder-scheduler]', :immediately
+  notifies :start, 'service[cinder-api]', :immediately
+  notifies :start, 'service[cinder-volume]', :immediately
+  notifies :start, 'service[cinder-scheduler]', :immediately
 end
 # configure cinder service ends
 

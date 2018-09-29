@@ -5,11 +5,13 @@ from django.utils.translation import ugettext_lazy as _
 from horizon.utils import secret_key
 from openstack_dashboard.settings import HORIZON_CONFIG
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 SITE_BRANDING = "<%= node['bcpc']['cloud']['region'] %>"
 SECRET_KEY = '<%= @config['horizon']['secret'] %>'
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = True
 
 WEBROOT = '/horizon'
 LOGIN_URL = WEBROOT + '/auth/login/'
@@ -18,7 +20,8 @@ LOGIN_REDIRECT_URL = WEBROOT
 
 DEFAULT_THEME = 'default'
 AVAILABLE_THEMES = [
-  ('default', 'Default', 'themes/default')
+  ('default', 'Default', '../themes/default'),
+#  ('material', 'Material', '../themes/material')
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -27,13 +30,6 @@ SESSION_COOKIE_SECURE = True
 SHOW_KEYSTONE_V2_RC = False
 HORIZON_IMAGES_UPLOAD_MODE = 'off'
 TIME_ZONE = "UTC"
-
-OPENSTACK_API_VERSIONS = {
-  "identity": 3,
-  "image": 2,
-  "volume": 3,
-  "compute": 2,
-}
 
 <% if @domains.any? %>
 OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
@@ -52,6 +48,7 @@ OPENSTACK_KEYSTONE_URL = "https://%s:5000/<%= node['bcpc']['catalog']['identity'
 
 OPENSTACK_NEUTRON_NETWORK = {
   'enable_router': True,
+  'enable_quotas': True,
   'enable_fip_topology_check': True,
   'supported_provider_types': ['local']
 }
@@ -62,15 +59,4 @@ CACHES = {
     'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
     'LOCATION' : [<%= @headnodes.map{|n| "'#{n['ipaddress']}:11211'"}.join(',') %>]
   }
-}
-
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-POLICY_FILES_PATH = os.path.join(ROOT_PATH, "conf")
-
-POLICY_FILES = {
-  'identity': 'keystone_policy.json',
-  'compute': 'nova_policy.json',
-  'volume': 'cinder_policy.json',
-  'image': 'glance_policy.json',
-  'network': 'neutron_policy.json',
 }
