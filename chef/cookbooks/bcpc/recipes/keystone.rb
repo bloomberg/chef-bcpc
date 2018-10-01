@@ -158,6 +158,16 @@ remote_file '/etc/keystone/policy.json' do
   source 'file:///usr/share/keystone/policy.v3cloudsample.json'
 end
 
+# create policy.d dir for policy overrides
+directory '/etc/keystone/policy.d' do
+  action :create
+end
+
+# install override for cloud_admin definition
+cookbook_file '/etc/keystone/policy.d/cloud_admin.json' do
+  source 'keystone/cloud_admin.json'
+end
+
 # configure keystone service starts
 template '/etc/keystone/keystone.conf' do
   source 'keystone/keystone.conf.erb'

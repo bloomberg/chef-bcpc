@@ -67,6 +67,9 @@ driver =
 [policy]
 driver = <%= node['bcpc']['keystone']['drivers']['policy'] %>
 
+[oslo_policy]
+policy_dirs = policy.d
+
 [token]
 provider = fernet
 
