@@ -162,11 +162,11 @@ execute 'wait for compute host' do
 end
 
 begin
-  az = local_availability_zone
+  ha = local_host_aggregate
 
-  execute "add #{node['hostname']} to the #{az} availability zone" do
+  execute "add #{node['hostname']} to the #{ha} host aggregate" do
     environment os_adminrc
-    command "openstack aggregate add host #{az} #{node['hostname']}"
+    command "openstack aggregate add host #{ha} #{node['hostname']}"
     not_if "
       agg=$(openstack aggregate show #{az} -f value -c hosts)
       echo ${agg} | grep -w #{node['hostname']}

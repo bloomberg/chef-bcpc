@@ -120,12 +120,14 @@ end
 
 def availability_zones
   racks = cloud_racks
-  racks.map { |rack| "AZ-#{rack['id']}" }
+  zone_prefix = node.chef_environment
+  racks.map { |rack| "#{zone_prefix}-#{rack['id']}" }
 end
 
-def local_availability_zone
+def local_host_aggregate
   node_map = node_network_map
-  "AZ-#{node_map['rack_id']}"
+  zone_prefix = node.chef_environment
+  "#{zone_prefix}-#{node_map['rack_id']}"
 end
 
 def node_network_map
