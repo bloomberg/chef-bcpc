@@ -168,7 +168,7 @@ begin
     environment os_adminrc
     command "openstack aggregate add host #{ha} #{node['hostname']}"
     not_if "
-      agg=$(openstack aggregate show #{az} -f value -c hosts)
+      agg=$(openstack aggregate show #{ha} -f value -c hosts)
       echo ${agg} | grep -w #{node['hostname']}
     "
   end

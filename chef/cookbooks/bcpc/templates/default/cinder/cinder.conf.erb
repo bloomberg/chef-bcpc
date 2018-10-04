@@ -3,8 +3,7 @@
 #
 [DEFAULT]
 host = bcpc
-storage_availability_zone =
-allow_availability_zone_fallback = <%= node['bcpc']['cinder']['allow_az_fallback'] %>
+allow_availability_zone_fallback = true
 rootwrap_config = /etc/cinder/rootwrap.conf
 api_paste_confg = /etc/cinder/api-paste.ini
 auth_strategy = keystone
