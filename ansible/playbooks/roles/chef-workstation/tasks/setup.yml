@@ -1,11 +1,11 @@
 - name: upload chef-client
   copy:
-    src: "{{ assets_download_dir }}/chef_14.1.1-1_amd64.deb"
-    dest: "/tmp/chef_14.1.1-1_amd64.deb"
+    src: "{{ assets_download_dir }}/chef_14.6.13-1_amd64.deb"
+    dest: "/tmp/chef_14.6.13-1_amd64.deb"
 
 - name: install chef-client
   apt:
-    deb: "/tmp/chef_14.1.1-1_amd64.deb"
+    deb: "/tmp/chef_14.6.13-1_amd64.deb"
 
 - name: create .chef directory
   become: false

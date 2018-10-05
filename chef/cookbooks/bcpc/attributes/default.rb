@@ -184,9 +184,10 @@ default['bcpc']['memcached']['connections'] = 10240
 # etcd
 ###############################################################################
 
-default['bcpc']['etcd']['remote']['file'] = 'etcd-v3.3.7-linux-amd64.tar.gz'
-default['bcpc']['etcd']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/etcd-v3.3.7-linux-amd64.tar.gz"
-default['bcpc']['etcd']['remote']['checksum'] = '251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c'
+etcd_file = 'etcd-v3.3.9-linux-amd64.tar.gz'
+default['bcpc']['etcd']['remote']['file'] = etcd_file
+default['bcpc']['etcd']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/#{etcd_file}"
+default['bcpc']['etcd']['remote']['checksum'] = '7b95bdc6dfd1d805f650ea8f886fdae6e7322f886a8e9d1b0d14603767d053b1'
 
 ###############################################################################
 # virtualbox

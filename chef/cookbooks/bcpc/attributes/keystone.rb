@@ -49,7 +49,7 @@ default['bcpc']['keystone']['notification_format'] = 'cadf'
 default['bcpc']['keystone']['identity']['domain_configurations_from_database'] = true
 
 default['bcpc']['keystone']['roles']['admin'] = 'admin'
-default['bcpc']['keystone']['roles']['member'] = '_member_'
+default['bcpc']['keystone']['roles']['member'] = 'member'
 
 default['bcpc']['keystone']['admin']['email'] = "admin@#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['keystone']['admin']['username'] = 'admin'

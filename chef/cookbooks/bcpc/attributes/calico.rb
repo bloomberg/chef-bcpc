@@ -7,4 +7,4 @@ default['bcpc']['calico']['repo']['url'] = 'http://ppa.launchpad.net/project-cal
 
 default['bcpc']['calico']['remote']['file'] = 'calicoctl'
 default['bcpc']['calico']['remote']['source'] = "#{default['bcpc']['file_server']['url']}/calicoctl"
-default['bcpc']['calico']['remote']['checksum'] = 'b0045e3f235d42618c3f4f6ec3e58715980995e2fab2424b39787cd72986a11d'
+default['bcpc']['calico']['remote']['checksum'] = '3396ee93361726eede85e3f86b256c80bf8d9d95e6ec37b6573fb44e7bf64e2f'
