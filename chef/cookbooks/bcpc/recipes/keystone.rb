@@ -215,7 +215,7 @@ end
 execute 'add admin role to admin user in default domain' do
   environment os_adminrc
   command <<-EOH
-    openstack role add --domain default --user admin admin
+    openstack role add admin --domain default --user admin
   EOH
 
   not_if <<-DOC
@@ -225,18 +225,6 @@ execute 'add admin role to admin user in default domain' do
       --role admin \
       --domain default | grep admin
   DOC
-end
-
-execute 'create the default member role' do
-  environment os_adminrc
-
-  role = node['bcpc']['keystone']['roles']['member']
-
-  command <<-DOC
-    openstack role create #{role}
-  DOC
-
-  not_if "openstack role show #{role}"
 end
 
 execute 'create the service project' do
@@ -286,7 +274,7 @@ node['bcpc']['keystone']['domains'].each do |domain|
     environment os_adminrc
 
     command <<-EOH
-      openstack role add --domain #{domain_name} --user admin admin
+      openstack role add admin --domain #{domain_name} --user admin
     EOH
 
     not_if <<-DOC

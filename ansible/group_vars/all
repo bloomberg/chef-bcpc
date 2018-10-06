@@ -89,24 +89,24 @@ assets_files:
     filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
 
   - name: etcd
-    url: https://github.com/coreos/etcd/releases/download/v3.3.7/etcd-v3.3.7-linux-amd64.tar.gz
-    checksum: sha256:251605c618e789fe58e3b0c792ebf9304148d20de7840d475e840d6578e9093c
-    filename: etcd-v3.3.7-linux-amd64.tar.gz
+    url: https://github.com/etcd-io/etcd/releases/download/v3.3.9/etcd-v3.3.9-linux-amd64.tar.gz
+    checksum: sha256:7b95bdc6dfd1d805f650ea8f886fdae6e7322f886a8e9d1b0d14603767d053b1
+    filename: etcd-v3.3.9-linux-amd64.tar.gz
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calicoctl/releases/download/v3.2.0/calicoctl-linux-amd64
-    checksum: sha256:b0045e3f235d42618c3f4f6ec3e58715980995e2fab2424b39787cd72986a11d
+    url: https://github.com/projectcalico/calicoctl/releases/download/v3.2.3/calicoctl-linux-amd64
+    checksum: sha256:3396ee93361726eede85e3f86b256c80bf8d9d95e6ec37b6573fb44e7bf64e2f
     filename: calicoctl
 
   - name: consul
-    url: https://releases.hashicorp.com/consul/1.1.0/consul_1.1.0_linux_amd64.zip
-    checksum: sha256:09c40c8b5be868003810064916d8460bff334ccfb59a5046390224b27e052c45
-    filename: consul_1.1.0_linux_amd64.zip
+    url: https://releases.hashicorp.com/consul/1.2.3/consul_1.2.3_linux_amd64.zip
+    checksum: sha256:f97996296ef3905c38c504b35035fb731d3cfd9cad129c9523402a4229c709c5
+    filename: consul_1.2.3_linux_amd64.zip
 
   - name: chef_client
-    url: https://packages.chef.io/files/stable/chef/14.1.1/ubuntu/18.04/chef_14.1.1-1_amd64.deb
-    checksum: sha256:1a3569b1ab39bc79f439b9c0d2b9d9b507748bdfcafe4fc22fe5402584d500ac
-    filename: chef_14.1.1-1_amd64.deb
+    url: https://packages.chef.io/files/current/chef/14.6.13/ubuntu/18.04/chef_14.6.13-1_amd64.deb
+    checksum: sha256:d5e460938a1817de1e223348e234e9b34542c235a71132a9c1dc353c67c8f593
+    filename: chef_14.6.13-1_amd64.deb
 
   - name: chef_server
     url: https://packages.chef.io/files/stable/chef-server/12.17.33/ubuntu/16.04/chef-server-core_12.17.33-1_amd64.deb
