@@ -1,0 +1,44 @@
+# This is the global screenrc file. Handle with care.
+
+startup_message off
+defscrollback 30720
+
+# Turn visual bell on
+vbell on
+vbell_msg "   Wuff  ----  Wuff!!  "
+
+# Remove some stupid / dangerous key bindings
+bind ^k
+bind ^\
+# Make them better
+bind \\ quit
+bind K kill
+bind I login on
+bind O login off
+bind } history
+bindkey -k F1 prev
+bindkey -k F2 next
+
+# Set these terminals up to be 'optimal' instead of vt100
+termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+
+# Change the xterm initialization string from is2=\E[!p\E[?3;4l\E[4l\E>
+# (This fixes the "Aborted because of window size change" konsole symptoms found
+#  in bug #134198)
+termcapinfo xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+
+# To get screen to add lines to xterm's scrollback buffer, uncomment the
+# following termcapinfo line which tells xterm to use the normal screen buffer
+# (which has scrollback), not the alternate screen buffer.
+#
+termcapinfo xterm|xterms|xs|rxvt ti@:te@
+
+# Enable non-blocking mode to better cope with flaky ssh connections.
+defnonblock 5
+
+# Enable SSH agent persistence over logins
+setenv SSH_AUTH_SOCK $HOME/.ssh/ssh_auth_sock
+
+# Window list at the bottom.
+hardstatus alwayslastline
+hardstatus string '%{= kr}[%{= kr} %H %{= kr}]%{= kW} %-w%{= BW}%50>%n %t%{-}%+w %{= kW}%=%{= kr}[%{=b kr} %c %d/%m/%y %{= kr}]%{=b kr}'
