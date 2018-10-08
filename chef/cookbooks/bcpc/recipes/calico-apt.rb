@@ -32,12 +32,10 @@ remote_file 'install calicoctl' do
   source "file://#{fp}"
 end
 
-return unless node['bcpc']['calico']['repo']['enabled']
-
 apt_repository 'calico' do
   arch 'amd64'
   uri node['bcpc']['calico']['repo']['url']
-  distribution 'xenial'
+  distribution node['lsb']['codename']
   components ['main']
   key 'calico/release.key'
 end
