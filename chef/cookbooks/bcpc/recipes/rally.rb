@@ -19,12 +19,14 @@ return unless node['bcpc']['rally']['enabled']
 
 package 'virtualenv'
 
-rally_user = 'rally'
-rally_group = 'rally'
-home_dir = "/home/#{rally_user}"
-install_dir = "#{home_dir}/rally"
-venv_dir = "#{install_dir}/venv"
-rally_version = node['bcpc']['rally']['version']
+rally_user = node['bcpc']['rally']['user']
+rally_group = node['bcpc']['rally']['group']
+home_dir = node['bcpc']['rally']['home_dir']
+install_dir = node['bcpc']['rally']['install_dir']
+venv_dir = node['bcpc']['rally']['venv_dir']
+conf_dir = node['bcpc']['rally']['conf_dir']
+database_dir = node['bcpc']['rally']['database_dir']
+version = node['bcpc']['rally']['version']
 
 # pip uses the HOME env to figure out the users home directory. chef
 # doesn't change this variable when running as another user so pip install
@@ -67,6 +69,33 @@ bash 'install rally' do
   user rally_user
   code <<-EOH
     #{venv_dir}/bin/pip install pbr cffi
-    #{venv_dir}/bin/pip install rally==#{rally_version}
+    #{venv_dir}/bin/pip install rally==#{version}
+  EOH
+end
+
+directory conf_dir do
+  owner rally_user
+  group rally_group
+end
+
+template "#{conf_dir}/rally.conf" do
+  source "rally/rally.conf.erb"
+  owner rally_user
+  group rally_group
+  variables(
+    db_location: database_dir
+  )
+end
+
+directory database_dir do
+  owner rally_user
+  group rally_group
+end
+
+bash "setup rally database" do
+  user rally_user
+  code <<-EOH
+    source #{venv_dir}/bin/activate
+    rally-manage db recreate
   EOH
 end
