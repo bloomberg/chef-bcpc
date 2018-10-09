@@ -79,7 +79,7 @@ directory conf_dir do
 end
 
 template "#{conf_dir}/rally.conf" do
-  source "rally/rally.conf.erb"
+  source 'rally/rally.conf.erb'
   owner rally_user
   group rally_group
   variables(
@@ -92,7 +92,7 @@ directory database_dir do
   group rally_group
 end
 
-bash "setup rally database" do
+bash 'setup rally database' do
   user rally_user
   code <<-EOH
     source #{venv_dir}/bin/activate
