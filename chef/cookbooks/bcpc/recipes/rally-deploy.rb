@@ -22,26 +22,18 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 rally_user = node['bcpc']['rally']['user']
 home_dir = node['bcpc']['rally']['home_dir']
-install_dir = node['bcpc']['rally']['install_dir']
 venv_dir = node['bcpc']['rally']['venv_dir']
 keystone_api_version = node['bcpc']['rally']['keystone']['version']
 file_cache = Chef::Config[:file_cache_path]
 deployment_config = "rally-existing-#{keystone_api_version}.json"
-deployment_config = File.join(file_cache,deployment_config)
+deployment_config = File.join(file_cache, deployment_config)
 identity = node['bcpc']['catalog']['identity']
 auth_url = generate_service_catalog_uri(identity, 'public')
 env = { 'HOME' => home_dir }
 
-directory "/tmp/rally" do
-  owner rally_user
-  group rally_user
-  mode 00755
-  action :create
-end
-
 template deployment_config do
   user rally_user
-  source "rally/rally.existing.json.erb"
+  source 'rally/rally.existing.json.erb'
   mode 0600
   variables(
     auth_url: auth_url,
@@ -50,7 +42,7 @@ template deployment_config do
     api_version: keystone_api_version,
     username: node['bcpc']['openstack']['admin']['username'],
     password: config['openstack']['admin']['password'],
-    project_name: node['bcpc']['openstack']['admin']['project'],
+    project_name: node['bcpc']['openstack']['admin']['project']
   )
 end
 
