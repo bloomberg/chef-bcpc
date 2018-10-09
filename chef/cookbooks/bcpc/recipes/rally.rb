@@ -29,44 +29,42 @@ rally_version = node['bcpc']['rally']['version']
 # pip uses the HOME env to figure out the users home directory. chef
 # doesn't change this variable when running as another user so pip install
 # breaks because of permission errors
-env = {'HOME' => home_dir}
+env = { 'HOME' => home_dir }
 
 if node['bcpc']['proxy']['enabled']
-	node['bcpc']['proxy']['proxies'].each do |key,value|
+  node['bcpc']['proxy']['proxies'].each do |key, value|
     env["#{key}_proxy"] = value
-	end
+  end
 end
 
-unless node['bcpc']['rally']['ssl_verify']
-  env['CURL_CA_BUNDLE'] = ''
-end
+env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
 
 group rally_group
 
 user rally_user do
-	gid rally_group
+  gid rally_group
   home home_dir
   manage_home true
-	shell '/bin/bash'
-	comment 'Openstack Rally Runner'
+  shell '/bin/bash'
+  comment 'Openstack Rally Runner'
 end
 
-directory "#{install_dir}" do
-	owner rally_user
-	group rally_group
+directory install_dir do
+  owner rally_user
+  group rally_group
 end
 
 execute 'create virtual env for rally' do
-  environment (env)
-	user rally_user
+  environment env
+  user rally_user
   command <<-EOH
-		virtualenv #{venv_dir}
+    virtualenv #{venv_dir}
   EOH
 end
 
 bash 'install rally' do
-  environment (env)
-	user rally_user
+  environment env
+  user rally_user
   code <<-EOH
     #{venv_dir}/bin/pip install pbr cffi
     #{venv_dir}/bin/pip install rally==#{rally_version}
