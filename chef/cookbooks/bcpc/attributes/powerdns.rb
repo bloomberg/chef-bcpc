@@ -3,16 +3,15 @@
 ###############################################################################
 default['bcpc']['powerdns']['db']['dbname'] = 'pdns'
 
-default['bcpc']['powerdns']['local_address'] = node['ipaddress']
 default['bcpc']['powerdns']['local_port'] = 5300
 default['bcpc']['powerdns']['security_poll_suffic'] = ''
 
 # domain transfer
-default['bcpc']['powerdns']['axfr']['allow_axfr_ips'] = []
+default['bcpc']['powerdns']['axfr']['enabled'] = false
+default['bcpc']['powerdns']['axfr']['ips'] = []
 
 # threads
 default['bcpc']['powerdns']['receiver_threads'] = 3
 
 # webserver
-default['bcpc']['powerdns']['webserver']['address'] = node['ipaddress']
 default['bcpc']['powerdns']['webserver']['port'] = 8081
