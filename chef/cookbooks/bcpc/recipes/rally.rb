@@ -51,6 +51,11 @@ user rally_user do
   comment 'Openstack Rally Runner'
 end
 
+sudo rally_user do
+  user rally_user
+  commands ['chef-client']
+end
+
 directory install_dir do
   owner rally_user
   group rally_group
