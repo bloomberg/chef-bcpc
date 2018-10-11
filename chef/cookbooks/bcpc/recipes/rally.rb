@@ -53,7 +53,8 @@ end
 
 sudo rally_user do
   user rally_user
-  commands ['chef-client']
+  nopasswd true
+  commands ["/usr/bin/chef-client"]
 end
 
 directory install_dir do
