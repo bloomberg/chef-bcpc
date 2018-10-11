@@ -29,12 +29,12 @@ defaults
 
 frontend http
   bind <%= @vip %>:80
-  option tcplog
+  option httplog
   default_backend http-backend
 
 frontend https
   bind <%= @vip %>:443 ssl crt /etc/haproxy/haproxy.pem
-  option tcplog
+  option httplog
   stats enable
   stats uri /haproxy
   stats hide-version
@@ -60,6 +60,7 @@ backend http-backend
 backend horizon-backend
   balance source
   option httpchk GET /
+  option forwardfor
   http-check expect status 200
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:9999 check inter 5s rise 1 fall 1

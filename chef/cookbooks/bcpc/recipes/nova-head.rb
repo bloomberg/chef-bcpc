@@ -221,6 +221,16 @@ end
 #
 # create placement service and endpoints ends
 
+# install haproxy fragment
+template '/etc/haproxy/haproxy.d/nova.cfg' do
+  source 'nova/haproxy.cfg.erb'
+  variables(
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
+  )
+  notifies :restart, 'service[haproxy-nova]', :immediately
+end
+
 # nova package installation and service definition starts
 #
 package 'nova-api'
@@ -243,16 +253,6 @@ service 'haproxy-nova' do
 end
 #
 # nova package installation and service definition ends
-
-# install haproxy fragment
-template '/etc/haproxy/haproxy.d/nova.cfg' do
-  source 'nova/haproxy.cfg.erb'
-  variables(
-    headnodes: headnodes(all: true),
-    vip: node['bcpc']['cloud']['vip']
-  )
-  notifies :restart, 'service[haproxy-nova]', :immediately
-end
 
 file '/etc/nova/ssl-bcpc.pem' do
   content Base64.decode64(config['ssl']['key']).to_s

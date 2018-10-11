@@ -146,6 +146,16 @@ begin
 end
 # create cinder volume services and endpoints ends
 
+# install haproxy fragment
+template '/etc/haproxy/haproxy.d/cinder.cfg' do
+  source 'cinder/haproxy.cfg.erb'
+  variables(
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
+  )
+  notifies :restart, 'service[haproxy-cinder]', :immediately
+end
+
 # cinder package installation and service definition starts
 package 'cinder-api'
 package 'cinder-scheduler'
@@ -220,16 +230,6 @@ template '/etc/apache2/conf-available/cinder-wsgi.conf' do
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately
-end
-
-# install haproxy fragment
-template '/etc/haproxy/haproxy.d/cinder.cfg' do
-  source 'cinder/haproxy.cfg.erb'
-  variables(
-    headnodes: headnodes(all: true),
-    vip: node['bcpc']['cloud']['vip']
-  )
-  notifies :restart, 'service[haproxy-cinder]', :immediately
 end
 
 execute 'enable cinder wsgi' do

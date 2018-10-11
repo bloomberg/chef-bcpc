@@ -5,9 +5,10 @@
 listen cinder-api
   bind <%= @vip %>:8776 ssl crt /etc/haproxy/haproxy.pem
   balance source
-  option  tcpka
-  option  httpchk
-  option  tcplog
+  option tcpka
+  option httpchk
+  option httplog
+  option forwardfor
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:8776 check inter 5s rise 1 fall 1
 <% end -%>

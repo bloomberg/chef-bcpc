@@ -7,7 +7,8 @@ listen neutron-api
   balance source
   option tcpka
   option httpchk
-  option tcplog
+  option httplog
+  option forwardfor
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:9696 check inter 5s rise 1 fall 1
 <% end -%>

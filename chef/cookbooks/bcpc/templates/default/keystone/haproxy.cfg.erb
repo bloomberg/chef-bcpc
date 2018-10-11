@@ -6,7 +6,8 @@ listen keystone-admin-api
   bind <%= @vip %>:35357 ssl crt /etc/haproxy/haproxy.pem
   option tcpka
   option httpchk
-  option tcplog
+  option httplog
+  option forwardfor
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:35357 check inter 5s rise 1 fall 1
 <% end -%>
@@ -16,7 +17,8 @@ listen keystone-public-api
   balance source
   option tcpka
   option httpchk
-  option tcplog
+  option httplog
+  option forwardfor
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['ipaddress'] %>:5000 check inter 5s rise 1 fall 1
 <% end -%>
