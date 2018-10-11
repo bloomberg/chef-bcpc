@@ -29,6 +29,15 @@ config = data_bag_item(region, 'config')
 package 'haproxy'
 service 'haproxy'
 
+directory '/etc/haproxy/haproxy.d' do
+  action :create
+end
+
+cookbook_file '/etc/default/haproxy' do
+  source 'haproxy/default'
+  notifies :restart, 'service[haproxy]', :immediately
+end
+
 begin
 
   certs = []
@@ -57,8 +66,7 @@ template '/etc/haproxy/haproxy.cfg' do
   variables(
     user: config['haproxy'],
     headnodes: headnodes(all: true),
-    vip: node['bcpc']['cloud']['vip'],
-    max_connections: node['bcpc']['mysql']['max_connections']
+    vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[haproxy]', :immediately
 end

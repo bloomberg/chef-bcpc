@@ -156,6 +156,9 @@ service 'cinder-api' do
 end
 service 'cinder-volume'
 service 'cinder-scheduler'
+service 'haproxy-cinder' do
+  service_name 'haproxy'
+end
 # cinder package installation and service definition ends
 
 # update the file permissions on ceph.client.cinder.keyring to allow the
@@ -217,6 +220,16 @@ template '/etc/apache2/conf-available/cinder-wsgi.conf' do
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately
+end
+
+# install haproxy fragment
+template '/etc/haproxy/haproxy.d/cinder.cfg' do
+  source 'cinder/haproxy.cfg.erb'
+  variables(
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
+  )
+  notifies :restart, 'service[haproxy-cinder]', :immediately
 end
 
 execute 'enable cinder wsgi' do

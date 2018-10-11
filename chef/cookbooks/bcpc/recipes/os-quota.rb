@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: os-quota
 #
@@ -15,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 node['bcpc']['cinder']['quota'].each do |quota, limit|
   execute "set openstack #{quota} quota" do
@@ -32,7 +30,8 @@ node['bcpc']['nova']['quota']['project'].each do |project, quotas|
       retries 20
       command "openstack quota set --#{quota} #{limit} #{project}"
       not_if "
-        openstack quota show -f value -c #{quota} #{project} | grep -w #{limit}
+        openstack quota show -f value -c #{quota} #{project} | \
+          grep -w -- #{limit}
       "
     end
   end

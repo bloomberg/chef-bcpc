@@ -34,6 +34,10 @@ service 'keystone' do
   service_name 'apache2'
 end
 
+service 'haproxy-keystone' do
+  service_name 'haproxy'
+end
+
 # fernet key installation starts
 directory '/etc/keystone/fernet-keys' do
   mode '700'
@@ -83,6 +87,16 @@ template '/etc/apache2/sites-available/keystone.conf' do
   )
 
   notifies :reload, 'service[keystone]', :immediately
+end
+
+# install haproxy fragment
+template '/etc/haproxy/haproxy.d/keystone.cfg' do
+  source 'keystone/haproxy.cfg.erb'
+  variables(
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
+  )
+  notifies :restart, 'service[haproxy-keystone]', :immediately
 end
 
 # create/bootstrap keystone

@@ -129,11 +129,24 @@ service 'designate-central'
 service 'designate-worker'
 service 'designate-producer'
 service 'designate-mdns'
+service 'haproxy-designate' do
+  service_name 'haproxy'
+end
 
 # create/manage designate database starts
 #
 file '/tmp/designate-create-db.sql' do
   action :nothing
+end
+
+# install haproxy fragment
+template '/etc/haproxy/haproxy.d/designate.cfg' do
+  source 'designate/haproxy.cfg.erb'
+  variables(
+    headnodes: headnodes(all: true),
+    vip: node['bcpc']['cloud']['vip']
+  )
+  notifies :restart, 'service[haproxy-designate]', :immediately
 end
 
 template '/tmp/designate-create-db.sql' do

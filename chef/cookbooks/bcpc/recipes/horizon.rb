@@ -17,33 +17,11 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
-policy_dir = '/etc/openstack-dashboard/conf'
 
 package 'openstack-dashboard'
 
 service 'horizon' do
   service_name 'apache2'
-end
-
-directory policy_dir do
-  action :create
-end
-
-%w(keystone neutron glance).each do |srv|
-  remote_file "#{policy_dir}/#{srv}_policy.json" do
-    source "file:///etc/#{srv}/policy.json"
-  end
-end
-
-%w(nova cinder).each do |srv|
-  execute "generate #{srv} policy files" do
-    command <<-EOH
-      oslopolicy-sample-generator \
-        --format json \
-        --namespace #{srv} \
-        --output-file #{policy_dir}/#{srv}_policy.json
-    EOH
-  end
 end
 
 template '/etc/apache2/conf-available/openstack-dashboard.conf' do
