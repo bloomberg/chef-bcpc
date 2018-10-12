@@ -12,7 +12,7 @@ setgid = pdns
 
 # local-address Local IP address to which we bind
 #
-local-address = <%= node['bcpc']['powerdns']['local_address'] %>
+local-address = <%= node['ipaddress'] %>
 
 # local-port    The port on which we listen
 #
@@ -30,11 +30,16 @@ slave = no
 #
 guardian = yes
 
-<% if node['bcpc']['powerdns']['axfr']['allow_axfr_ips'].any? %>
 # allow-axfr-ips    If enabled, restrict zonetransfers to originate from these
 #                   IP addresses
 #
-allow-axfr-ips = <%= node['bcpc']['powerdns']['axfr']['ips'].sort.join(',') %>
+<% if node['bcpc']['powerdns']['axfr']['enabled'] %>
+<% ips = node['bcpc']['powerdns']['axfr']['ips'] %>
+<% ips.unshift(node['ipaddress']) %>
+disable-axfr = no
+allow-axfr-ips = <%= ips.join(',') %>
+<% else %>
+disable-axfr = yes
 <% end %>
 
 # MySQL Configuration
@@ -59,7 +64,7 @@ webserver = yes
 
 # webserver-address    Address webserver to listen on
 #
-webserver-address = <%= node['bcpc']['powerdns']['webserver']['address'] %>
+webserver-address = <%= node['ipaddress'] %>
 
 # webserver-port    Port of webserver to listen on
 #
