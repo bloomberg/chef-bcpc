@@ -320,40 +320,27 @@ node['bcpc']['neutron']['networks'].each do |network|
 end
 # create networks ends
 
-# configure default security group starts
-bash 'update admin project default security group to allow ping' do
+bash 'update cloud/admin default security group to allow ping and ssh' do
   environment os_adminrc
 
   code <<-DOC
-    project=#{node['bcpc']['openstack']['admin']['project']}
-    sec_groups=$(openstack security group list -f value --project ${project})
-    group_id=$(echo ${sec_groups} | grep default | awk '{print $1}')
-    openstack security group rule create --protocol icmp $group_id
+    # the default security group for the cloud has no project id
+    cloud_project_id=''
+    admin_project=#{node['bcpc']['openstack']['admin']['project']}
+    admin_project_id=$(openstack project show ${admin_project} -f value -c id)
+
+    for id in ${cloud_project_id} ${admin_project_id}; do
+      sec_groups=$(openstack security group list -f json)
+      group_id=$(echo ${sec_groups} | jq -r --arg id "${id}" '.[] | select(.Project == $id) .ID')
+
+      if ! openstack security group rule list $group_id | grep icmp; then
+        openstack security group rule create --protocol icmp $group_id
+      fi
+
+      if ! openstack security group rule list --protocol tcp $group_id | grep '22:22'; then
+        openstack security group rule create $group_id \
+          --protocol tcp --dst-port 22:22 --remote-ip 0.0.0.0/0
+      fi
+    done
   DOC
-
-  not_if "
-    project=#{node['bcpc']['openstack']['admin']['project']}
-    sec_groups=$(openstack security group list -f value --project ${project})
-    group_id=$(echo ${sec_groups} | grep default | awk '{print $1}')
-    openstack security group rule list $group_id | grep icmp
-  ", environment: os_adminrc
 end
-
-bash 'update admin project default security group to allow ssh' do
-  environment os_adminrc
-
-  code <<-DOC
-    project=#{node['bcpc']['openstack']['admin']['project']}
-    sec_groups=$(openstack security group list -f value --project ${project})
-    group_id=$(echo ${sec_groups} | grep default | awk '{print $1}')
-    openstack security group rule create --proto tcp --dst-port 22 $group_id
-  DOC
-
-  not_if "
-    project=#{node['bcpc']['openstack']['admin']['project']}
-    sec_groups=$(openstack security group list -f value --project ${project})
-    group_id=$(echo ${sec_groups} | grep default | awk '{print $1}')
-    openstack security group rule list $group_id --proto tcp | grep '22:22'
-  ", environment: os_adminrc
-end
-# configure default security group ends
