@@ -279,6 +279,7 @@ end
 
 execute 'set ceph backend properties' do
   environment os_adminrc
+  retries 3
   command <<-DOC
     openstack volume type set ceph --property volume_backend_name=ceph
   DOC
