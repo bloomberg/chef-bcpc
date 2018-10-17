@@ -33,7 +33,7 @@ TIME_ZONE = "UTC"
 <% if @domains.any? %>
 OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
 OPENSTACK_KEYSTONE_DOMAIN_DROPDOWN = True
-OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = <%= @domains.first()['name'] %>
+OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = '<%= @domains.first()['name'] %>'
 OPENSTACK_KEYSTONE_DOMAIN_CHOICES = (
   ('Default', 'Default'),
   <% @domains.each do |domain| %>
