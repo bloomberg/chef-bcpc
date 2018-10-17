@@ -4,6 +4,7 @@ core_plugin = calico
 bind_host = <%= node['ipaddress'] %>
 auth_strategy = keystone
 transport_url = rabbit://<%= @headnodes.map{ |n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+state_path = /var/lib/neutron
 
 [agent]
 root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
@@ -32,7 +33,6 @@ region_name = <%= node['bcpc']['cloud']['region'] %>
 project_name = service
 username = <%= @config['nova']['creds']['os']['username'] %>
 password = <%= @config['nova']['creds']['os']['password'] %>
-
 
 [oslo_concurrency]
 lock_path = $state_path/lock

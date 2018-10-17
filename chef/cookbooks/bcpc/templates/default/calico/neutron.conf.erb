@@ -2,7 +2,11 @@
 core_plugin = calico
 dns_domain = <%= node['bcpc']['cloud']['domain'] %>
 dnsmasq_dns_servers = <%= @vip %>
+state_path = /var/lib/neutron
 
 [calico]
 etcd_host = 127.0.0.1
 etcd_port = 2379
+
+[oslo_concurrency]
+lock_path = $state_path/lock
