@@ -216,8 +216,8 @@ node['bcpc']['neutron']['networks'].each do |network|
   end
 
   # create fixed subnets
-  network.fetch('fixed', []).each do |fixed|
-    allocation = IPAddress(fixed['allocation'])
+  network['fixed'].fetch('subnets', []).each do |subnet|
+    allocation = IPAddress(subnet['allocation'])
     cidr = "#{allocation.network.address}/#{allocation.prefix}"
     subnet_name = "#{fixed_network}-fixed-#{cidr}"
 
@@ -251,8 +251,8 @@ node['bcpc']['neutron']['networks'].each do |network|
   end
 
   # create float subnets
-  network.fetch('float', []).each do |float|
-    allocation = IPAddress(float['allocation'])
+  network['float'].fetch('subnets', []).each do |subnet|
+    allocation = IPAddress(subnet['allocation'])
     cidr = "#{allocation.network.address}/#{allocation.prefix}"
     subnet_name = "#{float_network}-#{cidr}"
 

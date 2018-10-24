@@ -1,16 +1,18 @@
 $ORIGIN .
 $TTL 3600
 
-<%= @reverse_zone %> IN SOA ns1.<%= node['bcpc']['cloud']['domain'] %>. <%= @email %>. (
+<%= @zone['zone'] %> IN SOA <%= node['bcpc']['powerdns']['nameservers'].first[0] %>.<%= node['bcpc']['cloud']['domain'] %>. <%= @email %>. (
     <%= @serial %> ; serial
-    3559 ; refresh
+    3600 ; refresh
     600 ; retry
     86400 ; expire
     3600 ; minimum
 )
 
-<%= @reverse_zone %> IN NS ns1.<%= node['bcpc']['cloud']['domain'] %>.
+<% node['bcpc']['powerdns']['nameservers'].each do |host,ip| %>
+<%= @zone['zone'] %> IN NS <%= host %>.<%= node['bcpc']['cloud']['domain'] %>.
+<% end %>
 
-<% @subnet['allocation'].each_host do |ip| %>
-<%= ip.reverse %> IN PTR <%= @hostname_prefix %>-<%= ip.octets.join('-') %>.<%= node['bcpc']['cloud']['domain'] %>
+<% @zone['cidr'].each do |ip| %>
+<%= ip.reverse %> IN PTR <%= @fqdn_prefix %>-<%= ip.octets.join('-') %>.<%= node['bcpc']['cloud']['domain'] %>
 <% end %>
