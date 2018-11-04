@@ -45,6 +45,7 @@ package 'python-memcache'
 package 'python-mysqldb'
 package 'python-six'
 package 'python-ldap'
+package 'python-configparser'
 
 # used for monitoring various services
 package 'xinetd'

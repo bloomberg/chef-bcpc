@@ -130,7 +130,8 @@ begin
         zones = cidr_to_reverse_zones(subnet['allocation'])
 
         zones.each do |z|
-          zone_file = "#{Chef::Config[:file_cache_path]}/#{z['zone']}.zone"
+          domain = z['zone']
+          zone_file = "#{Chef::Config[:file_cache_path]}/#{domain}.zone"
 
           template zone_file do
             source 'powerdns/reverse-zone.erb'
@@ -140,14 +141,14 @@ begin
               serial: serial,
               fqdn_prefix: network[type]['dns-zones']['fqdn-prefix']
             )
-            not_if "pdnsutil list-all-zones | grep -w #{z['zone']}"
+            not_if "pdnsutil list-all-zones | grep -w #{domain}"
           end
 
           execute 'load reverse zone' do
             command <<-EOH
-              pdnsutil load-zone #{z['zone']} #{zone_file}
+              pdnsutil load-zone #{domain} #{zone_file}
             EOH
-            not_if "pdnsutil list-all-zones | grep -w #{z['zone']}"
+            not_if "pdnsutil list-all-zones | grep -w #{domain}"
           end
         end
       end
@@ -155,33 +156,33 @@ begin
   end
 end
 
-cookbook_file '/usr/local/bin/nzfsum' do
-  source 'powerdns/nzfsum'
+# install catalog-zone-manage
+cookbook_file '/usr/local/sbin/catalog-zone-manage' do
+  source 'powerdns/catalog-zone-manage'
   mode '0755'
 end
 
-# create the catalog zone
+directory '/usr/local/etc/catalog-zone' do
+  action :create
+end
 
-begin
-  catalog_zone = "catalog.#{node['bcpc']['cloud']['domain']}"
-  catalog_zone_file = "#{Chef::Config[:file_cache_path]}/catalog.zone"
+cookbook_file '/usr/local/etc/catalog-zone/zone.j2' do
+  source 'powerdns/catalog-zone.j2'
+end
 
-  bash 'create catalog zone' do
-    code <<-EOH
-cat > #{catalog_zone_file} <<'EOF'
-$ORIGIN #{catalog_zone}.
-@ 3600 SOA . . 1 #{serial} 3600 86400 3600
-@ 3600 IN NS nop.
-version IN TXT "1"
+template '/usr/local/etc/catalog-zone/catalog-zone.conf' do
+  source 'powerdns/catalog-zone.conf.erb'
 
-EOF
+  zone = "catalog.#{node['bcpc']['cloud']['domain']}"
 
-  for zone in $(pdnsutil list-all-zones | grep -v catalog); do
-    sum=$(nzfsum ${zone} | awk '{print $1}')
-    echo "${sum}.zones PTR ${zone}." >> #{catalog_zone_file}
-  done
+  variables(
+    zone: zone,
+    zone_file: "#{Chef::Config[:file_cache_path]}/#{zone}.zone",
+    zone_template: '/usr/local/etc/catalog-zone/zone.j2'
+  )
+end
 
-  pdnsutil load-zone #{catalog_zone} #{catalog_zone_file}
-    EOH
-  end
+# create/syncronize the catalog zone
+execute 'sync catalog zone' do
+  command '/usr/local/sbin/catalog-zone-manage --sync'
 end
