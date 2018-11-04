@@ -46,7 +46,6 @@ def syncronize_catalog_zone():
         # in the catalog zone
         if zone == catalog_zone:
             continue
-
         zones.append({'zone': zone, 'nzfsum': nzfsum(zone)})
 
     # parse the jinja2 zone template
