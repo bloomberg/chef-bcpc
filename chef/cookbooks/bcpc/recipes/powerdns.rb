@@ -182,7 +182,7 @@ template '/usr/local/etc/catalog-zone/catalog-zone.conf' do
   )
 end
 
-# create/syncronize the catalog zone
+# create/synchronize the catalog zone
 execute 'sync catalog zone' do
   command '/usr/local/sbin/catalog-zone-manage --sync'
 end

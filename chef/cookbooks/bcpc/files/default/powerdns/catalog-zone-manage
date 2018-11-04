@@ -32,7 +32,7 @@ def nzfsum(zone):
     return hashlib.sha1(dns_name.to_wire()).hexdigest()
 
 
-def syncronize_catalog_zone():
+def synchronize_catalog_zone():
     # use pdnsutil list-all-zones command to get all the zones
     # convert that list into an array
     all_zones = check_output('pdnsutil list-all-zones'.split(' ')).split()
@@ -71,7 +71,7 @@ def main():
     parser.add_argument(
       "--sync",
       action='store_true',
-      help="syncronize catalog zone"
+      help="synchronize catalog zone"
     )
 
     args = parser.parse_args()
@@ -82,7 +82,7 @@ def main():
 
     if args.sync:
       try:
-        syncronize_catalog_zone()
+        synchronize_catalog_zone()
         sys.exit(0)
       except Exception as e:
         print e
