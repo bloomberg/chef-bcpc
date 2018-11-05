@@ -82,12 +82,12 @@ def main():
         sys.exit(1)
 
     if args.sync:
-      try:
-          synchronize_catalog_zone()
-          sys.exit(0)
-      except Exception as e:
-          print e
-          sys.exit(1)
+        try:
+            synchronize_catalog_zone()
+            sys.exit(0)
+        except Exception as e:
+            print e
+            sys.exit(1)
 
 
 if __name__ == "__main__":
