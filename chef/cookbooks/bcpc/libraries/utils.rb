@@ -273,15 +273,6 @@ def cidr_to_reverse_zones(cidr)
     ]
   end
 
-  if cidr.prefix == 24
-    return [
-      {
-        'cidr' => IPAddress(cidr.to_string),
-        'zone' => cidr.octets.reverse.drop(1).push('in-addr.arpa').join('.'),
-      },
-    ]
-  end
-
   # 24 - the target cidr prefix will give us the amount of network bits we
   # can use for the /24 networks
   network_bits = 24 - cidr.prefix.to_i
