@@ -14,6 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 require 'ipaddress'
 
 region = node['bcpc']['cloud']['region']
@@ -82,7 +83,7 @@ end
 
 # DNS forward zone creation/population
 #
-serial = Time.now.strftime('%Y%m%d01')
+serial = Time.now.to_i
 email = node['bcpc']['keystone']['admin']['email'].tr('@', '.')
 networks = node['bcpc']['neutron']['networks'].dup
 
@@ -90,18 +91,17 @@ networks = node['bcpc']['neutron']['networks'].dup
 
 networks.each do |network|
   %w(fixed float).each do |type|
-    network.fetch(type, []).each do |subnet|
+    network[type].fetch('subnets', []).each do |subnet|
       subnet['allocation'] = IPAddress(subnet['allocation'])
     end
   end
 end
 
+# create the forward zone for the cloud domain
 begin
   zone = node['bcpc']['cloud']['domain']
   zone_file = "#{Chef::Config[:file_cache_path]}/#{zone}.zone"
 
-  # create dns zone for the cloud domain and setup forward lookups for
-  # fixed and float ip ranges
   template zone_file do
     source 'powerdns/zone.erb'
     variables(
@@ -109,47 +109,84 @@ begin
       serial: serial,
       networks: networks
     )
-    not_if "pdnsutil list-all-zones | grep #{zone}"
+    not_if "pdnsutil list-all-zones | grep -w #{zone}"
   end
 
   execute 'load zone' do
     command <<-EOH
       pdnsutil load-zone #{zone} #{zone_file}
     EOH
-    not_if "pdnsutil list-all-zones | grep #{zone}"
+    not_if "pdnsutil list-all-zones | grep -w #{zone}"
   end
 end
 
-# DNS reverse zone for each fixed/float network
-#
+# create the reverse zone for each subnet
 begin
   networks.each do |network|
     %w(fixed float).each do |type|
-      network.fetch(type, []).each do |subnet|
-        next unless subnet.key?('dns') && subnet['dns'].key?('reverse_zone')
+      next unless network[type]['dns-zones']['create']
 
-        reverse_zone = subnet['dns']['reverse_zone']
-        reverse_zone_file = "#{Chef::Config[:file_cache_path]}/#{reverse_zone}.zone"
+      network[type].fetch('subnets', []).each do |subnet|
+        zones = cidr_to_reverse_zones(subnet['allocation'])
 
-        template reverse_zone_file do
-          source 'powerdns/reverse-zone.erb'
-          variables(
-            email: email,
-            serial: serial,
-            subnet: subnet,
-            reverse_zone: reverse_zone,
-            hostname_prefix: subnet['dns']['hostname_prefix']
-          )
-          not_if "pdnsutil list-all-zones | grep #{reverse_zone}"
-        end
+        zones.each do |z|
+          domain = z['zone']
+          zone_file = "#{Chef::Config[:file_cache_path]}/#{domain}.zone"
 
-        execute 'load reverse zone' do
-          command <<-EOH
-            pdnsutil load-zone #{reverse_zone} #{reverse_zone_file}
-          EOH
-          not_if "pdnsutil list-all-zones | grep #{reverse_zone}"
+          template zone_file do
+            source 'powerdns/reverse-zone.erb'
+            variables(
+              zone: z,
+              email: email,
+              serial: serial,
+              fqdn_prefix: network[type]['dns-zones']['fqdn-prefix']
+            )
+            not_if "pdnsutil list-all-zones | grep -w #{domain}"
+          end
+
+          execute 'load reverse zone' do
+            command <<-EOH
+              pdnsutil load-zone #{domain} #{zone_file}
+            EOH
+            not_if "pdnsutil list-all-zones | grep -w #{domain}"
+          end
         end
       end
     end
   end
+end
+
+# install catalog-zone-manage
+cookbook_file '/usr/local/sbin/catalog-zone-manage' do
+  source 'powerdns/catalog-zone-manage'
+  mode '0755'
+end
+
+directory '/usr/local/lib/catalog-zone' do
+  action :create
+end
+
+cookbook_file '/usr/local/lib/catalog-zone/zone.j2' do
+  source 'powerdns/catalog-zone.j2'
+end
+
+directory '/usr/local/etc/catalog-zone' do
+  action :create
+end
+
+template '/usr/local/etc/catalog-zone/catalog-zone.conf' do
+  source 'powerdns/catalog-zone.conf.erb'
+
+  zone = "catalog.#{node['bcpc']['cloud']['domain']}"
+
+  variables(
+    zone: zone,
+    zone_file: "#{Chef::Config[:file_cache_path]}/#{zone}.zone",
+    zone_template: '/usr/local/lib/catalog-zone/zone.j2'
+  )
+end
+
+# create/synchronize the catalog zone
+execute 'sync catalog zone' do
+  command '/usr/local/sbin/catalog-zone-manage --sync'
 end

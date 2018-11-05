@@ -248,3 +248,47 @@ def generate_ip_address(source_ip:, network_cidr:)
 
   (host_network | host_id).to_s
 end
+
+# take an IPAddress cidr object and break it up into /24 chunks
+def cidr_to_reverse_zones(cidr)
+  zones = []
+
+  raise 'cidr prefix cannot be greater than 24' if cidr.prefix > 24
+
+  if cidr.prefix == 8
+    return [
+      {
+        'cidr' => IPAddress(cidr.to_string),
+        'zone' => cidr.octets.reverse.drop(3).push('in-addr.arpa').join('.'),
+      },
+    ]
+  end
+
+  if cidr.prefix == 16
+    return [
+      {
+        'cidr' => IPAddress(cidr.to_string),
+        'zone' => cidr.octets.reverse.drop(2).push('in-addr.arpa').join('.'),
+      },
+    ]
+  end
+
+  # 24 - the target cidr prefix will give us the amount of network bits we
+  # can use for the /24 networks
+  network_bits = 24 - cidr.prefix.to_i
+
+  # 2 ^ $network_bits gives us the amount of /24's we can have
+  networks = 2**network_bits
+
+  # loop over all possible /24's in the target network cidr and return them
+  # as individual zones
+  (0..(networks - 1)).each do |i|
+    zone = IPAddress(cidr.to_i + (256 * i))
+    zones.push(
+      'cidr' => IPAddress("#{zone}/24"),
+      'zone' => zone.octets.reverse.drop(1).push('in-addr.arpa').join('.')
+    )
+  end
+
+  zones
+end
