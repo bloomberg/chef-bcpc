@@ -162,12 +162,16 @@ cookbook_file '/usr/local/sbin/catalog-zone-manage' do
   mode '0755'
 end
 
-directory '/usr/local/etc/catalog-zone' do
+directory '/usr/local/lib/catalog-zone' do
   action :create
 end
 
-cookbook_file '/usr/local/etc/catalog-zone/zone.j2' do
+cookbook_file '/usr/local/lib/catalog-zone/zone.j2' do
   source 'powerdns/catalog-zone.j2'
+end
+
+directory '/usr/local/etc/catalog-zone' do
+  action :create
 end
 
 template '/usr/local/etc/catalog-zone/catalog-zone.conf' do
@@ -178,7 +182,7 @@ template '/usr/local/etc/catalog-zone/catalog-zone.conf' do
   variables(
     zone: zone,
     zone_file: "#{Chef::Config[:file_cache_path]}/#{zone}.zone",
-    zone_template: '/usr/local/etc/catalog-zone/zone.j2'
+    zone_template: '/usr/local/lib/catalog-zone/zone.j2'
   )
 end
 

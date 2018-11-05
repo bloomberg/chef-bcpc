@@ -34,13 +34,14 @@ def nzfsum(zone):
 
 def synchronize_catalog_zone():
     # use pdnsutil list-all-zones command to get all the zones
-    # convert that list into an array
-    all_zones = check_output('pdnsutil list-all-zones'.split(' ')).split()
+    # and then convert that list into an array
+    all_zones = check_output('/usr/bin/pdnsutil list-all-zones'.split(' '))
+    all_zones = all_zones.split()
 
     # loop over the array of zones and turn it into an array of hashes that
     # include the zone name and its nzf (new zone file) hash sum
     zones = []
-    catalog_zone = config.get('DEFAULT','zone')
+    catalog_zone = config.get('DEFAULT', 'zone')
     for zone in all_zones:
         # don't include the catalog zone in the list of zones to be included
         # in the catalog zone
@@ -55,13 +56,13 @@ def synchronize_catalog_zone():
 
     # render the zone file
     serial = int(time.time())
-    catalog_zone_file = config.get('DEFAULT','zone_file')
+    catalog_zone_file = config.get('DEFAULT', 'zone_file')
     with open(catalog_zone_file, 'w') as f:
-        f.write(template.render(zone=catalog_zone,zones=zones,serial=serial))
+        f.write(template.render(zone=catalog_zone, zones=zones, serial=serial))
 
     # load the zone file using pdnsutil
-    load_zone = "pdnsutil load-zone {zone} {zone_file}"
-    load_zone = load_zone.format(zone=catalog_zone,zone_file=catalog_zone_file)
+    load_zone = "/usr/bin/pdnsutil load-zone {zone} {zone_file}"
+    load_zone = load_zone.format(zone=catalog_zone, zone_file=catalog_zone_file)
     call(load_zone.split(' '))
 
 
@@ -69,24 +70,24 @@ def main():
     parser = argparse.ArgumentParser(description="Manage the DNS Catalog Zone")
 
     parser.add_argument(
-      "--sync",
-      action='store_true',
-      help="synchronize catalog zone"
+        "--sync",
+        action='store_true',
+        help="synchronize catalog zone"
     )
 
     args = parser.parse_args()
 
     if len(sys.argv) <= 1:
-      parser.print_usage()
-      sys.exit(1)
+        parser.print_usage()
+        sys.exit(1)
 
     if args.sync:
       try:
-        synchronize_catalog_zone()
-        sys.exit(0)
+          synchronize_catalog_zone()
+          sys.exit(0)
       except Exception as e:
-        print e
-        sys.exit(1)
+          print e
+          sys.exit(1)
 
 
 if __name__ == "__main__":

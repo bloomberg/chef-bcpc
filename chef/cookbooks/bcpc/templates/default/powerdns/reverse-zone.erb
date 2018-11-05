@@ -9,7 +9,7 @@ $TTL 3600
     3600 ; minimum
 )
 
-<% node['bcpc']['powerdns']['nameservers'].each do |host,ip| %>
+<% node['bcpc']['powerdns']['nameservers'].each do |host, ip| %>
 <%= @zone['zone'] %> IN NS <%= host %>.<%= node['bcpc']['cloud']['domain'] %>.
 <% end %>
 
