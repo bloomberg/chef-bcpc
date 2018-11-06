@@ -11,7 +11,7 @@ database_dir = "#{venv_dir}/database"
 conf_dir = "#{venv_dir}/etc/rally"
 
 default['bcpc']['rally']['enabled'] = false
-default['bcpc']['rally']['version'] = '0.9.2'
+default['bcpc']['rally']['version'] = '1.3.0'
 default['bcpc']['rally']['ssl_verify'] = false
 default['bcpc']['rally']['user'] = user
 default['bcpc']['rally']['group'] = group
