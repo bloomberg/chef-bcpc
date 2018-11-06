@@ -74,8 +74,8 @@ bash 'install rally' do
   environment env
   user rally_user
   code <<-EOH
-    #{venv_dir}/bin/pip install pbr cffi
-    #{venv_dir}/bin/pip install rally==#{version}
+    #{venv_dir}/bin/pip install pbr
+    #{venv_dir}/bin/pip install rally-openstack==#{version}
   EOH
 end
 
