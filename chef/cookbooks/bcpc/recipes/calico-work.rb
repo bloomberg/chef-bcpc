@@ -56,11 +56,6 @@ template '/etc/neutron/neutron.conf' do
   mode '644'
   owner 'root'
   group 'neutron'
-
-  variables(
-    vip: node['bcpc']['cloud']['vip']
-  )
-
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end
 

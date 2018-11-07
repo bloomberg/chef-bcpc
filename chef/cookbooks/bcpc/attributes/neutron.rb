@@ -4,8 +4,12 @@
 default['bcpc']['neutron']['debug'] = false
 default['bcpc']['neutron']['db']['dbname'] = 'neutron'
 
+# neutron network nameservers
+# this list is used during the neutron subnet creation process to set the
+# dns-namserver for the instances
+default['bcpc']['neutron']['network']['nameservers'] = [node['bcpc']['cloud']['vip']]
+
 # networks
-#
 default['bcpc']['neutron']['networks'] = [
   {
     'name' => 'ext1',
