@@ -284,6 +284,14 @@ node['bcpc']['keystone']['domains'].each do |domain|
     not_if "openstack domain show #{domain_name}"
   end
 
+  # run mapping_populate to improve future ldap queries
+  execute 'keystone-manage mapping_populate' do
+    environment os_adminrc
+    command <<-DOC
+      keystone-manage mapping_populate --domain #{domain_name}
+    DOC
+  end
+
   execute "add admin role to admin user in the #{domain_name} domain" do
     environment os_adminrc
 

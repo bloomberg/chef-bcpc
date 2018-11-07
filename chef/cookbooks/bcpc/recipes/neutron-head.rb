@@ -224,9 +224,18 @@ node['bcpc']['neutron']['networks'].each do |network|
     execute "create the #{fixed_network} network #{subnet_name} subnet" do
       environment os_adminrc
 
+      # convert nameservers list into repeated --dns-nameserver arguments
+      nameservers = node['bcpc']['neutron']['network']['nameservers']
+      nameservers = nameservers.map do |n|
+        "--dns-nameserver #{n}"
+      end
+      nameservers = nameservers.join(' ')
+
       command <<-DOC
         openstack subnet create #{subnet_name} \
-          --network #{fixed_network} --subnet-range #{cidr}
+          #{nameservers} \
+          --network #{fixed_network} \
+          --subnet-range #{cidr}
       DOC
 
       not_if <<-DOC
