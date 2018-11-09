@@ -89,6 +89,6 @@ security-poll-suffix = <%= node['bcpc']['powerdns']['security_poll_suffix'] %>
 
 <% if node['bcpc']['powerdns']['also-notify']['enabled'] %>
 # also-notify   When notifying a domain, also notify these nameservers
-only-notify = ''
+only-notify =
 also-notify = <%= node['bcpc']['powerdns']['also-notify']['ips'].join(',') %>
 <% end %>
