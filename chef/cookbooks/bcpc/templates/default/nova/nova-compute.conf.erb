@@ -14,10 +14,9 @@ rbd_user = <%= node['bcpc']['nova']['ceph']['user'] %>
 rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
-<% if !node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
+<% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
 cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
 <% end -%>
-
-<% if !node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
+<% unless node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
 cpu_model = <%= node['bcpc']['nova']['cpu_config']['cpu_model'] %>
-<% end %>
+<% end -%>
