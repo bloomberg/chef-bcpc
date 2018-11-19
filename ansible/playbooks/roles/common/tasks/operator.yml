@@ -1,14 +1,4 @@
 ---
-- name: generate operations ssh key
-  when: ssh_generate_private_key
-  become: false
-  run_once: true
-  command: |
-    ssh-keygen -t ed25519 -f "{{ ansible_ssh_private_key_file }}" -C '' -N ''
-  args:
-    creates: "{{ ansible_ssh_private_key_file }}"
-  delegate_to: localhost
-
 - name: "create the cloud operator group"
   group:
     name: "{{ operator_group }}"
@@ -34,7 +24,7 @@
 - name: "populate cloud operator authorized key file"
   authorized_key:
     user: "{{ operator_username }}"
-    key: "{{ lookup('file', ansible_ssh_private_key_file + '.pub') }}"
+    key: "{{ operator_authorized_key }}"
 
 - name: "install operators group sudoers file"
   template:
