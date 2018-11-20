@@ -31,18 +31,18 @@ service 'bird6' do
 end
 
 begin
-  pod = node_pod
+  rack = node_rack
   primary = node_interfaces(type: 'primary')
 
   template '/etc/bird/bird.conf' do
     source 'bird/bird.conf.erb'
 
     variables(
-      bgp: pod['bgp'],
+      bgp: rack['bgp'],
       is_worknode: worknode?,
       is_headnode: headnode?,
       iface: primary['dev'],
-      upstream_peer: pod['networks']['primary']['gateway']
+      upstream_peer: rack['networks']['primary']['gateway']
     )
 
     notifies :restart, 'service[bird]', :immediately

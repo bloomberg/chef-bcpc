@@ -132,13 +132,12 @@ end
 
 def node_network_map
   # try to get node information via the node hostname
-  match = node['hostname'].match(/^.*r(\d+)(\w+)?n(\d+).*$/i)
+  match = node['hostname'].match(/^.*r(\d+)n(\d+).*$/i)
   raise 'could not determine node information from hostname' if match.nil?
 
   {
     'rack_id' => match.captures[0].to_i,
-    'pod_id' => match.captures[1],
-    'node_id' => match.captures[2],
+    'node_id' => match.captures[1],
   }
 end
 
@@ -153,21 +152,12 @@ def cloud_racks(rack_id: nil)
 
   raise "could not find rack #{rack_id}" if rack.nil?
 
-  rack
+  rack.first
 end
 
-def node_pod
+def node_rack
   node_map = node_network_map
-  rack = cloud_racks(rack_id: node_map['rack_id'])
-  pod_id = node_map['pod_id']
-
-  pod = rack.find do |p|
-    p['pod'] == node_map['pod_id']
-  end
-
-  raise "could not find pod #{pod_id}" if pod.nil?
-
-  pod
+  cloud_racks(rack_id: node_map['rack_id'])
 end
 
 def node_interfaces(type: nil)
@@ -196,39 +186,16 @@ def node_primary_interface
   interface
 end
 
-def node_storage_interface
-  type = 'storage'
-  pod = node_pod
-  pod_network = pod['networks'][type]
-  cloud_network = cloud_networks(network: type)
-
-  interface = node_interface(
-    type: type,
-    ip_address: generate_ip_address(
-      'source_ip': node['ipaddress'],
-      'network_cidr': pod_network['cidr']
-    )
-  )
-
-  # add route to storage network
-  interface['route'] = {
-    'to' => cloud_network['cidr'],
-    'via' => pod_network['gateway'],
-  }
-
-  interface
-end
-
 def node_interface(type: nil, ip_address: nil)
-  pod = node_pod
-  pod_network = pod['networks'][type]
+  rack = node_rack
+  rack_network = rack['networks'][type]
   cloud_network = cloud_networks(network: type)
 
   interface = {
     'type' => type,
     'ip' => ip_address,
-    'prefix' => IPAddress(pod_network['cidr']).prefix.to_i,
-    'gw' => pod_network['gateway'],
+    'prefix' => IPAddress(rack_network['cidr']).prefix.to_i,
+    'gw' => rack_network['gateway'],
     'dev' => cloud_network['interface'],
   }
 

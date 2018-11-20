@@ -14,14 +14,12 @@ operator_group: operators
 
 # username and password used to access bare metal machines
 #
-initial_ssh_user: vagrant
-initial_ssh_pass: vagrant
+initial_ssh_user: ubuntu
+initial_ssh_pass: 53cr37
 
 ansible_python_interpreter: /usr/bin/env python3
 ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 ansible_user: "{{ operator_username }}"
-ansible_ssh_private_key_file: "{{ inventory_dir }}/playbooks/roles/localhost/files/id_ed25519"
-ssh_generate_private_key: true
 
 file_server_assets:
   - cirros
@@ -34,7 +32,7 @@ file_server_assets:
 chef_environment: virtual
 
 chef_server_host: "{{ groups['bootstraps'][0] }}"
-chef_server_ip: "{{ hostvars[chef_server_host].primary_ip  | default(ansible_host) | ipaddr('address') }}"
+chef_server_ip: "{{ hostvars[chef_server_host].primary_ip  | default(hostvars[chef_server_host].ansible_host) | ipaddr('address') }}"
 chef_server_fqdn: "{{ chef_server_host }}.{{ cloud_domain }}"
 chef_server_url: "https://{{ chef_server_host }}.{{ cloud_domain }}/organizations/{{ chef_org_short_name }}"
 

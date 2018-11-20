@@ -17,17 +17,40 @@
 set -xe
 
 root_dir=$(git rev-parse --show-toplevel)
+
 virtual_dir="${root_dir}/virtual"
 ansible_dir="${root_dir}/ansible"
-topology="${virtual_dir}/topology/topology.yml"
-ssh_config=$(mktemp)
+files_dir="${virtual_dir}/files"
 
+ssh_dir="${files_dir}/ssh"
+ssh_key_type="ed25519"
+ssh_private_key_file="${ssh_dir}/id_${ssh_key_type}"
+
+topology_file="${virtual_dir}/topology/topology.yml"
+ssh_config_file=$(mktemp)
+
+# generate operations ssh key pair
+(
+    cd "${virtual_dir}"
+    mkdir -p "${ssh_dir}"
+
+    if [ ! -e "${ssh_private_key_file}" ]; then
+        ssh-keygen \
+            -t "${ssh_key_type}" \
+            -f "${ssh_private_key_file}" \
+            -C '' \
+            -N ''
+    fi
+)
+
+# bring up vagrant/virtualbox nodes
 (
     cd "${virtual_dir}"
     vagrant up
-    vagrant ssh-config > "${ssh_config}"
+    vagrant ssh-config > "${ssh_config_file}"
 )
 
+# generate virtual cloud ansible inventory files
 "${virtual_dir}/bin/generate-ansible-inventory.py" \
-    --ssh-config "${ssh_config}" \
-    --topology-config "${topology}" > "${ansible_dir}/inventory"
+    --ssh-config "${ssh_config_file}" \
+    --topology-config "${topology_file}" > "${ansible_dir}/inventory"

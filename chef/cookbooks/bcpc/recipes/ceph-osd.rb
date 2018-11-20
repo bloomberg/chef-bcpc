@@ -25,12 +25,10 @@ template '/etc/ceph/ceph.conf' do
 
   networks = cloud_networks
   primary = networks['primary']
-  storage = networks['storage']
 
   variables(
     config: config,
     public_network: primary['cidr'],
-    cluster_network: storage['cidr'],
     headnodes: init_cloud? ? [node] : headnodes
   )
 end
