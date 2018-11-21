@@ -23,10 +23,10 @@ if [ ! "$(getent passwd "${user}")" ]; then
     password_crypt=$(echo "${password}" | openssl passwd -1 -stdin)
 
     useradd \
-      --create-home \
-      --password "${password_crypt}" \
-      --shell '/bin/bash' \
-      "${user}"
+        --create-home \
+        --password "${password_crypt}" \
+        --shell '/bin/bash' \
+        "${user}"
 
     echo "${user} ALL=(ALL:ALL) ALL" > "/etc/sudoers.d/${user}"
 fi

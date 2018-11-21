@@ -6,6 +6,7 @@
     "{{ cloud.images }}"
 
 - name: add cloud images
+  changed_when: false
   shell: |
     set -x
     source /root/admin-openrc

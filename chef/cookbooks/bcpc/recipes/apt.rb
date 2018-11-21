@@ -30,7 +30,7 @@ arch = node['bcpc']['ubuntu']['arch']
 codename = node['lsb']['codename']
 
 # main ubuntu-archive repository
-apt_repository "ubuntu-archive" do
+apt_repository 'ubuntu-archive' do
   arch arch
   uri node['bcpc']['ubuntu']['archive_url']
   distribution codename
@@ -39,7 +39,7 @@ end
 
 # other ubuntu-archive repositories
 distributions = %w(updates backports)
-distributions.each do | dist |
+distributions.each do |dist|
   apt_repository "ubuntu-archive-#{dist}" do
     arch arch
     uri node['bcpc']['ubuntu']['archive_url']
@@ -49,7 +49,7 @@ distributions.each do | dist |
 end
 
 # security ubuntu-archive repository
-apt_repository "security-ubuntu-archive" do
+apt_repository 'security-ubuntu-archive' do
   arch arch
   uri node['bcpc']['ubuntu']['security_url']
   distribution "#{codename}-security"
