@@ -44,6 +44,7 @@ OPENSTACK_KEYSTONE_DOMAIN_CHOICES = (
 
 OPENSTACK_HOST = "<%= node['bcpc']['cloud']['fqdn'] %>"
 OPENSTACK_KEYSTONE_URL = "https://%s:5000/<%= node['bcpc']['catalog']['identity']['uris']['internal'] %>" % OPENSTACK_HOST
+OPENSTACK_KEYSTONE_DEFAULT_ROLE = 'member'
 
 OPENSTACK_NEUTRON_NETWORK = {
   'enable_router': True,
