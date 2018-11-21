@@ -15,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'tpm-tools'
-
 kernel_packages = %w(
   linux-image
   linux-headers
@@ -82,9 +80,14 @@ end
 template '/etc/default/grub' do
   source 'grub/default.erb'
 
+  cmdline = []
   io_scheduler = node['bcpc']['hardware']['io_scheduler']
-  cmdline = [].push("elevator=#{io_scheduler}")
-  cmdline += node['bcpc']['grub']['cmdline_linux']
+
+  cmdline.push("elevator=#{io_scheduler}")
+
+  unless node['bcpc']['grub']['cmdline_linux'].empty?
+    cmdline += node['bcpc']['grub']['cmdline_linux']
+  end
 
   variables(
     cmdline: cmdline.join(' ')

@@ -23,7 +23,7 @@ require 'ipaddress'
 def init_cloud?
   nodes = search(:node, 'roles:headnode')
   nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
-  nodes.empty? ? true : false
+  nodes.empty?
 end
 
 def headnode?
@@ -150,7 +150,7 @@ def cloud_racks(rack_id: nil)
     r['id'] == rack_id
   end
 
-  raise "could not find rack #{rack_id}" if rack.nil?
+  raise "could not find rack #{rack_id}" if rack.empty?
 
   rack.first
 end

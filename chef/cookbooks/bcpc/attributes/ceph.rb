@@ -5,6 +5,9 @@
 default['bcpc']['ceph']['repo']['enabled'] = false
 default['bcpc']['ceph']['repo']['url'] = ''
 
+# aggregate cidr for ceph mon hosts
+default['bcpc']['ceph']['mon']['public_network'] = '10.121.84.0/22'
+
 default['bcpc']['ceph']['pg_num'] = 64
 default['bcpc']['ceph']['pgp_num'] = 64
 default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)

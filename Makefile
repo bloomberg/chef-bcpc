@@ -28,7 +28,9 @@ destroy :
 
 operator :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t operator
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t operator --limit cloud
 
 download-assets :
 

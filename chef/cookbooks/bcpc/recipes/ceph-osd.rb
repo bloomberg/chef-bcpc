@@ -23,13 +23,10 @@ config = data_bag_item(region, 'config')
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
 
-  networks = cloud_networks
-  primary = networks['primary']
-
   variables(
     config: config,
-    public_network: primary['cidr'],
-    headnodes: init_cloud? ? [node] : headnodes
+    headnodes: init_cloud? ? [node] : headnodes,
+    public_network: node['bcpc']['ceph']['mon']['public_network']
   )
 end
 
