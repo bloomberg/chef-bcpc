@@ -151,13 +151,10 @@ end
 
 template '/etc/xinetd.d/amqpchk' do
   source 'rabbitmq/xinetd-amqpchk.erb'
-  mode '440'
-
-  networks = node['bcpc']['networking']['networks']
-  primary = networks['primary']
+  mode '640'
 
   variables(
-    only_from: primary['cidr']
+    only_from: primary_network_aggregate_cidr
   )
 
   notifies :restart, 'service[xinetd]', :immediately

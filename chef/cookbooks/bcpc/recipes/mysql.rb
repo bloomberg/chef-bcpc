@@ -100,15 +100,12 @@ end
 
 template '/etc/xinetd.d/mysqlchk' do
   source 'mysql/xinetd-mysqlchk.erb'
-  mode '440'
-  networks = node['bcpc']['networking']['networks']
-  primary = networks['primary']
+  mode '640'
   variables(
     user: {
       'username' => 'check',
       'password' => config['mysql']['users']['check']['password'],
-    },
-    only_from: primary['cidr']
+    }
   )
   notifies :restart, 'service[xinetd]', :immediately
 end

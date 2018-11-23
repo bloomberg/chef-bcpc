@@ -26,7 +26,7 @@ template '/etc/ceph/ceph.conf' do
   variables(
     config: config,
     headnodes: init_cloud? ? [node] : headnodes,
-    public_network: node['bcpc']['ceph']['mon']['public_network']
+    public_network: primary_network_aggregate_cidr
   )
 end
 

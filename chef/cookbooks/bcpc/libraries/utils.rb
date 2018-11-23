@@ -130,6 +130,10 @@ def local_host_aggregate
   "#{zone_prefix}-#{node_map['rack_id']}"
 end
 
+def primary_network_aggregate_cidr
+  node['bcpc']['networking']['networks']['primary']['aggregate-cidr']
+end
+
 def node_network_map
   # try to get node information via the node hostname
   match = node['hostname'].match(/^.*r(\d+)n(\d+).*$/i)
