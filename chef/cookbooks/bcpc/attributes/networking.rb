@@ -4,6 +4,7 @@
 
 # network interface nodes will use to communicate on the primary network
 default['bcpc']['networking']['networks']['primary']['interface'] = 'eth1'
+default['bcpc']['networking']['networks']['primary']['aggregate-cidr'] = '10.121.84.0/22'
 
 default['bcpc']['networking']['racks'] = [
   {

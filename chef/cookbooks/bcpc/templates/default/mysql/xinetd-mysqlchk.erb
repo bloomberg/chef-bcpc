@@ -6,18 +6,17 @@
 # description: mysqlchk
 service mysqlchk
 {
-# this is a config for xinetd, place it in /etc/xinetd.d/
-  disable = no
+  # this is a config for xinetd, place it in /etc/xinetd.d/
+  disable         = no
   flags           = REUSE
   socket_type     = stream
-  bind            = <%= node['ipaddress'] %>
+  bind            = 127.0.0.1
   port            = 3307
   wait            = no
   user            = nobody
   server          = /usr/bin/clustercheck
   server_args     = <%= @user['username'] %> <%= @user['password'] %> 1
   log_on_failure  += USERID
-  only_from       = <%= @only_from %>
   # recommended to put the IPs that need
   # to connect exclusively (security purposes)
   per_source      = UNLIMITED
