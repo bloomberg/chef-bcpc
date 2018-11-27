@@ -1,0 +1,4 @@
+[client.cinder]
+  key = <%= @key %>
+  caps mon = allow r
+  caps osd = allow class-read object_prefix rbd_children, allow rwx pool=volumes, allow rx pool=images

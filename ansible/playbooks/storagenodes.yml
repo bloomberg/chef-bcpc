@@ -1,4 +1,4 @@
-- hosts: worknodes
+- hosts: storagenodes
   gather_facts: false
   roles:
     - common

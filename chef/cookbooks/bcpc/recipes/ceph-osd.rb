@@ -22,7 +22,6 @@ config = data_bag_item(region, 'config')
 
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
-
   variables(
     config: config,
     headnodes: init_cloud? ? [node] : headnodes,

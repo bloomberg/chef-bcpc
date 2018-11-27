@@ -39,31 +39,6 @@ openstack = {
   'password' => config['nova']['creds']['os']['password'],
 }
 
-# create ceph rbd pool starts
-#
-bash 'create ceph pool' do
-  pool = node['bcpc']['nova']['ceph']['pool']['name']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
-
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
-
-  not_if "ceph osd pool ls | grep -w #{pool}"
-end
-
-execute 'set ceph pool size' do
-  size = node['bcpc']['nova']['ceph']['pool']['size']
-  pool = node['bcpc']['nova']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-#
-# create ceph rbd volume pools ends
-
 # create nova user starts
 #
 execute 'create openstack nova user' do
@@ -231,8 +206,7 @@ template '/etc/haproxy/haproxy.d/nova.cfg' do
   notifies :restart, 'service[haproxy-nova]', :immediately
 end
 
-# nova package installation and service definition starts
-#
+# nova package installation and service definition
 package 'nova-api'
 package 'nova-conductor'
 package 'nova-consoleauth'
@@ -251,8 +225,6 @@ end
 service 'haproxy-nova' do
   service_name 'haproxy'
 end
-#
-# nova package installation and service definition ends
 
 file '/etc/nova/ssl-bcpc.pem' do
   content Base64.decode64(config['ssl']['key']).to_s
@@ -269,6 +241,43 @@ file '/etc/nova/ssl-bcpc.key' do
 end
 #
 # ssl certs ends
+
+# create ceph rbd pool
+bash 'create ceph pool' do
+  pool = node['bcpc']['nova']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
+
+  code <<-DOC
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
+    ceph osd pool application enable #{pool} rbd
+  DOC
+
+  not_if "ceph osd pool ls | grep -w #{pool}"
+end
+
+execute 'set ceph pool size' do
+  size = node['bcpc']['nova']['ceph']['pool']['size']
+  pool = node['bcpc']['nova']['ceph']['pool']['name']
+
+  command "ceph osd pool set #{pool} size #{size}"
+  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
+end
+
+# create client.nova ceph user and keyring
+template '/etc/ceph/ceph.client.nova.keyring' do
+  source 'nova/ceph.client.nova.keyring.erb'
+  mode '0640'
+  variables(
+    key: config['ceph']['client']['nova']['key']
+  )
+  notifies :run, 'execute[import nova ceph client key]', :immediately
+end
+
+execute 'import nova ceph client key' do
+  action :nothing
+  command 'ceph auth import -i /etc/ceph/ceph.client.nova.keyring'
+end
 
 # create/manage nova databases starts
 #

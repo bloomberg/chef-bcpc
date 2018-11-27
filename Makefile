@@ -6,6 +6,7 @@ export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
+storagenodes = $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
 	download-assets \
@@ -57,7 +58,8 @@ chef-node :
 chef-client : \
 	chef-client-bootstraps \
 	chef-client-headnodes \
-	chef-client-worknodes
+	chef-client-worknodes \
+	chef-client-storagenodes
 
 chef-client-bootstraps :
 
@@ -84,6 +86,14 @@ chef-client-worknodes :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
+
+chef-client-storagenodes :
+
+	@if [ "${storagenodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t chef-client --limit storagenodes; \
+	fi
 
 add-cloud-images:
 
