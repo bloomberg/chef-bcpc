@@ -60,11 +60,10 @@ begin
     bash "ceph-deploy osd create #{osd}" do
       cwd '/etc/ceph'
       code <<-EOH
-        if lsblk /dev/#{osd}; then
-          ceph-deploy osd create #{host}:#{osd}
-          sleep 5
-        fi
+        ceph-deploy osd create #{host}:#{osd}
+        sleep 5
       EOH
+      only_if "lsblk /dev/#{osd}"
       not_if "lsblk -o PARTLABEL /dev/#{osd} | grep ceph"
     end
   end
