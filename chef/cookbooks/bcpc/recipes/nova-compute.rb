@@ -31,6 +31,7 @@ package 'nova-api-metadata'
 package 'pm-utils'
 package 'memcached'
 package 'sysfsutils'
+package 'ceph'
 
 service 'nova-compute'
 service 'nova-api-metadata'
@@ -39,15 +40,6 @@ service 'libvirtd'
 # configure nova user starts
 user 'nova' do
   shell '/bin/bash'
-end
-
-# add the nova user to the ceph group so nova can read
-# cinders ceph client key file
-#
-group 'ceph' do
-  action :modify
-  append true
-  members 'nova'
 end
 
 directory '/var/lib/nova/.ssh' do
@@ -93,10 +85,25 @@ cookbook_file '/etc/libvirt/qemu.conf' do
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
-execute 'export client.cinder ceph keyring' do
-  user 'root'
-  group 'ceph'
-  command 'ceph auth get client.cinder -o /etc/ceph/ceph.client.cinder.keyring'
+template '/etc/ceph/ceph.conf' do
+  source 'ceph/ceph.conf.erb'
+  variables(
+    config: config,
+    headnodes: init_cloud? ? [node] : headnodes,
+    public_network: primary_network_aggregate_cidr
+  )
+end
+
+template '/etc/ceph/ceph.client.nova.keyring' do
+  source 'nova/ceph.client.nova.keyring.erb'
+
+  mode '0640'
+  owner 'nova'
+  group 'libvirt'
+
+  variables(
+    key: config['ceph']['client']['nova']['key']
+  )
 end
 
 template '/etc/nova/virsh-secret.xml' do
@@ -117,7 +124,7 @@ bash 'load virsh secrets' do
     virsh secret-define --file /etc/nova/virsh-secret.xml
     virsh secret-set-value \
       --secret #{config['libvirt']['secret']} \
-      --base64 $(ceph auth get-key client.cinder)
+      --base64 #{config['ceph']['client']['nova']['key']}
   DOC
 end
 

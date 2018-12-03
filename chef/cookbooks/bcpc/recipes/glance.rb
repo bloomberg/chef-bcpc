@@ -20,31 +20,6 @@ config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
 
-# create ceph rbd pool starts
-#
-bash 'create ceph pool' do
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
-
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
-
-  not_if "ceph osd pool ls | grep -w #{pool}"
-end
-
-execute 'set ceph pool size' do
-  size = node['bcpc']['glance']['ceph']['pool']['size']
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-#
-# create ceph rbd pool ends
-
 # hash used for database creation and access
 #
 database = {
@@ -62,21 +37,6 @@ openstack = {
   'role' => node['bcpc']['keystone']['roles']['admin'],
   'project' => node['bcpc']['keystone']['service_project']['name'],
 }
-
-# create client.glance ceph user and keyring starts
-#
-execute 'get or create client.glance user/keyring' do
-  command <<-DOC
-    ceph auth get-or-create client.glance \
-      mon 'allow r' \
-      osd 'allow class-read object_prefix rbd_children, \
-           allow rwx pool=images' \
-      -o /etc/ceph/ceph.client.glance.keyring
-  DOC
-  creates '/etc/ceph/ceph.client.glance.keyring'
-end
-#
-# create client.glance ceph user and keyring ends
 
 # create/configure glance openstack user starts
 #
@@ -161,24 +121,53 @@ template '/etc/haproxy/haproxy.d/glance.cfg' do
   notifies :restart, 'service[haproxy-glance]', :immediately
 end
 
-# glance package installation and service definition starts
-#
+# glance package installation and service definition
 package 'glance'
 package 'qemu-utils'
 service 'glance-api'
 service 'haproxy-glance' do
   service_name 'haproxy'
 end
-#
-# glance package installation and service definition ends
 
-# update file permisssions on ceph.client.glance.keyring to allow the
-# glance user to use ceph
-#
-file '/etc/ceph/ceph.client.glance.keyring' do
+# create ceph rbd pool
+bash 'create ceph pool' do
+  pool = node['bcpc']['glance']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
+
+  code <<-DOC
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
+    ceph osd pool application enable #{pool} rbd
+  DOC
+
+  not_if "ceph osd pool ls | grep -w #{pool}"
+end
+
+execute 'set ceph pool size' do
+  size = node['bcpc']['glance']['ceph']['pool']['size']
+  pool = node['bcpc']['glance']['ceph']['pool']['name']
+
+  command "ceph osd pool set #{pool} size #{size}"
+  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
+end
+
+# create client.glance ceph user and keyring
+template '/etc/ceph/ceph.client.glance.keyring' do
+  source 'glance/ceph.client.glance.keyring.erb'
+
   mode '0640'
   owner 'root'
   group 'glance'
+
+  variables(
+    key: config['ceph']['client']['glance']['key']
+  )
+  notifies :run, 'execute[import glance ceph client key]', :immediately
+end
+
+execute 'import glance ceph client key' do
+  action :nothing
+  command 'ceph auth import -i /etc/ceph/ceph.client.glance.keyring'
 end
 
 # create/manage glance database starts

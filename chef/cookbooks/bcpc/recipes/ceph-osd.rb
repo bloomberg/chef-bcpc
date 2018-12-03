@@ -22,7 +22,6 @@ config = data_bag_item(region, 'config')
 
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
-
   variables(
     config: config,
     headnodes: init_cloud? ? [node] : headnodes,
@@ -61,10 +60,11 @@ begin
     bash "ceph-deploy osd create #{osd}" do
       cwd '/etc/ceph'
       code <<-EOH
-        ceph-deploy osd create #{host}:#{osd}; sleep 5
+        ceph-deploy osd create #{host}:#{osd}
+        sleep 5
       EOH
       only_if "lsblk /dev/#{osd}"
-      not_if "blkid /dev/#{osd}1 | grep 'ceph data'"
+      not_if "lsblk -o PARTLABEL /dev/#{osd} | grep ceph"
     end
   end
 

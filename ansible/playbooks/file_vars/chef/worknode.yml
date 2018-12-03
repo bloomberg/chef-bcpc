@@ -7,5 +7,4 @@ run_list:
   - recipe[bcpc::bird]
   - recipe[bcpc::etcd-proxy]
   - recipe[bcpc::calico-work]
-  - recipe[bcpc::ceph-osd]
   - recipe[bcpc::nova-compute]

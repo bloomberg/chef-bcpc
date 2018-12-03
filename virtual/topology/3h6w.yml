@@ -52,6 +52,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.84.1
       networks:
@@ -64,6 +65,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.84.1
       networks:
@@ -76,6 +78,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.85.1
       networks:
@@ -88,6 +91,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.85.1
       networks:
@@ -100,6 +104,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.86.1
       networks:
@@ -112,6 +117,7 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
+      - role[storagenode]
     networking:
       gateway: 10.121.86.1
       networks:

@@ -28,10 +28,21 @@ nodes:
     hardware_profile: worknode
     run_list:
       - role[worknode]
-      - role[storagenode]
     networking:
       gateway: 10.121.84.1
       networks:
         - type: primary
           network: management1
           ip: 10.121.84.4/28
+
+  - host: r1n3
+    group: storagenodes
+    hardware_profile: worknode
+    run_list:
+      - role[storagenode]
+    networking:
+      gateway: 10.121.84.1
+      networks:
+        - type: primary
+          network: management1
+          ip: 10.121.84.5/28

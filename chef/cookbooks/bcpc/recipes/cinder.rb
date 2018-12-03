@@ -39,44 +39,6 @@ openstack = {
   'password' => config['cinder']['creds']['os']['password'],
 }
 
-# create client.cinder ceph user and keyring starts
-execute 'get or create client.cinder user/keyring' do
-  command <<-DOC
-    ceph auth get-or-create client.cinder \
-      mon 'allow r' \
-      osd 'allow class-read object_prefix rbd_children, \
-           allow rwx pool=volumes, \
-           allow rwx pool=vms, \
-           allow rx  pool=images' \
-      -o /etc/ceph/ceph.client.cinder.keyring
-  DOC
-  creates '/etc/ceph/ceph.client.cinder.keyring'
-end
-# create client.cinder ceph user and keyring ends
-
-# create ceph rbd pool starts
-bash 'create ceph pool' do
-  pool = node['bcpc']['cinder']['ceph']['pool']['name']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
-
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
-
-  not_if "ceph osd pool ls | grep -w #{pool}"
-end
-
-execute 'set ceph pool size' do
-  size = node['bcpc']['cinder']['ceph']['pool']['size']
-  pool = node['bcpc']['cinder']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-# create ceph rbd volume pools ends
-
 # create cinder openstack user starts
 execute 'create cinder openstack user' do
   environment os_adminrc
@@ -156,7 +118,7 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
   notifies :restart, 'service[haproxy-cinder]', :immediately
 end
 
-# cinder package installation and service definition starts
+# cinder package installation and service definition
 package 'cinder-api'
 package 'cinder-scheduler'
 package 'cinder-volume'
@@ -169,14 +131,46 @@ service 'cinder-scheduler'
 service 'haproxy-cinder' do
   service_name 'haproxy'
 end
-# cinder package installation and service definition ends
 
-# update the file permissions on ceph.client.cinder.keyring to allow the
-# cinder user to use ceph
-file '/etc/ceph/ceph.client.cinder.keyring' do
-  mode '640'
+# create ceph rbd pool
+bash 'create ceph pool' do
+  pool = node['bcpc']['cinder']['ceph']['pool']['name']
+  pg_num = node['bcpc']['ceph']['pg_num']
+  pgp_num = node['bcpc']['ceph']['pgp_num']
+
+  code <<-DOC
+    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
+    ceph osd pool application enable #{pool} rbd
+  DOC
+
+  not_if "ceph osd pool ls | grep -w #{pool}"
+end
+
+execute 'set ceph pool size' do
+  size = node['bcpc']['cinder']['ceph']['pool']['size']
+  pool = node['bcpc']['cinder']['ceph']['pool']['name']
+
+  command "ceph osd pool set #{pool} size #{size}"
+  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
+end
+
+# create client.cinder ceph user and keyring
+template '/etc/ceph/ceph.client.cinder.keyring' do
+  source 'cinder/ceph.client.cinder.keyring.erb'
+
+  mode '0640'
   owner 'root'
   group 'cinder'
+
+  variables(
+    key: config['ceph']['client']['cinder']['key']
+  )
+  notifies :run, 'execute[import cinder ceph client key]', :immediately
+end
+
+execute 'import cinder ceph client key' do
+  action :nothing
+  command 'ceph auth import -i /etc/ceph/ceph.client.cinder.keyring'
 end
 
 # create/manage cinder database starts

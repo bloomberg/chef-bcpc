@@ -9,7 +9,7 @@ default['bcpc']['nova']['db']['dbname'] = 'nova'
 default['bcpc']['nova']['debug'] = false
 
 # ceph (rbd)
-default['bcpc']['nova']['ceph']['user'] = 'cinder'
+default['bcpc']['nova']['ceph']['user'] = 'nova'
 default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
 default['bcpc']['nova']['ceph']['pool']['size'] = 1
 

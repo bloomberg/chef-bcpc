@@ -2,3 +2,4 @@
 - import_playbook: bootstraps.yml
 - import_playbook: headnodes.yml
 - import_playbook: worknodes.yml
+- import_playbook: storagenodes.yml
