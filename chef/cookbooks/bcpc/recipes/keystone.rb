@@ -241,6 +241,19 @@ execute 'add admin role to admin user in default domain' do
   DOC
 end
 
+execute 'set default project for admin user in default domain' do
+  environment os_adminrc
+  command <<-EOH
+    openstack user set --domain default --project admin admin
+  EOH
+
+  not_if <<-DOC
+    default_project_id=$(openstack project show -c id -f value admin)
+    openstack user show -c default_project_id --domain default admin | \
+      grep ${default_project_id}
+  DOC
+end
+
 execute 'create the service project' do
   environment os_adminrc
 
