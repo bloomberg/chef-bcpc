@@ -1,0 +1,25 @@
+---
+- name: "destroy ceph osds"
+  when: destroy_osds
+  shell: |
+    disks=$(lsblk --json --nodeps | \
+      jq --raw-output '.blockdevices[] | select(.type == "disk") .name')
+
+    for disk in ${disks}; do
+      device="/dev/${disk}"
+
+      # only target ceph formatted disks
+      if pvdisplay ${device} | grep -qw ceph; then
+
+        # prefer to use ceph-volume if available
+        if which ceph-volume; then
+          /usr/sbin/ceph-volume lvm zap --destroy ${device}
+        else
+          /sbin/wipefs -a ${device}
+          /bin/dd if=/dev/zero of=${device} bs=1M count=10
+        fi
+
+      fi
+    done
+  args:
+    executable: /bin/bash
