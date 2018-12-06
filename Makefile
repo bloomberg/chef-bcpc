@@ -145,3 +145,10 @@ adjust-ceph-pool-pgs:
 		-i ${inventory} ${playbooks}/site.yml \
 		-t adjust-ceph-pool-pgs --limit headnodes
 
+ceph-destroy-osds:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t ceph-destroy-osds \
+		-e "destroy_osds=$(destroy_osds)" \
+		--limit storagenodes

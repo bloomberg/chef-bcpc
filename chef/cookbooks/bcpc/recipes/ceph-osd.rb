@@ -57,14 +57,15 @@ begin
   host = node['hostname']
 
   node['bcpc']['ceph']['osds'].each do |osd|
-    bash "ceph-deploy osd create #{osd}" do
+    bash "ceph-volume osd create #{osd}" do
       cwd '/etc/ceph'
       code <<-EOH
-        ceph-deploy osd create #{host}:#{osd}
+        ceph-volume lvm zap --destroy /dev/#{osd}
+        ceph-volume lvm create --bluestore --data /dev/#{osd}
         sleep 5
       EOH
       only_if "lsblk /dev/#{osd}"
-      not_if "lsblk -o PARTLABEL /dev/#{osd} | grep ceph"
+      not_if "pvdisplay /dev/#{osd} | grep ceph"
     end
   end
 
