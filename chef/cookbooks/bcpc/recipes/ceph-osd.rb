@@ -29,7 +29,7 @@ template '/etc/ceph/ceph.conf' do
   )
 end
 
-template '/etc/ceph/ceph.bootstrap-osd.keyring' do
+template '/var/lib/ceph/bootstrap-osd/ceph.keyring' do
   source 'ceph/ceph.client.keyring.erb'
   variables(
     username: 'bootstrap-osd',
