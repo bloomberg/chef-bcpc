@@ -36,6 +36,7 @@ package 'ceph'
 service 'nova-compute'
 service 'nova-api-metadata'
 service 'libvirtd'
+service 'libvirt-bin'
 
 # configure nova user starts
 user 'nova' do
@@ -94,17 +95,35 @@ template '/etc/ceph/ceph.conf' do
   )
 end
 
-template '/etc/ceph/ceph.client.nova.keyring' do
-  source 'nova/ceph.client.nova.keyring.erb'
-
-  mode '0640'
-  owner 'nova'
-  group 'libvirt'
-
+template '/etc/ceph/ceph.client.admin.keyring' do
+  source 'ceph/ceph.client.keyring.erb'
   variables(
-    key: config['ceph']['client']['nova']['key']
+    username: 'admin',
+    client: config['ceph']['client']['admin'],
+    caps: [
+      'caps mds = "allow *"',
+      'caps mgr = "allow *"',
+      'caps mon = "allow *"',
+      'caps osd = "allow *"',
+    ]
   )
 end
+
+%w(nova cinder).each do |user|
+
+  execute "export #{user} ceph client key" do
+    command <<-EOH
+      ceph auth get client.#{user} -o /etc/ceph/ceph.client.#{user}.keyring
+    EOH
+  end
+
+  file "/etc/ceph/ceph.client.#{user}.keyring" do
+    mode '0640'
+    group 'libvirt'
+  end
+
+end
+
 
 template '/etc/nova/virsh-secret.xml' do
   source 'nova/virsh-secret.xml.erb'
@@ -124,8 +143,10 @@ bash 'load virsh secrets' do
     virsh secret-define --file /etc/nova/virsh-secret.xml
     virsh secret-set-value \
       --secret #{config['libvirt']['secret']} \
-      --base64 #{config['ceph']['client']['nova']['key']}
+      --base64 #{config['ceph']['client']['cinder']['key']}
   DOC
+
+  notifies :restart, 'service[libvirt-bin]', :immediately
 end
 
 bash 'remove default virsh net' do

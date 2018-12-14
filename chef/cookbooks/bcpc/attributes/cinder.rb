@@ -23,5 +23,6 @@ default['bcpc']['cinder']['wsgi']['processes'] = 5
 default['bcpc']['cinder']['wsgi']['threads'] = 1
 
 # ceph (rbd)
+default['bcpc']['cinder']['ceph']['user'] = 'cinder'
 default['bcpc']['cinder']['ceph']['pool']['name'] = 'volumes'
 default['bcpc']['cinder']['ceph']['pool']['size'] = 1
