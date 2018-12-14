@@ -10,7 +10,7 @@ virt_type = <%= @virt_type %>
 images_type = rbd
 images_rbd_pool = <%= node['bcpc']['nova']['ceph']['pool']['name'] %>
 images_rbd_ceph_conf = /etc/ceph/ceph.conf
-rbd_user = <%= node['bcpc']['nova']['ceph']['user'] %>
+rbd_user = <%= node['bcpc']['cinder']['ceph']['user'] %>
 rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
