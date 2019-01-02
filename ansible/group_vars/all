@@ -87,9 +87,9 @@ assets_files:
     filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
 
   - name: etcd
-    url: https://github.com/etcd-io/etcd/releases/download/v3.3.9/etcd-v3.3.9-linux-amd64.tar.gz
-    checksum: sha256:7b95bdc6dfd1d805f650ea8f886fdae6e7322f886a8e9d1b0d14603767d053b1
-    filename: etcd-v3.3.9-linux-amd64.tar.gz
+    url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
+    checksum: sha256:1620a59150ec0a0124a65540e23891243feb2d9a628092fb1edcc23974724a45
+    filename: etcd-v3.3.10-linux-amd64.tar.gz
 
   - name: calicoctl
     url: https://github.com/projectcalico/calicoctl/releases/download/v3.4.0/calicoctl-linux-amd64

@@ -11,6 +11,6 @@
     dest: "/var/bcpc/file-server/"
   with_items:
     - "{{ assets_download_dir }}/calicoctl"
-    - "{{ assets_download_dir }}/etcd-v3.3.9-linux-amd64.tar.gz"
+    - "{{ assets_download_dir }}/etcd-v3.3.10-linux-amd64.tar.gz"
     - "{{ assets_download_dir }}/consul_1.2.3_linux_amd64.zip"
     - "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
