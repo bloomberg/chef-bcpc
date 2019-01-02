@@ -75,19 +75,15 @@ user_domain_name = Default
 username = <%= @config['placement']['creds']['os']['username'] %>
 password = <%= @config['placement']['creds']['os']['password'] %>
 
-
 [cinder]
 os_region_name = <%= node['bcpc']['cloud']['region'] %>
-
 
 [conductor]
 workers = <%= node['bcpc']['nova']['workers'] %>
 
-
 [glance]
 api_servers = <%= "https://#{@vip}:9292" %>
 insecure = true
-
 
 [neutron]
 url = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:9696" %>
@@ -100,16 +96,20 @@ user_domain_name = Default
 username = <%= @config['neutron']['creds']['os']['username'] %>
 password = <%= @config['neutron']['creds']['os']['password'] %>
 
+[oslo_policy]
+policy_dirs = policy.d
 
 [oslo_concurrency]
 lock_path = /var/lib/nova/tmp
 
+[oslo_messaging_notifications]
+driver = <%= node['bcpc']['nova']['notifications']['driver'] %>
+topics = <%= node['bcpc']['nova']['notifications']['topics'] %>
 
 [cache]
 enabled = true
 backend = oslo_cache.memcache_pool
 memcache_servers = <%= @headnodes.map{|n| "#{n['ipaddress']}:11211" }.join(",") %>
-
 
 [quota]
 <% node['bcpc']['nova']['quota']['global'].each do |quota, value| %>
@@ -118,15 +118,12 @@ memcache_servers = <%= @headnodes.map{|n| "#{n['ipaddress']}:11211" }.join(",") 
 max_age = 28800
 until_refresh = 10
 
-
 [scheduler]
 driver = filter_scheduler
-
 
 [filter_scheduler]
 available_filters = nova.scheduler.filters.all_filters
 enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].join(',') %>
-
 
 <% if @is_headnode -%>
 [vnc]
@@ -144,7 +141,3 @@ novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_aut
 
 [notifications]
 notify_on_state_change = <%= node['bcpc']['nova']['notifications']['notify_on_state_change'] %>
-
-[oslo_messaging_notifications]
-driver = <%= node['bcpc']['nova']['notifications']['driver'] %>
-topics = <%= node['bcpc']['nova']['notifications']['topics'] %>

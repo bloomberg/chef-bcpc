@@ -1,6 +1,3 @@
-# for an overview of all the available configuration options for nova@pike
-# go to: https://docs.openstack.org/cinder/pike/configuration/block-storage/samples/cinder.conf.html
-#
 [DEFAULT]
 host = bcpc
 allow_availability_zone_fallback = true
@@ -26,6 +23,9 @@ idle_timeout = 3600
 [oslo_concurrency]
 lock_path = /var/lock/cinder
 
+[oslo_policy]
+policy_dirs = policy.d
+
 [keystone_authtoken]
 www_authenticate_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
@@ -48,3 +48,4 @@ rbd_max_clone_depth = <%= node['bcpc']['cinder']['rbd_max_clone_depth'] %>
 rbd_store_chunk_size = 4
 rados_connect_timeout = -1
 glance_api_version = 2
+

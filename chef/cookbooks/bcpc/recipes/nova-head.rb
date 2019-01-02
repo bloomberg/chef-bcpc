@@ -226,6 +226,11 @@ service 'haproxy-nova' do
   service_name 'haproxy'
 end
 
+# create policy.d dir for policy overrides
+directory '/etc/nova/policy.d' do
+  action :create
+end
+
 file '/etc/nova/ssl-bcpc.pem' do
   content Base64.decode64(config['ssl']['key']).to_s
   mode '644'
