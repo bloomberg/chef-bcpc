@@ -132,6 +132,11 @@ service 'haproxy-cinder' do
   service_name 'haproxy'
 end
 
+# create policy.d dir for policy overrides
+directory '/etc/cinder/policy.d' do
+  action :create
+end
+
 # create ceph rbd pool
 bash 'create ceph pool' do
   pool = node['bcpc']['cinder']['ceph']['pool']['name']
