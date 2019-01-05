@@ -23,7 +23,6 @@ network_dir="${virtual_dir}/network"
 
 # bring up network nodes
 (
-    cd "${virtual_dir}"
+    cd "${network_dir}"
     vagrant up
-    vagrant ssh-config > "${ssh_config_file}"
 )

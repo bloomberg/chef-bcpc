@@ -16,7 +16,8 @@
     "client": {
       "admin": {"key": "AQBMiBlbzzxcBhAAd2HrPAGJoMHhCH6pF3aNkA=="},
       "cinder": {"key": "AQDb+CNbgjT2IxAAgapBlNpPcS/+tpn8FffiVA=="},
-      "glance": {"key": "AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ=="}
+      "glance": {"key": "AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ=="},
+      "nova": {"key": "AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ=="}
     }
   },
   "powerdns": {
