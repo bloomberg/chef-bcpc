@@ -23,9 +23,17 @@ create :
 
 	virtual/bin/create-virtual-environment.sh
 
+create-network :
+
+	virtual/bin/create-network.sh
+
 destroy :
 
 	virtual/bin/destroy-virtual-environment.sh
+
+destroy-network :
+
+	virtual/bin/destroy-network.sh
 
 operator :
 
