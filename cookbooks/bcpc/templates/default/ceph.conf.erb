@@ -17,6 +17,7 @@
     mon pg warn max object skew = <%= @node['bcpc']['ceph']['pg_warn_max_obj_skew'] %>
     max open files = <%= @node['bcpc']['ceph']['max_open_files'] %>
     paxos propose interval = <%= @node['bcpc']['ceph']['paxos_propose_interval'] %>
+    mon osd down out subtree limit = <%= @node['bcpc']['ceph']['mon_osd_down_out_subtree_limit'] %>
 
 [mon]
     keyring = /var/lib/ceph/mon/$cluster-$id/keyring

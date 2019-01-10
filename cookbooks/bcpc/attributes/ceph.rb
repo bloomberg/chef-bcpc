@@ -88,3 +88,4 @@ default['bcpc']['ceph']['osd_recovery_op_priority'] = 1
 default['bcpc']['ceph']['osd_max_backfills'] = 1
 default['bcpc']['ceph']['osd_op_threads'] = 2
 default['bcpc']['ceph']['osd_mon_report_interval_min'] = 5
+default['bcpc']['ceph']['mon_osd_down_out_subtree_limit'] = "host"
