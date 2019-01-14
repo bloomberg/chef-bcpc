@@ -30,7 +30,7 @@ template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
 
   headnodes = headnodes(all: true)
-  headnodes = headnodes.map { |h| "http://#{h['ipaddress']}:2379" }.join(',')
+  headnodes = headnodes.map { |h| "http://#{h['service_ip']}:2379" }.join(',')
 
   variables(
     headnodes: headnodes

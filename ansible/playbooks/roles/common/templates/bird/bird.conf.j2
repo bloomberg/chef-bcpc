@@ -1,0 +1,50 @@
+router id {{ interfaces['service']['ip'] }};
+
+log syslog { info, remote, warning, error, auth, fatal, bug };
+
+filter to_tor {
+  if net != 127.0.0.0/8 then accept;
+  reject;
+}
+
+filter to_kernel {
+  krt_prefsrc = {{ interfaces['service']['ip'] }};
+  if net = 0.0.0.0/0 then accept;
+  reject;
+}
+
+filter from_kernel {
+  if ifname ~ "tap*" then accept;
+  reject;
+}
+
+protocol kernel {
+  learn;          # Learn all alien routes from the kernel
+  persist;        # Don't remove routes on bird shutdown
+  scan time 2;    # Scan kernel routing table every 2 seconds
+  merge paths on;
+  graceful restart;
+  export filter to_kernel;
+  import filter from_kernel;
+}
+
+protocol direct {
+  interface "lo", "service*", "-eth0", "eth*", "ens*", "enp*";
+}
+
+protocol device {
+  scan time 2;
+}
+
+{% for transit in interfaces['transit'] %}
+protocol bgp '{{ transit['neighbor']['name'] }}:{{ inventory_hostname }}' {
+  multihop;
+  next hop self;
+  graceful restart;
+  local {{ transit['ip'] | ipaddr('address') }} as {{ bgp['asn'] }};
+  neighbor {{ transit['neighbor']['ip'] }} as {{ transit['neighbor']['asn'] }};
+  import all;
+  export filter to_tor;
+}
+
+{% endfor %}

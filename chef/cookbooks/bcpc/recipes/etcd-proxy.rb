@@ -23,7 +23,7 @@ systemd_unit 'etcd.service' do
   headnodes = headnodes(all: true)
 
   endpoints = headnodes.collect do |h|
-    "http://#{h['ipaddress']}:2379"
+    "http://#{h['service_ip']}:2379"
   end
 
   endpoints = endpoints.join(',')

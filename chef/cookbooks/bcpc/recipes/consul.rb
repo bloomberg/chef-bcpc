@@ -69,7 +69,7 @@ begin
     config = config.merge('bootstrap' => true)
   else
     headnodes = headnodes(exclude: node['hostname'])
-    retry_join = headnodes.collect { |h| h['ipaddress'].to_s }
+    retry_join = headnodes.collect { |h| h['service_ip'].to_s }
     config = config.merge('bootstrap' => false, 'retry_join' => retry_join)
   end
 

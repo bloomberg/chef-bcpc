@@ -1,0 +1,101 @@
+- setup:
+    gather_subset: all
+
+- name: set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: populate /etc/hosts
+  template:
+    src: etc/hosts.j2
+    dest: /etc/hosts
+
+- name: install bird
+  apt:
+    name: bird
+
+- name: configure bird
+  template:
+    src: bird/bird.conf.j2
+    dest: /etc/bird/bird.conf
+  register: bird
+
+- name: restart bird
+  service:
+    name: bird
+    state: restarted
+    enabled: yes
+  when: bird.changed
+
+- name: check for default gateway from tor
+  shell: |
+    /usr/sbin/birdc show route | grep 0.0.0.0/0
+  retries: 15
+  delay: 2
+  register: result
+  until: result.rc == 0
+  when: ansible_virtualization_type != 'virtualbox'
+
+- name: service ip netdev config
+  template:
+    src: systemd/network/10-service0.netdev
+    dest: /etc/systemd/network/10-service0.netdev
+  register: networkd
+
+- name: service ip network config
+  template:
+    src: systemd/network/20-service0.network
+    dest: /etc/systemd/network/20-service0.network
+  register: networkd
+
+- name: restart systemd-networkd
+  service:
+    name: systemd-networkd
+    state: restarted
+  when: networkd.changed
+
+- name: rename default netplan config
+  command: mv /etc/netplan/01-netcfg.yaml /etc/netplan/01-netcfg.yaml.orig
+  args:
+    removes: /etc/netplan/01-netcfg.yaml
+    creates: /etc/netplan/01-netcfg.yaml.orig
+  register: netplan
+
+- name: install virtualbox nat interface config
+  template:
+    src: netplan/virtualbox.yaml.j2
+    dest: "/etc/netplan/virtualbox.yaml"
+  register: netplan
+  when: ansible_virtualization_type == 'virtualbox'
+
+- name: netplan transit interfaces
+  template:
+    src: netplan/transit.yaml.j2
+    dest: "/etc/netplan/{{ item['name'] }}.yaml"
+  with_items:
+    "{{ interfaces['transit'] | transit_interfaces(ansible_facts) }}"
+  register: netplan
+
+- name: netplan apply
+  command: netplan apply
+  when: netplan.changed
+
+- name: configure systemd-resolved
+  template:
+    src: systemd/resolved.conf.j2
+    dest: /etc/systemd/resolved.conf
+  register: resolved
+
+- name: resolv.conf symlink
+  file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+  register: resolved
+
+- name: restart systemd-resolved
+  service:
+    name: systemd-resolved
+    state: restarted
+  when: resolved.changed

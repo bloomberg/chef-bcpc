@@ -1,0 +1,170 @@
+###############################################################################
+# ansible
+###############################################################################
+
+ansible_python_interpreter: /usr/bin/env python3
+ansible_user: "{{ operator_username }}"
+ansible_ssh_common_args: >
+  -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
+  -o 'IdentitiesOnly yes'
+
+###############################################################################
+# additional_runlists
+###############################################################################
+
+#additional_runlists:
+#  node:
+#    - recipe[bcpc::default]
+#  bootstrap:
+#    - recipe[bcpc::default]
+
+###############################################################################
+# cloud
+###############################################################################
+
+cloud_ip: 10.65.0.254
+cloud_domain: bcpc.example.com
+cloud_fqdn: "openstack.{{ cloud_domain }}"
+cloud_region: "{{ chef_environment['name'] }}"
+
+###############################################################################
+# cloud images
+###############################################################################
+
+cloud_images:
+  - name: cirros
+    input: /var/tmp/cirros-0.4.0-x86_64-disk.img
+    output: /var/tmp/cirros-0.4.0-x86_64-disk.raw
+    source: "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
+#- name: ubuntu-18.04
+#  input: /var/tmp/ubuntu-18.04-server-cloudimg-amd#4.img
+#  output: /var/tmp/ubuntu-18.04-server-cloudimg-amd#4.raw
+#  source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd#4.img"
+#- name: ubuntu-1#.04
+#  input: /var/tmp/ubuntu-1#.04-server-cloudimg-amd64-disk1.img
+#  output: /var/tmp/ubuntu-1#.04-server-cloudimg-amd64-disk1.raw
+#  source: "{{ assets_download_dir }}/ubuntu-1#.04-server-cloudimg-amd64-disk1.img"
+#- name: centos-7
+#  input: /var/tmp/CentOS-7-x8#_64-GenericCloud-1808.qcow2.xz
+#  output: /var/tmp/CentOS-7-x8#_64-GenericCloud-1808.raw
+#  url: http://cloud.centos.org/centos/7/images/CentOS-7-x8#_64-GenericCloud-1808.qcow2.xz
+#  source: "{{ assets_download_dir }}/CentOS-7-x8#_64-GenericCloud-1808.qcow2.xz"
+
+###############################################################################
+# misc
+###############################################################################
+
+# the root of the source tree
+root_dir: "{{ inventory_dir | dirname }}"
+
+# username and password used to access bare metal machines
+initial_ssh_user: ubuntu
+initial_ssh_pass: 53cr37
+
+###############################################################################
+# operator
+###############################################################################
+
+# cloud operator (os admin user)
+# this is the user that will be added to each node in the cluster and given
+# admin privileges
+operator_username: operations
+operator_group: operators
+
+
+###############################################################################
+# dns servers
+###############################################################################
+
+# list of external dns servers
+dns:
+  servers:
+    - 8.8.8.8
+    - 8.8.4.4
+
+###############################################################################
+# ntp servers
+###############################################################################
+
+# list of external ntp servers
+ntp:
+  servers:
+    - time1.google.com
+    - time2.google.com
+
+###############################################################################
+# proxy settings
+###############################################################################
+
+proxy:
+  enabled: false
+  proxies:
+    http: http://proxy.example.com
+    https: https://proxy.example.com
+
+###############################################################################
+# external file assets
+###############################################################################
+
+assets_download_dir: "{{ root_dir }}/assets"
+assets_files:
+  - name: cirros
+    url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    checksum: sha256:a8dd75ecffd4cdd96072d60c2237b448e0c8b2bc94d57f10fdbc8c481d9005b8
+    filename: cirros-0.4.0-x86_64-disk.img
+
+  - name: ubuntu-18.04
+    url: http://cloud-images.ubuntu.com/releases/18.04/release-20180724/ubuntu-18.04-server-cloudimg-amd64.img
+    checksum: sha256:6d663a8fd5eddd916f4aef4fd06d0f7f4cf0bb191f170b8c84cd2adf297bc5c3
+    filename: ubuntu-18.04-server-cloudimg-amd64.img
+
+  - name: ubuntu-16.04
+    url: http://cloud-images.ubuntu.com/releases/16.04/release-20180912/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+    checksum: sha256:7bb741d90f56a42bbde01633d1f6e9204693c6ae357edd42a0b363945a76812f
+    filename: ubuntu-16.04-server-cloudimg-amd64-disk1.img
+
+  - name: centos-7
+    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+    checksum: sha256:9cc2e9fefb7d8ac8e8a6973c20edb00f12c96614086b1fea5c4f02576be875f6
+    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+
+  - name: etcd
+    url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
+    checksum: sha256:1620a59150ec0a0124a65540e23891243feb2d9a628092fb1edcc23974724a45
+    filename: etcd-v3.3.10-linux-amd64.tar.gz
+
+  - name: calicoctl
+    url: https://github.com/projectcalico/calicoctl/releases/download/v3.4.0/calicoctl-linux-amd64
+    checksum: sha256:7017efab112a75ff7123ca0db62a52940e68bd6f1f2fe41ef08fe12dd4c89ca5
+    filename: calicoctl
+
+  - name: consul
+    url: https://releases.hashicorp.com/consul/1.4.0/consul_1.4.0_linux_amd64.zip
+    checksum: sha256:41f8c3d63a18ef4e51372522c1e052618cdfcffa3d9f02dba0b50820e8279824
+    filename: consul_1.4.0_linux_amd64.zip
+
+  - name: chef_client
+    url: https://packages.chef.io/files/current/chef/14.6.13/ubuntu/18.04/chef_14.6.13-1_amd64.deb
+    checksum: sha256:d5e460938a1817de1e223348e234e9b34542c235a71132a9c1dc353c67c8f593
+    filename: chef_14.6.13-1_amd64.deb
+
+  - name: chef_server
+    url: https://packages.chef.io/files/stable/chef-server/12.17.33/ubuntu/16.04/chef-server-core_12.17.33-1_amd64.deb
+    checksum: sha256:2800962092ead67747ed2cd2087b0e254eb5e1a1b169cdc162c384598e4caed5
+    filename: chef-server-core_12.17.33-1_amd64.deb
+
+  - name: logrotate
+    url: https://supermarket.chef.io/cookbooks/logrotate/versions/2.2.0/download
+    checksum: sha256:f9385a488ec0ee02bfd680ac5aac012000006e4168f97bbf06b5b28373a1d1aa
+    filename: logrotate-2.2.0.tar.gz
+
+  - name: hostsfile
+    url: https://supermarket.chef.io/cookbooks/hostsfile/versions/3.0.1/download
+    checksum: sha256:dfac48893dfdd15461740a1fe00a4445191261e7ec9f6f6708974b017bf7f660
+    filename: hostsfile-3.0.1.tar.gz
+
+  - name: cron
+    url: https://supermarket.chef.io/cookbooks/cron/versions/5.1.0/download
+    checksum: sha256:7c2157550e8e4bd784580ec2bf127be44327333554f9bb7a37bd17ae4bd21dfe
+    filename: cron-5.1.0.tar.gz

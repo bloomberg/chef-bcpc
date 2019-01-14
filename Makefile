@@ -1,7 +1,7 @@
 # -*- mode: Makefile -*-
 # vim:list:listchars=tab\:>-:
 
-export inventory = ansible/inventory
+export inventory = ansible/inventory.yml
 export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
@@ -10,36 +10,54 @@ storagenodes = $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc 
 
 all : \
 	download-assets \
-	operator \
-	chef-server \
-	chef-workstation \
-	chef-node \
-	file-server \
-	chef-client \
+	add-operator \
+	configure-apt \
+	configure-networking \
+	configure-chef-server \
+	configure-chef-workstation \
+	configure-chef-nodes \
+	configure-file-server \
+	run-chef-client \
 	add-cloud-images \
 	register-compute-nodes
 
-create :
+create: create-virtual-network create-virtual-hosts
+
+destroy: destroy-virtual-network destroy-virtual-hosts
+
+create-virtual-hosts :
 
 	virtual/bin/create-virtual-environment.sh
 
-create-network :
+create-virtual-network :
 
-	virtual/bin/create-network.sh
+	virtual/bin/create-virtual-network.sh
 
-destroy :
+destroy-virtual-hosts :
 
 	virtual/bin/destroy-virtual-environment.sh
 
-destroy-network :
+destroy-virtual-network :
 
-	virtual/bin/destroy-network.sh
+	virtual/bin/destroy-virtual-network.sh
 
-operator :
+add-operator :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t operator --limit cloud
+
+configure-apt :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t configure-apt --limit cloud
+
+configure-networking :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t configure-networking --limit cloud
 
 download-assets :
 
@@ -47,35 +65,37 @@ download-assets :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t download-assets --limit localhost
 
-chef-server :
+configure-chef-server :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-server --limit bootstraps
 
-chef-workstation :
+configure-chef-workstation :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-workstation --limit bootstraps
 
-chef-node :
+configure-chef-nodes :
 
-	ansible-playbook -v -i ${inventory} ${playbooks}/site.yml -t chef-node
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t chef-node --limit cloud
 
-chef-client : \
-	chef-client-bootstraps \
-	chef-client-headnodes \
-	chef-client-worknodes \
-	chef-client-storagenodes
+run-chef-client : \
+	run-chef-client-bootstraps \
+	run-chef-client-headnodes \
+	run-chef-client-worknodes \
+	run-chef-client-storagenodes
 
-chef-client-bootstraps :
+run-chef-client-bootstraps :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit bootstraps
 
-chef-client-headnodes :
+run-chef-client-headnodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
@@ -89,13 +109,13 @@ chef-client-headnodes :
 			-e "step=1"; \
 	fi
 
-chef-client-worknodes :
+run-chef-client-worknodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit worknodes
 
-chef-client-storagenodes :
+run-chef-client-storagenodes :
 
 	@if [ "${storagenodes}" -gt 0 ]; then \
 		ansible-playbook -v \
@@ -115,11 +135,11 @@ register-compute-nodes:
 		-i ${inventory} ${playbooks}/site.yml \
 		-t register-compute-nodes --limit headnodes
 
-upload-bcpc :
+sync-chef :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc --limit bootstraps
+		-t sync-chef --limit bootstraps
 
 upload-all :
 
@@ -131,7 +151,7 @@ upload-all :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t upload-bcpc --limit bootstraps
 
-file-server :
+configure-file-server :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
@@ -141,11 +161,11 @@ file-server :
 # helper targets
 ###############################################################################
 
-generate-chef-roles :
+generate-chef-environment :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t generate-chef-roles --limit bootstraps
+		-t generate-chef-environment --limit bootstraps
 
 adjust-ceph-pool-pgs:
 

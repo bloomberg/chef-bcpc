@@ -9,7 +9,7 @@ listen keystone-admin-api
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:35357 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:35357 check inter 5s rise 1 fall 1
 <% end -%>
 
 listen keystone-public-api
@@ -20,5 +20,5 @@ listen keystone-public-api
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:5000 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:5000 check inter 5s rise 1 fall 1
 <% end -%>

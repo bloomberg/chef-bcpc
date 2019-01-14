@@ -79,17 +79,11 @@ def get_group_hosts(group, ssh_config, nodes):
 
         if node['group'] == group:
 
-            networks = node['networking']['networks']
-            primary_ip = [n['ip'] for n in networks if n['type'] == 'primary']
-
-            host_vars = {
-                'ansible_host': host['HostName'],
-                'ansible_port': host['Port'],
-                'run_list': node['run_list']
-            }
-
-            if len(primary_ip):
-                host_vars['primary_ip'] = primary_ip[0]
+            host_vars = node['host_vars']
+            host_vars.update({
+              'ansible_host': host['HostName'],
+              'ansible_port': host['Port'],
+            })
 
             group_hosts.update({node['host']: host_vars})
 

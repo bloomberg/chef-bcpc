@@ -1,0 +1,229 @@
+###############################################################################
+# chef environment
+###############################################################################
+
+chef_environment:
+  name: virtual
+  description: Virtualized BCPC Environment
+  json_class: Chef::Environment
+  chef_type: environment
+  override_attributes:
+    bcpc:
+      cloud:
+        domain: "{{ cloud_domain }}"
+        fqdn: "{{ cloud_fqdn }}"
+        vip: "{{ cloud_ip }}"
+      dns: "{{ dns }}"
+      grub:
+        cmdline_linux:
+          - net.ifnames=0
+          - biosdevname=0
+      nova:
+        cpu_config:
+          cpu_mode: custom
+          cpu_model: qemu64
+          cpu_model_extra_flags:
+            - abm
+            - lahf_lm
+            - popcnt
+            - sse4a
+      ntp: "{{ ntp }}"
+      proxy: "{{ proxy }}"
+
+###############################################################################
+# chef databags
+###############################################################################
+
+chef_databags:
+  - id: config
+    openstack:
+      admin:
+        password: ICem9DTIdykCVADkxpxw
+    ceph:
+      fsid: 3304a7de-2aa8-4280-bb4c-276be355a3a5
+      mon:
+        key: AQBHiBlbAAAAABAA16wwG/QlKJvj6CwrGIW5Fg==
+      bootstrap:
+        mds:
+          key: AQBMiBlbZsXPKBAAsgQe25QX8f1h0SavIlcILA==
+        mgr:
+          key: AQACPilb3f17HhAAtU2dbXufQYsMoR9/9P10yA==
+        osd:
+          key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
+        rgw:
+          key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
+        rbd:
+          key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
+      client:
+        admin:
+          key: AQBMiBlbzzxcBhAAd2HrPAGJoMHhCH6pF3aNkA==
+        cinder:
+          key: AQDb+CNbgjT2IxAAgapBlNpPcS/+tpn8FffiVA==
+        glance:
+          key: AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ==
+        nova:
+          key: AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ==
+    powerdns:
+      creds:
+        db:
+          username: pdns
+          password: DUBSOwwBeqPj
+        webserver:
+          password: DUBSOwwBeqPj
+        api:
+          key: DUBSOwwBeqPj
+    keystone:
+      db:
+        username: keystone
+        password: PcXr5UPbUWFUs4c1cT_n
+      fernet:
+        keys:
+          primary: F-kOIX_tCsvD0BK0EenrzAgAt3RVZSqwusZfnHPV6JU=
+          secondary: SdRxafSqtXaolhlX-qwcFWEtRIOMKvawZh2ZJLSV_EA=
+          staged: Ma3gkc0Xdj-ScVT3_p_23Axh9YciPFMDLbU0-DM6Ktg=
+    glance:
+      creds:
+        db:
+          username: glance
+          password: 3Dhip8IKy_95O9LwOkpa
+        os:
+          username: glance
+          password: 3Dhip8IKy_95O9LwOkpa
+    cinder:
+      creds:
+        db:
+          username: cinder,
+          password: 3Dhip8IKy_95O9LwOkpa
+        os:
+          username: cinder,
+          password: 3Dhip8IKy_95O9LwOkpa
+    horizon:
+      secret: XWmecfpS5wS7SMqi4un3
+    libvirt:
+      secret: 8e4a6c8e-ebe9-4fb2-9df1-e5f15bf41888
+    neutron:
+      creds:
+        db:
+          username: neutron
+          password: 3Dhip8IKy_95O9LwOkpa
+        os:
+          username: neutron,
+          password: 3Dhip8IKy_95O9LwOkpa
+    nova:
+      creds:
+        db:
+          username: nova
+          password: 3Dhip8IKy_95O9LwOkpa
+        os:
+          username: nova
+          password: 3Dhip8IKy_95O9LwOkpa
+      ssh:
+        crt: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUhBRjhJYVJiRCtpT0tQR0ZQclpHcGQvSnQ1MEh0SWwyZzRPbGZTcWF5dHAK
+        key: LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNCd0JmQ0drV3cvb2ppanhoVDYyUnFYZnliZWRCN1NKZG9PRHBYMHFtc3JhUUFBQUlnbGRDV2pKWFFsCm93QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQndCZkNHa1d3L29qaWp4aFQ2MlJxWGZ5YmVkQjdTSmRvT0RwWDBxbXNyYVEKQUFBRUJBYmNzRnVIRkpDKzk5c25xZXhSbTRrSWMzRy93K2M3Y1RGZ3FHaURoeVNIQUY4SWFSYkQraU9LUEdGUHJaR3BkLwpKdDUwSHRJbDJnNE9sZlNxYXl0cEFBQUFBQUVDQXdRRgotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
+    placement:
+      creds:
+        os:
+          username: placement
+          password: 3Dhip8IKy_95O9LwOkpa
+    mysql:
+      users:
+        sst:
+          password: 5Kag5pGHdhjNAE57quFf
+        root:
+          password: 96C2sVnLuz0_HFSJg3_L
+        check:
+          password: q9RG9zphUikPC722OIko
+    rabbit:
+      username: guest
+      password: Rv1GjTlGmfHPiSRt5bqK
+      cookie: Y7SAgyFKPcxlzLdT5lJV
+    haproxy:
+      username: haproxy
+      password: nr7oTiMPn3h3ciFv0ZgL
+    ssh:
+      public: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUVCbTMvWVRsYlJNRURqY0tEeERzV054am5WMmdxTE9ZOVBPV0NQemt2NDcgCg==
+      private: LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNCQVp0LzJFNVcwVEJBNDNDZzhRN0ZqY1k1MWRvS2l6bVBUemxnajg1TCtPd0FBQUlpQmo0S0RnWStDCmd3QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQkFadC8yRTVXMFRCQTQzQ2c4UTdGamNZNTFkb0tpem1QVHpsZ2o4NUwrT3cKQUFBRURPaHZMNThMWFhsWmlrY0lUY3pFVEphbEpSS0lralZzRDFYVHJJcWoxMFcwQm0zL1lUbGJSTUVEamNLRHhEc1dOeApqblYyZ3FMT1k5UE9XQ1B6a3Y0N0FBQUFBQUVDQXdRRgotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
+    ssl:
+      key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUNlQUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQW1Jd2dnSmVBZ0VBQW9HQkFOUzBBUFJDRlM3eWZtNWQKcC9XVUN4bTNuN2NGVnFTTlROZjFoUGhwckQ4NkRKdzU4akVmTnp2a2ZoZk1TVzJoejJwSHpNY0VXZXIvODd6YwpwNDRJQ1pOeEp3Y0ZPWDJ6d2dRN3kwelM1bWo2NjM3aHpEYU5saXptMDlTSDl2YlNnYThteXEzL3JPYmFlb01hCk1KRTNuZjZvSGZhL1JEVGtGUm1XMjZzMEI4bFJBZ01CQUFFQ2dZQVBncXpMSXdKK2NPcHRTK0VTbEdBVzJRQUoKalpjYTJyN3V4SldVczhmK3VGSHhGbnlsdmx2OXZ4UyswWVBOUGM1dE5wMGxLaGtRZk9lZUx3ejgyM012TGlxdwoyU1F1ZWp5dXQ0VDlsczFPem5QR0RlU1czdm5NWjBGZisrUkJVOUIvV0ZLTjBMMjZUVU10WnZ1RXpLelg1RmkvClQ1b3F1bno1dnBHeVFaYXFBUUpCQVBlRGkrK1pHdVNPd2kyR3VSd05GQnFHa1Nxc3cyV3lwK25qY0hucVp1MkMKdlovM0ExcEh2SllMeWdCcmpuK0JkUEdTQWNvbUhCaFl6NWNMTTE4ZDlhRUNRUURiL3V1SU5NbjFWUFJmSzdjOQpvWHMrYlpSVUpocllrcHlwZmhDSFVFS0ovbVkwN1Y4blJJcEMybmMwTHNQU0FQbEl6a3JCRSthNmdLZmZ6NUVaCnN0V3hBa0VBcE9FcmNkTnk5N2dsb0FBMEJYeXMzTEt4dDFUWTRVRXUyLzVYYWM5OCsxRHhrc01RcDY1TDhVUXYKTHpKMi9YYzJlTW5EaVc3em5rQmpJUUlrR1lPeW9RSkJBSzE1UUlUeEMyZTNDOU9ZQnpCRUM0allvNlFQUUJBUwozQklTNURtdklpanFQL0h3VTU0RlAva2poK2ZRRUgyaVl1LzBLNkpBYlNvWGxVaTR4alE3ZnFFQ1FRQ25QRGVxClhlNXJBVUJyZlJFRFVLNXg3R2hLclAvZUNyM1NwSEFWVzlVYkl6S2FmY2pKZkFIbzZwbmdxbVlCMkRzY2c1emYKT0xDY3FVY3lTVXRveHQ4cAotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==
+      crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM5akNDQWwrZ0F3SUJBZ0lKQU5YbURnNlVDd0JGTUEwR0NTcUdTSWIzRFFFQkN3VUFNSDh4Q3pBSkJnTlYKQkFZVEFsVlRNUkV3RHdZRFZRUUlEQWhPWlhjZ1dXOXlhekVSTUE4R0ExVUVCd3dJVG1WM0lGbHZjbXN4RWpBUQpCZ05WQkFvTUNVSnNiMjl0WW1WeVp6RVJNQThHQTFVRUN3d0lRMnh2ZFdSRmJtY3hJekFoQmdOVkJBTU1HbTl3ClpXNXpkR0ZqYXk1aVkzQmpMbVY0WVcxd2JHVXVZMjl0TUI0WERURTVNREV4TURFM05UZzFNRm9YRFRJME1ERXcKT1RFM05UZzFNRm93ZnpFTE1Ba0dBMVVFQmhNQ1ZWTXhFVEFQQmdOVkJBZ01DRTVsZHlCWmIzSnJNUkV3RHdZRApWUVFIREFoT1pYY2dXVzl5YXpFU01CQUdBMVVFQ2d3SlFteHZiMjFpWlhKbk1SRXdEd1lEVlFRTERBaERiRzkxClpFVnVaekVqTUNFR0ExVUVBd3dhYjNCbGJuTjBZV05yTG1KamNHTXVaWGhoYlhCc1pTNWpiMjB3Z1o4d0RRWUoKS29aSWh2Y05BUUVCQlFBRGdZMEFNSUdKQW9HQkFOUzBBUFJDRlM3eWZtNWRwL1dVQ3htM243Y0ZWcVNOVE5mMQpoUGhwckQ4NkRKdzU4akVmTnp2a2ZoZk1TVzJoejJwSHpNY0VXZXIvODd6Y3A0NElDWk54SndjRk9YMnp3Z1E3CnkwelM1bWo2NjM3aHpEYU5saXptMDlTSDl2YlNnYThteXEzL3JPYmFlb01hTUpFM25mNm9IZmEvUkRUa0ZSbVcKMjZzMEI4bFJBZ01CQUFHamVqQjRNQjBHQTFVZERnUVdCQlRoMnphUE1Va2RQL1BsRFFVTHNadjJrOU5oU3pBZgpCZ05WSFNNRUdEQVdnQlRoMnphUE1Va2RQL1BsRFFVTHNadjJrOU5oU3pBUEJnTlZIUk1CQWY4RUJUQURBUUgvCk1DVUdBMVVkRVFRZU1CeUNHbTl3Wlc1emRHRmpheTVpWTNCakxtVjRZVzF3YkdVdVkyOXRNQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNEdCQUxMV1J0RS9QeGdnN0ZIZGMxTlh4dWVscXNVSUhjY1BJM1BDQzNSZEc2S3lWS2NUVm8zZgpDbm9OUGlyamI1KzlJeEFVMkc1YVNYZzFNVVlBd3pZb2YyWU12azRmRGxvNDlodkdBdVJPR0lkMEhQcnlXYkUzCnpHVW4yNWJuWGNoeEc4SHJIamRBWWRrOHd3RjgxbFpzOHdWOU1ub2JjazJjamVyMmZKVVlmRlpBCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+      intermediate: null
+
+###############################################################################
+# chef roles
+###############################################################################
+
+chef_roles:
+  - name: node
+    description: common role for all bcpc nodes
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - recipe[bcpc::apt]
+      - recipe[bcpc::ssl]
+      - recipe[bcpc::cloud-archive]
+      - recipe[bcpc::chrony]
+      - recipe[bcpc::postfix]
+      - recipe[bcpc::common-packages]
+      - recipe[bcpc::kexec]
+      - recipe[bcpc::apport]
+      - recipe[bcpc::etckeeper]
+      - recipe[bcpc::cpupower]
+      - recipe[bcpc::getty]
+      - recipe[bcpc::hwrng]
+      - recipe[bcpc::system]
+
+  - name: bootstrap
+    description: bootstrap node
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::ssh]
+      - recipe[bcpc::file-server]
+      - recipe[bcpc::ufw]
+      - recipe[bcpc::rally]
+
+  - name: headnode
+    description: cloud infrastructure services
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::haproxy]
+      - recipe[bcpc::ssh]
+      - recipe[bcpc::etcd-member]
+      - recipe[bcpc::rabbitmq]
+      - recipe[bcpc::memcached]
+      - recipe[bcpc::unbound]
+      - recipe[bcpc::consul]
+      - recipe[bcpc::ceph-mon]
+      - recipe[bcpc::ceph-mgr]
+      - recipe[bcpc::mysql]
+      - recipe[bcpc::powerdns]
+      - recipe[bcpc::apache2]
+      - recipe[bcpc::keystone]
+      - recipe[bcpc::glance]
+      - recipe[bcpc::neutron-head]
+      - recipe[bcpc::nova-head]
+      - recipe[bcpc::cinder]
+      - recipe[bcpc::horizon]
+      - recipe[bcpc::os-quota]
+      - recipe[bcpc::flavors]
+
+  - name: storagenode
+    description: storage node
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::ceph-osd]
+
+  - name: worknode
+    description: cloud compute services
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::etcd-proxy]
+      - recipe[bcpc::calico-work]
+      - recipe[bcpc::nova-compute]

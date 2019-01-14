@@ -1,4 +1,5 @@
 - hosts: localhost
   gather_facts: false
   roles:
+    - common
     - localhost

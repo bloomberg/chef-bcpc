@@ -1,6 +1,6 @@
-Listen <%= node['ipaddress'] %>:9999
+Listen <%= node['service_ip'] %>:9999
 
-<VirtualHost <%= node['ipaddress'] %>:9999>
+<VirtualHost <%= node['service_ip'] %>:9999>
   ServerName <%= node['bcpc']['cloud']['fqdn'] %>
 
   WSGIScriptAlias /horizon /usr/share/openstack-dashboard/openstack_dashboard/wsgi/django.wsgi process-group=horizon

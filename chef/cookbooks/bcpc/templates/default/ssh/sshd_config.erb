@@ -6,12 +6,7 @@
 Port 22
 # Use these options to restrict which interfaces/protocols sshd will bind to
 #ListenAddress ::
-<% if node['virtualization']['system'] == 'vbox' %>
-ListenAddress <%= node['bcpc']['virtualbox']['nat_ip'] %>
-<% end %>
-<% @interfaces.each do |iface| -%>
-ListenAddress <%= iface['ip'] %>
-<% end -%>
+#ListenAddress 0.0.0.0
 
 Protocol 2
 # HostKeys for protocol version 2

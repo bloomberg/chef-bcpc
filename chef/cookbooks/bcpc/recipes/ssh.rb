@@ -29,7 +29,7 @@ file '/root/.ssh/authorized_keys' do
   content Base64.decode64(config['ssh']['public'])
 end
 
-file '/root/.ssh/id_rsa' do
+file '/root/.ssh/id_ed25519' do
   mode '600'
   content Base64.decode64(config['ssh']['private'])
 end

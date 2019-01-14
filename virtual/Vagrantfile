@@ -33,29 +33,21 @@ Vagrant.configure('2') do |config|
   config.vm.box_download_insecure = true
 
   topology['nodes'].each do |node|
-    vm_name = node['name'] || node['host']
+    vm_name = node['host']
 
     # get hardware profile for node
     hw_profiles = hardware['profiles']
     hw_profile = hw_profiles[node['hardware_profile']]
 
     config.vm.define vm_name do |subconfig|
-      networks = node['networking']['networks']
-      gateway = node['networking']['gateway']
-      primary = networks.find { |n| n['type'] == 'primary' }
-
       # vm provisioners starts
+
       # create default user
       subconfig.vm.provision 'shell' do |shell|
         shell.path = 'provisioners/create-default-user.sh'
         shell.args = 'ubuntu 53cr37'
       end
 
-      # statically configure virtualbox NAT interface
-      subconfig.vm.provision 'shell' do |shell|
-        shell.path = 'provisioners/netcfg.sh'
-        shell.args = "#{primary['ip']} #{gateway}"
-      end
       # vm provisioners ends
 
       # add swap space
@@ -68,17 +60,22 @@ Vagrant.configure('2') do |config|
 
       # network connections
       #
-      networks.each do |n|
+      host_vars = node['host_vars']
+      transit = host_vars['interfaces']['transit']
+
+      transit.each do |t_iface|
         args = {}.tap do |a|
-          a[:virtualbox__intnet] = n['network']
+          a[:virtualbox__intnet] = t_iface['neighbor']['name']
           a[:nic_type] = '82543GC'
           a[:auto_config] = false
+          a[:mac] = t_iface['mac'].gsub(/:/,'')
         end
 
         subconfig.vm.network('private_network', args)
       end
 
       subconfig.vm.provider 'virtualbox' do |vb|
+        vb.name = vm_name
         vb.cpus = hw_profile['cpus']
         vb.memory = hw_profile['ram_gb'] * 1024
         vb.customize ['modifyvm', :id, '--groups', project_name]

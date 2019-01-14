@@ -1,7 +1,0 @@
-name: storagenode
-description: storage node
-json_class: Chef::Role
-chef_type: role
-run_list:
-  - role[node]
-  - recipe[bcpc::ceph-osd]

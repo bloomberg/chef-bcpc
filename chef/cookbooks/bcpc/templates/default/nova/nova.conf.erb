@@ -9,7 +9,7 @@ vif_plugging_timeout = 0
 ssl_only = false
 key = /etc/nova/ssl-bcpc.key
 cert = /etc/nova/ssl-bcpc.pem
-my_ip = <%= node['ipaddress'] %>
+my_ip = <%= node['service_ip'] %>
 enable_new_services = false
 cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
 <% if node['bcpc']['nova']['vcpu_pin_set'] %>
@@ -24,16 +24,20 @@ sync_power_state_interval = <%= node['bcpc']['nova']['sync_power_state_interval'
 send_arp_for_ha = true
 state_path = /var/lib/nova
 
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
 <% if @is_headnode -%>
 enabled_apis = osapi_compute
-osapi_compute_listen = <%= node['ipaddress'] %>
-osapi_compute_workers = <%= node['bcpc']['nova']['workers'] %>
+osapi_compute_listen = <%= node['service_ip'] %>
+<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end%>
 <% else %>
 enabled_apis = metadata
 metadata_listen = <%= node['bcpc']['nova']['metadata_listen'] %>
-metadata_workers = <%= node['bcpc']['nova']['workers'] %>
+<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+metadata_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end%>
 <% end %>
 
 <% if not node['bcpc']['nova']['default_log_levels'].nil? %>
@@ -51,7 +55,7 @@ vendordata_providers = DynamicJSON,StaticJSON
 [keystone_authtoken]
 auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
-memcached_servers = <%= @headnodes.map{ |n| "#{n['ipaddress']}:11211" }.join(',') %>
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
 project_name = service
 project_domain_name = Default
@@ -83,7 +87,9 @@ password = <%= @config['placement']['creds']['os']['password'] %>
 os_region_name = <%= node['bcpc']['cloud']['region'] %>
 
 [conductor]
-workers = <%= node['bcpc']['nova']['workers'] %>
+<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end%>
 
 [glance]
 api_servers = <%= "https://#{@vip}:9292" %>
@@ -113,17 +119,20 @@ topics = <%= node['bcpc']['nova']['notifications']['topics'] %>
 [cache]
 enabled = true
 backend = oslo_cache.memcache_pool
-memcache_servers = <%= @headnodes.map{|n| "#{n['ipaddress']}:11211" }.join(",") %>
+memcache_servers = <%= @headnodes.map{|n| "#{n['service_ip']}:11211" }.join(",") %>
 
 [quota]
-<% node['bcpc']['nova']['quota']['global'].each do |quota, value| %>
-<%= "#{quota} = #{value}" %>
+<% node['bcpc']['nova']['quota']['default'].each do |resource, limit| %>
+<%= "#{resource} = #{limit}" %>
 <% end %>
 max_age = 28800
 until_refresh = 10
 
 [scheduler]
 driver = filter_scheduler
+<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end%>
 
 [filter_scheduler]
 available_filters = nova.scheduler.filters.all_filters
@@ -132,14 +141,14 @@ enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].join(','
 <% if @is_headnode -%>
 [vnc]
 enabled = true
-server_listen = <%= node['ipaddress'] %>
-server_proxyclient_address = <%= node['ipaddress'] %>
-novncproxy_host = <%= node['ipaddress'] %>
+server_listen = <%= node['service_ip'] %>
+server_proxyclient_address = <%= node['service_ip'] %>
+novncproxy_host = <%= node['service_ip'] %>
 <% else %>
 [vnc]
 enabled = true
 vncserver_listen = 0.0.0.0
-vncserver_proxyclient_address = <%= node['ipaddress'] %>
+vncserver_proxyclient_address = <%= node['service_ip'] %>
 novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_auto.html" %>
 <% end %>
 

@@ -1,0 +1,24 @@
+###############################################################################
+# managed by ansible
+###############################################################################
+
+# The following lines are desirable for IPv4 capable hosts
+127.0.0.1	localhost
+127.0.1.1	{{ node_fqdn }}	{{ node_hostname }}
+
+# The following lines are desirable for IPv6 capable hosts
+::1	localhost ip6-localhost ip6-loopback
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+
+# This is the FQDN of the cloud
+{{ cloud_ip }} {{cloud_fqdn}}
+
+# The following are all the hosts in the ansible cloud group
+{% for host in groups['cloud'] %}
+{% if host == chef_server_host %}
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{cloud_domain}}	{{ host }}	bootstrap
+{% else %}
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{cloud_domain}}	{{ host }}
+{% endif %}
+{% endfor %}

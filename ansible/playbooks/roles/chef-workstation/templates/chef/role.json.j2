@@ -1,0 +1,11 @@
+#jinja2:lstrip_blocks: True
+{% if additional_runlists is defined and
+    item.name in additional_runlists -%}
+  {% set role = item.name %}
+  {% set recipes = additional_runlists[role] %}
+  {%- for recipe in recipes -%}
+    {{ item.run_list.append(recipe) }}
+  {%- endfor -%}
+{%- endif -%}
+
+{{ item | to_nice_json }}

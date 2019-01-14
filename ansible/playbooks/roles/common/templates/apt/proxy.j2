@@ -1,0 +1,3 @@
+{% for schema, url in proxy['proxies'].items() %}
+Acquire::{{ schema }}::Proxy "{{ url }}";
+{% endfor %}

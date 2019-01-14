@@ -27,4 +27,4 @@ default['bcpc']['unbound']['server']['verbosity'] = 1
 #
 default['bcpc']['unbound']['forward-zone']['consul'] = [vip + '@8600']
 default['bcpc']['unbound']['forward-zone'][cloud_domain] = ["#{powerdns_address}@#{powerdns_port}"]
-default['bcpc']['unbound']['forward-zone']['.'] = node['bcpc']['dns_servers']
+default['bcpc']['unbound']['forward-zone']['.'] = node['bcpc']['dns']['servers']

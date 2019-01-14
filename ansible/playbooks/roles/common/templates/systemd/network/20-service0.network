@@ -1,0 +1,5 @@
+[Match]
+Name=service0
+
+[Network]
+Address={{ interfaces['service']['ip'] }}/32

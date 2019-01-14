@@ -1,6 +1,6 @@
-Listen <%= "#{node['ipaddress']}:8778" %>
+Listen <%= "#{node['service_ip']}:8778" %>
 
-<VirtualHost <%= "#{node['ipaddress']}:8778" %>>
+<VirtualHost <%= "#{node['service_ip']}:8778" %>>
   WSGIScriptAlias / /usr/bin/nova-placement-api
   WSGIScriptAlias /placement /usr/bin/nova-placement-api
 

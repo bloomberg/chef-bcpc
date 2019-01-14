@@ -3,15 +3,15 @@
 ###############################################################################
 
 default['bcpc']['consul']['remote_file'] = {
-  'file' => 'consul_1.2.3_linux_amd64.zip',
-  'checksum' => 'f97996296ef3905c38c504b35035fb731d3cfd9cad129c9523402a4229c709c5',
+  'file' => 'consul_1.4.0_linux_amd64.zip',
+  'checksum' => '41f8c3d63a18ef4e51372522c1e052618cdfcffa3d9f02dba0b50820e8279824',
 }
 
 default['bcpc']['consul']['executable'] = '/usr/local/sbin/consul'
 default['bcpc']['consul']['conf_dir'] = '/etc/consul/conf.d'
 default['bcpc']['consul']['config']['datacenter'] = node.chef_environment
 default['bcpc']['consul']['config']['client_addr'] = '127.0.0.1'
-default['bcpc']['consul']['config']['advertise_addr'] = node['ipaddress']
+default['bcpc']['consul']['config']['advertise_addr'] = node['service_ip']
 default['bcpc']['consul']['config']['data_dir'] = '/var/lib/consul'
 default['bcpc']['consul']['config']['disable_update_check'] = true
 default['bcpc']['consul']['config']['enable_script_checks'] = true

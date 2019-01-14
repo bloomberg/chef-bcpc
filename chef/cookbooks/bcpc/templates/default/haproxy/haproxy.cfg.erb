@@ -54,7 +54,7 @@ backend http-backend
   option httpchk GET /
   http-check expect status 200
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:80 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:80 check inter 5s rise 1 fall 1
 <% end -%>
 
 backend horizon-backend
@@ -63,7 +63,7 @@ backend horizon-backend
   option forwardfor
   http-check expect status 200
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:9999 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:9999 check inter 5s rise 1 fall 1
 <% end -%>
 
 backend rabbitmq-web-backend
@@ -72,5 +72,5 @@ backend rabbitmq-web-backend
   http-check expect status 200
   reqrep ^([^\ :]*)\ /rabbitmq/(.*) \1\ /\2
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:55672 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:55672 check inter 5s rise 1 fall 1
 <% end -%>

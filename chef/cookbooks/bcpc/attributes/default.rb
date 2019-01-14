@@ -2,21 +2,13 @@
 # cloud
 ###############################################################################
 
-default['bcpc']['cloud']['domain'] = 'bcpc.example.com'
-default['bcpc']['cloud']['fqdn'] = "openstack.#{node['bcpc']['cloud']['domain']}"
 default['bcpc']['cloud']['region'] = node.chef_environment
-default['bcpc']['cloud']['vip'] = '10.10.254.254'
 
-# list of dns servers to use
-default['bcpc']['dns_servers'] = %w(8.8.8.8 8.8.4.4)
-
-# list of ntp servers to use
-default['bcpc']['ntp']['servers'] = %w(time1.google.com time2.google.com)
+###############################################################################
+# file server
+###############################################################################
 
 default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
-
-# Hypervisor domain (domain used by actual machines)
-default['bcpc']['hypervisor_domain'] = 'hypervisor-bcpc.example.com'
 
 ###############################################################################
 # ubuntu
@@ -169,13 +161,6 @@ default['bcpc']['horizon']['disable_panels'] = ['containers']
 
 default['bcpc']['metadata']['vendordata']['enabled'] = false
 # default['bcpc']['metadata']['vendordata']['driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
-
-###############################################################################
-# bird
-###############################################################################
-
-default['bcpc']['bird']['repo']['enabled'] = false
-default['bcpc']['bird']['repo']['url'] = ''
 
 ###############################################################################
 # memcached

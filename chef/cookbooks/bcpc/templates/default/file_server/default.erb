@@ -1,5 +1,5 @@
 server {
-  listen <%= node['ipaddress'] %>:8080;
+  listen <%= node['service_ip'] %>:8080;
   server_name bootstrap.<%= node['bcpc']['cloud']['domain'] %>;
 
   location / {

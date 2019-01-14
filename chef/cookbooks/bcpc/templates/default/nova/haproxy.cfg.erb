@@ -10,7 +10,7 @@ listen nova-api
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:8774 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:8774 check inter 5s rise 1 fall 1
 <% end -%>
 
 listen nova-metadata-api
@@ -20,7 +20,7 @@ listen nova-metadata-api
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:8775 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:8775 check inter 5s rise 1 fall 1
 <% end -%>
 
 listen novncproxy
@@ -30,7 +30,7 @@ listen novncproxy
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:6080 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:6080 check inter 5s rise 1 fall 1
 <% end -%>
 
 listen placement-api
@@ -41,5 +41,5 @@ listen placement-api
   option httpchk GET /
   http-check expect status 200
 <% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['ipaddress'] %>:8778 check inter 5s rise 1 fall 1
+  server <%= n['hostname'] %> <%= n['service_ip'] %>:8778 check inter 5s rise 1 fall 1
 <% end -%>

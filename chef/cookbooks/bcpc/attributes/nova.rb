@@ -129,15 +129,18 @@ default['bcpc']['nova']['flavors']['generic2.2xlarge']['disk'] = 100
 
 # default quota
 #
-default['bcpc']['nova']['quota']['global']['cores'] = -1
-default['bcpc']['nova']['quota']['global']['ram'] = -1
-default['bcpc']['nova']['quota']['global']['floating-ips'] = -1
+default['bcpc']['nova']['quota']['default']['ram'] = -1
+default['bcpc']['nova']['quota']['default']['cores'] = -1
+default['bcpc']['nova']['quota']['default']['instances'] = -1
 
 # per-project override quota settings
 #
-default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['floating-ips'] = -1
+default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
+default['bcpc']['nova']['quota']['project']['admin']['instances'] = -1
+default['bcpc']['nova']['quota']['project']['admin']['ports'] = -1
+default['bcpc']['nova']['quota']['project']['admin']['gigabytes'] = -1
 
 # metadata API
 #

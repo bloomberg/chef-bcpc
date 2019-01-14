@@ -1,7 +1,7 @@
-Listen <%= node['ipaddress'] %>:5000
-Listen <%= node['ipaddress'] %>:35357
+Listen <%= node['service_ip'] %>:5000
+Listen <%= node['service_ip'] %>:35357
 
-<VirtualHost <%= node['ipaddress'] %>:5000>
+<VirtualHost <%= node['service_ip'] %>:5000>
 
   WSGIScriptAlias / /usr/bin/keystone-wsgi-public
   WSGIDaemonProcess keystone-public processes=<%= @processes %> threads=<%= @threads %> user=keystone group=keystone display-name=%{GROUP}
@@ -29,7 +29,7 @@ Listen <%= node['ipaddress'] %>:35357
 
 </VirtualHost>
 
-<VirtualHost <%= node['ipaddress'] %>:35357>
+<VirtualHost <%= node['service_ip'] %>:35357>
   WSGIScriptAlias / /usr/bin/keystone-wsgi-admin
   WSGIDaemonProcess keystone-admin processes=<%= @processes %> threads=<%= @threads %> user=keystone group=keystone display-name=%{GROUP}
   WSGIProcessGroup keystone-admin

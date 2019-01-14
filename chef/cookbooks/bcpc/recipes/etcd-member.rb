@@ -22,7 +22,7 @@ begin
   unless init_cloud?
 
     members = headnodes(exclude: node['hostname'])
-    endpoints = members.map { |m| "#{m['ipaddress']}:2380" }.join(' ')
+    endpoints = members.map { |m| "#{m['service_ip']}:2380" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
       environment('ETCDCTL_API' => '3')
@@ -45,7 +45,7 @@ begin
         # check to see if we're already a member
         #
         member_list=$(etcdctl --endpoints ${member} member list)
-        peer_url="http://#{node['ipaddress']}:2380"
+        peer_url="http://#{node['service_ip']}:2380"
 
         if echo ${member_list} | grep ${peer_url}; then
           echo "#{node['fqdn']} is already a member of this cluster"
@@ -76,14 +76,14 @@ systemd_unit 'etcd.service' do
   initial_cluster_state = 'existing'
 
   if init_cloud?
-    initial_cluster = "#{node['fqdn']}=http://#{node['ipaddress']}:2380"
+    initial_cluster = "#{node['fqdn']}=http://#{node['service_ip']}:2380"
     initial_cluster_state = 'new'
   else
     headnodes = headnodes(exclude: node['hostname'])
     headnodes.push(node)
 
     initial_cluster = headnodes.collect do |h|
-      "#{h['fqdn']}=http://#{h['ipaddress']}:2380"
+      "#{h['fqdn']}=http://#{h['service_ip']}:2380"
     end
 
     initial_cluster = initial_cluster.join(',')
@@ -107,10 +107,10 @@ systemd_unit 'etcd.service' do
 
     ExecStart=/usr/local/bin/etcd --name='#{node['fqdn']}' \
       --data-dir=${data_dir} \
-      --advertise-client-urls='http://#{node['ipaddress']}:2379,http://#{node['ipaddress']}:4001' \
-      --listen-client-urls='http://#{node['ipaddress']}:2379,http://#{node['ipaddress']}:4001,http://127.0.0.1:4001,http://127.0.0.1:2379' \
-      --listen-peer-urls='http://#{node['ipaddress']}:2380' \
-      --initial-advertise-peer-urls='http://#{node['ipaddress']}:2380' \
+      --advertise-client-urls='http://#{node['service_ip']}:2379,http://#{node['service_ip']}:4001' \
+      --listen-client-urls='http://#{node['service_ip']}:2379,http://#{node['service_ip']}:4001,http://127.0.0.1:4001,http://127.0.0.1:2379' \
+      --listen-peer-urls='http://#{node['service_ip']}:2380' \
+      --initial-advertise-peer-urls='http://#{node['service_ip']}:2380' \
       --initial-cluster-token='#{node['bcpc']['cloud']['region']}-etcd-cluster-01' \
       --initial-cluster='#{initial_cluster}' \
       --initial-cluster-state='#{initial_cluster_state}'

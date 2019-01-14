@@ -1,9 +1,13 @@
+- name: create list of cloud images
+  set_fact:
+    cloud_images: '{{cloud_images + additional_cloud_images | default([]) }}'
+
 - name: upload cloud images
   copy:
     src: "{{ item.source }}"
     dest: "/var/tmp/"
   with_items:
-    "{{ cloud.images }}"
+    "{{ cloud_images }}"
 
 - name: add cloud images
   changed_when: false
@@ -32,4 +36,4 @@
   args:
     executable: /bin/bash
   with_items:
-    "{{ cloud.images }}"
+    "{{ cloud_images }}"

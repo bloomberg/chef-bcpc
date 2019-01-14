@@ -1,0 +1,31 @@
+###############################################################################
+# virtual environment settings
+###############################################################################
+
+virtual_dir: "{{ root_dir }}/virtual"
+ssh_dir: "{{ virtual_dir }}/files/ssh/"
+ansible_ssh_private_key_file: "{{ ssh_dir }}/id_ed25519"
+operator_authorized_key: >
+  {{ lookup('file', ansible_ssh_private_key_file + '.pub') }}
+
+###############################################################################
+# additional_cloud_images
+###############################################################################
+
+# uncomment the following if you wish to have additonal server images available
+# to you cloud
+
+#additional_cloud_images:
+#  - name: ubuntu-18.04
+#    input: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.img
+#    output: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.raw
+#    source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd64.img"
+#  - name: ubuntu-16.04
+#    input: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+#    output: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.raw
+#    source: "{{ assets_download_dir }}/ubuntu-16.04-server-cloudimg-amd64-disk1.img"
+#  - name: centos-7
+#    input: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+#    output: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.raw
+#    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+#    source: "{{ assets_download_dir }}/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz"

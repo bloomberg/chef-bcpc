@@ -16,13 +16,13 @@ default['bcpc']['neutron']['networks'] = [
     'fixed' => {
       'dns-zones' => { 'create' => true, 'fqdn-prefix' => 'ext1' },
       'subnets' => [
-        { 'allocation' => '10.64.0.0/24' },
+        { 'allocation' => '10.1.0.0/24' },
       ],
     },
     'float' => {
       'dns-zones' => { 'create' => true, 'fqdn-prefix' => 'ext1-float' },
       'subnets' => [
-        { 'allocation' => '10.64.1.0/24' },
+        { 'allocation' => '10.1.1.0/24' },
       ],
     },
   },

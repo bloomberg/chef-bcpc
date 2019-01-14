@@ -184,7 +184,7 @@ end
 def node_primary_interface
   interface = node_interface(
     type: 'primary',
-    ip_address: node['ipaddress']
+    ip_address: node['service_ip']
   )
 
   interface

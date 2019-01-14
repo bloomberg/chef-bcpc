@@ -1,10 +1,13 @@
 [DEFAULT]
 debug = false
 core_plugin = calico
-bind_host = <%= node['ipaddress'] %>
+bind_host = <%= node['service_ip'] %>
 auth_strategy = keystone
-transport_url = rabbit://<%= @headnodes.map{ |n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @headnodes.map{ |n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 state_path = /var/lib/neutron
+<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 
 [agent]
 root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
@@ -15,7 +18,7 @@ connection = mysql+pymysql://<%= "#{@db['username']}:#{@db['password']}@#{node['
 [keystone_authtoken]
 auth_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
-memcached_servers = <%= @headnodes.map{ |n| "#{n['ipaddress']}:11211" }.join(',') %>
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
 project_domain_name = Default
 user_domain_name = Default

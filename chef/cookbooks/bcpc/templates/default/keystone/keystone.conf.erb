@@ -12,7 +12,7 @@ driver = <%= node['bcpc']['keystone']['drivers']['assignment'] %>
 [cache]
 enabled = <%= node['bcpc']['keystone']['enable_caching'] %>
 backend = oslo_cache.memcache_pool
-memcache_servers = <%= @headnodes.map{ |h| "#{h['ipaddress']}:11211" }.join(',') %>
+memcache_servers = <%= @headnodes.map{ |h| "#{h['service_ip']}:11211" }.join(',') %>
 memcache_dead_retry = 60
 memcache_socket_timeout = 1
 memcache_pool_connection_get_timeout = 1

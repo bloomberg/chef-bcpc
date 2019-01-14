@@ -15,13 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-template '/etc/apt/apt.conf.d/00bcpc' do
-  source 'apt/bcpc-apt.conf.erb'
-  variables(
-    conf: node['bcpc']['apt']
-  )
-end
-
 file '/etc/apt/sources.list' do
   action :delete
 end

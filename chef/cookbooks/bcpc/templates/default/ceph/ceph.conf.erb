@@ -5,7 +5,7 @@ auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx
 mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
-mon host = <%= @headnodes.map{ |n| n['ipaddress'] }.join(',') %>
+mon host = <%= @headnodes.map{ |n| n['service_ip'] }.join(',') %>
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 
 [osd]

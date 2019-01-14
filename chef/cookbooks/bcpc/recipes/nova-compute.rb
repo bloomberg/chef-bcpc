@@ -56,7 +56,7 @@ file '/var/lib/nova/.ssh/authorized_keys' do
   group 'nova'
 end
 
-file '/var/lib/nova/.ssh/id_rsa' do
+file '/var/lib/nova/.ssh/id_ed25519' do
   content Base64.decode64(config['nova']['ssh']['key']).to_s
   mode '600'
   owner 'nova'
@@ -166,6 +166,7 @@ template '/etc/nova/nova.conf' do
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
+  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 template '/etc/nova/nova-compute.conf' do
@@ -177,7 +178,6 @@ template '/etc/nova/nova-compute.conf' do
   )
 
   notifies :restart, 'service[nova-compute]', :immediately
-  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 execute 'wait for compute host' do

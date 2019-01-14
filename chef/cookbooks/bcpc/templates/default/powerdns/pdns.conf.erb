@@ -48,7 +48,7 @@ disable-axfr = yes
 launch = gmysql
 
 # gmysql parameters
-gmysql-host = <%= node['ipaddress'] %>
+gmysql-host = <%= node['service_ip'] %>
 gmysql-port = 3306
 gmysql-dbname = <%= @db['dbname'] %>
 gmysql-user = <%= @db['username'] %>
@@ -64,7 +64,7 @@ webserver = yes
 
 # webserver-address    Address webserver to listen on
 #
-webserver-address = <%= node['ipaddress'] %>
+webserver-address = <%= node['service_ip'] %>
 
 # webserver-port    Port of webserver to listen on
 #

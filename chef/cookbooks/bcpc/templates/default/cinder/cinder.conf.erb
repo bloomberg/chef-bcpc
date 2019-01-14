@@ -5,10 +5,10 @@ rootwrap_config = /etc/cinder/rootwrap.conf
 api_paste_confg = /etc/cinder/api-paste.ini
 auth_strategy = keystone
 state_path = /var/lib/cinder
-osapi_volume_listen = <%= node['ipaddress'] %>
+osapi_volume_listen = <%= node['service_ip'] %>
 osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
-my_ip = <%= node['ipaddress'] %>
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['ipaddress']}:5672" }.join(',') %>
+my_ip = <%= node['service_ip'] %>
+transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
 glance_api_insecure = true
 enabled_backends = ceph
@@ -29,7 +29,7 @@ policy_dirs = policy.d
 [keystone_authtoken]
 www_authenticate_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
-memcached_servers = <%= @headnodes.map{ |n| "#{n['ipaddress']}:11211" }.join(',') %>
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
 project_domain_name = Default
 user_domain_name = Default

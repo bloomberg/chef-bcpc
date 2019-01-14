@@ -10,3 +10,5 @@ default['bcpc']['openstack']['repo']['branch'] = 'updates'
 
 default['bcpc']['openstack']['admin']['username'] = 'admin'
 default['bcpc']['openstack']['admin']['project'] = 'admin'
+
+default['bcpc']['openstack']['services']['workers'] = nil

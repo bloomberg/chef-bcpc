@@ -4,17 +4,9 @@
 
 [
   {
-    kernel,
-    [
-      {
-        inet_dist_use_interface, { <%= node['ipaddress'].gsub('.',',') %> }
-      }
-    ]
-  },
-  {
     rabbitmq_management,
     [
-      { listener, [{port, 55672}, {ip, "<%= node['ipaddress'] %>"}] },
+      { listener, [{port, 55672}, {ip, "<%= node['service_ip'] %>"}] },
       { redirect_old_port, false }
     ]
   },
@@ -24,7 +16,7 @@
       {loopback_users, []},
       {heartbeat, <%= node['bcpc']['rabbitmq']['heartbeat'] %>},
       {cluster_partition_handling, pause_minority},
-      {tcp_listeners, [{"<%= node['ipaddress'] %>", 5672}]}
+      {tcp_listeners, [{"<%= node['service_ip'] %>", 5672}]}
     ]
   }
 ].

@@ -1,0 +1,12 @@
+network:
+  version: 2
+  ethernets:
+    {{ item['name'] }}:
+      addresses:
+        - {{ item['ip'] }}
+      nameservers:
+        addresses:
+          - {{ cloud_ip }}
+{% for s in dns['servers'] %}
+          - {{s}}
+{% endfor %}

@@ -1,0 +1,7 @@
+network:
+  version: 2
+  ethernets:
+    lo:
+      addresses:
+        - 127.0.0.1/8
+        - {{ interfaces['service']['ip'] }}/32
