@@ -158,6 +158,10 @@ configure-file-server :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t file-server --limit bootstraps
 
+tunnel :
+
+	virtual/bin/make-tunnel.sh
+
 ###############################################################################
 # helper targets
 ###############################################################################
