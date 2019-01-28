@@ -138,3 +138,8 @@ default['bcpc']['nova']['quota']['global']['floating-ips'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['cores'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1
 default['bcpc']['nova']['quota']['project']['admin']['floating-ips'] = -1
+
+# metadata API
+#
+default['bcpc']['nova']['vendordata']['name'] = nil
+default['bcpc']['nova']['vendordata']['port'] = 8444
