@@ -166,6 +166,7 @@ template '/etc/nova/nova.conf' do
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
+  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 template '/etc/nova/nova-compute.conf' do
@@ -177,7 +178,6 @@ template '/etc/nova/nova-compute.conf' do
   )
 
   notifies :restart, 'service[nova-compute]', :immediately
-  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 execute 'wait for compute host' do
