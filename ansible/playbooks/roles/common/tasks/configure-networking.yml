@@ -1,6 +1,11 @@
 - setup:
     gather_subset: all
 
+- name: define transit_interfaces var
+  set_fact:
+    transit_interfaces: >
+      {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
+
 - name: set hostname
   hostname:
     name: "{{ inventory_hostname }}"

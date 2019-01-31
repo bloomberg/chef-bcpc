@@ -1,0 +1,92 @@
+###############################################################################
+# About this file
+###############################################################################
+
+# This file overrides various defaults defined in
+# ansible/playbooks/roles/common/defaults/main/base.yml
+#
+# If you need to change something, open base.yml and move the respective
+# section into this file with the settings you require then rename this file
+# to overrides.yml
+#
+# Below are some commonly used settings commeneted out for your convinence
+
+###############################################################################
+# dns servers
+###############################################################################
+
+# list of external dns servers
+
+#dns:
+#  servers:
+#    - 8.8.8.8
+#    - 8.8.4.4
+
+###############################################################################
+# ntp servers
+###############################################################################
+
+# list of external ntp servers
+
+#ntp:
+#  servers:
+#    - time1.google.com
+#    - time2.google.com
+
+###############################################################################
+# proxy settings
+###############################################################################
+
+# list of http/https proxy servers
+
+#proxy:
+#  enabled: false
+#  proxies:
+#    http: http://proxy.example.com
+#    https: https://proxy.example.com
+
+###############################################################################
+# additional file assets
+###############################################################################
+
+# uncomment and append to this list if you require additional file assets
+# downloaded from external sources
+
+#additional_assets_files:
+#  - name: ubuntu-18.04
+#    url: http://cloud-images.ubuntu.com/releases/18.04/release-20180724/ubuntu-18.04-server-cloudimg-amd64.img
+#    checksum: sha256:6d663a8fd5eddd916f4aef4fd06d0f7f4cf0bb191f170b8c84cd2adf297bc5c3
+#    filename: ubuntu-18.04-server-cloudimg-amd64.img
+#
+#  - name: ubuntu-16.04
+#    url: http://cloud-images.ubuntu.com/releases/16.04/release-20180912/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+#    checksum: sha256:7bb741d90f56a42bbde01633d1f6e9204693c6ae357edd42a0b363945a76812f
+#    filename: ubuntu-16.04-server-cloudimg-amd64-disk1.img
+#
+#  - name: centos-7
+#    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+#    checksum: sha256:9cc2e9fefb7d8ac8e8a6973c20edb00f12c96614086b1fea5c4f02576be875f6
+#    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+
+###############################################################################
+# additional_cloud_images
+###############################################################################
+
+# uncomment the following if you wish to have additonal server images available
+# to your cloud. you will also need to make sure that your server image file
+# is downloaded via additional_asset_files
+
+#additional_cloud_images:
+#  - name: ubuntu-18.04
+#    input: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.img
+#    output: /var/tmp/ubuntu-18.04-server-cloudimg-amd64.raw
+#    source: "{{ assets_download_dir }}/ubuntu-18.04-server-cloudimg-amd64.img"
+#  - name: ubuntu-16.04
+#    input: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.img
+#    output: /var/tmp/ubuntu-16.04-server-cloudimg-amd64-disk1.raw
+#    source: "{{ assets_download_dir }}/ubuntu-16.04-server-cloudimg-amd64-disk1.img"
+#  - name: centos-7
+#    input: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+#    output: /var/tmp/CentOS-7-x86_64-GenericCloud-1808.raw
+#    url: http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
+#    source: "{{ assets_download_dir }}/CentOS-7-x86_64-GenericCloud-1808.qcow2.xz"

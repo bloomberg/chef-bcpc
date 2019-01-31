@@ -1,4 +1,4 @@
-- name: create list of cloud images
+- name: redefine cloud_images var 
   set_fact:
     cloud_images: '{{cloud_images + additional_cloud_images | default([]) }}'
 

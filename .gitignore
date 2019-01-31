@@ -6,6 +6,7 @@
 *.swo
 assets/
 ansible/inventory.yml
+ansible/group_vars/all/overrides.yml
 chef/roles/node.json
 chef/roles/bootstrap.json
 chef/roles/headnode.json
