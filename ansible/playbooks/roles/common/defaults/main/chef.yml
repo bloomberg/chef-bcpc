@@ -9,6 +9,7 @@ chef_environment:
   chef_type: environment
   override_attributes:
     bcpc:
+      interfaces: "{{interfaces}}"
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"

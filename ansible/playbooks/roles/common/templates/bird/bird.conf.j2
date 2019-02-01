@@ -28,15 +28,20 @@ protocol kernel {
   import filter from_kernel;
 }
 
+{% set interfaces = ['"lo"','"service*"'] %}
+{% for transit in transit_interfaces %}
+  {{ interfaces.append('"' + transit['name'] + '"') }}
+{% endfor %}
+
 protocol direct {
-  interface "lo", "service*", "-eth0", "eth*", "ens*", "enp*";
+  interface {{ interfaces | join(', ') }};
 }
 
 protocol device {
   scan time 2;
 }
 
-{% for transit in interfaces['transit'] %}
+{% for transit in transit_interfaces %}
 protocol bgp '{{ transit['neighbor']['name'] }}:{{ inventory_hostname }}' {
   multihop;
   next hop self;
