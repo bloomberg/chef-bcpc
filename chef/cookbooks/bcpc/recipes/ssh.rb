@@ -20,7 +20,7 @@ config = data_bag_item(region, 'config')
 
 listen_addresses = [node['service_ip']]
 
-node['bcpc']['interfaces']['transit'].each do |transit|
+node['host_vars']['interfaces']['transit'].each do |transit|
   listen_addresses.append(get_address(transit['ip']))
 end
 

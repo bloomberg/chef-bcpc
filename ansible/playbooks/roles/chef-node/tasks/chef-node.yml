@@ -108,11 +108,16 @@
   register: node_details_raw
   delegate_to: "{{ chef_server_host }}"
 
-- name: update node details
+- name: define node_details
   set_fact:
-    node_details: "{{ node_details_raw.stdout | from_json | update_chef_node(hostvars[inventory_hostname]) }}"
+    node_details: >
+      {{
+        node_details_raw.stdout |
+        from_json |
+        update_chef_node_host_vars(hostvars[inventory_hostname])
+      }}
 
-- name: write updated node details
+- name: write node_details to file
   copy:
     content: "{{ node_details | to_nice_json }}"
     dest: "{{ node_fqdn }}.json"

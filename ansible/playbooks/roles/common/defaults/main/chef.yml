@@ -9,7 +9,6 @@ chef_environment:
   chef_type: environment
   override_attributes:
     bcpc:
-      interfaces: "{{interfaces}}"
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
@@ -154,32 +153,12 @@ chef_databags:
 ###############################################################################
 
 chef_roles:
-  - name: node
-    description: common role for all bcpc nodes
-    json_class: Chef::Role
-    chef_type: role
-    run_list:
-      - recipe[bcpc::apt]
-      - recipe[bcpc::ssl]
-      - recipe[bcpc::cloud-archive]
-      - recipe[bcpc::chrony]
-      - recipe[bcpc::postfix]
-      - recipe[bcpc::common-packages]
-      - recipe[bcpc::kexec]
-      - recipe[bcpc::apport]
-      - recipe[bcpc::etckeeper]
-      - recipe[bcpc::cpupower]
-      - recipe[bcpc::getty]
-      - recipe[bcpc::hwrng]
-      - recipe[bcpc::system]
-
   - name: bootstrap
     description: bootstrap node
     json_class: Chef::Role
     chef_type: role
     run_list:
       - role[node]
-      - recipe[bcpc::ssh]
       - recipe[bcpc::file-server]
       - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
@@ -191,7 +170,6 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::haproxy]
-      - recipe[bcpc::ssh]
       - recipe[bcpc::etcd-member]
       - recipe[bcpc::rabbitmq]
       - recipe[bcpc::memcached]
@@ -210,6 +188,26 @@ chef_roles:
       - recipe[bcpc::horizon]
       - recipe[bcpc::os-quota]
       - recipe[bcpc::flavors]
+
+  - name: node
+    description: common role for all bcpc nodes
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - recipe[bcpc::apt]
+      - recipe[bcpc::ssl]
+      - recipe[bcpc::cloud-archive]
+      - recipe[bcpc::chrony]
+      - recipe[bcpc::postfix]
+      - recipe[bcpc::common-packages]
+      - recipe[bcpc::kexec]
+      - recipe[bcpc::apport]
+      - recipe[bcpc::etckeeper]
+      - recipe[bcpc::cpupower]
+      - recipe[bcpc::getty]
+      - recipe[bcpc::hwrng]
+      - recipe[bcpc::system]
+      - recipe[bcpc::ssh]
 
   - name: storagenode
     description: storage node

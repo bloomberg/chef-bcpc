@@ -35,13 +35,16 @@ def find_interface(facts, macaddress):
 
   raise ValueError("could not find interface with mac: " + macaddress)
 
-def update_chef_node(a, *args, **kw):
+def update_chef_node_host_vars(a, *args, **kw):
 
     node_details = a
     hostvars = args[0]
 
     interfaces = hostvars['interfaces']
+
     node_details['normal']['service_ip'] = interfaces['service']['ip']
+    node_details['normal']['host_vars'] = {}
+    node_details['normal']['host_vars'].update({'interfaces': interfaces})
 
     return node_details
 
@@ -50,7 +53,7 @@ class FilterModule(object):
   filter_map = {
     'primary_ip': primary_ip,
     'transit_interfaces': transit_interfaces,
-    'update_chef_node': update_chef_node,
+    'update_chef_node_host_vars': update_chef_node_host_vars,
   }
 
   def filters(self):
