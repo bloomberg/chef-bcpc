@@ -18,7 +18,6 @@ ansible_user: "{{ operator_username }}"
 ansible_ssh_common_args: >
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null
-  -o 'IdentitiesOnly yes'
 
 ###############################################################################
 # additional_runlists
