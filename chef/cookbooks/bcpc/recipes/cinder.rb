@@ -126,8 +126,17 @@ package 'cinder-volume'
 service 'cinder-api' do
   service_name 'apache2'
 end
-service 'cinder-volume'
-service 'cinder-scheduler'
+
+service 'cinder-volume' do
+  retries 10
+  retry_delay 5
+end
+
+service 'cinder-scheduler' do
+  retries 10
+  retry_delay 5
+end
+
 service 'haproxy-cinder' do
   service_name 'haproxy'
 end
@@ -248,16 +257,9 @@ template '/etc/cinder/cinder.conf' do
     headnodes: headnodes(all: true)
   )
 
-  # the cinder services here are being stopped/started vs. restarted
-  # is because on some systems, the package installation and configuration
-  # happens so fast that it causes systemd to complain about the service
-  # restarting too fast.
-  notifies :stop, 'service[cinder-api]', :immediately
-  notifies :stop, 'service[cinder-volume]', :immediately
-  notifies :stop, 'service[cinder-scheduler]', :immediately
-  notifies :start, 'service[cinder-api]', :immediately
-  notifies :start, 'service[cinder-volume]', :immediately
-  notifies :start, 'service[cinder-scheduler]', :immediately
+  notifies :restart, 'service[cinder-api]', :immediately
+  notifies :restart, 'service[cinder-volume]', :immediately
+  notifies :restart, 'service[cinder-scheduler]', :immediately
 end
 # configure cinder service ends
 
