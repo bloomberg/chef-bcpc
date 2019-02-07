@@ -73,36 +73,37 @@ end
 
 # create cinder volume services and endpoints starts
 begin
-  type = 'volumev3'
-  service = node['bcpc']['catalog'][type]
-  project = service['project']
+  ['volumev2', 'volumev3'].each do |type|
+    service = node['bcpc']['catalog'][type]
+    project = service['project']
 
-  execute "create the #{project} #{type} service" do
-    environment os_adminrc
-
-    name = service['name']
-    desc = service['description']
-
-    command <<-DOC
-      openstack service create \
-        --name "#{name}" --description "#{desc}" #{type}
-    DOC
-
-    not_if "openstack service list | grep #{type}"
-  end
-
-  %w(admin internal public).each do |uri|
-    url = generate_service_catalog_uri(service, uri)
-
-    execute "create the #{project} #{type} #{uri} endpoint" do
+    execute "create the #{project} #{type} service" do
       environment os_adminrc
 
+      name = service['name']
+      desc = service['description']
+
       command <<-DOC
-        openstack endpoint create \
-          --region #{region} #{type} #{uri} '#{url}'
+        openstack service create \
+          --name "#{name}" --description "#{desc}" #{type}
       DOC
 
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+      not_if "openstack service list | grep #{type}"
+    end
+
+    %w(admin internal public).each do |uri|
+      url = generate_service_catalog_uri(service, uri)
+
+      execute "create the #{project} #{type} #{uri} endpoint" do
+        environment os_adminrc
+
+        command <<-DOC
+          openstack endpoint create \
+            --region #{region} #{type} #{uri} '#{url}'
+        DOC
+
+        not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+      end
     end
   end
 end
