@@ -44,6 +44,21 @@ default['bcpc']['catalog'] = {
       'public' => '',
     },
   },
+  'volumev2' => {
+    'name' => 'cinderv2',
+    'project' => 'cinder',
+    'description' => 'OpenStack Block Storage v2',
+    'ports' => {
+      'admin' => 8776,
+      'internal' => 8776,
+      'public' => 8776,
+    },
+    'uris' => {
+      'admin' => 'v2/%(project_id)s',
+      'internal' => 'v2/%(project_id)s',
+      'public' => 'v2/%(project_id)s',
+    },
+  },
   'volumev3' => {
     'name' => 'cinderv3',
     'project' => 'cinder',
