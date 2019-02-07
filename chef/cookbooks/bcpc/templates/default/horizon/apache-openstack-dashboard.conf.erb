@@ -16,11 +16,6 @@ Listen <%= node['service_ip'] %>:9999
 
   RewriteEngine  on
 
-  # make sure there is a trailing / so django will build a proper next query
-  # param on login
-  #
-  RewriteRule "^/horizon$" "/horizon/" [PT]
-
   # this rewrite rule is here to properly link certain fonts to their correct
   # location because they were not referenced correctly in various css files
   RewriteRule "^/horizon/static/horizon/lib/roboto_fontface/fonts/Roboto/(.+)"  "/horizon/static/horizon/lib/roboto_fontface/fonts/roboto/$1" [PT]

@@ -32,14 +32,8 @@ TIME_ZONE = "UTC"
 
 <% if @domains.any? %>
 OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
-OPENSTACK_KEYSTONE_DOMAIN_DROPDOWN = True
+OPENSTACK_KEYSTONE_DOMAIN_DROPDOWN = False
 OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = '<%= @domains.first()['name'] %>'
-OPENSTACK_KEYSTONE_DOMAIN_CHOICES = (
-  <% @domains.each do |domain| %>
-  ('<%= domain['name'] %>', '<%= domain['name'] %>'),
-  <% end %>
-  ('Default', 'Default'),
-)
 <% end %>
 
 OPENSTACK_HOST = "<%= node['bcpc']['cloud']['fqdn'] %>"
