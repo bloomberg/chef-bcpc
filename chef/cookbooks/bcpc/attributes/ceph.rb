@@ -39,3 +39,8 @@ default['bcpc']['ceph']['osd_recovery_op_priority'] = 1
 default['bcpc']['ceph']['osd_max_backfills'] = 1
 default['bcpc']['ceph']['osd_op_threads'] = 2
 default['bcpc']['ceph']['osd_mon_report_interval_min'] = 5
+
+# Set RBD default feature set to only include layering and
+# deep-flatten. Other values (in particular, exclusive-lock) may prevent
+# instances from being able to access their root file system after a crash.
+default['bcpc']['ceph']['rbd_default_features'] = 33

@@ -7,6 +7,7 @@ auth client required = cephx
 mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
 mon host = <%= @headnodes.map{ |n| n['service_ip'] }.join(',') %>
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
+rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 
 [osd]
 osd scrub load threshold = <%= node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
