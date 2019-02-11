@@ -1,7 +1,0 @@
-file_server_assets:
-  - cirros
-  - etcd
-  - calicoctl
-  - consul
-  - chef_client
-  - chef_server

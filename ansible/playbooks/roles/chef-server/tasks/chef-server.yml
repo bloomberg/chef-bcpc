@@ -1,11 +1,11 @@
-- name: upload chef-server deb package
+- name: upload chef-server install package
   copy:
-    src: "{{ assets_download_dir }}/chef-server-core_12.17.33-1_amd64.deb"
-    dest: "/var/tmp/chef-server-core_12.17.33-1_amd64.deb"
+    src: "{{ assets_download_dir }}/{{ chef_server_package.filename }}"
+    dest: "/var/tmp/{{ chef_server_package.filename }}"
 
-- name: install chef-server deb package
+- name: install chef-server install package
   apt:
-    deb: /var/tmp/chef-server-core_12.17.33-1_amd64.deb
+    deb: "/var/tmp/{{ chef_server_package.filename }}"
 
 - name: configure chef server
   shell: |

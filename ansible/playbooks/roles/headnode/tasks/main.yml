@@ -3,7 +3,7 @@
   run_once: true
   tags: [never,register-compute-nodes]
 
-- import_tasks: add-cloud-images.yml
+- import_tasks: cloud-images.yml
   become: true
   run_once: true
   tags: [never,add-cloud-images]

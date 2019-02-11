@@ -1,2 +1,2 @@
-- import_tasks: download-assets.yml
+- import_tasks: assets.yml
   tags: [never,download-assets]

@@ -1,0 +1,65 @@
+- set_fact:
+    file_asset: "{{ item.file_asset | find_asset(all_file_assets) }}"
+
+- name: "check for {{ item.file_asset }}"
+  command: "openstack image show {{ item.file_asset }}"
+  register: image_check
+  failed_when: image_check.rc != 0
+  ignore_errors: true
+  changed_when: false
+  environment:
+    "{{ chef_vars | osadmin() }}"
+
+- name: "upload {{ item.file_asset }} cloud image"
+  copy:
+    src: "{{ assets_download_dir }}/{{ file_asset.filename }}"
+    dest: "/var/tmp/"
+  when: image_check is failed
+
+- name: "import {{ item.file_asset }} cloud image"
+  when: image_check is failed
+  shell: |
+    set -xe
+
+    image_name={{ item.file_asset }}
+    image_type={{ item.type }}
+    image_filename={{ file_asset.filename }}
+    image_filepath="/var/tmp/${image_filename}"
+    image_compression={{ item.compression | default('') }}
+
+    # if the image is compressed, we need to uncompress it before going further
+    if [ ! -z ${image_compression} ]; then
+      if [ ${image_compression} = 'xz' ]; then
+        # force the extraction in case there is a file that exists with the
+        # same name
+        unxz --force ${image_filepath}
+
+        # reconstruct the filepath to image file without the 'xz'
+        # file extension to get extracted file.
+        image_dir="$(dirname ${image_filepath})"
+        image_filename="${image_filename%.*}"
+        image_filepath="$image_dir/$image_filename"
+      else
+        echo "no handler for ${image_compression} compression format"
+        exit 0
+      fi
+    fi
+
+    if [ ${image_type} = 'qcow2' ]; then
+      # path to input file
+      input_filepath="${image_filepath}"
+
+      # filename without extention
+      filename="${image_filename%.*}"
+
+      # path to output file
+      image_filepath="/var/tmp/${filename}.raw"
+
+      qemu-img convert -f qcow2 -O raw ${input_filepath} ${image_filepath}
+    fi
+
+    openstack image create ${image_name} --public --file ${image_filepath}
+  args:
+    executable: /bin/bash
+  environment:
+    "{{ chef_vars | osadmin() }}"
