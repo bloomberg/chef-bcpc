@@ -5,12 +5,6 @@
     mode: 0764
     recurse: true
 
-- name: download assets
-  retries: 5
-  delay: 10
-  get_url:
-    url: "{{ item.url }}"
-    checksum: "{{ item.checksum }}"
-    dest: "{{ assets_download_dir }}/{{ item.filename }}"
+- include: download-asset.yml
   with_items:
     "{{ assets_files + additional_assets_files | default([]) }}"

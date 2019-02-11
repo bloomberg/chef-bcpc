@@ -1,0 +1,8 @@
+- include: upload-extra-cookbook.yml
+  with_items: "{{ all_chef_extra_cookbooks }}"
+
+- name: load external cookbooks info chef
+  command: knife upload extra-cookbooks
+  args:
+    chdir: "/var/bcpc/chef"
+  changed_when: false

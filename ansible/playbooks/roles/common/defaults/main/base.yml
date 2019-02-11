@@ -38,15 +38,34 @@ cloud_domain: bcpc.example.com
 cloud_fqdn: "openstack.{{ cloud_domain }}"
 cloud_region: "{{ chef_environment['name'] }}"
 
+cloud_vars: "{{ {} | combine(
+                      {
+                        'chef': {
+                          'environment': chef_environment,
+                          'databags': chef_databags,
+                          'roles': chef_roles
+                        }
+                      },
+                      {
+                        'cloud': {
+                          'ip': cloud_ip,
+                          'domain': cloud_domain,
+                          'fqdn': cloud_fqdn,
+                          'region': cloud_region
+                        }
+                      }
+                    )
+            }}"
+
 ###############################################################################
 # cloud images
 ###############################################################################
 
 cloud_images:
-  - name: cirros
-    input: /var/tmp/cirros-0.4.0-x86_64-disk.img
-    output: /var/tmp/cirros-0.4.0-x86_64-disk.raw
-    source: "{{ assets_download_dir }}/cirros-0.4.0-x86_64-disk.img"
+  - file_asset: cirros
+    type: qcow2
+
+all_cloud_images: "{{ cloud_images + additional_cloud_images | default([]) }}"
 
 ###############################################################################
 # operator
@@ -89,10 +108,38 @@ proxy:
     https: https://proxy.example.com
 
 ###############################################################################
-# external file assets
+# chef extra cookbooks
+###############################################################################
+
+chef_extra_cookbooks:
+  - file_asset: logrotate
+  - file_asset: hostsfile
+  - file_asset: cron
+
+# all chef extra cookbooks
+all_chef_extra_cookbooks: "{{ chef_extra_cookbooks +
+                              additional_chef_extra_cookbooks | default([]) }}"
+
+###############################################################################
+# file server assets
+###############################################################################
+
+file_server_assets:
+  - file_asset: cirros
+  - file_asset: etcd
+  - file_asset: calicoctl
+  - file_asset: consul
+
+# all file server assets
+all_file_server_assets: "{{ file_server_assets +
+                            additional_file_server_assets | default([]) }}"
+
+###############################################################################
+# external files (to be downloaded)
 ###############################################################################
 
 assets_download_dir: "{{ root_dir }}/assets"
+
 assets_files:
   - name: cirros
     url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
@@ -139,3 +186,5 @@ assets_files:
     checksum: sha256:7c2157550e8e4bd784580ec2bf127be44327333554f9bb7a37bd17ae4bd21dfe
     filename: cron-5.1.0.tar.gz
 
+# all file assets
+all_file_assets: "{{ assets_files + additional_assets_files | default([]) }}"

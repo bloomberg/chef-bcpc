@@ -3,7 +3,4 @@ chef_environments_dir: "{{ root_dir }}/chef/environments"
 chef_roles_dir: "{{ root_dir }}/chef/roles"
 chef_databags_dir: "{{ root_dir }}/chef/databags"
 chef_cookbooks_dir: "{{ root_dir }}/chef/cookbooks"
-chef_external_cookbooks:
-  - logrotate
-  - hostsfile
-  - cron
+chef_client_package: "{{ 'chef_client' | find_asset(all_file_assets) }}"
