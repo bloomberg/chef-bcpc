@@ -8,7 +8,7 @@
   ignore_errors: true
   changed_when: false
   environment:
-    "{{ chef_vars | osadmin() }}"
+    "{{ cloud_vars | osadmin() }}"
 
 - name: "upload {{ item.file_asset }} cloud image"
   copy:
@@ -62,4 +62,4 @@
   args:
     executable: /bin/bash
   environment:
-    "{{ chef_vars | osadmin() }}"
+    "{{ cloud_vars | osadmin() }}"

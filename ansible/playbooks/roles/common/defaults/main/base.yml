@@ -38,6 +38,25 @@ cloud_domain: bcpc.example.com
 cloud_fqdn: "openstack.{{ cloud_domain }}"
 cloud_region: "{{ chef_environment['name'] }}"
 
+cloud_vars: "{{ {} | combine(
+                      {
+                        'chef': {
+                          'environment': chef_environment,
+                          'databags': chef_databags,
+                          'roles': chef_roles
+                        }
+                      },
+                      {
+                        'cloud': {
+                          'ip': cloud_ip,
+                          'domain': cloud_domain,
+                          'fqdn': cloud_fqdn,
+                          'region': cloud_region
+                        }
+                      }
+                    )
+            }}"
+
 ###############################################################################
 # cloud images
 ###############################################################################

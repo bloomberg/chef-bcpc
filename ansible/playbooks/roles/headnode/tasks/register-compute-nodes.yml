@@ -20,4 +20,4 @@
   args:
     executable: /bin/bash
   environment:
-    "{{ chef_vars | osadmin() }}"
+    "{{ cloud_vars | osadmin() }}"

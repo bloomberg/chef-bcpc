@@ -61,16 +61,20 @@ def find_asset(a, *args, **kw):
 
 def osadmin(a, *args, **kw):
 
-    environment = a['environment']
-    databags = a['databags']
-    roles = a['roles']
+    cloud_vars = a
+    chef = cloud_vars['chef']
+    cloud = cloud_vars['cloud']
+
+    environment = chef['environment']
+    databags = chef['databags']
+    roles = chef['roles']
 
     config = [databag for databag in databags if databag['id'] == 'config'][0]
+
     os_username = 'admin'
     os_password = config['openstack'][os_username]['password']
-    os_region_name = environment['name']
-    fqdn = environment['override_attributes']['bcpc']['cloud']['fqdn']
-    os_auth_url = "https://{}:35357/v3".format(fqdn)
+    os_region_name = cloud['region']
+    os_auth_url = "https://{}:35357/v3".format(cloud['fqdn'])
 
     return {
         'OS_PROJECT_DOMAIN_ID': 'default',
