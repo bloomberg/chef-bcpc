@@ -65,10 +65,7 @@ def osadmin(a, *args, **kw):
     chef = cloud_vars['chef']
     cloud = cloud_vars['cloud']
 
-    environment = chef['environment']
     databags = chef['databags']
-    roles = chef['roles']
-
     config = [databag for databag in databags if databag['id'] == 'config'][0]
 
     os_username = 'admin'
