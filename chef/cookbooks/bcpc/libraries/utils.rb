@@ -118,18 +118,6 @@ def local_ceph_rack
   "rack#{node_map['rack_id']}"
 end
 
-def availability_zones
-  racks = cloud_racks
-  zone_prefix = node.chef_environment
-  racks.map { |rack| "#{zone_prefix}-#{rack['id']}" }
-end
-
-def local_host_aggregate
-  node_map = node_network_map
-  zone_prefix = node.chef_environment
-  "#{zone_prefix}-#{node_map['rack_id']}"
-end
-
 def primary_network_aggregate_cidr
   node['bcpc']['networking']['networks']['primary']['aggregate-cidr']
 end
