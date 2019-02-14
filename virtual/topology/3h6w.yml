@@ -109,7 +109,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.26
+          ip: 10.65.0.16
         transit:
           - ip: 10.121.85.3/28
             mac: '08:00:27:00:00:20'
@@ -134,7 +134,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.27
+          ip: 10.65.0.17
         transit:
           - ip: 10.121.85.4/28
             mac: '08:00:27:00:00:22'
@@ -160,7 +160,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.28
+          ip: 10.65.0.18
         transit:
           - ip: 10.121.85.5/28
             mac: '08:00:27:00:00:24'
@@ -186,7 +186,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.51
+          ip: 10.65.0.32
         transit:
           - ip: 10.121.86.3/28
             mac: '08:00:27:00:00:30'
@@ -211,7 +211,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.52
+          ip: 10.65.0.33
         transit:
           - ip: 10.121.86.4/28
             mac: '08:00:27:00:00:32'
@@ -237,7 +237,7 @@ nodes:
         asn: 4200858801
       interfaces:
         service:
-          ip: 10.65.0.53
+          ip: 10.65.0.34
         transit:
           - ip: 10.121.86.5/28
             mac: '08:00:27:00:00:34'
