@@ -6,7 +6,8 @@
 default['bcpc']['networking']['networks']['primary']['interface'] = 'eth1'
 default['bcpc']['networking']['networks']['primary']['aggregate-cidr'] = '10.65.0.0/24'
 
-# TODO(justinjpacheco): This rack information should be cleaned up, perhaps made Ceph specific?
+# TODO(justinjpacheco): This rack information should be cleaned up,
+# perhaps made Ceph specific?
 default['bcpc']['networking']['racks'] = [
   {
     'id' => 1,
@@ -21,7 +22,7 @@ default['bcpc']['networking']['racks'] = [
   {
     'id' => 2,
     'bgp' => {
-      'tor_as' => 4_200_858_702,
+      'tor_as' => 4_200_858_703,
       'node_as' => 4_200_858_801,
     },
     'networks' => {
@@ -31,7 +32,7 @@ default['bcpc']['networking']['racks'] = [
   {
     'id' => 3,
     'bgp' => {
-      'tor_as' => 4_200_858_703,
+      'tor_as' => 4_200_858_705,
       'node_as' => 4_200_858_801,
     },
     'networks' => {

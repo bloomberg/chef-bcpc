@@ -6,7 +6,8 @@ export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
-storagenodes = $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
+storagenodes = \
+        $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
 	download-assets \
@@ -23,7 +24,7 @@ all : \
 
 create: create-virtual-network create-virtual-hosts
 
-destroy: destroy-virtual-network destroy-virtual-hosts
+destroy: destroy-virtual-hosts destroy-virtual-network
 
 create-virtual-hosts :
 
