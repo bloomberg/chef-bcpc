@@ -4,7 +4,7 @@ nodes:
     hardware_profile: bootstrap
     host_vars:
       bgp:
-        asn: 4200858701
+        asn: 4200858801
       interfaces:
         service:
           ip: 10.65.0.1
@@ -13,7 +13,7 @@ nodes:
             mac: '08:00:27:00:00:10'
             neighbor:
               ip: 10.121.84.1
-              asn: 4200858702
+              asn: 4200858701
               name: management1
           - ip: 10.121.88.2/28
             mac: '08:00:27:00:00:11'
@@ -29,7 +29,7 @@ nodes:
     hardware_profile: headnode
     host_vars:
       bgp:
-        asn: 4200858701
+        asn: 4200858801
       interfaces:
         service:
           ip: 10.65.0.2
@@ -38,7 +38,7 @@ nodes:
             mac: '08:00:27:00:00:12'
             neighbor:
               ip: 10.121.84.1
-              asn: 4200858702
+              asn: 4200858701
               name: management1
           - ip: 10.121.88.3/28
             mac: '08:00:27:00:00:13'
@@ -54,7 +54,7 @@ nodes:
     hardware_profile: worknode
     host_vars:
       bgp:
-        asn: 4200858701
+        asn: 4200858801
       interfaces:
         service:
           ip: 10.65.0.3
@@ -63,7 +63,7 @@ nodes:
             mac: '08:00:27:00:00:14'
             neighbor:
               ip: 10.121.84.1
-              asn: 4200858702
+              asn: 4200858701
               name: management1
           - ip: 10.121.88.4/28
             mac: '08:00:27:00:00:15'
