@@ -17,8 +17,8 @@ ff02::2	ip6-allrouters
 # The following are all the hosts in the ansible cloud group
 {% for host in groups['cloud'] %}
 {% if host == chef_server_host %}
-{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_hypervisor_domain }}	{{ host }}	bootstrap
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_infrastructure_domain }}	{{ host }}	bootstrap
 {% else %}
-{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_hypervisor_domain }}	{{ host }}
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_infrastructure_domain }}	{{ host }}
 {% endif %}
 {% endfor %}
