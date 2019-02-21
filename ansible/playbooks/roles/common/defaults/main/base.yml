@@ -35,6 +35,7 @@ ansible_ssh_common_args: >
 
 cloud_ip: 10.65.0.254
 cloud_domain: bcpc.example.com
+cloud_hypervisor_domain: "{{ cloud_domain }}"
 cloud_fqdn: "openstack.{{ cloud_domain }}"
 cloud_region: "{{ chef_environment['name'] }}"
 

@@ -12,13 +12,13 @@ ff02::1	ip6-allnodes
 ff02::2	ip6-allrouters
 
 # This is the FQDN of the cloud
-{{ cloud_ip }} {{cloud_fqdn}}
+{{ cloud_ip }} {{ cloud_fqdn }}
 
 # The following are all the hosts in the ansible cloud group
 {% for host in groups['cloud'] %}
 {% if host == chef_server_host %}
-{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{cloud_domain}}	{{ host }}	bootstrap
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_hypervisor_domain }}	{{ host }}	bootstrap
 {% else %}
-{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{cloud_domain}}	{{ host }}
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_hypervisor_domain }}	{{ host }}
 {% endif %}
 {% endfor %}
