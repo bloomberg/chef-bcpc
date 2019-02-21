@@ -107,6 +107,7 @@
   command: knife node show "{{ node_fqdn }}" --long --format json
   register: node_details_raw
   delegate_to: "{{ chef_server_host }}"
+  no_log: true
 
 - name: define node_details
   set_fact:
@@ -116,12 +117,14 @@
         from_json |
         update_chef_node_host_vars(hostvars[inventory_hostname])
       }}
+  no_log: true
 
 - name: write node_details to file
   copy:
     content: "{{ node_details | to_nice_json }}"
     dest: "{{ node_fqdn }}.json"
   delegate_to: "{{ chef_server_host }}"
+  no_log: true
 
 - name: import node changes
   command: knife node from file "{{ node_fqdn }}.json"
