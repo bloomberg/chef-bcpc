@@ -22,7 +22,7 @@ is_tor() {
 }
 
 is_spine() {
-  [[ ${1} =~ ^spine ]]
+  [[ ${1} =~ ^spine || ${1} =~ ^network ]]
 }
 
 apt_get="sudo DEBIAN_FRONTEND=noninteractive apt-get -y"

@@ -11,68 +11,75 @@ def setup_proxy(node)
   end
 end
 
-# Create 3 TORs
 Vagrant.configure(2) do |config|
-  (1..3).each do |i|
-    config.vm.define "tor#{i}" do |node|
+
+  if ENV['DEPLOY_NETWORK_VM'] == 'true'
+
+    config.vm.define "network" do |node|
       config.vm.provider "virtualbox" do |node|
-        node.name = "tor#{i}"
-        node.memory = 512
+        node.name = "network"
+        node.memory = 1024
       end
+      node.vm.hostname = "network"
       node.vm.box = base_box
       node.vm.box_download_insecure = true
-      node.vm.network "private_network", virtualbox__intnet: "tor#{i}_spine1",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "tor#{i}_spine2",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "tor#{i}_hv",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "management#{i}",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "storage#{i}",
-       auto_config: false
-      setup_proxy(node)
-      node.vm.provision "shell", path: "provisioner.sh", args: #{i}
-      node.vm.hostname = "tor#{i}"
-    end
-  end
 
-# Create 2 spines
-  (1..2).each do |i|
-    config.vm.define "spine#{i}" do |node|
-      config.vm.provider "virtualbox" do |node|
-        node.name = "spine#{i}"
-        node.memory = 512
-      end
-      node.vm.box = base_box
-      node.vm.box_download_insecure = true
-      node.vm.network "private_network", virtualbox__intnet: "tor1_spine#{i}",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "tor2_spine#{i}",
-       auto_config: false
-      node.vm.network "private_network", virtualbox__intnet: "tor3_spine#{i}",
-       auto_config: false
-      setup_proxy(node)
-      node.vm.provision "shell", path: "provisioner.sh", args: #{i}
-      node.vm.hostname = "spine#{i}"
-    end
-  end
+      node.vm.network "private_network", virtualbox__intnet: "management1", auto_config: false
+      node.vm.network "private_network", virtualbox__intnet: "management2", auto_config: false
+      node.vm.network "private_network", virtualbox__intnet: "management3", auto_config: false
 
-# Create 3 servers, each connected to a different TOR
-  if ENV['CREATE_SERVERS'] == 'true'
+      setup_proxy(node)
+      node.vm.provision "shell", path: "provisioner.sh", args: 'network'
+    end
+
+  else
+
+    # Create 3 TORs
     (1..3).each do |i|
-      config.vm.define "hv#{i}" do |node|
+      config.vm.define "tor#{i}" do |node|
         config.vm.provider "virtualbox" do |node|
-          node.name = "hv#{i}"
+          node.name = "tor#{i}"
+          node.memory = 512
         end
         node.vm.box = base_box
         node.vm.box_download_insecure = true
+        node.vm.network "private_network", virtualbox__intnet: "tor#{i}_spine1",
+         auto_config: false
+        node.vm.network "private_network", virtualbox__intnet: "tor#{i}_spine2",
+         auto_config: false
         node.vm.network "private_network", virtualbox__intnet: "tor#{i}_hv",
-           auto_config: false
+         auto_config: false
+        node.vm.network "private_network", virtualbox__intnet: "management#{i}",
+         auto_config: false
+        node.vm.network "private_network", virtualbox__intnet: "storage#{i}",
+         auto_config: false
         setup_proxy(node)
-        node.vm.provision "shell", path: "provisioner.sh", args: #{i}
-        node.vm.hostname = "hv#{i}"
+        node.vm.provision "shell", path: "provisioner.sh", args: "tor#{i}"
+        node.vm.hostname = "tor#{i}"
       end
     end
+
+    # Create 2 spines
+    (1..2).each do |i|
+      config.vm.define "spine#{i}" do |node|
+        config.vm.provider "virtualbox" do |node|
+          node.name = "spine#{i}"
+          node.memory = 512
+        end
+        node.vm.box = base_box
+        node.vm.box_download_insecure = true
+        node.vm.network "private_network", virtualbox__intnet: "tor1_spine#{i}",
+         auto_config: false
+        node.vm.network "private_network", virtualbox__intnet: "tor2_spine#{i}",
+         auto_config: false
+        node.vm.network "private_network", virtualbox__intnet: "tor3_spine#{i}",
+         auto_config: false
+        setup_proxy(node)
+        node.vm.provision "shell", path: "provisioner.sh", args: "spine#{i}"
+        node.vm.hostname = "spine#{i}"
+      end
+    end
+
   end
+
 end
