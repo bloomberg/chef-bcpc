@@ -25,11 +25,11 @@ Vagrant.configure(2) do |config|
       node.vm.box_download_insecure = true
 
       node.vm.network "private_network", virtualbox__intnet: "management1",
-        auto_config: false
+       auto_config: false
       node.vm.network "private_network", virtualbox__intnet: "management2",
-        auto_config: false
+       auto_config: false
       node.vm.network "private_network", virtualbox__intnet: "management3",
-        auto_config: false
+       auto_config: false
 
       setup_proxy(node)
       node.vm.provision "shell", path: "provisioner.sh", args: 'network'
