@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: flavors
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+return unless node['bcpc']['openstack-flavors']['enabled']
 
 execute 'wait for flavors' do
   environment os_adminrc
@@ -22,7 +23,7 @@ execute 'wait for flavors' do
   command 'openstack flavor list'
 end
 
-node['bcpc']['nova']['flavors'].each do |flavor, spec|
+node['bcpc']['openstack-flavors']['flavors'].each do |flavor, spec|
   execute "create #{flavor} flavor" do
     environment os_adminrc
     command <<-DOC
