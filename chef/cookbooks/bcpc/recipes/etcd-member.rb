@@ -18,9 +18,9 @@
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
 
-etcdctl_env = {
-  'ETCDCTL_API' => '3'
-}
+etcdssl_args = ''
+etcdctl_env = {'ETCDCTL_API' => '3'}
+etcd_scheme = node['bcpc']['etcd']['scheme']
 
 if node['bcpc']['etcd']['ssl']['enabled']
   etcdctl_env = etcdctl_env.merge({
@@ -28,9 +28,14 @@ if node['bcpc']['etcd']['ssl']['enabled']
     'ETCDCTL_CERT' => '/etc/etcd/ssl/client.pem',
     'ETCDCTL_KEY' => '/etc/etcd/ssl/client-key.pem'
   })
+  etcdssl_args = <<-END_SSL.gsub(/^\s+/, '')
+    --client-cert-auth --peer-auto-tls \\
+    --trusted-ca-file=/etc/etcd/ssl/ca.pem \\
+    --cert-file=/etc/etcd/ssl/server.pem \\
+    --key-file=/etc/etcd/ssl/server-key.pem \\
+  END_SSL
 end
 
-etcd_scheme = node['bcpc']['etcd']['scheme']
 
 begin
   # attempt to register this node with an existing etcd cluster if one exists
@@ -104,24 +109,6 @@ systemd_unit 'etcd.service' do
     initial_cluster = initial_cluster.join(',')
   end
 
-  if node['bcpc']['etcd']['ssl']['enabled']
-    ssl_args = <<-END_SSL.gsub(/^\s+/, '')
-      --client-cert-auth --peer-auto-tls \\
-      --trusted-ca-file=/etc/etcd/ssl/ca.pem \\
-      --cert-file=/etc/etcd/ssl/server.pem \\
-      --key-file=/etc/etcd/ssl/server-key.pem \\
-    END_SSL
-
-    etcdctl_env = {
-      'ETCDCTL_API' => '3',
-      'ETCDCTL_CACERT' => '/etc/etcd/ssl/ca.pem',
-      'ETCDCTL_CERT' => '/etc/etcd/ssl/client.pem',
-      'ETCDCTL_KEY' => '/etc/etcd/ssl/client-key.pem'
-    }
-  else
-    ssl_args = ''
-  end
-
   content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=etcd - highly-available key value store
@@ -139,7 +126,7 @@ systemd_unit 'etcd.service' do
     TimeoutStartSec=0
 
     ExecStart=/usr/local/bin/etcd \\
-      #{ssl_args}
+      #{etcdssl_args}
       --name=#{node['fqdn']} \\
       --data-dir=${data_dir} \\
       --advertise-client-urls=#{etcd_scheme}://#{node['service_ip']}:2379 \\
