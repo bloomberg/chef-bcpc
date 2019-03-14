@@ -9,6 +9,9 @@ root_dir: "{{ inventory_dir | dirname }}"
 initial_ssh_user: ubuntu
 initial_ssh_pass: 53cr37
 
+# validate ssl cert (used by get_url)
+validate_certs: true
+
 ###############################################################################
 # ansible
 ###############################################################################

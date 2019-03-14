@@ -9,4 +9,5 @@
     url: "{{ item.url }}"
     checksum: "{{ item.checksum }}"
     dest: "{{ assets_download_dir }}/{{ item.filename }}"
+    validate_certs: "{{ validate_certs | default(true) }}"
   environment: "{{ local_environment | default({}) }}"
