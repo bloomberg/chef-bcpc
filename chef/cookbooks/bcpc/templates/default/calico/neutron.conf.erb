@@ -2,9 +2,12 @@
 core_plugin = calico
 state_path = /var/lib/neutron
 
+<% if node['bcpc']['etcd']['ssl']['enabled'] %>
 [calico]
-etcd_host = 127.0.0.1
-etcd_port = 2379
+etcd_key_file = /etc/etcd/ssl/client-key.pem
+etcd_cert_file = /etc/etcd/ssl/client.pem
+etcd_ca_cert_file = /etc/etcd/ssl/ca.pem
+<% end %>
 
 [oslo_concurrency]
 lock_path = $state_path/lock

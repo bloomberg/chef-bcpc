@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: calico-work
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
+
+scheme = node['bcpc']['etcd']['scheme']
+host = node['bcpc']['etcd']['proxy']['listen']['host']
+port = node['bcpc']['etcd']['proxy']['listen']['port']
+
+etcd_endpoints = ["#{scheme}://#{host}:#{port}"]
 
 %w(
   calico-common
@@ -28,28 +35,37 @@ include_recipe 'bcpc::calico-apt'
   end
 end
 
-directory '/etc/calico'
-
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    etcd_endpoints: 'http://localhost:2379'
-  )
-end
-
-# these neutron services are installed/enabled by calico packages
-# these services are superseded by nova-metadata-agent and calico-dhcp-agent
-# so we don't need them to be enabled/running
-service 'neutron-dhcp-agent' do
-  action %i(disable stop)
-end
-
-service 'neutron-metadata-agent' do
-  action %i(disable stop)
+# remove example felix cfg file
+file '/etc/calico/felix.cfg.example' do
+  action :delete
 end
 
 service 'calico-felix'
 service 'calico-dhcp-agent'
+
+# these neutron services are installed/enabled by calico packages
+# these services are superseded by nova-metadata-agent and calico-dhcp-agent
+# so we don't need them to be enabled/running
+%w(neutron-dhcp-agent neutron-metadata-agent).each do |srv|
+  service srv do
+    action %i(disable stop)
+  end
+end
+
+template '/etc/calico/felix.cfg' do
+  source 'calico/felix.cfg.erb'
+  variables(
+    etcd_endpoints: etcd_endpoints.join(',')
+  )
+  notifies :restart, 'service[calico-felix]', :immediately
+end
+
+template '/etc/calico/calicoctl.cfg' do
+  source 'calico/calicoctl.cfg.erb'
+  variables(
+    etcd_endpoints: etcd_endpoints.join(',')
+  )
+end
 
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
@@ -57,26 +73,4 @@ template '/etc/neutron/neutron.conf' do
   owner 'root'
   group 'neutron'
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
-end
-
-systemd_unit 'calico-felix.service' do
-  action %i(create enable restart)
-
-  content <<-DOC.gsub(/^\s+/, '')
-    [Unit]
-    Description=Calico Felix agent
-    After=syslog.target network.target
-
-    [Service]
-    User=root
-    Environment=ETCD_ENDPOINTS=http://localhost:2379
-    ExecStartPre=/bin/mkdir -p /var/run/calico
-    ExecStart=/usr/bin/calico-felix
-    KillMode=process
-    Restart=on-failure
-    LimitNOFILE=32000
-
-    [Install]
-    WantedBy=multi-user.target
-  DOC
 end

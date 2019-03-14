@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fn = node['bcpc']['calico']['remote']['file']
+fn = node['bcpc']['calico']['calicoctl']['remote']['file']
 fp = "#{Chef::Config[:file_cache_path]}/#{fn}"
 
 remote_file fp do
   mode '755'
-  source node['bcpc']['calico']['remote']['source']
-  checksum node['bcpc']['calico']['remote']['checksum']
+  source node['bcpc']['calico']['calicoctl']['remote']['source']
+  checksum node['bcpc']['calico']['calicoctl']['remote']['checksum']
   notifies :create, 'remote_file[install calicoctl]', :immediately
 end
 

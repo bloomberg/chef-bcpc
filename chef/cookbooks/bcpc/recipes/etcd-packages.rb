@@ -47,5 +47,3 @@ remote_file 'install etcdctl' do
   path '/usr/local/bin/etcdctl'
   source "file://#{fp.chomp('.tar.gz')}/etcdctl"
 end
-
-package 'python-etcd3gw'

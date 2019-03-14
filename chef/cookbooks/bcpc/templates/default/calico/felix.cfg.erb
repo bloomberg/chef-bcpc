@@ -1,3 +1,6 @@
 [global]
-etcdEndpoints = http://127.0.0.1:2379
-FelixHostname = <%= node['hostname'] %>
+DatastoreType = etcdv3
+EtcdEndpoints = <%= @etcd_endpoints %>
+EtcdCaFile = /etc/etcd/ssl/ca.pem
+EtcdCertFile = /etc/etcd/ssl/client.pem
+EtcdKeyFile = /etc/etcd/ssl/client-key.pem

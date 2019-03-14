@@ -1,4 +1,3 @@
-#
 # Cookbook Name:: bcpc
 # Recipe:: calico-head
 #
@@ -15,7 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
 %w(calico-control calico-common).each do |pkg|
@@ -24,15 +24,20 @@ include_recipe 'bcpc::calico-apt'
   end
 end
 
+etcd_scheme = node['bcpc']['etcd']['scheme']
+etcd_port = node['bcpc']['etcd']['client']['port']
+
 directory '/etc/calico'
 
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
 
   headnodes = headnodes(all: true)
-  headnodes = headnodes.map { |h| "http://#{h['service_ip']}:2379" }.join(',')
+  etcd_endpoints = headnodes.map do |headnode|
+    "#{etcd_scheme}://#{headnode['service_ip']}:#{etcd_port}"
+  end
 
   variables(
-    headnodes: headnodes
+    etcd_endpoints: etcd_endpoints.join(',')
   )
 end

@@ -9,6 +9,13 @@ state_path = /var/lib/neutron
 api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 
+<% if node['bcpc']['etcd']['ssl']['enabled'] %>
+[calico]
+etcd_key_file = /etc/etcd/ssl/client-key.pem
+etcd_cert_file = /etc/etcd/ssl/client.pem
+etcd_ca_cert_file = /etc/etcd/ssl/ca.pem
+<% end %>
+
 [agent]
 root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
 
