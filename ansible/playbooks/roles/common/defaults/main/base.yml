@@ -118,10 +118,6 @@ proxy:
 chef_client:
   config: {}
 
-###############################################################################
-# chef extra cookbooks
-###############################################################################
-
 chef_extra_cookbooks:
   - file_asset: logrotate
   - file_asset: hostsfile
