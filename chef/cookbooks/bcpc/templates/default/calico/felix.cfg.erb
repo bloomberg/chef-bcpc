@@ -1,6 +1,6 @@
 [global]
 DatastoreType = etcdv3
 EtcdEndpoints = <%= @etcd_endpoints %>
-EtcdCaFile = /etc/etcd/ssl/ca.pem
-EtcdCertFile = /etc/etcd/ssl/client.pem
-EtcdKeyFile = /etc/etcd/ssl/client-key.pem
+EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
+EtcdCertFile = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
+EtcdKeyFile = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>

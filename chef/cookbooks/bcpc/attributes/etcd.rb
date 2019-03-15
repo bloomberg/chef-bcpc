@@ -10,8 +10,13 @@ default['bcpc']['etcd']['remote']['checksum'] = '1620a59150ec0a0124a65540e238912
 default['bcpc']['etcd']['ssl']['enabled'] = false
 
 default['bcpc']['etcd']['scheme'] = 'http'
-default['bcpc']['etcd']['client']['port'] = 2379
 default['bcpc']['etcd']['peer']['port'] = 2380
+default['bcpc']['etcd']['client']['port'] = 2379
+default['bcpc']['etcd']['client']['crt']['filepath'] = '/etc/etcd/ssl/client.pem'
+default['bcpc']['etcd']['client']['key']['filepath'] = '/etc/etcd/ssl/client-key.pem'
+default['bcpc']['etcd']['server']['crt']['filepath'] = '/etc/etcd/ssl/server.pem'
+default['bcpc']['etcd']['server']['key']['filepath'] = '/etc/etcd/ssl/server-key.pem'
+default['bcpc']['etcd']['ca']['crt']['filepath'] = '/etc/etcd/ssl/ca.pem'
 
 if node['bcpc']['etcd']['ssl']['enabled']
   node.default['bcpc']['etcd']['scheme'] = 'https'

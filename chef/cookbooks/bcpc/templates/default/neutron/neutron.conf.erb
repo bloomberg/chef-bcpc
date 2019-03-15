@@ -13,9 +13,9 @@ api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 etcd_host = 127.0.0.1
 etcd_port = 2379
 <% if node['bcpc']['etcd']['ssl']['enabled'] %>
-etcd_key_file = /etc/etcd/ssl/client-key.pem
-etcd_cert_file = /etc/etcd/ssl/client.pem
-etcd_ca_cert_file = /etc/etcd/ssl/ca.pem
+etcd_key_file = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>
+etcd_cert_file = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
+etcd_ca_cert_file = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
 <% end %>
 
 [agent]

@@ -24,15 +24,16 @@ etcd_scheme = node['bcpc']['etcd']['scheme']
 
 if node['bcpc']['etcd']['ssl']['enabled']
   etcdctl_env = etcdctl_env.merge({
-    'ETCDCTL_CACERT' => '/etc/etcd/ssl/ca.pem',
-    'ETCDCTL_CERT' => '/etc/etcd/ssl/client.pem',
-    'ETCDCTL_KEY' => '/etc/etcd/ssl/client-key.pem'
+    'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
+    'ETCDCTL_CERT' => node['bcpc']['etcd']['client']['crt']['filepath'],
+    'ETCDCTL_KEY' => node['bcpc']['etcd']['client']['key']['filepath']
   })
+
   etcdssl_args = <<-END_SSL.gsub(/^\s+/, '')
     --client-cert-auth --peer-auto-tls \\
-    --trusted-ca-file=/etc/etcd/ssl/ca.pem \\
-    --cert-file=/etc/etcd/ssl/server.pem \\
-    --key-file=/etc/etcd/ssl/server-key.pem \\
+    --trusted-ca-file=#{node['bcpc']['etcd']['ca']['crt']['filepath']} \\
+    --cert-file=#{node['bcpc']['etcd']['server']['crt']['filepath']} \\
+    --key-file=#{node['bcpc']['etcd']['server']['key']['filepath']} \\
   END_SSL
 end
 
