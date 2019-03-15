@@ -104,6 +104,15 @@ def os_adminrc
   }
 end
 
+def etcdctl_env
+  {
+    'ETCDCTL_API' => '3',
+    'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
+    'ETCDCTL_CERT' => node['bcpc']['etcd']['client']['crt']['filepath'],
+    'ETCDCTL_KEY' => node['bcpc']['etcd']['client']['key']['filepath']
+  }
+end
+
 def get_address(cidr)
   IPAddress(cidr).address
 end

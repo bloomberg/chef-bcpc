@@ -24,19 +24,16 @@ include_recipe 'bcpc::calico-apt'
   end
 end
 
-etcd_scheme = node['bcpc']['etcd']['scheme']
-etcd_port = node['bcpc']['etcd']['client']['port']
+directory '/etc/calico' do
+  action :create
+end
 
-directory '/etc/calico'
+etcd_endpoints = headnodes(all: true).map do |headnode|
+  "https://#{headnode['service_ip']}:2379"
+end
 
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
-
-  headnodes = headnodes(all: true)
-  etcd_endpoints = headnodes.map do |headnode|
-    "#{etcd_scheme}://#{headnode['service_ip']}:#{etcd_port}"
-  end
-
   variables(
     etcd_endpoints: etcd_endpoints.join(',')
   )

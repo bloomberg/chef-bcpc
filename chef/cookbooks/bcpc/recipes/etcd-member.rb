@@ -18,32 +18,12 @@
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
 
-etcdssl_args = ''
-etcdctl_env = {'ETCDCTL_API' => '3'}
-etcd_scheme = node['bcpc']['etcd']['scheme']
-
-if node['bcpc']['etcd']['ssl']['enabled']
-  etcdctl_env = etcdctl_env.merge({
-    'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
-    'ETCDCTL_CERT' => node['bcpc']['etcd']['client']['crt']['filepath'],
-    'ETCDCTL_KEY' => node['bcpc']['etcd']['client']['key']['filepath']
-  })
-
-  etcdssl_args = <<-END_SSL.gsub(/^\s+/, '')
-    --client-cert-auth --peer-auto-tls \\
-    --trusted-ca-file=#{node['bcpc']['etcd']['ca']['crt']['filepath']} \\
-    --cert-file=#{node['bcpc']['etcd']['server']['crt']['filepath']} \\
-    --key-file=#{node['bcpc']['etcd']['server']['key']['filepath']} \\
-  END_SSL
-end
-
-
 begin
   # attempt to register this node with an existing etcd cluster if one exists
   unless init_cloud?
 
     members = headnodes(exclude: node['hostname'])
-    endpoints = members.map { |m| "#{m['service_ip']}:2380" }.join(' ')
+    endpoints = members.map { |m| "#{m['service_ip']}:2379" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
       environment etcdctl_env
@@ -66,7 +46,7 @@ begin
         # check to see if we're already a member
         #
         member_list=$(etcdctl --endpoints ${member} member list)
-        peer_url="#{etcd_scheme}://#{node['service_ip']}:2380"
+        peer_url="https://#{node['service_ip']}:2380"
 
         if echo ${member_list} | grep ${peer_url}; then
           echo "#{node['fqdn']} is already a member of this cluster"
@@ -97,14 +77,14 @@ systemd_unit 'etcd.service' do
   initial_cluster_state = 'existing'
 
   if init_cloud?
-    initial_cluster = "#{node['fqdn']}=#{etcd_scheme}://#{node['service_ip']}:2380"
+    initial_cluster = "#{node['fqdn']}=https://#{node['service_ip']}:2380"
     initial_cluster_state = 'new'
   else
     headnodes = headnodes(exclude: node['hostname'])
     headnodes.push(node)
 
     initial_cluster = headnodes.collect do |h|
-      "#{h['fqdn']}=#{etcd_scheme}://#{h['service_ip']}:2380"
+      "#{h['fqdn']}=https://#{h['service_ip']}:2380"
     end
 
     initial_cluster = initial_cluster.join(',')
@@ -127,13 +107,17 @@ systemd_unit 'etcd.service' do
     TimeoutStartSec=0
 
     ExecStart=/usr/local/bin/etcd \\
-      #{etcdssl_args}
       --name=#{node['fqdn']} \\
       --data-dir=${data_dir} \\
-      --advertise-client-urls=#{etcd_scheme}://#{node['service_ip']}:2379 \\
-      --listen-client-urls=#{etcd_scheme}://#{node['service_ip']}:2379,#{etcd_scheme}://127.0.0.1:2379 \\
-      --listen-peer-urls=#{etcd_scheme}://#{node['service_ip']}:2380 \\
-      --initial-advertise-peer-urls=#{etcd_scheme}://#{node['service_ip']}:2380 \\
+      --client-cert-auth \\
+      --peer-auto-tls \\
+      --trusted-ca-file=#{node['bcpc']['etcd']['ca']['crt']['filepath']} \\
+      --cert-file=#{node['bcpc']['etcd']['server']['crt']['filepath']} \\
+      --key-file=#{node['bcpc']['etcd']['server']['key']['filepath']} \\
+      --advertise-client-urls=https://#{node['service_ip']}:2379 \\
+      --listen-client-urls=https://#{node['service_ip']}:2379,https://127.0.0.1:2379 \\
+      --listen-peer-urls=https://#{node['service_ip']}:2380 \\
+      --initial-advertise-peer-urls=https://#{node['service_ip']}:2380 \\
       --initial-cluster-token=#{node['bcpc']['cloud']['region']}-etcd-cluster-01 \\
       --initial-cluster=#{initial_cluster} \\
       --initial-cluster-state=#{initial_cluster_state}

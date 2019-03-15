@@ -15,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-return unless node['bcpc']['etcd']['ssl']['enabled']
-
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 

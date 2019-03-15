@@ -18,12 +18,6 @@
 include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
-scheme = node['bcpc']['etcd']['scheme']
-host = node['bcpc']['etcd']['proxy']['listen']['host']
-port = node['bcpc']['etcd']['proxy']['listen']['port']
-
-etcd_endpoints = ["#{scheme}://#{host}:#{port}"]
-
 %w(
   calico-common
   calico-compute
@@ -51,6 +45,8 @@ service 'calico-dhcp-agent'
     action %i(disable stop)
   end
 end
+
+etcd_endpoints = ["https://127.0.0.1:2379"]
 
 template '/etc/calico/felix.cfg' do
   source 'calico/felix.cfg.erb'

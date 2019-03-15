@@ -2,5 +2,8 @@ apiVersion: projectcalico.org/v3
 kind: CalicoAPIConfig
 metadata:
 spec:
-  datastoreType: "etcdv3"
-  etcdEndpoints: "<%= @etcd_endpoints %>"
+  datastoreType: etcdv3
+  etcdEndpoints: <%= @etcd_endpoints %>
+  etcdKeyFile: <%= node['bcpc']['etcd']['client']['key']['filepath'] %>
+  etcdCertFile: <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
+  etcdCACertFile: <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>

@@ -19,16 +19,10 @@ include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
 
 headnodes = headnodes(all: true)
-etcd_scheme = node['bcpc']['etcd']['scheme']
-etcd_port = node['bcpc']['etcd']['client']['port']
-etcd_listen_host = node['bcpc']['etcd']['proxy']['listen']['host']
-etcd_listen_port = node['bcpc']['etcd']['proxy']['listen']['port']
 
 etcd_endpoints = headnodes.collect do |headnode|
-  "#{etcd_scheme}://#{headnode['service_ip']}:#{etcd_port}"
+  "https://#{headnode['service_ip']}:2379"
 end
-
-listen_addr = "#{etcd_listen_host}:#{etcd_listen_port}"
 
 systemd_unit 'etcd.service' do
   action %i(create enable restart)
@@ -46,7 +40,7 @@ systemd_unit 'etcd.service' do
 
     ExecStart=/usr/local/bin/etcd gateway start \\
       --endpoints=#{etcd_endpoints.join(',')} \\
-      --listen-addr=#{listen_addr}
+      --listen-addr=127.0.0.1:2379
 
     [Install]
     WantedBy=multi-user.target
