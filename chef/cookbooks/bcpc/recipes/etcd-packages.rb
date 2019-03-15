@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: etcd-packages
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,37 +15,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fn = node['bcpc']['etcd']['remote']['file']
-fp = "#{Chef::Config[:file_cache_path]}/#{fn}"
+require 'json'
 
-remote_file fp do
-  source node['bcpc']['etcd']['remote']['source']
-  mode '755'
+target = node['bcpc']['etcd']['remote']['file']
+save_path = "#{Chef::Config[:file_cache_path]}/#{target}"
+file_url = node['bcpc']['etcd']['remote']['source']
+file_checksum = node['bcpc']['etcd']['remote']['checksum']
 
-  checksum node['bcpc']['etcd']['remote']['checksum']
-  notifies :run, 'execute[unpack etcd]', :immediately
-  notifies :create, 'remote_file[install etcd]', :immediately
-  notifies :create, 'remote_file[install etcdctl]', :immediately
+remote_file save_path do
+  source file_url
+  checksum file_checksum
+  notifies :run, 'bash[install etcd]', :immediately
 end
 
-execute 'unpack etcd' do
+bash 'install etcd' do
   action :nothing
   cwd Chef::Config[:file_cache_path]
-  command "tar -xf #{fn}"
+  code <<-EOH
+    tar -xf #{target}
+    cp $(basename #{target} .tar.gz)/etcd /usr/local/bin/etcd
+    cp $(basename #{target} .tar.gz)/etcdctl /usr/local/bin/etcdctl
+  EOH
 end
 
-remote_file 'install etcd' do
-  action :nothing
-  mode '755'
-  path '/usr/local/bin/etcd'
-  source "file://#{fp.chomp('.tar.gz')}/etcd"
+bash 'add etcdctl vars to /etc/environment' do
+  code <<-EOH
+    json='#{etcdctl_env.to_json}'
+    keys=$(echo ${json} | jq -r '. | keys | .[]')
+    for key in ${keys}; do
+      value=$(echo ${json} | jq -r --arg key "${key}" '.[$key]')
+      env_variable="${key}=${value}"
+      grep -qxF "${env_variable}" /etc/environment \
+        || echo "${env_variable}" >> /etc/environment
+    done
+  EOH
 end
-
-remote_file 'install etcdctl' do
-  action :nothing
-  mode '755'
-  path '/usr/local/bin/etcdctl'
-  source "file://#{fp.chomp('.tar.gz')}/etcdctl"
-end
-
-package 'python-etcd3gw'

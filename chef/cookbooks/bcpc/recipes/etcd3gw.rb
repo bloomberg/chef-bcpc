@@ -1,5 +1,5 @@
 # Cookbook Name:: bcpc
-# Recipe:: calico-head
+# Recipe:: etcd3gw
 #
 # Copyright 2019, Bloomberg Finance L.P.
 #
@@ -15,26 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe 'bcpc::etcd3gw'
-include_recipe 'bcpc::calico-apt'
+package 'python-futurist'
 
-%w(calico-control calico-common).each do |pkg|
-  package pkg do
-    action :upgrade
-  end
+target = node['bcpc']['etcd3gw']['remote_file']['file']
+save_path = "#{Chef::Config[:file_cache_path]}/#{target}"
+file_server_url = node['bcpc']['file_server']['url']
+
+remote_file save_path do
+  source "#{file_server_url}/#{target}"
+  checksum node['bcpc']['etcd3gw']['remote_file']['checksum']
+  notifies :run, 'bash[install etcd3gw]', :immediately
 end
 
-directory '/etc/calico' do
-  action :create
-end
-
-etcd_endpoints = headnodes(all: true).map do |headnode|
-  "https://#{headnode['service_ip']}:2379"
-end
-
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    etcd_endpoints: etcd_endpoints.join(',')
-  )
+bash 'install etcd3gw' do
+  action :nothing
+  cwd Chef::Config[:file_cache_path]
+  code <<-EOH
+    tar -xzf #{target}
+    pip install $(basename #{target} .tar.gz)/
+  EOH
 end

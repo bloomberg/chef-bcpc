@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: calico-apt
 #
-# Copyright 2017, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fn = node['bcpc']['calico']['remote']['file']
+fn = node['bcpc']['calico']['calicoctl']['remote']['file']
 fp = "#{Chef::Config[:file_cache_path]}/#{fn}"
 
 remote_file fp do
   mode '755'
-  source node['bcpc']['calico']['remote']['source']
-  checksum node['bcpc']['calico']['remote']['checksum']
+  source node['bcpc']['calico']['calicoctl']['remote']['source']
+  checksum node['bcpc']['calico']['calicoctl']['remote']['checksum']
   notifies :create, 'remote_file[install calicoctl]', :immediately
 end
 

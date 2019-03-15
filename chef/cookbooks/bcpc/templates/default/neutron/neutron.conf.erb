@@ -9,6 +9,13 @@ state_path = /var/lib/neutron
 api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 
+[calico]
+etcd_host = 127.0.0.1
+etcd_port = 2379
+etcd_ca_cert_file = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
+etcd_cert_file = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
+etcd_key_file = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>
+
 [agent]
 root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
 

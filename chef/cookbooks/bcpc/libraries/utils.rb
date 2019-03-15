@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Library:: utils
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,6 +101,15 @@ def os_adminrc
     'OS_REGION_NAME' => region,
     'OS_IDENTITY_API_VERSION' => '3',
     'OS_VOLUME_API_VERSION' => '3',
+  }
+end
+
+def etcdctl_env
+  {
+    'ETCDCTL_API' => '3',
+    'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
+    'ETCDCTL_CERT' => node['bcpc']['etcd']['client']['crt']['filepath'],
+    'ETCDCTL_KEY' => node['bcpc']['etcd']['client']['key']['filepath']
   }
 end
 

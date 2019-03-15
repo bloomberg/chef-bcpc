@@ -1,3 +1,6 @@
 [global]
-etcdEndpoints = http://127.0.0.1:2379
-FelixHostname = <%= node['hostname'] %>
+DatastoreType = etcdv3
+EtcdEndpoints = <%= @etcd_endpoints %>
+EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
+EtcdCertFile = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
+EtcdKeyFile = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>

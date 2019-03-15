@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
-# Recipe:: etcd-head
+# Recipe:: etcd-member
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 # limitations under the License.
 
 include_recipe 'bcpc::etcd-packages'
+include_recipe 'bcpc::etcd-ssl'
 
 begin
   # attempt to register this node with an existing etcd cluster if one exists
   unless init_cloud?
 
     members = headnodes(exclude: node['hostname'])
-    endpoints = members.map { |m| "#{m['service_ip']}:2380" }.join(' ')
+    endpoints = members.map { |m| "#{m['service_ip']}:2379" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
-      environment('ETCDCTL_API' => '3')
+      environment etcdctl_env
       code <<-DOC
         member=''
 
@@ -45,7 +46,7 @@ begin
         # check to see if we're already a member
         #
         member_list=$(etcdctl --endpoints ${member} member list)
-        peer_url="http://#{node['service_ip']}:2380"
+        peer_url="https://#{node['service_ip']}:2380"
 
         if echo ${member_list} | grep ${peer_url}; then
           echo "#{node['fqdn']} is already a member of this cluster"
@@ -76,14 +77,14 @@ systemd_unit 'etcd.service' do
   initial_cluster_state = 'existing'
 
   if init_cloud?
-    initial_cluster = "#{node['fqdn']}=http://#{node['service_ip']}:2380"
+    initial_cluster = "#{node['fqdn']}=https://#{node['service_ip']}:2380"
     initial_cluster_state = 'new'
   else
     headnodes = headnodes(exclude: node['hostname'])
     headnodes.push(node)
 
     initial_cluster = headnodes.collect do |h|
-      "#{h['fqdn']}=http://#{h['service_ip']}:2380"
+      "#{h['fqdn']}=https://#{h['service_ip']}:2380"
     end
 
     initial_cluster = initial_cluster.join(',')
@@ -97,7 +98,7 @@ systemd_unit 'etcd.service' do
     Wants=network-online.target
 
     [Service]
-    Type=simple
+    Type=notify
     Environment=data_dir=/var/lib/etcd
     ExecStartPre=/bin/mkdir -p ${data_dir}
     Restart=always
@@ -105,15 +106,21 @@ systemd_unit 'etcd.service' do
     LimitNOFILE=40000
     TimeoutStartSec=0
 
-    ExecStart=/usr/local/bin/etcd --name='#{node['fqdn']}' \
-      --data-dir=${data_dir} \
-      --advertise-client-urls='http://#{node['service_ip']}:2379,http://#{node['service_ip']}:4001' \
-      --listen-client-urls='http://#{node['service_ip']}:2379,http://#{node['service_ip']}:4001,http://127.0.0.1:4001,http://127.0.0.1:2379' \
-      --listen-peer-urls='http://#{node['service_ip']}:2380' \
-      --initial-advertise-peer-urls='http://#{node['service_ip']}:2380' \
-      --initial-cluster-token='#{node['bcpc']['cloud']['region']}-etcd-cluster-01' \
-      --initial-cluster='#{initial_cluster}' \
-      --initial-cluster-state='#{initial_cluster_state}'
+    ExecStart=/usr/local/bin/etcd \\
+      --name=#{node['fqdn']} \\
+      --data-dir=${data_dir} \\
+      --client-cert-auth \\
+      --peer-auto-tls \\
+      --trusted-ca-file=#{node['bcpc']['etcd']['ca']['crt']['filepath']} \\
+      --cert-file=#{node['bcpc']['etcd']['server']['crt']['filepath']} \\
+      --key-file=#{node['bcpc']['etcd']['server']['key']['filepath']} \\
+      --advertise-client-urls=https://#{node['service_ip']}:2379 \\
+      --listen-client-urls=https://#{node['service_ip']}:2379,https://127.0.0.1:2379 \\
+      --listen-peer-urls=https://#{node['service_ip']}:2380 \\
+      --initial-advertise-peer-urls=https://#{node['service_ip']}:2380 \\
+      --initial-cluster-token=#{node['bcpc']['cloud']['region']}-etcd-cluster-01 \\
+      --initial-cluster=#{initial_cluster} \\
+      --initial-cluster-state=#{initial_cluster_state}
 
     [Install]
     WantedBy=multi-user.target
@@ -121,7 +128,7 @@ systemd_unit 'etcd.service' do
 end
 
 execute 'wait for etcd membership' do
-  environment('ETCDCTL_API' => '3')
+  environment etcdctl_env
   retries 5
   command "etcdctl member list | grep #{node['fqdn']}"
 end

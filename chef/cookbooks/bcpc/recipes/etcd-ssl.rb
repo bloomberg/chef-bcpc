@@ -1,5 +1,5 @@
 # Cookbook Name:: bcpc
-# Recipe:: calico-head
+# Recipe:: etcd-ssl
 #
 # Copyright 2019, Bloomberg Finance L.P.
 #
@@ -15,26 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe 'bcpc::etcd3gw'
-include_recipe 'bcpc::calico-apt'
+region = node['bcpc']['cloud']['region']
+config = data_bag_item(region, 'config')
 
-%w(calico-control calico-common).each do |pkg|
-  package pkg do
-    action :upgrade
-  end
-end
-
-directory '/etc/calico' do
+directory "/etc/etcd/ssl" do
   action :create
+  recursive true
 end
 
-etcd_endpoints = headnodes(all: true).map do |headnode|
-  "https://#{headnode['service_ip']}:2379"
+# ca certificate
+file "#{node['bcpc']['etcd']['ca']['crt']['filepath']}" do
+  content Base64.decode64(config['etcd']['ssl']['ca']['crt'])
 end
 
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    etcd_endpoints: etcd_endpoints.join(',')
-  )
+# server and client key/certificate
+%w(server client).each do |type|
+  %w(crt key).each do |pem|
+    file "#{node['bcpc']['etcd'][type][pem]['filepath']}" do
+      content Base64.decode64(config['etcd']['ssl'][type][pem])
+    end
+  end
 end

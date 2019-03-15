@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
-# Recipe:: etcd-work
+# Recipe:: etcd-proxy
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,16 @@
 # limitations under the License.
 
 include_recipe 'bcpc::etcd-packages'
+include_recipe 'bcpc::etcd-ssl'
+
+headnodes = headnodes(all: true)
+
+etcd_endpoints = headnodes.collect do |headnode|
+  "https://#{headnode['service_ip']}:2379"
+end
 
 systemd_unit 'etcd.service' do
   action %i(create enable restart)
-
-  headnodes = headnodes(all: true)
-
-  endpoints = headnodes.collect do |h|
-    "http://#{h['service_ip']}:2379"
-  end
-
-  endpoints = endpoints.join(',')
-
   content <<-DOC.gsub(/^\s+/, '')
     [Unit]
     Description=etcd
@@ -40,8 +38,9 @@ systemd_unit 'etcd.service' do
     LimitNOFILE=40000
     TimeoutStartSec=0
 
-    ExecStart=/usr/local/bin/etcd gateway start \
-      --endpoints=#{endpoints} --listen-addr localhost:2379
+    ExecStart=/usr/local/bin/etcd gateway start \\
+      --endpoints=#{etcd_endpoints.join(',')} \\
+      --listen-addr=127.0.0.1:2379
 
     [Install]
     WantedBy=multi-user.target
