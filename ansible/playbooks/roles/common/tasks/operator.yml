@@ -13,7 +13,7 @@
 - name: "setup cloud operator user environment"
   copy:
     src: "files/operator/{{ item }}"
-    dest: "/home/{{ operator_username }}/.{{item}}"
+    dest: "/home/{{ operator_username }}/.{{ item }}"
     owner: "{{ operator_username }}"
     group: "{{ operator_group }}"
     mode: 0644

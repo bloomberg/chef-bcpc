@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.parametrize("name", [
     pytest.param("nova-api", marks=pytest.mark.headnodes),
     pytest.param("nova-scheduler", marks=pytest.mark.headnodes),

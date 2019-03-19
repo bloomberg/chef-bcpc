@@ -68,7 +68,7 @@ Vagrant.configure('2') do |config|
           a[:virtualbox__intnet] = t_iface['neighbor']['name']
           a[:nic_type] = '82543GC'
           a[:auto_config] = false
-          a[:mac] = t_iface['mac'].gsub(/:/,'')
+          a[:mac] = t_iface['mac'].delete(':')
         end
 
         subconfig.vm.network('private_network', args)

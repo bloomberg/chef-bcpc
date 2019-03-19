@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.headnodes
 @pytest.mark.parametrize("name", [
     ("cinder-volume"),
@@ -9,6 +10,7 @@ def test_services(host, name):
     s = host.service(name)
     assert s.is_running
     assert s.is_enabled
+
 
 @pytest.mark.worknodes
 @pytest.mark.parametrize("name", [

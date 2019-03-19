@@ -110,7 +110,6 @@ template '/etc/ceph/ceph.client.admin.keyring' do
 end
 
 %w(nova cinder).each do |user|
-
   execute "export #{user} ceph client key" do
     command <<-EOH
       ceph auth get client.#{user} -o /etc/ceph/ceph.client.#{user}.keyring
@@ -121,9 +120,7 @@ end
     mode '0640'
     group 'libvirt'
   end
-
 end
-
 
 template '/etc/nova/virsh-secret.xml' do
   source 'nova/virsh-secret.xml.erb'

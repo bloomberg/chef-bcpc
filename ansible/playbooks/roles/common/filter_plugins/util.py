@@ -4,24 +4,27 @@ __metaclass__ = type
 
 import ipaddress
 
-def primary_ip(a, *args, **kw):
-  for transit in a:
-    if 'primary' in transit and transit['primary'] is True:
-      return ipaddress.IPv4Interface(transit['ip']).ip
 
-  return args[0]['ansible_host']
+def primary_ip(a, *args, **kw):
+    for transit in a:
+        if 'primary' in transit and transit['primary'] is True:
+            return ipaddress.IPv4Interface(transit['ip']).ip
+
+    return args[0]['ansible_host']
+
 
 def transit_interfaces(a, *args, **kw):
-  interfaces = []
-  ansible_facts = args[0]
+    interfaces = []
+    ansible_facts = args[0]
 
-  for transit in a:
-    interface = find_interface(facts=ansible_facts,
-                               macaddress=transit['mac'])
-    transit['name'] = interface['device']
-    interfaces.append(transit)
+    for transit in a:
+        interface = find_interface(facts=ansible_facts,
+                                   macaddress=transit['mac'])
+        transit['name'] = interface['device']
+        interfaces.append(transit)
 
-  return interfaces
+    return interfaces
+
 
 def find_interface(facts, macaddress):
 
@@ -30,10 +33,11 @@ def find_interface(facts, macaddress):
     for interface in interfaces:
         if interface == 'lo':
             continue
-        if facts.get(interface,{}).get('macaddress', None) == macaddress:
+        if facts.get(interface, {}).get('macaddress', None) == macaddress:
             return facts[interface]
 
     raise ValueError("could not find interface with mac: " + macaddress)
+
 
 def update_chef_node_host_vars(a, *args, **kw):
 
@@ -48,6 +52,7 @@ def update_chef_node_host_vars(a, *args, **kw):
 
     return node_details
 
+
 def find_asset(a, *args, **kw):
 
     asset_to_find = a
@@ -58,6 +63,7 @@ def find_asset(a, *args, **kw):
             return asset
 
     raise ValueError("could not find {}".format(asset_to_find))
+
 
 def osadmin(a, *args, **kw):
 
@@ -85,15 +91,16 @@ def osadmin(a, *args, **kw):
         'OS_VOLUME_API_VERSION': 3
     }
 
+
 class FilterModule(object):
 
-  filter_map = {
-    'primary_ip': primary_ip,
-    'transit_interfaces': transit_interfaces,
-    'update_chef_node_host_vars': update_chef_node_host_vars,
-    'find_asset': find_asset,
-    'osadmin': osadmin
-  }
+    filter_map = {
+        'primary_ip': primary_ip,
+        'transit_interfaces': transit_interfaces,
+        'update_chef_node_host_vars': update_chef_node_host_vars,
+        'find_asset': find_asset,
+        'osadmin': osadmin
+    }
 
-  def filters(self):
-    return self.filter_map
+    def filters(self):
+        return self.filter_map

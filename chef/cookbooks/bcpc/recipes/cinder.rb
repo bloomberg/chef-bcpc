@@ -73,7 +73,7 @@ end
 
 # create cinder volume services and endpoints starts
 begin
-  ['volumev2', 'volumev3'].each do |type|
+  %w(volumev2 volumev3).each do |type|
     service = node['bcpc']['catalog'][type]
     project = service['project']
 
