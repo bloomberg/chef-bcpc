@@ -1,10 +1,10 @@
 syntax on
-set expandtab
-set softtabstop=2
-set shiftwidth=2
-set tabstop=2
-set ruler
-set ls=2
 set autoindent
-set nocompatible
 set background=dark
+set expandtab
+set ls=2
+set nocompatible
+set ruler
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
