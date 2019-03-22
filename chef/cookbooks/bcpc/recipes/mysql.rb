@@ -16,7 +16,6 @@
 # limitations under the License.
 
 apt_repository 'percona' do
-  arch 'amd64'
   uri node['bcpc']['mysql']['apt']['url']
   distribution node['lsb']['codename']
   components ['main']

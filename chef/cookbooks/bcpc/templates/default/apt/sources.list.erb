@@ -1,4 +1,0 @@
-deb [ <%= "arch=#{@config['arch']}" %> ] <%= @config['archive_url'] %> <%= @config['codename'] %> <%= @config['components'].join(' ') %>
-deb [ <%= "arch=#{@config['arch']}" %> ] <%= @config['archive_url'] %> <%= "#{@config['codename']}-updates" %> <%= @config['components'].join(' ') %>
-deb [ <%= "arch=#{@config['arch']}" %> ] <%= @config['archive_url'] %> <%= "#{@config['codename']}-backports" %> <%= @config['components'].join(' ') %>
-deb [ <%= "arch=#{@config['arch']}" %> ] <%= @config['security_url'] %> <%= "#{@config['codename']}-security" %> <%= @config['components'].join(' ') %>

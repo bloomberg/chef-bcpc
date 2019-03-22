@@ -33,7 +33,6 @@ remote_file 'install calicoctl' do
 end
 
 apt_repository 'calico' do
-  arch 'amd64'
   uri node['bcpc']['calico']['repo']['url']
   distribution node['lsb']['codename']
   components ['main']

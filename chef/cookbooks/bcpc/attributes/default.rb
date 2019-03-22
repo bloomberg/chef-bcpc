@@ -18,7 +18,6 @@ default['bcpc']['ubuntu']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['security_url'] = 'http://security.ubuntu.com/ubuntu'
 default['bcpc']['ubuntu']['codename'] = node['lsb']['codename']
 default['bcpc']['ubuntu']['components'] = %w(main restricted universe multiverse)
-default['bcpc']['ubuntu']['arch'] = 'amd64'
 
 ###############################################################################
 # grub

@@ -19,12 +19,15 @@ file '/etc/apt/sources.list' do
   action :delete
 end
 
-arch = node['bcpc']['ubuntu']['arch']
+bash 'remove-foreign-arch' do
+  code 'dpkg --remove-architecture i386'
+  only_if 'dpkg --print-foreign-architectures | grep i386'
+end
+
 codename = node['lsb']['codename']
 
 # main ubuntu-archive repository
 apt_repository 'ubuntu-archive' do
-  arch arch
   uri node['bcpc']['ubuntu']['archive_url']
   distribution codename
   components node['bcpc']['ubuntu']['components']
@@ -34,7 +37,6 @@ end
 distributions = %w(updates backports)
 distributions.each do |dist|
   apt_repository "ubuntu-archive-#{dist}" do
-    arch arch
     uri node['bcpc']['ubuntu']['archive_url']
     distribution "#{codename}-#{dist}"
     components node['bcpc']['ubuntu']['components']
@@ -43,7 +45,6 @@ end
 
 # security ubuntu-archive repository
 apt_repository 'security-ubuntu-archive' do
-  arch arch
   uri node['bcpc']['ubuntu']['security_url']
   distribution "#{codename}-security"
   components node['bcpc']['ubuntu']['components']
