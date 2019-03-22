@@ -64,7 +64,7 @@ webserver = yes
 
 # webserver-address    Address webserver to listen on
 #
-webserver-address = <%= node['service_ip'] %>
+webserver-address = <%= node['bcpc']['powerdns']['webserver']['address'] %>
 
 # webserver-port    Port of webserver to listen on
 #
