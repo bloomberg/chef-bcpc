@@ -71,3 +71,6 @@ end
 
 # some people like kornshell ¯\_(ツ)_/¯
 package 'ksh'
+
+# bash completion for operators
+package 'bash-completion'
