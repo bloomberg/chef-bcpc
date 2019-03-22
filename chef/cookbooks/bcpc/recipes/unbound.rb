@@ -32,13 +32,33 @@ template '/etc/default/unbound' do
   notifies :restart, 'service[unbound]', :delayed
 end
 
-template '/etc/unbound/unbound.conf.d/server.conf' do
-  source 'unbound/server.conf.erb'
-  variables(
-    server: node['bcpc']['unbound']['server'],
-    forward: node['bcpc']['unbound']['forward-zone']
-  )
-  notifies :restart, 'service[unbound]', :delayed
+begin
+  powerdns_address = node['bcpc']['powerdns']['local_address']
+  powerdns_port = node['bcpc']['powerdns']['local_port']
+  powerdns_ns = "#{powerdns_address}@#{powerdns_port}"
+  local_zones = {}
+  networks = node['bcpc']['neutron']['networks'].dup
+  networks.each do |network|
+    %w(fixed float).each do |type|
+      next unless network[type]['dns-zones']['create']
+      network[type].fetch('subnets', []).each do |subnet|
+        zones = cidr_to_reverse_zones(IPAddress(subnet['allocation']))
+        zones.each do |z|
+          local_zones[z['zone']] = [powerdns_ns]
+        end
+      end
+    end
+  end
+
+  template '/etc/unbound/unbound.conf.d/server.conf' do
+    source 'unbound/server.conf.erb'
+    variables(
+      server: node['bcpc']['unbound']['server'],
+      forward: node['bcpc']['unbound']['forward-zone'],
+      local_zones: local_zones
+    )
+    notifies :restart, 'service[unbound]', :delayed
+  end
 end
 
 # Disable DNSSEC
