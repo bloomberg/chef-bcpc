@@ -337,9 +337,9 @@ bash 'update admin default security group' do
     admin_project=#{node['bcpc']['openstack']['admin']['project']}
     id=$(openstack project show ${admin_project} -f value -c id)
 
-    sec_groups=$(openstack security group list -f json)
+    sec_groups=$(openstack security group list --project ${id} -f json)
     sec_id=$(echo ${sec_groups} | \
-      jq -r --arg id "${id}" '.[] | select(.Project == $id) .ID')
+      jq -r --arg id "${id}" '.[] | select(.Name == "Default") .ID')
 
     # allow icmp
     if ! openstack security group rule list ${sec_id} | grep -q icmp; then
