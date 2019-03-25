@@ -339,7 +339,7 @@ bash 'update admin default security group' do
 
     sec_groups=$(openstack security group list --project ${id} -f json)
     sec_id=$(echo ${sec_groups} | \
-      jq -r --arg id "${id}" '.[] | select(.Name == "Default") .ID')
+      jq -r --arg id "${id}" '.[] | select(.Name == "default") .ID')
 
     # allow icmp
     if ! openstack security group rule list ${sec_id} | grep -q icmp; then
