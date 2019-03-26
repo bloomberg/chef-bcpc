@@ -329,27 +329,47 @@ node['bcpc']['neutron']['networks'].each do |network|
 end
 # create networks ends
 
-bash 'update cloud/admin default security group to allow ping and ssh' do
+bash 'update admin default security group' do
   environment os_adminrc
 
   code <<-DOC
-    # the default security group for the cloud has no project id
-    cloud_project_id=''
     admin_project=#{node['bcpc']['openstack']['admin']['project']}
-    admin_project_id=$(openstack project show ${admin_project} -f value -c id)
+    id=$(openstack project show ${admin_project} -f value -c id)
 
-    for id in ${cloud_project_id} ${admin_project_id}; do
-      sec_groups=$(openstack security group list -f json)
-      group_id=$(echo ${sec_groups} | jq -r --arg id "${id}" '.[] | select(.Project == $id) .ID')
+    sec_groups=$(openstack security group list --project ${id} -f json)
+    sec_id=$(echo ${sec_groups} | jq -r '.[] | select(.Name == "default") .ID')
 
-      if ! openstack security group rule list $group_id | grep icmp; then
-        openstack security group rule create --protocol icmp $group_id
+    for ethertype in IPv4 IPv6; do
+
+      # allow icmp
+      if ! openstack security group rule list ${sec_id} \
+            --protocol icmp \
+            --long -c Ethertype -f value | grep -q ${ethertype}; then
+
+        openstack security group rule create ${sec_id} \
+          --protocol icmp \
+          --ethertype ${ethertype}
+
       fi
 
-      if ! openstack security group rule list --protocol tcp $group_id | grep '22:22'; then
-        openstack security group rule create $group_id \
-          --protocol tcp --dst-port 22:22 --remote-ip 0.0.0.0/0
-      fi
+      # allow ssh, http and https
+      for port_range in 22:22 80:80 443:443; do
+        if ! openstack security group rule list ${sec_id} \
+              --protocol tcp --long \
+              -c "Port Range" -c "Ethertype" \
+              -f value | grep "${port_range}" | grep "${ethertype}"; then
+
+          [[ ${ethertype} = 'IPv4' ]] && \
+            remote_ip='0.0.0.0/0' || remote_ip='::/0'
+
+          openstack security group rule create ${sec_id} \
+            --protocol tcp \
+            --dst-port ${port_range} \
+            --remote-ip ${remote_ip} \
+            --ethertype ${ethertype}
+        fi
+      done
+
     done
   DOC
 end
