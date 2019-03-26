@@ -14,6 +14,6 @@ script:
 - find . -name "*.sh" -exec shellcheck {} \;
 - find . -name "*.sh" -exec bashate {} \;
 - find . -name "*.py" -exec flake8 {} \;
-- find ansible -name "*.yml" -exec ansible-lint {} \;
+- find ansible -name "*.yml" -exec ansible-lint -x 503 {} \;
 - foodcritic chef/cookbooks
 - cookstyle .
