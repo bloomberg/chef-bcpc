@@ -2,6 +2,8 @@
 - name: "destroy ceph osds"
   when: destroy_osds
   shell: |
+    set -o pipefail
+
     disks=$(lsblk --json --nodeps | \
       jq --raw-output '.blockdevices[] | select(.type == "disk") .name')
 

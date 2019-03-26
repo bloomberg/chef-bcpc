@@ -1,6 +1,7 @@
 - name: adjust ceph pool pgs
   changed_when: false
   shell: |
+    set -o pipefail
 
     power2() {
       if [ $1 -lt 1 ]; then echo 2; return; fi
