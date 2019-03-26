@@ -44,7 +44,7 @@ base_config() {
         sudo systemctl disable ${s}
     done
     if is_tor "${1}" ; then
-         sudo dhclient -x
+        sudo dhclient -x
     fi
     sudo cp "/vagrant/netplan/${1}.yaml" /etc/netplan/01-netcfg.yaml
     sudo netplan apply
