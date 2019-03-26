@@ -1,4 +1,5 @@
-- set_fact:
+- name: set file fact
+  set_fact:
     file: "{{ item.file_asset | find_asset(all_file_assets) }}"
 
 - name: "upload file server asset: {{ file.name }}"

@@ -1,4 +1,5 @@
-- setup:
+- name: setup configure networking
+  setup:
     gather_subset: all
 
 - name: define transit_interfaces var
