@@ -158,7 +158,7 @@ end
 
 # install catalog-zone-manage
 cookbook_file '/usr/local/sbin/catalog-zone-manage' do
-  source 'powerdns/catalog-zone-manage'
+  source 'powerdns/catalog-zone-manage.py'
   mode '0755'
 end
 

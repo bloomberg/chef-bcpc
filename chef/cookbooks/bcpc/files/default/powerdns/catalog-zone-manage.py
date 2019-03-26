@@ -21,7 +21,7 @@ import dns.name
 import argparse
 import configparser
 from jinja2 import Template
-from subprocess import call,check_output
+from subprocess import call, check_output
 
 config = configparser.ConfigParser()
 config.read('/usr/local/etc/catalog-zone/catalog-zone.conf')
@@ -62,7 +62,8 @@ def synchronize_catalog_zone():
 
     # load the zone file using pdnsutil
     load_zone = "/usr/bin/pdnsutil load-zone {zone} {zone_file}"
-    load_zone = load_zone.format(zone=catalog_zone, zone_file=catalog_zone_file)
+    load_zone = load_zone.format(zone=catalog_zone,
+                                 zone_file=catalog_zone_file)
     call(load_zone.split(' '))
 
 
@@ -86,7 +87,7 @@ def main():
             synchronize_catalog_zone()
             sys.exit(0)
         except Exception as e:
-            print e
+            print(e)
             sys.exit(1)
 
 
