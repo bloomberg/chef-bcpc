@@ -345,9 +345,11 @@ bash 'update admin default security group' do
       if ! openstack security group rule list ${sec_id} \
             --protocol icmp \
             --long -c Ethertype -f value | grep -q ${ethertype}; then
+
         openstack security group rule create ${sec_id} \
           --protocol icmp \
           --ethertype ${ethertype}
+
       fi
 
       # allow ssh, http and https
