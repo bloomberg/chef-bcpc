@@ -234,8 +234,8 @@ end
 template '/etc/apache2/conf-available/cinder-wsgi.conf' do
   source 'cinder/cinder-wsgi.conf.erb'
   variables(
-    'processes' => node['bcpc']['cinder']['wsgi']['processes'],
-    'threads'   => node['bcpc']['cinder']['wsgi']['threads']
+    processes: node['bcpc']['cinder']['wsgi']['processes'],
+    threads: node['bcpc']['cinder']['wsgi']['threads']
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately

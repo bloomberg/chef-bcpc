@@ -90,10 +90,9 @@ end
 template '/etc/apache2/sites-available/keystone.conf' do
   source 'keystone/apache-keystone.conf.erb'
   mode '644'
-
   variables(
-    'processes' => node['bcpc']['keystone']['wsgi']['processes'],
-    'threads'   => node['bcpc']['keystone']['wsgi']['threads']
+    processes: node['bcpc']['keystone']['wsgi']['processes'],
+    threads: node['bcpc']['keystone']['wsgi']['threads']
   )
 
   notifies :reload, 'service[keystone]', :immediately

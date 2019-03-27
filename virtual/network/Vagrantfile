@@ -6,8 +6,7 @@ def setup_proxy(node)
   http_proxy  = ENV['http_proxy']  || ''
   https_proxy = ENV['https_proxy'] || ''
   if http_proxy != ''
-    node.vm.provision 'shell', path: 'proxyconfig.sh',
-     args: [http_proxy, https_proxy]
+    node.vm.provision 'shell', path: 'proxyconfig.sh', args: [http_proxy, https_proxy]
   end
 end
 
@@ -23,12 +22,9 @@ Vagrant.configure(2) do |config|
       node.vm.box = base_box
       node.vm.box_download_insecure = true
 
-      node.vm.network 'private_network', virtualbox__intnet: 'management1',
-        auto_config: false
-      node.vm.network 'private_network', virtualbox__intnet: 'management2',
-        auto_config: false
-      node.vm.network 'private_network', virtualbox__intnet: 'management3',
-        auto_config: false
+      node.vm.network 'private_network', virtualbox__intnet: 'management1', auto_config: false
+      node.vm.network 'private_network', virtualbox__intnet: 'management2', auto_config: false
+      node.vm.network 'private_network', virtualbox__intnet: 'management3', auto_config: false
 
       setup_proxy(node)
       node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
@@ -45,16 +41,11 @@ Vagrant.configure(2) do |config|
         end
         node.vm.box = base_box
         node.vm.box_download_insecure = true
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine1",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine2",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_hv",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "management#{i}",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "storage#{i}",
-          auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine1", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine2", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_hv", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "management#{i}", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "storage#{i}", auto_config: false
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "tor#{i}"
         node.vm.hostname = "tor#{i}"
@@ -70,12 +61,9 @@ Vagrant.configure(2) do |config|
         end
         node.vm.box = base_box
         node.vm.box_download_insecure = true
-        node.vm.network 'private_network', virtualbox__intnet: "tor1_spine#{i}",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor2_spine#{i}",
-          auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor3_spine#{i}",
-          auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor1_spine#{i}", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor2_spine#{i}", auto_config: false
+        node.vm.network 'private_network', virtualbox__intnet: "tor3_spine#{i}", auto_config: false
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "spine#{i}"
         node.vm.hostname = "spine#{i}"
