@@ -210,6 +210,11 @@ end
 #
 # create/manage glance database ends
 
+# create policy.d dir for policy overrides
+directory '/etc/glance/policy.d' do
+  action :create
+end
+
 # install and configure components starts
 #
 template '/etc/glance/glance-api.conf' do
