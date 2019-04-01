@@ -104,10 +104,10 @@ chef_databags:
     cinder:
       creds:
         db:
-          username: cinder,
+          username: cinder
           password: 3Dhip8IKy_95O9LwOkpa
         os:
-          username: cinder,
+          username: cinder
           password: 3Dhip8IKy_95O9LwOkpa
     horizon:
       secret: XWmecfpS5wS7SMqi4un3
@@ -119,7 +119,7 @@ chef_databags:
           username: neutron
           password: 3Dhip8IKy_95O9LwOkpa
         os:
-          username: neutron,
+          username: neutron
           password: 3Dhip8IKy_95O9LwOkpa
     nova:
       creds:
