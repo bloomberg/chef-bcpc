@@ -34,6 +34,10 @@ def worknode?
   search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
 end
 
+def storagenode?
+  search(:node, "role:storagenode AND hostname:#{node['hostname']}").any?
+end
+
 def bootstraps
   nodes = search(:node, 'role:bootstrap')
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
