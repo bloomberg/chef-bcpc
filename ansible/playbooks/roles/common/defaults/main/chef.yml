@@ -170,10 +170,10 @@ chef_roles:
     json_class: Chef::Role
     chef_type: role
     run_list:
+      - role[node]
       - recipe[bcpc::file-server]
       - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
-      - role[node]
 
   - name: headnode
     description: cloud infrastructure services
