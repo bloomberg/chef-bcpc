@@ -19,9 +19,7 @@ include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
 %w(calico-control calico-common).each do |pkg|
-  package pkg do
-    action :upgrade
-  end
+  package pkg
 end
 
 directory '/etc/calico' do
