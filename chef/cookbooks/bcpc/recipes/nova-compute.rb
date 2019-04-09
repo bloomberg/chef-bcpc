@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
-# Recipe:: nova-work
+# Recipe:: nova-compute
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -177,6 +177,7 @@ template '/etc/nova/nova-compute.conf' do
     virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
   )
 
+  notifies :restart, 'service[libvirt-bin]', :immediately
   notifies :restart, 'service[nova-compute]', :immediately
 end
 
