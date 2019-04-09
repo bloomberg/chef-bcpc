@@ -24,9 +24,7 @@ include_recipe 'bcpc::calico-apt'
   calico-dhcp-agent
   calico-felix
 ).each do |pkg|
-  package pkg do
-    action :upgrade
-  end
+  package pkg
 end
 
 # remove example felix cfg file
