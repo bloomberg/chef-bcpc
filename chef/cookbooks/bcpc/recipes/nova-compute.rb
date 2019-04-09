@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
-# Recipe:: nova-work
+# Recipe:: nova-compute
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ package 'ceph'
 service 'nova-compute'
 service 'nova-api-metadata'
 service 'libvirtd'
-service 'libvirt-bin'
 
 # configure nova user starts
 user 'nova' do
@@ -146,7 +145,7 @@ bash 'load virsh secrets' do
       --base64 #{config['ceph']['client']['cinder']['key']}
   DOC
 
-  notifies :restart, 'service[libvirt-bin]', :immediately
+  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 bash 'remove default virsh net' do
@@ -177,6 +176,7 @@ template '/etc/nova/nova-compute.conf' do
     virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
   )
 
+  notifies :restart, 'service[libvirtd]', :immediately
   notifies :restart, 'service[nova-compute]', :immediately
 end
 

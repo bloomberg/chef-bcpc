@@ -35,8 +35,8 @@
 - name: check for default gateway from tor
   shell: |
     /usr/sbin/birdc show route | grep 0.0.0.0/0
-  retries: 15
-  delay: 2
+  retries: 30
+  delay: 5
   register: result
   until: result.rc == 0
   when: ansible_virtualization_type != 'virtualbox'
