@@ -1,4 +1,4 @@
-# Cookbook Name:: bcpc-extra
+# Cookbook Name:: bcpc
 # Recipe:: kexec
 #
 # Copyright 2018, Bloomberg Finance L.P.

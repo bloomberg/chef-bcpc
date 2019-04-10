@@ -1,4 +1,5 @@
-- set_fact:
+- name: set file fact
+  set_fact:
     cookbook_file: "{{ item.file_asset | find_asset(all_file_assets) }}"
 
 - name: upload external cookbook

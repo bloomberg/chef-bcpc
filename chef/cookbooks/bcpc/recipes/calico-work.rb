@@ -44,7 +44,7 @@ service 'calico-dhcp-agent'
   end
 end
 
-etcd_endpoints = ["https://127.0.0.1:2379"]
+etcd_endpoints = ['https://127.0.0.1:2379']
 
 template '/etc/calico/felix.cfg' do
   source 'calico/felix.cfg.erb'

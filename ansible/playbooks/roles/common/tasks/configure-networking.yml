@@ -1,4 +1,5 @@
-- setup:
+- name: setup configure networking
+  setup:
     gather_subset: all
 
 - name: define transit_interfaces var
@@ -34,6 +35,7 @@
 
 - name: check for default gateway from tor
   shell: |
+    set -o pipefail
     /usr/sbin/birdc show route | grep 0.0.0.0/0
   retries: 30
   delay: 5

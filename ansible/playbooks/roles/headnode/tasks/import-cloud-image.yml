@@ -1,4 +1,5 @@
-- set_fact:
+- name: set file fact
+  set_fact:
     file_asset: "{{ item.file_asset | find_asset(all_file_assets) }}"
 
 - name: "check for {{ item.file_asset }}"

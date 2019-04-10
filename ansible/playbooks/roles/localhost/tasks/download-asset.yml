@@ -1,4 +1,5 @@
-- set_fact:
+- name: set file fact
+  set_fact:
     local_environment: "{{ item.environment }}"
   when: item.environment is defined
 

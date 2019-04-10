@@ -106,6 +106,7 @@
   become: false
   command: knife node show "{{ node_fqdn }}" --long --format json
   register: node_details_raw
+  changed_when: false
   delegate_to: "{{ chef_server_host }}"
   no_log: true
 
@@ -129,3 +130,4 @@
 - name: import node changes
   command: knife node from file "{{ node_fqdn }}.json"
   delegate_to: "{{ chef_server_host }}"
+  changed_when: false

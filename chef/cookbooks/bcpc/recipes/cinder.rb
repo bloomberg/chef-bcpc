@@ -73,7 +73,7 @@ end
 
 # create cinder volume services and endpoints starts
 begin
-  ['volumev2', 'volumev3'].each do |type|
+  %w(volumev2 volumev3).each do |type|
     service = node['bcpc']['catalog'][type]
     project = service['project']
 
@@ -234,8 +234,8 @@ end
 template '/etc/apache2/conf-available/cinder-wsgi.conf' do
   source 'cinder/cinder-wsgi.conf.erb'
   variables(
-    'processes' => node['bcpc']['cinder']['wsgi']['processes'],
-    'threads'   => node['bcpc']['cinder']['wsgi']['threads']
+    processes: node['bcpc']['cinder']['wsgi']['processes'],
+    threads: node['bcpc']['cinder']['wsgi']['threads']
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately

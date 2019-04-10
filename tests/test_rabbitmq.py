@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.parametrize("name", [
     pytest.param("rabbitmq-server", marks=pytest.mark.headnodes),
 ])
