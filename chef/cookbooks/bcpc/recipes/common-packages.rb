@@ -39,6 +39,8 @@ package 'htop'
 package 'sysstat'
 package 'linux-tools-common'
 package 'sosreport'
+package 'nvme-cli'
+package 'smartmontools'
 
 # various python packages
 package 'python-pip'
