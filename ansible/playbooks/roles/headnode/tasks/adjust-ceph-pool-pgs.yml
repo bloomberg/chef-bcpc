@@ -54,3 +54,5 @@
         echo "pool: ${pool} (${target_pg_num} target pgs) (${pg_num} pgs)"
       fi
     done
+  args:
+    executable: /bin/bash

@@ -37,6 +37,8 @@
   shell: |
     set -o pipefail
     /usr/sbin/birdc show route | grep 0.0.0.0/0
+  args:
+    executable: /bin/bash
   retries: 30
   delay: 5
   register: result
