@@ -6,9 +6,9 @@ server:
   local-zone: <%= zone %> transparent
 <% end %>
 <% @forward.each do |domain, nameservers| %>
-  <% nameservers.each do |ns| %>
   forward-zone:
     name: <%= domain %>
+  <% nameservers.each do |ns| %>
     forward-addr: <%= ns %>
   <% end %>
 <% end %>
