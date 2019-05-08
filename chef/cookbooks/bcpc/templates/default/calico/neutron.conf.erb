@@ -1,6 +1,7 @@
 [DEFAULT]
 core_plugin = calico
 state_path = /var/lib/neutron
+dns_domain = <%= node['bcpc']['cloud']['domain'] %>
 
 [calico]
 etcd_host = 127.0.0.1

@@ -68,3 +68,11 @@ template '/etc/neutron/neutron.conf' do
   group 'neutron'
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end
+
+template '/etc/neutron/plugins/ml2/ml2_ini.conf' do
+  source 'neutron/neutron.ml2_conf.ini.erb'
+  mode '644'
+  owner 'root'
+  group 'neutron'
+  notifies :restart, 'service[calico-dhcp-agent]', :immediately
+end

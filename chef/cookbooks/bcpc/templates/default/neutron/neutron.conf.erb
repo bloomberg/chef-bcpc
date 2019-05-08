@@ -8,6 +8,7 @@ state_path = /var/lib/neutron
 <% unless node['bcpc']['openstack']['services']['workers'].nil? %>
 api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
+dns_domain = <%= node['bcpc']['cloud']['domain'] %>
 
 [calico]
 etcd_host = 127.0.0.1

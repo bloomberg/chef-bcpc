@@ -43,6 +43,7 @@ metadata_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% if not node['bcpc']['nova']['default_log_levels'].nil? %>
 default_log_levels = "<%= node['bcpc']['nova']['default_log_levels'] %>"
 <% end %>
+dhcp_domain = <%= node['bcpc']['cloud']['domain'] %>
 
 [api]
 auth_strategy = keystone

@@ -166,6 +166,7 @@ execute 'create neutron database' do
 
   notifies :delete, 'file[/tmp/neutron-db.sql]', :immediately
   notifies :create, 'template[/etc/neutron/neutron.conf]', :immediately
+  notifies :create, 'template[/etc/neutron/plugins/ml2/ml2_conf.ini]', :immediately
   notifies :run, 'execute[neutron-db-manage upgrade heads]', :immediately
 end
 
@@ -186,6 +187,11 @@ template '/etc/neutron/neutron.conf' do
     config: config,
     headnodes: headnodes(all: true)
   )
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
+template '/etc/neutron/plugins/ml2/ml2_conf.ini' do
+  source 'neutron/neutron.ml2_conf.ini.erb'
   notifies :restart, 'service[neutron-server]', :immediately
 end
 #
