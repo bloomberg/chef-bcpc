@@ -7,7 +7,7 @@
 - name: "create the cloud operator user"
   user:
     name: "{{ operator_username }}"
-    group: "{{ operator_group }}"
+    groups: "{{ operator_group }},{{ operator_groups | join(',') }}"
     shell: /bin/bash
 
 - name: "setup cloud operator user environment"
@@ -19,7 +19,6 @@
     mode: 0644
   with_items:
     - bashrc
-    - vimrc
 
 - name: "populate cloud operator authorized key file"
   authorized_key:

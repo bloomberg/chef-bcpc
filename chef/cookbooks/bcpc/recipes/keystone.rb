@@ -201,6 +201,32 @@ template '/root/admin-openrc' do
   )
 end
 
+# create openstack config directory
+directory '/etc/openstack' do
+  action :create
+  recursive true
+end
+
+template '/etc/openstack/clouds.yml' do
+    source 'openstack/clouds.yml.erb'
+    owner 'root'
+    group 'sudo'
+    mode '0750'
+    variables(
+      'os_adminrc' => os_adminrc
+    )
+end
+
+# add OS_CLOUD var to /etc/environment so that --os-cloud does not need
+# to be supplied with openstack cli when referencing the local cloud
+bash 'add OS_CLOUD var to /etc/environment' do
+  code <<-EOH
+    env_variable="OS_CLOUD=#{os_adminrc['OS_REGION_NAME']}"
+    grep -qxF "${env_variable}" /etc/environment \
+      || echo "${env_variable}" >> /etc/environment
+  EOH
+end
+
 execute 'wait for keystone to come online' do
   environment os_adminrc
   retries 15
