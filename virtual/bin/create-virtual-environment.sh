@@ -31,7 +31,7 @@ topology_overrides_file="${virtual_dir}/topology/topology.overrides.yml"
 ssh_config_file=$(mktemp)
 
 if [ -f "${topology_overrides_file}" ]; then
-  topology_file=${topology_overrides_file}
+    topology_file=${topology_overrides_file}
 fi
 
 # generate operations ssh key pair
