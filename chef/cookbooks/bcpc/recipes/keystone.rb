@@ -208,13 +208,13 @@ directory '/etc/openstack' do
 end
 
 template '/etc/openstack/clouds.yml' do
-    source 'openstack/clouds.yml.erb'
-    owner 'root'
-    group 'sudo'
-    mode '0750'
-    variables(
-      'os_adminrc' => os_adminrc
-    )
+  source 'openstack/clouds.yml.erb'
+  owner 'root'
+  group 'sudo'
+  mode '0750'
+  variables(
+    'os_adminrc' => os_adminrc
+  )
 end
 
 # add OS_CLOUD var to /etc/environment so that --os-cloud does not need
