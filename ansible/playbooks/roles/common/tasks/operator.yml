@@ -7,7 +7,7 @@
 - name: "create the cloud operator user"
   user:
     name: "{{ operator_username }}"
-    groups: "{{ operator_group }},{{ operator_groups | join(',') }}"
+    group: "{{ operator_group }}"
     shell: /bin/bash
 
 - name: "setup cloud operator user environment"

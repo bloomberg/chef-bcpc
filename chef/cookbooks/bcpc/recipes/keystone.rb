@@ -210,7 +210,7 @@ end
 template '/etc/openstack/clouds.yml' do
   source 'openstack/clouds.yml.erb'
   owner 'root'
-  group 'sudo'
+  group 'operators'
   mode '0750'
   variables(
     'os_adminrc' => os_adminrc
