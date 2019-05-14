@@ -1,0 +1,12 @@
+clouds:
+  <%= @os_adminrc['OS_REGION_NAME'] %>:
+    auth:
+      auth_url: <%= @os_adminrc['OS_AUTH_URL'] %>
+      project_name: <%= @os_adminrc['OS_PROJECT_NAME'] %>
+      username: <%= @os_adminrc['OS_USERNAME'] %>
+      password: <%= @os_adminrc['OS_PASSWORD'] %>
+      user_domain_name: Default
+      project_domain_name: Default
+    region_name: <%= @os_adminrc['OS_REGION_NAME'] %>
+    identity_api_version: 3
+    volume_api_version: 3

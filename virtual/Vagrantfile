@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,29 @@
 
 require 'yaml'
 
+# load the vm topoloy profile
 topology = './topology/topology.yml'
-topology = YAML.load_file(File.expand_path(topology))
+topology_overrides = './topology/topology.overrides.yml'
 
+if File.file?(File.expand_path(topology_overrides))
+  topology = YAML.load_file(File.expand_path(topology_overrides))
+elsif File.file?(File.expand_path(topology))
+  topology = YAML.load_file(File.expand_path(topology))
+else
+  raise "#{topology} or #{topology_overrides} not found"
+end
+
+# load the hardware profiles
 hardware = './topology/hardware.yml'
-hardware = YAML.load_file(File.expand_path(hardware))
+hardware_overrides = './topology/hardware.overrides.yml'
+
+if File.file?(File.expand_path(hardware_overrides))
+  hardware = YAML.load_file(File.expand_path(hardware_overrides))
+elsif File.file?(File.expand_path(hardware))
+  hardware = YAML.load_file(File.expand_path(hardware))
+else
+  raise "#{hardware} or #{hardware_overrides} not found"
+end
 
 project_name = '/' + File.basename(File.dirname(Dir.getwd))
 vb_folder = `VBoxManage list systemproperties | grep 'Default machine folder'`
@@ -46,6 +64,11 @@ Vagrant.configure('2') do |config|
       subconfig.vm.provision 'shell' do |shell|
         shell.path = 'provisioners/create-default-user.sh'
         shell.args = 'ubuntu 53cr37'
+      end
+
+      # modify the vagrant user
+      subconfig.vm.provision 'shell' do |shell|
+        shell.path = 'provisioners/modify-vagrant-user.sh'
       end
 
       # vm provisioners ends

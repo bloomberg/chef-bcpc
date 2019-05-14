@@ -19,7 +19,6 @@
     mode: 0644
   with_items:
     - bashrc
-    - vimrc
 
 - name: "populate cloud operator authorized key file"
   authorized_key:

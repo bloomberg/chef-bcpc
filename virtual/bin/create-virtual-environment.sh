@@ -27,7 +27,12 @@ ssh_key_type="ed25519"
 ssh_private_key_file="${ssh_dir}/id_${ssh_key_type}"
 
 topology_file="${virtual_dir}/topology/topology.yml"
+topology_overrides_file="${virtual_dir}/topology/topology.overrides.yml"
 ssh_config_file=$(mktemp)
+
+if [ -f "${topology_overrides_file}" ]; then
+    topology_file=${topology_overrides_file}
+fi
 
 # generate operations ssh key pair
 (
