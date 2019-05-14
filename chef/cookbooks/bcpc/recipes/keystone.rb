@@ -211,7 +211,7 @@ template '/etc/openstack/clouds.yml' do
   source 'openstack/clouds.yml.erb'
   owner 'root'
   group 'operators'
-  mode '0750'
+  mode '0640'
   variables(
     'os_adminrc' => os_adminrc
   )
