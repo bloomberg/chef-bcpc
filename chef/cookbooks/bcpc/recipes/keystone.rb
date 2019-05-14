@@ -217,8 +217,9 @@ template '/etc/openstack/clouds.yml' do
   )
 end
 
-# add OS_CLOUD var to /etc/environment so that --os-cloud does not need
-# to be supplied with openstack cli when referencing the local cloud
+# add OS_CLOUD environment variable to /etc/environment
+# so that --os-cloud does not need to be given to the openstack cli
+# when accessing the local cloud
 bash 'add OS_CLOUD var to /etc/environment' do
   code <<-EOH
     env_variable="OS_CLOUD=#{os_adminrc['OS_REGION_NAME']}"
