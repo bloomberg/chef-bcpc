@@ -1,0 +1,15 @@
+profiles:
+  bootstrap:
+    ram_gb: 4
+    cpus: 2
+  headnode:
+    ram_gb: 32
+    cpus: 4
+    swap_gb: 16
+  worknode:
+    ram_gb: 32
+    cpus: 8
+    swap_gb: 16
+    ext_disks:
+      count: 4
+      size_gb: 32
