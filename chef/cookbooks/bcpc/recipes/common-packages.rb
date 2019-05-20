@@ -1,7 +1,7 @@
 # Cookbook Name:: bcpc
 # Recipe:: common-packages
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2019, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,8 +39,6 @@ package 'htop'
 package 'sysstat'
 package 'linux-tools-common'
 package 'sosreport'
-package 'nvme-cli'
-package 'smartmontools'
 
 # various python packages
 package 'python-pip'
