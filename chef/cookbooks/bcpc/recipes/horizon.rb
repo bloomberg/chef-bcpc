@@ -24,9 +24,24 @@ service 'horizon' do
   service_name 'apache2'
 end
 
-template '/etc/apache2/conf-available/openstack-dashboard.conf' do
+execute 'disable old openstack-dashboard config' do
+  command 'a2disconf openstack-dashboard'
+  only_if 'a2query -c openstack-dashboard'
+end
+
+file '/etc/apache2/conf-available/openstack-dashboard.conf' do
+  action :delete
+end
+
+template '/etc/apache2/sites-available/openstack-dashboard.conf' do
   source 'horizon/apache-openstack-dashboard.conf.erb'
+  notifies :run, 'execute[enable openstack-dashboard]', :immediately
   notifies :restart, 'service[horizon]', :immediately
+end
+
+execute 'enable openstack-dashboard' do
+  command 'a2ensite openstack-dashboard'
+  not_if 'a2query -s openstack-dashboard'
 end
 
 template '/etc/openstack-dashboard/local_settings.py' do

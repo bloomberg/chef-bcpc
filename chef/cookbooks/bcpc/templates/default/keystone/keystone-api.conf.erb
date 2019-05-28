@@ -9,22 +9,12 @@ Listen <%= node['service_ip'] %>:35357
   WSGIApplicationGroup %{GLOBAL}
   WSGIPassAuthorization On
   LimitRequestBody 114688
-
-  <IfVersion >= 2.4>
-    ErrorLogFormat "%{cu}t %M"
-  </IfVersion>
-
+  ErrorLogFormat "%{cu}t %M"
   ErrorLog /var/log/apache2/keystone.log
   CustomLog /var/log/apache2/keystone_access.log combined
 
   <Directory /usr/bin>
-    <IfVersion >= 2.4>
-      Require all granted
-    </IfVersion>
-    <IfVersion < 2.4>
-      Order allow,deny
-      Allow from all
-    </IfVersion>
+    Require all granted
   </Directory>
 
 </VirtualHost>
@@ -36,21 +26,11 @@ Listen <%= node['service_ip'] %>:35357
   WSGIApplicationGroup %{GLOBAL}
   WSGIPassAuthorization On
   LimitRequestBody 114688
-
-  <IfVersion >= 2.4>
-    ErrorLogFormat "%{cu}t %M"
-  </IfVersion>
-
+  ErrorLogFormat "%{cu}t %M"
   ErrorLog /var/log/apache2/keystone.log
   CustomLog /var/log/apache2/keystone_access.log combined
 
   <Directory /usr/bin>
-    <IfVersion >= 2.4>
-      Require all granted
-    </IfVersion>
-    <IfVersion < 2.4>
-      Order allow,deny
-      Allow from all
-    </IfVersion>
+    Require all granted
   </Directory>
 </VirtualHost>

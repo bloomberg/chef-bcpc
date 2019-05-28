@@ -86,16 +86,30 @@ directory domain_config_dir do
   group 'keystone'
 end
 
+execute 'disable old keystone config' do
+  command 'a2dissite keystone'
+  only_if 'a2query -s keystone'
+end
+
+file '/etc/apache2/sites-available/keystone.conf' do
+  action :delete
+end
+
 # configure apache2 wsgi proxy vhost
-template '/etc/apache2/sites-available/keystone.conf' do
-  source 'keystone/apache-keystone.conf.erb'
+template '/etc/apache2/sites-available/keystone-api.conf' do
+  source 'keystone/keystone-api.conf.erb'
   mode '644'
   variables(
     processes: node['bcpc']['keystone']['wsgi']['processes'],
     threads: node['bcpc']['keystone']['wsgi']['threads']
   )
-
+  notifies :run, 'execute[enable keystone-api]', :immediately
   notifies :reload, 'service[keystone]', :immediately
+end
+
+execute 'enable keystone-api' do
+  command 'a2ensite keystone-api'
+  not_if 'a2query -s keystone-api'
 end
 
 # create/bootstrap keystone

@@ -119,7 +119,6 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
 end
 
 # cinder package installation and service definition
-package 'cinder-api'
 package 'cinder-scheduler'
 package 'cinder-volume'
 
@@ -216,9 +215,6 @@ execute 'create cinder database' do
   command "mysql -u #{mysqladmin['username']} < /tmp/cinder-db.sql"
 
   notifies :delete, 'file[/tmp/cinder-db.sql]', :immediately
-  notifies :create,
-           'template[/etc/apache2/conf-available/cinder-wsgi.conf]',
-           :immediately
   notifies :create, 'template[/etc/cinder/cinder.conf]', :immediately
   notifies :run, 'execute[cinder-manage db sync]', :immediately
 end
@@ -229,20 +225,29 @@ execute 'cinder-manage db sync' do
 end
 # create/manage cinder database ends
 
+execute 'disable old cinder config' do
+  command 'a2disconf cinder-wsgi'
+  only_if 'a2query -c cinder-wsgi'
+end
+
+file '/etc/apache2/conf-available/cinder-wsgi.conf' do
+  action :delete
+end
+
 # configure cinder service starts
-template '/etc/apache2/conf-available/cinder-wsgi.conf' do
-  source 'cinder/cinder-wsgi.conf.erb'
+template '/etc/apache2/sites-available/cinder-api.conf' do
+  source 'cinder/cinder-api.conf.erb'
   variables(
     processes: node['bcpc']['cinder']['wsgi']['processes'],
     threads: node['bcpc']['cinder']['wsgi']['threads']
   )
-  notifies :run, 'execute[enable cinder wsgi]', :immediately
+  notifies :run, 'execute[enable cinder-api]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately
 end
 
-execute 'enable cinder wsgi' do
-  command 'a2enconf cinder-wsgi'
-  not_if 'a2query -c cinder-wsgi'
+execute 'enable cinder-api' do
+  command 'a2ensite cinder-api'
+  not_if 'a2query -s cinder-api'
 end
 
 template '/etc/cinder/cinder.conf' do
@@ -257,7 +262,6 @@ template '/etc/cinder/cinder.conf' do
     headnodes: headnodes(all: true)
   )
 
-  notifies :restart, 'service[cinder-api]', :immediately
   notifies :restart, 'service[cinder-volume]', :immediately
   notifies :restart, 'service[cinder-scheduler]', :immediately
 end
