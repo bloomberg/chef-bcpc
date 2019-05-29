@@ -16,7 +16,7 @@ Vagrant.configure(2) do |config|
     config.vm.define 'network' do |node|
       config.vm.provider 'virtualbox' do |vb|
         vb.name = 'network'
-        vb.memory = 1024
+        vb.memory = 512
       end
       node.vm.hostname = 'network'
       node.vm.box = base_box
