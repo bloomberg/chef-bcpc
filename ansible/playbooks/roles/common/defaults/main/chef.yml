@@ -219,7 +219,6 @@ chef_roles:
       - recipe[bcpc::getty]
       - recipe[bcpc::hwrng]
       - recipe[bcpc::system]
-      - recipe[bcpc::ssh]
 
   - name: storagenode
     description: storage node
