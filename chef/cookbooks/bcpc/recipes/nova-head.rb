@@ -203,7 +203,7 @@ template '/etc/haproxy/haproxy.d/nova.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-nova]', :immediately
+#  notifies :restart, 'service[haproxy-nova]', :immediately
 end
 
 # nova package installation and service definition
@@ -319,11 +319,11 @@ execute 'create nova databases' do
   notifies :run, 'execute[create the cell1 cell]', :immediately
   notifies :run, 'execute[nova-manage db sync]', :immediately
   notifies :run, 'execute[update cell1]', :immediately
-  notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
-  notifies :restart, 'service[nova-scheduler]', :immediately
-  notifies :restart, 'service[nova-conductor]', :immediately
-  notifies :restart, 'service[nova-novncproxy]', :immediately
+#  notifies :restart, 'service[nova-api]', :immediately
+#  notifies :restart, 'service[nova-consoleauth]', :immediately
+#  notifies :restart, 'service[nova-scheduler]', :immediately
+#  notifies :restart, 'service[nova-conductor]', :immediately
+#  notifies :restart, 'service[nova-novncproxy]', :immediately
 end
 
 execute 'nova-manage api_db sync' do
@@ -365,11 +365,11 @@ template '/etc/nova/nova.conf' do
   )
 
   notifies :run, 'execute[update cell1]', :immediately
-  notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
-  notifies :restart, 'service[nova-scheduler]', :immediately
-  notifies :restart, 'service[nova-conductor]', :immediately
-  notifies :restart, 'service[nova-novncproxy]', :immediately
+#  notifies :restart, 'service[nova-api]', :immediately
+#  notifies :restart, 'service[nova-consoleauth]', :immediately
+#  notifies :restart, 'service[nova-scheduler]', :immediately
+#  notifies :restart, 'service[nova-conductor]', :immediately
+#  notifies :restart, 'service[nova-novncproxy]', :immediately
 end
 
 execute 'update cell1' do
@@ -395,7 +395,7 @@ template '/etc/apache2/sites-available/nova-placement-api.conf' do
   )
 
   notifies :run, 'execute[enable placement-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
+#  notifies :restart, 'service[placement-api]', :immediately
 end
 #
 # configure placement-api ends

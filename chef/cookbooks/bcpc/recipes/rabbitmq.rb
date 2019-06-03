@@ -47,29 +47,29 @@ end
 
 template '/etc/rabbitmq/rabbitmq.conf.d/bcpc.conf' do
   source 'rabbitmq/bcpc.conf.erb'
-  notifies :restart, 'service[rabbitmq-server]', :delayed
+#  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
 template '/etc/default/rabbitmq-server' do
   source 'rabbitmq/default.erb'
-  notifies :restart, 'service[rabbitmq-server]', :delayed
+#  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
 file '/var/lib/rabbitmq/.erlang.cookie' do
   mode '400'
   content config['rabbit']['cookie']
-  notifies :restart, 'service[rabbitmq-server]', :delayed
+#  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
 execute 'enable rabbitmq web mgmt' do
   command '/usr/sbin/rabbitmq-plugins enable rabbitmq_management'
   not_if '/usr/sbin/rabbitmq-plugins list -m -e | grep "^rabbitmq_management$"'
-  notifies :restart, 'service[rabbitmq-server]', :delayed
+#  notifies :restart, 'service[rabbitmq-server]', :delayed
 end
 
 template '/etc/rabbitmq/rabbitmq.config' do
   source 'rabbitmq/rabbitmq.config.erb'
-  notifies :restart, 'service[rabbitmq-server]', :immediately
+#  notifies :restart, 'service[rabbitmq-server]', :immediately
 end
 
 begin
@@ -157,5 +157,5 @@ template '/etc/xinetd.d/amqpchk' do
     only_from: primary_network_aggregate_cidr
   )
 
-  notifies :restart, 'service[xinetd]', :immediately
+#  notifies :restart, 'service[xinetd]', :immediately
 end

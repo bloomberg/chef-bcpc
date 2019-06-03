@@ -59,7 +59,7 @@ end
 file "#{node['bcpc']['consul']['conf_dir']}/services.json" do
   services = { 'services' => node['bcpc']['consul']['services'] }
   content JSON.pretty_generate(services)
-  notifies :restart, 'service[consul]', :immediately
+#  notifies :restart, 'service[consul]', :immediately
 end
 
 begin
@@ -75,7 +75,7 @@ begin
 
   file "#{node['bcpc']['consul']['conf_dir']}/config.json" do
     content JSON.pretty_generate(config)
-    notifies :restart, 'service[consul]', :immediately
+#    notifies :restart, 'service[consul]', :immediately
   end
 end
 

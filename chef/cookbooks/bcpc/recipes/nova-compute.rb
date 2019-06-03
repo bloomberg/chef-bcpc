@@ -72,17 +72,17 @@ end
 # configure libvirt
 template '/etc/libvirt/libvirtd.conf' do
   source 'libvirt/libvirtd.conf.erb'
-  notifies :restart, 'service[libvirtd]', :immediately
+#  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 cookbook_file '/etc/default/libvirtd' do
   source 'libvirt/default'
-  notifies :restart, 'service[libvirtd]', :immediately
+#  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 cookbook_file '/etc/libvirt/qemu.conf' do
   source 'libvirt/qemu.conf'
-  notifies :restart, 'service[libvirtd]', :immediately
+#  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 template '/etc/ceph/ceph.conf' do
@@ -142,7 +142,7 @@ bash 'load virsh secrets' do
       --base64 #{config['ceph']['client']['cinder']['key']}
   DOC
 
-  notifies :restart, 'service[libvirtd]', :immediately
+#  notifies :restart, 'service[libvirtd]', :immediately
 end
 
 bash 'remove default virsh net' do
@@ -161,8 +161,8 @@ template '/etc/nova/nova.conf' do
     headnodes: headnodes,
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[nova-compute]', :immediately
-  notifies :restart, 'service[nova-api-metadata]', :immediately
+#  notifies :restart, 'service[nova-compute]', :immediately
+#  notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
 template '/etc/nova/nova-compute.conf' do
@@ -173,8 +173,8 @@ template '/etc/nova/nova-compute.conf' do
     virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
   )
 
-  notifies :restart, 'service[libvirtd]', :immediately
-  notifies :restart, 'service[nova-compute]', :immediately
+#  notifies :restart, 'service[libvirtd]', :immediately
+#  notifies :restart, 'service[nova-compute]', :immediately
 end
 
 execute 'wait for compute host' do

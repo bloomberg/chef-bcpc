@@ -29,7 +29,7 @@ service 'postfix'
 
 template '/etc/postfix/main.cf' do
   source 'postfix/main.cf.erb'
-  notifies :restart, 'service[postfix]', :immediately
+#  notifies :restart, 'service[postfix]', :immediately
 end
 
 ruby_block 'add_root_mail_alias' do
@@ -46,5 +46,5 @@ end
 execute 'run-newaliases' do
   action :nothing
   command '/usr/bin/newaliases'
-  notifies :restart, 'service[postfix]', :immediately
+#  notifies :restart, 'service[postfix]', :immediately
 end

@@ -38,5 +38,5 @@ template '/etc/default/rng-tools' do
   variables(
     rng_source: node['bcpc']['hwrng']['source']
   )
-  notifies :restart, 'service[rng-tools]', :immediately
+#  notifies :restart, 'service[rng-tools]', :immediately
 end

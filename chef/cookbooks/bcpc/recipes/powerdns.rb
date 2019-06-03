@@ -78,7 +78,7 @@ template '/etc/powerdns/pdns.conf' do
     api_key: config['powerdns']['creds']['api']['key'],
     webserver_password: config['powerdns']['creds']['webserver']['password']
   )
-  notifies :restart, 'service[pdns]', :immediately
+#  notifies :restart, 'service[pdns]', :immediately
 end
 
 # DNS forward zone creation/population

@@ -26,7 +26,7 @@ end
 
 template '/etc/apache2/conf-available/openstack-dashboard.conf' do
   source 'horizon/apache-openstack-dashboard.conf.erb'
-  notifies :restart, 'service[horizon]', :immediately
+#  notifies :restart, 'service[horizon]', :immediately
 end
 
 template '/etc/openstack-dashboard/local_settings.py' do
@@ -36,5 +36,5 @@ template '/etc/openstack-dashboard/local_settings.py' do
     headnodes: headnodes(all: true),
     domains: node['bcpc']['keystone'].fetch('domains', [])
   )
-  notifies :restart, 'service[horizon]', :delayed
+#  notifies :restart, 'service[horizon]', :delayed
 end

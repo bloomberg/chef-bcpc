@@ -53,5 +53,5 @@ template '/etc/ssh/sshd_config' do
   variables(
     listen_addresses: listen_addresses
   )
-  notifies :restart, 'service[ssh]', :immediately
+#  notifies :restart, 'service[ssh]', :immediately
 end

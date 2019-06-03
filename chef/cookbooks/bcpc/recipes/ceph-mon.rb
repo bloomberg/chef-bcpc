@@ -97,7 +97,7 @@ template '/etc/ceph/ceph.conf' do
     public_network: primary_network_aggregate_cidr
   )
 
-  notifies :restart, "service[ceph-mon@#{node['hostname']}]", :immediately
+#  notifies :restart, "service[ceph-mon@#{node['hostname']}]", :immediately
 end
 
 begin

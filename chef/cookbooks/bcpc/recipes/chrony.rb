@@ -24,5 +24,5 @@ template '/etc/chrony/chrony.conf' do
   variables(
     servers: node['bcpc']['ntp']['servers']
   )
-  notifies :restart, 'service[chrony]', :immediately
+#  notifies :restart, 'service[chrony]', :immediately
 end

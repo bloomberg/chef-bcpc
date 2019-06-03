@@ -20,5 +20,5 @@ service 'apport'
 
 template '/etc/default/apport' do
   source 'apport/default.erb'
-  notifies :restart, 'service[apport]', :delayed
+#  notifies :restart, 'service[apport]', :delayed
 end

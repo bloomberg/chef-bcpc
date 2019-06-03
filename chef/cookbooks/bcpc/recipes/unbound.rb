@@ -29,7 +29,7 @@ template '/etc/default/unbound' do
   variables(
     config: node['bcpc']['unbound']['default']
   )
-  notifies :restart, 'service[unbound]', :delayed
+#  notifies :restart, 'service[unbound]', :delayed
 end
 
 begin
@@ -57,12 +57,12 @@ begin
       forward: node['bcpc']['unbound']['forward-zone'],
       local_zones: local_zones
     )
-    notifies :restart, 'service[unbound]', :delayed
+#    notifies :restart, 'service[unbound]', :delayed
   end
 end
 
 # Disable DNSSEC
 file '/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf' do
   action :delete
-  notifies :restart, 'service[unbound]', :immediately
+#  notifies :restart, 'service[unbound]', :immediately
 end

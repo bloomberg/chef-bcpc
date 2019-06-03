@@ -68,7 +68,7 @@ end
 
 template '/etc/mysql/my.cnf' do
   source 'mysql/my.cnf.erb'
-  notifies :restart, 'service[mysql]', :immediately
+#  notifies :restart, 'service[mysql]', :immediately
 end
 
 template '/etc/mysql/debian.cnf' do
@@ -87,7 +87,7 @@ template '/etc/mysql/conf.d/wsrep.cnf' do
     headnodes: headnodes(exclude: node['hostname'])
   )
 
-  notifies :restart, 'service[mysql]', :immediately
+#  notifies :restart, 'service[mysql]', :immediately
 end
 
 execute 'add mysqlchk to /etc/services' do
@@ -106,7 +106,7 @@ template '/etc/xinetd.d/mysqlchk' do
       'password' => config['mysql']['users']['check']['password'],
     }
   )
-  notifies :restart, 'service[xinetd]', :immediately
+#  notifies :restart, 'service[xinetd]', :immediately
 end
 
 # rubocop:disable Style/BlockComments

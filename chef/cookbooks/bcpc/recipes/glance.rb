@@ -118,7 +118,7 @@ template '/etc/haproxy/haproxy.d/glance.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-glance]', :immediately
+#  notifies :restart, 'service[haproxy-glance]', :immediately
 end
 
 # glance package installation and service definition
@@ -225,7 +225,7 @@ template '/etc/glance/glance-api.conf' do
     config: config,
     headnodes: headnodes(all: true)
   )
-  notifies :restart, 'service[glance-api]', :immediately
+#  notifies :restart, 'service[glance-api]', :immediately
 end
 #
 # install and configure components ends

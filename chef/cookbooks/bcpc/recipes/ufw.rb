@@ -22,12 +22,12 @@ service 'ufw'
 
 template '/etc/default/ufw' do
   source 'ufw/ufw.erb'
-  notifies :restart, 'service[ufw]', :immediately
+#  notifies :restart, 'service[ufw]', :immediately
 end
 
 template '/etc/ufw/sysctl.conf' do
   source 'ufw/ufw.sysctl.conf.erb'
-  notifies :restart, 'service[ufw]', :immediately
+#  notifies :restart, 'service[ufw]', :immediately
 end
 
 bash 'setup allow rules for ufw' do

@@ -116,7 +116,7 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-cinder]', :immediately
+#  notifies :restart, 'service[haproxy-cinder]', :immediately
 end
 
 # cinder package installation and service definition
@@ -238,7 +238,7 @@ template '/etc/apache2/conf-available/cinder-wsgi.conf' do
     threads: node['bcpc']['cinder']['wsgi']['threads']
   )
   notifies :run, 'execute[enable cinder wsgi]', :immediately
-  notifies :restart, 'service[cinder-api]', :immediately
+#  notifies :restart, 'service[cinder-api]', :immediately
 end
 
 execute 'enable cinder wsgi' do
@@ -258,9 +258,9 @@ template '/etc/cinder/cinder.conf' do
     headnodes: headnodes(all: true)
   )
 
-  notifies :restart, 'service[cinder-api]', :immediately
-  notifies :restart, 'service[cinder-volume]', :immediately
-  notifies :restart, 'service[cinder-scheduler]', :immediately
+#  notifies :restart, 'service[cinder-api]', :immediately
+#  notifies :restart, 'service[cinder-volume]', :immediately
+#  notifies :restart, 'service[cinder-scheduler]', :immediately
 end
 # configure cinder service ends
 

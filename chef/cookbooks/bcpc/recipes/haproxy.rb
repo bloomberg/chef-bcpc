@@ -35,7 +35,7 @@ end
 
 cookbook_file '/etc/default/haproxy' do
   source 'haproxy/default'
-  notifies :restart, 'service[haproxy]', :immediately
+#  notifies :restart, 'service[haproxy]', :immediately
 end
 
 begin
@@ -56,7 +56,7 @@ begin
       certs: certs
     )
 
-    notifies :restart, 'service[haproxy]', :delayed
+#    notifies :restart, 'service[haproxy]', :delayed
   end
 
 end
@@ -68,5 +68,5 @@ template '/etc/haproxy/haproxy.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy]', :immediately
+#  notifies :restart, 'service[haproxy]', :immediately
 end

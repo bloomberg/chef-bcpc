@@ -125,7 +125,7 @@ template '/etc/haproxy/haproxy.d/neutron.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-neutron]', :immediately
+#  notifies :restart, 'service[haproxy-neutron]', :immediately
 end
 
 # neutron package installation and service definition starts
@@ -187,12 +187,12 @@ template '/etc/neutron/neutron.conf' do
     config: config,
     headnodes: headnodes(all: true)
   )
-  notifies :restart, 'service[neutron-server]', :immediately
+#  notifies :restart, 'service[neutron-server]', :immediately
 end
 
 template '/etc/neutron/plugins/ml2/ml2_conf.ini' do
   source 'neutron/neutron.ml2_conf.ini.erb'
-  notifies :restart, 'service[neutron-server]', :immediately
+#  notifies :restart, 'service[neutron-server]', :immediately
 end
 #
 # configure neutron ends

@@ -51,7 +51,7 @@ template '/etc/calico/felix.cfg' do
   variables(
     etcd_endpoints: etcd_endpoints.join(',')
   )
-  notifies :restart, 'service[calico-felix]', :immediately
+#  notifies :restart, 'service[calico-felix]', :immediately
 end
 
 template '/etc/calico/calicoctl.cfg' do
@@ -66,5 +66,5 @@ template '/etc/neutron/neutron.conf' do
   mode '644'
   owner 'root'
   group 'neutron'
-  notifies :restart, 'service[calico-dhcp-agent]', :immediately
+#  notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end

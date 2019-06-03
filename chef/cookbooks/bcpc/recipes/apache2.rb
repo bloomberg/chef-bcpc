@@ -42,7 +42,7 @@ service 'apache2'
   execute "enable #{mod} apache2 module" do
     command "a2enmod #{mod}"
     not_if "a2query -m #{mod}"
-    notifies :restart, 'service[apache2]', :delayed
+#    notifies :restart, 'service[apache2]', :delayed
   end
 end
 
@@ -53,7 +53,7 @@ end
 
 template '/etc/apache2/sites-available/000-default.conf' do
   source 'apache2/default.conf.erb'
-  notifies :restart, 'service[apache2]', :delayed
+#  notifies :restart, 'service[apache2]', :delayed
 end
 
 template '/var/www/index.html' do
@@ -74,5 +74,5 @@ end
 
 template '/etc/apache2/ports.conf' do
   source 'apache2/ports.conf.erb'
-  notifies :restart, 'service[apache2]', :immediately
+#  notifies :restart, 'service[apache2]', :immediately
 end
