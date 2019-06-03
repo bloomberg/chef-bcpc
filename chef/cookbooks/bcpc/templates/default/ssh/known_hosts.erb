@@ -1,3 +1,0 @@
-<% @nodes.each do |n| -%>
-<%= n['fqdn'] %>,<%= n['hostname'] %>,<%= n['service_ip'] %> ssh-rsa <%= n['keys']['ssh']['host_rsa_public'] %>
-<% end -%>
