@@ -120,7 +120,6 @@ chef_client:
 
 chef_extra_cookbooks:
   - file_asset: logrotate
-  - file_asset: hostsfile
 
 # all chef extra cookbooks
 all_chef_extra_cookbooks: "{{ chef_extra_cookbooks +
@@ -182,11 +181,6 @@ assets_files:
     url: https://supermarket.chef.io/cookbooks/logrotate/versions/2.2.0/download
     checksum: sha256:f9385a488ec0ee02bfd680ac5aac012000006e4168f97bbf06b5b28373a1d1aa
     filename: logrotate-2.2.0.tar.gz
-
-  - name: hostsfile
-    url: https://supermarket.chef.io/cookbooks/hostsfile/versions/3.0.1/download
-    checksum: sha256:dfac48893dfdd15461740a1fe00a4445191261e7ec9f6f6708974b017bf7f660
-    filename: hostsfile-3.0.1.tar.gz
 
   - name: etcd3gw
     url: https://files.pythonhosted.org/packages/08/02/63d5eb103943ce18c38dd1b11a2d63e6ff7260d44067458e7faa092c2b9e/etcd3gw-0.2.4.tar.gz
