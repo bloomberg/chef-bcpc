@@ -3,7 +3,7 @@
 ###############################################################################
 
 default['bcpc']['glance']['debug'] = false
-default['bcpc']['glance']['workers'] = 5
+default['bcpc']['glance']['workers'] = nil
 
 # database
 default['bcpc']['glance']['db']['dbname'] = 'glance'

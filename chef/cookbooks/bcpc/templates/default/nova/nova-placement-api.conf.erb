@@ -4,7 +4,7 @@ Listen <%= "#{node['service_ip']}:8778" %>
   WSGIScriptAlias / /usr/bin/nova-placement-api
   WSGIScriptAlias /placement /usr/bin/nova-placement-api
 
-  WSGIDaemonProcess nova-placement processes=<%= @processes %> threads=<%= @threads %> user=nova group=nova display-name=%{GROUP}
+  WSGIDaemonProcess nova-placement processes=<%= @processes %> threads=1 user=nova group=nova display-name=%{GROUP}
   WSGIProcessGroup nova-placement
   WSGIApplicationGroup %{GLOBAL}
   WSGIPassAuthorization On

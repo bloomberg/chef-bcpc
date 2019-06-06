@@ -42,7 +42,8 @@ default['bcpc']['nova']['max_concurrent_builds'] = 4
 
 # "workers" parameters in nova are set to number of CPUs
 # available by default. This provides an override.
-default['bcpc']['nova']['workers'] = 5
+default['bcpc']['nova']['workers'] = nil
+default['bcpc']['placement']['workers'] = nil
 
 # configure SQLAlchemy overflow/QueuePool sizes
 default['bcpc']['nova']['database']['max_overflow'] = 10

@@ -12,7 +12,7 @@ default['bcpc']['openstack']['repo']['key'] = 'openstack/release.key'
 default['bcpc']['openstack']['admin']['username'] = 'admin'
 default['bcpc']['openstack']['admin']['project'] = 'admin'
 
-default['bcpc']['openstack']['services']['workers'] = nil
+default['bcpc']['openstack']['services']['workers'] = 1
 
 ###############################################################################
 # openstack flavors

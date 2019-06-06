@@ -29,15 +29,19 @@ transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']
 <% if @is_headnode -%>
 enabled_apis = osapi_compute
 osapi_compute_listen = <%= node['service_ip'] %>
-<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+<% if node['bcpc']['nova']['workers'] %>
+osapi_compute_workers = <%= node['bcpc']['nova']['workers'] %>
+<% else %>
 osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
-<% end%>
+<% end %>
 <% else %>
 enabled_apis = metadata
 metadata_listen = <%= node['bcpc']['nova']['metadata_listen'] %>
-<% unless node['bcpc']['openstack']['services']['workers'].nil? %>
+<% if node['bcpc']['nova']['workers'] %>
+metadata_workers = <%= node['bcpc']['nova']['workers'] %>
+<% else %>
 metadata_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
-<% end%>
+<% end %>
 <% end %>
 
 <% if not node['bcpc']['nova']['default_log_levels'].nil? %>

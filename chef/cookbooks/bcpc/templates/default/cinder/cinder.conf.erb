@@ -6,7 +6,11 @@ api_paste_confg = /etc/cinder/api-paste.ini
 auth_strategy = keystone
 state_path = /var/lib/cinder
 osapi_volume_listen = <%= node['service_ip'] %>
+<% if node['bcpc']['cinder']['workers'] %>
 osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
+<% else %>
+osapi_volume_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 my_ip = <%= node['service_ip'] %>
 transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>

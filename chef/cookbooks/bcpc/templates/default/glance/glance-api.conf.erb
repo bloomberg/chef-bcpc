@@ -12,7 +12,11 @@ enable_v1_api = false
 enable_v2_api = true
 bind_host = <%= node['service_ip'] %>
 bind_port = 9292
+<% if node['bcpc']['glance']['workers'] %>
 workers = <%= node['bcpc']['glance']['workers'] %>
+<% else %>
+workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 admin_role = <%= node['bcpc']['keystone']['roles']['admin'] %>
 image_cache_dir = /var/lib/glance/image-cache/
 log_file = /var/log/glance/api.log

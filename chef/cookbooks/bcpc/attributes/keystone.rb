@@ -13,11 +13,8 @@ default['bcpc']['keystone']['log_file'] = '/var/log/keystone/keystone.log'
 # enable debug logging (also caching debug logging).
 default['bcpc']['keystone']['debug'] = false
 
-# Set the number of Keystone WSGI processes and threads to use by default on the
-# public API (experimentally threads > 1 may cause problems with the service
-# catalog, for now we recommend scaling only in the processes dimension)
-default['bcpc']['keystone']['wsgi']['processes'] = 5
-default['bcpc']['keystone']['wsgi']['threads'] = 1
+# Set the number of Keystone WSGI processes
+default['bcpc']['keystone']['workers'] = nil
 
 # configure SQLAlchemy overflow/QueuePool sizes
 default['bcpc']['keystone']['database']['max_overflow'] = 10

@@ -9,6 +9,8 @@ default['bcpc']['neutron']['db']['dbname'] = 'neutron'
 # dns-namserver for the instances
 default['bcpc']['neutron']['network']['nameservers'] = [node['bcpc']['cloud']['vip']]
 
+default['bcpc']['neutron']['workers'] = nil
+
 # networks
 default['bcpc']['neutron']['networks'] = [
   {

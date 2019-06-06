@@ -2,7 +2,7 @@ Listen <%= "#{node['service_ip']}:8776" %>
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D(us)" cinder_combined
 
 <VirtualHost <%= "#{node['service_ip']}:8776" %>>
-  WSGIDaemonProcess cinder-wsgi processes=<%= @processes %> threads=<%= @threads %> user=cinder group=cinder display-name=%{GROUP}
+  WSGIDaemonProcess cinder-wsgi processes=<%= @processes %> threads=1 user=cinder group=cinder display-name=%{GROUP}
   WSGIProcessGroup cinder-wsgi
   WSGIScriptAlias / /usr/bin/cinder-wsgi
   WSGIApplicationGroup %{GLOBAL}
