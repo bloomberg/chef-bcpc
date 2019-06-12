@@ -23,7 +23,7 @@ node['bcpc']['cinder']['quota'].each do |quota, limit|
   end
 end
 
-# per project quota settings
+# nova per project quota settings
 node['bcpc']['nova']['quota']['project'].each do |project, quotas|
   quotas.each do |quota, limit|
     execute "set #{quota} quota for #{project} project" do
