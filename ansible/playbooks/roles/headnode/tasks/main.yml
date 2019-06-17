@@ -12,3 +12,8 @@
   become: true
   run_once: true
   tags: [never,adjust-ceph-pool-pgs]
+
+- import_tasks: configure-host-aggregates.yml
+  become: true
+  run_once: true
+  tags: [never,configure-host-aggregates]

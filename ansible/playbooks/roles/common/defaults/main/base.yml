@@ -196,3 +196,9 @@ all_file_assets: "{{ assets_files + additional_assets_files | default([]) }}"
 
 virtualbox:
   nat_ip: 10.0.2.15
+
+###############################################################################
+# host aggregates
+###############################################################################
+
+host_aggregates: []
