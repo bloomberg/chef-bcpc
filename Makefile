@@ -10,7 +10,7 @@ storagenodes = \
         $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
-	download-assets \
+	sync-assets \
 	configure-operator \
 	configure-apt \
 	configure-networking \
@@ -60,7 +60,7 @@ configure-networking :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t configure-networking --limit cloud
 
-download-assets :
+sync-assets :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
