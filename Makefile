@@ -64,7 +64,7 @@ sync-assets :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t download-assets --limit localhost
+		-t sync-assets --limit localhost
 
 configure-chef-server :
 
