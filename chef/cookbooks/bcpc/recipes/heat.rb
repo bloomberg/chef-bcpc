@@ -286,8 +286,8 @@ execute 'create heat database' do
   notifies :delete, 'file[/tmp/heat-create-db.sql]', :immediately
   notifies :create, 'template[/etc/heat/heat.conf]', :immediately
   notifies :run, 'execute[heat-manage db_sync]', :immediately
-  notifies :restart, 'service[heat-api]', :immediately
-  notifies :restart, 'service[heat-api-cfn]', :immediately
+  notifies :restart, 'service[heat-api-apache2]', :immediately
+  notifies :restart, 'service[heat-api-cfn-apache2]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
 end
 
@@ -296,7 +296,7 @@ execute 'heat-manage db_sync' do
   command "su -s /bin/sh -c 'heat-manage db_sync' heat"
 end
 
-# configure heat starts
+# configure heat
 template '/etc/heat/heat.conf' do
   source 'heat/heat.conf.erb'
   variables(
@@ -307,6 +307,7 @@ template '/etc/heat/heat.conf' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[heat-api]', :immediately
+  notifies :restart, 'service[heat-api-apache2]', :immediately
+  notifies :restart, 'service[heat-api-cfn-apache2]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
 end
