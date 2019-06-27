@@ -138,6 +138,13 @@ end
 #
 # neutron package installation and service definition ends
 
+# add neutron to etcd so that it will be able to read the etcd ssl certs
+group 'etcd' do
+  action :modify
+  members 'neutron'
+  append true
+end
+
 # create/manage neutron database starts
 #
 file '/tmp/neutron-db.sql' do
