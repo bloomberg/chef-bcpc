@@ -10,8 +10,8 @@ storagenodes = \
         $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
-	download-assets \
-	add-operator \
+	sync-assets \
+	configure-operator \
 	configure-apt \
 	configure-networking \
 	configure-chef-server \
@@ -42,7 +42,7 @@ destroy-virtual-network :
 
 	virtual/bin/destroy-virtual-network.sh
 
-add-operator :
+configure-operator :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
@@ -60,11 +60,11 @@ configure-networking :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t configure-networking --limit cloud
 
-download-assets :
+sync-assets :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t download-assets --limit localhost
+		-t sync-assets --limit localhost
 
 configure-chef-server :
 
@@ -157,6 +157,12 @@ configure-file-server :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t file-server --limit bootstraps
+
+configure-host-aggregates :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/headnodes.yml \
+		-t configure-host-aggregates --limit headnodes
 
 ###############################################################################
 # helper targets

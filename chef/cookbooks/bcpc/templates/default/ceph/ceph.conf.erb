@@ -9,17 +9,20 @@ mon host = <%= @headnodes.map{ |n| n['service_ip'] }.join(',') %>
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 
+[mon]
+mon compact on start = true
+
 [osd]
 osd scrub load threshold = <%= node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
 
-#Settings to throttle OSD scrubbing
+# settings to throttle OSD scrubbing
 osd scrub begin hour = <%= @node['bcpc']['ceph']['osd_scrub_begin_hour'] %>
 osd scrub end hour = <%= @node['bcpc']['ceph']['osd_scrub_end_hour'] %>
 osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
 osd scrub chunk min = <%= @node['bcpc']['ceph']['osd_scrub_chunk_min'] %>
 osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
 
-#Settings to throttle OSD recovery parameters
+# settings to throttle OSD recovery parameters
 osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
 osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
 osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>

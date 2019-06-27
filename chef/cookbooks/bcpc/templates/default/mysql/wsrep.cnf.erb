@@ -12,7 +12,7 @@
 # The rest of defaults should work out of the box.
 
 ##
-## mysqld options _MANDATORY_ for correct opration of the cluster
+## mysqld options _MANDATORY_ for correct operation of the cluster
 ##
 [mysqld]
 
@@ -27,7 +27,7 @@ default-storage-engine=innodb
 # to avoid issues with 'bulk mode inserts' using autoinc
 innodb_autoinc_lock_mode=2
 
-# This is a must for paralell applying
+# This is a must for parallel applying
 innodb_locks_unsafe_for_binlog=1
 
 # Memory area where InnoDB caches table and index data. Default is 128M.
@@ -45,8 +45,8 @@ innodb_io_capacity=<%= node['bcpc']['mysql']['innodb_io_capacity'] %>
 innodb_buffer_pool_dump_at_shutdown=ON
 innodb_buffer_pool_load_at_startup=ON
 
-# Write to disk on each commit, but only flush once per second
-innodb_flush_log_at_trx_commit=2
+# Write to disk and flush once per second
+innodb_flush_log_at_trx_commit=0
 
 # Put each table in it's own file
 innodb_file_per_table=1
@@ -76,6 +76,15 @@ port=3306
 collation-server = utf8_general_ci
 init-connect='SET NAMES utf8'
 character-set-server = utf8
+
+# We create lots of temp tables both on disk and in memory.
+# Increase size of memory temp tables
+max_heap_table_size=<%= node['bcpc']['mysql']['max_heap_table_size'] %>
+tmp_table_size=<%= node['bcpc']['mysql']['tmp_table_size'] %>
+
+# We also need to increase some buffer sizes
+join_buffer_size=<%= node['bcpc']['mysql']['join_buffer_size'] %>
+sort_buffer_size=<%= node['bcpc']['mysql']['sort_buffer_size'] %>
 
 ##
 ## Slow query log options

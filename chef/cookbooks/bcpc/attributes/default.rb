@@ -71,7 +71,7 @@ default['bcpc']['mysql']['host'] = 'primary.mysql.service.consul'
 # if set to 0, max_connections for MySQL on heads will default to an
 # auto-calculated value.
 #
-default['bcpc']['mysql']['max_connections'] = 1024
+default['bcpc']['mysql']['max_connections'] = 8192
 
 # for pools larger than 1GB, it is recommended to divide it into multiple
 # pools of at least 1GB in size each
@@ -83,6 +83,10 @@ default['bcpc']['mysql']['innodb_io_capacity'] = 200
 default['bcpc']['mysql']['innodb_log_buffer_size'] = '8M'
 default['bcpc']['mysql']['innodb_flush_method'] = 'O_DIRECT'
 default['bcpc']['mysql']['wsrep_slave_threads'] = 4
+default['bcpc']['mysql']['max_heap_table_size'] = '16M'
+default['bcpc']['mysql']['tmp_table_size'] = '16M'
+default['bcpc']['mysql']['join_buffer_size'] = '256K'
+default['bcpc']['mysql']['sort_buffer_size'] = '256K'
 
 # slow query log settings
 default['bcpc']['mysql']['slow_query_log'] = true
