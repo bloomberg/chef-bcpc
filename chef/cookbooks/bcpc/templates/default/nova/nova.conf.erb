@@ -123,7 +123,7 @@ backend = oslo_cache.memcache_pool
 memcache_servers = <%= @headnodes.map{|n| "#{n['service_ip']}:11211" }.join(",") %>
 
 [quota]
-<% node['bcpc']['nova']['quota']['default'].each do |resource, limit| %>
+<% node['bcpc']['nova'].fetch('quota',{}).fetch('default',{}).each do |resource, limit| %>
 <%= "#{resource} = #{limit}" %>
 <% end %>
 max_age = 28800

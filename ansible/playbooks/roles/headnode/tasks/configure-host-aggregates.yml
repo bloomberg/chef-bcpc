@@ -1,0 +1,17 @@
+- name: configuring host aggregates
+  shell: |
+    name="{{ item.name }}"
+    args="{{ item.args | join(' ') }}"
+    hosts="{{ item.hosts | join(' ') }}"
+
+    if ! openstack aggregate show ${name}; then
+        openstack aggregate create ${name} ${args} --zone ${name}
+
+        for h in ${hosts}; do
+          openstack aggregate add host ${name} ${h}
+        done
+    fi
+  with_items:
+    "{{ host_aggregates }}"
+  args:
+    executable: /bin/bash
