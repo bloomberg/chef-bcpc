@@ -1,0 +1,140 @@
+[DEFAULT]
+
+# Keystone domain name which contains heat template-defined users. If
+# `stack_user_domain_id` option is set, this option is ignored. (string value)
+stack_user_domain_name = Default
+
+# Keystone username, a user with roles sufficient to manage users and projects
+# in the stack_user_domain. (string value)
+stack_domain_admin = heat_domain_admin
+
+# Keystone password for stack_domain_admin user. (string value)
+stack_domain_admin_password = <%= @config['heat']['creds']['os']['password'] %>
+
+# Number of heat-engine processes to fork and run. Will default to either to 4
+# or number of CPUs on the host, whichever is greater. (integer value)
+num_engine_workers = <%= node['bcpc']['heat']['engine_workers'] %>
+
+# For full details on the fields in the URL see the documentation of
+# oslo_messaging.TransportURL at
+# https://docs.openstack.org/oslo.messaging/latest/reference/transport.html
+# (string value)
+transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+
+
+[clients_keystone]
+
+# Unversioned keystone url in format like http://0.0.0.0:5000. (string value)
+auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
+
+
+[database]
+
+# The SQLAlchemy connection string to use to connect to the database. (string
+# value)
+# Deprecated group/name - [DEFAULT]/sql_connection
+# Deprecated group/name - [DATABASE]/sql_connection
+# Deprecated group/name - [sql]/connection
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/heat" %>
+
+# Maximum number of SQL connections to keep open in a pool. Setting a value of
+# 0 indicates no limit. (integer value)
+# Deprecated group/name - [DEFAULT]/sql_max_pool_size
+# Deprecated group/name - [DATABASE]/sql_max_pool_size
+max_pool_size = <%= node['bcpc']['heat']['database']['max_pool_size'] %>
+
+# If set, use this value for max_overflow with SQLAlchemy. (integer value)
+# Deprecated group/name - [DEFAULT]/sql_max_overflow
+# Deprecated group/name - [DATABASE]/sqlalchemy_max_overflow
+max_overflow = <%= node['bcpc']['heat']['database']['max_overflow'] %>
+
+
+[heat_api]
+
+# Address to bind the server. Useful when selecting a particular network
+# interface. (IP address value)
+bind_host = <%= node['service_ip'] %>
+
+# Number of workers for Heat service. Default value 0 means, that service will
+# start number of workers equal number of cores on server. (integer value)
+# Minimum value: 0
+workers = <%= node['bcpc']['heat']['api_workers'] %>
+
+
+[heat_api_cfn]
+
+# Address to bind the server. Useful when selecting a particular network
+# interface. (IP address value)
+bind_host = <%= node['service_ip'] %>
+
+# Number of workers for Heat service. (integer value)
+# Minimum value: 0
+workers = <%= node['bcpc']['heat']['api_workers'] %>
+
+
+[keystone_authtoken]
+
+auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
+project_name = service
+project_domain_name = Default
+user_domain_name = Default
+username = <%= @config['heat']['creds']['os']['username'] %>
+password = <%= @config['heat']['creds']['os']['password'] %>
+
+# DEPRECATED: Complete "public" Identity API endpoint. This endpoint should not
+# be an "admin" endpoint, as it should be accessible by all end users.
+# Unauthenticated clients are redirected to this endpoint to authenticate.
+# Although this endpoint should ideally be unversioned, client support in the
+# wild varies. If you're using a versioned v2 endpoint here, then this should
+# *not* be the same endpoint the service user utilizes for validating tokens,
+# because normal end users may not be able to reach that endpoint. This option
+# is deprecated in favor of www_authenticate_uri and will be removed in the S
+# release. (string value)
+# This option is deprecated for removal since Queens.
+# Its value may be silently ignored in the future.
+# Reason: The auth_uri option is deprecated in favor of www_authenticate_uri
+# and will be removed in the S  release.
+auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
+
+# Optionally specify a list of memcached server(s) to use for caching. If left
+# undefined, tokens will instead be cached in-process. (list value)
+# Deprecated group/name - [keystone_authtoken]/memcache_servers
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
+
+# Authentication type to load (string value)
+# Deprecated group/name - [keystone_authtoken]/auth_plugin
+auth_type = password
+
+
+[oslo_middleware]
+
+# DEPRECATED: The HTTP Header that will be used to determine what the original
+# request protocol scheme was, even if it was hidden by a SSL termination
+# proxy. (string value)
+# This option is deprecated for removal.
+# Its value may be silently ignored in the future.
+secure_proxy_ssl_header = X-Forwarded-Proto
+
+# Whether the application is behind a proxy or not. This determines if the
+# middleware should parse the headers or not. (boolean value)
+enable_proxy_headers_parsing = true
+
+
+[trustee]
+
+# Authentication type to load (string value)
+# Deprecated group/name - [trustee]/auth_plugin
+auth_type = password
+
+# Authentication URL (string value)
+auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
+
+# Username (string value)
+# Deprecated group/name - [trustee]/user_name
+username = <%= @config['heat']['creds']['os']['username'] %>
+
+# User's domain name (string value)
+user_domain_name = Default
+
+# User's password (string value)
+password = <%= @config['heat']['creds']['os']['password'] %>

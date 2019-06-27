@@ -1,0 +1,18 @@
+Listen <%= "#{node['service_ip']}:8000" %>
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D(us)" heat_combined
+
+<VirtualHost <%= "#{node['service_ip']}:8000" %>>
+  WSGIDaemonProcess heat-wsgi-api-cfn processes=<%= @processes %> threads=1 user=heat group=heat display-name=%{GROUP}
+  WSGIProcessGroup heat-wsgi-api-cfn
+  WSGIScriptAlias / /usr/bin/heat-wsgi-api-cfn
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  ErrorLogFormat "%{cu}t %M"
+
+  ErrorLog /var/log/apache2/heat-api-cfn_error.log
+  CustomLog /var/log/apache2/heat-api-cfn.log heat_combined
+
+  <Directory /usr/bin>
+    Require all granted
+  </Directory>
+</VirtualHost>

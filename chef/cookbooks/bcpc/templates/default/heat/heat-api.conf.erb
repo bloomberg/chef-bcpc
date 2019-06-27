@@ -1,0 +1,18 @@
+Listen <%= "#{node['service_ip']}:8004" %>
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D(us)" heat_combined
+
+<VirtualHost <%= "#{node['service_ip']}:8004" %>>
+  WSGIDaemonProcess heat-wsgi-api processes=<%= @processes %> threads=1 user=heat group=heat display-name=%{GROUP}
+  WSGIProcessGroup heat-wsgi-api
+  WSGIScriptAlias / /usr/bin/heat-wsgi-api
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  ErrorLogFormat "%{cu}t %M"
+
+  ErrorLog /var/log/apache2/heat-api_error.log
+  CustomLog /var/log/apache2/heat-api.log heat_combined
+
+  <Directory /usr/bin>
+    Require all granted
+  </Directory>
+</VirtualHost>

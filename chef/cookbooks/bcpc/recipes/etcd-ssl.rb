@@ -18,14 +18,24 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-directory '/etc/etcd/ssl' do
+group 'etcd' do
+  action :create
+end
+
+directory node['bcpc']['etcd']['ssl']['dir'] do
   action :create
   recursive true
+  mode '0750'
+  owner 'root'
+  group 'etcd'
 end
 
 # ca certificate
 file node['bcpc']['etcd']['ca']['crt']['filepath'] do
   content Base64.decode64(config['etcd']['ssl']['ca']['crt'])
+  mode '0640'
+  owner 'root'
+  group 'etcd'
 end
 
 # server and client key/certificate
@@ -33,6 +43,9 @@ end
   %w(crt key).each do |pem|
     file node['bcpc']['etcd'][type][pem]['filepath'] do
       content Base64.decode64(config['etcd']['ssl'][type][pem])
+      mode '0640'
+      owner 'root'
+      group 'etcd'
     end
   end
 end

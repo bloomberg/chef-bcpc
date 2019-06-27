@@ -89,6 +89,34 @@ default['bcpc']['catalog'] = {
       'public' => '',
     },
   },
+  'orchestration' => {
+    'name' => 'heat',
+    'description' => 'OpenStack Orchestration Service',
+    'ports' => {
+      'admin' => 8004,
+      'internal' => 8004,
+      'public' => 8004,
+    },
+    'uris' => {
+      'admin' => 'v1/%(project_id)s',
+      'internal' => 'v1/%(project_id)s',
+      'public' => 'v1/%(project_id)s',
+    },
+  },
+  'cloudformation' => {
+    'name' => 'heat-cfn',
+    'description' => 'OpenStack Orchestration Service',
+    'ports' => {
+      'admin' => 8000,
+      'internal' => 8000,
+      'public' => 8000,
+    },
+    'uris' => {
+      'admin' => 'v1/',
+      'internal' => 'v1/',
+      'public' => 'v1/',
+    },
+  },
   'network' => {
     'name' => 'neutron',
     'project' => 'neutron',

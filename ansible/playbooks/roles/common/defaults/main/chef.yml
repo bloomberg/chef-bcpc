@@ -109,6 +109,14 @@ chef_databags:
         os:
           username: cinder
           password: 3Dhip8IKy_95O9LwOkpa
+    heat:
+      creds:
+        db:
+          username: heat
+          password: 3Dhip8IKy_95O9LwOkpa
+        os:
+          username: heat
+          password: 3Dhip8IKy_95O9LwOkpa
     horizon:
       secret: XWmecfpS5wS7SMqi4un3
     libvirt:
@@ -197,6 +205,7 @@ chef_roles:
       - recipe[bcpc::neutron-head]
       - recipe[bcpc::nova-head]
       - recipe[bcpc::cinder]
+      - recipe[bcpc::heat]
       - recipe[bcpc::horizon]
       - recipe[bcpc::os-quota]
       - recipe[bcpc::flavors]
