@@ -13,16 +13,6 @@ listen nova-api
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8774 check inter 5s rise 1 fall 1
 <% end -%>
 
-listen nova-metadata-api
-  bind <%= @vip %>:8775 ssl crt /etc/haproxy/haproxy.pem
-  balance source
-  option tcpka
-  option httplog
-  option forwardfor
-<% @headnodes.each do |n| -%>
-  server <%= n['hostname'] %> <%= n['service_ip'] %>:8775 check inter 5s rise 1 fall 1
-<% end -%>
-
 listen novncproxy
   bind <%= @vip %>:6080 ssl crt /etc/haproxy/haproxy.pem
   balance source

@@ -82,12 +82,6 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ServerGroupAffinityFilter
 )
 
-# default quota
-#
-default['bcpc']['nova']['quota']['default']['ram'] = -1
-default['bcpc']['nova']['quota']['default']['cores'] = -1
-default['bcpc']['nova']['quota']['default']['instances'] = -1
-
 # per-project override quota settings
 #
 default['bcpc']['nova']['quota']['project']['admin']['ram'] = -1

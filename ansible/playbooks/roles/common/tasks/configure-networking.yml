@@ -108,3 +108,41 @@
     name: systemd-resolved
     state: restarted
   when: resolved.changed
+
+- name: configure sshd
+  template:
+    src: ssh/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  register: sshd
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+  when: sshd.changed
+
+- name: create root's .ssh directory
+  file:
+    path: /root/.ssh
+    state: directory
+    mode: 0700
+
+- name: configure root's authorized_keys
+  copy:
+    content: "{{ chef_databags[0]['ssh']['public'] | b64decode }}"
+    dest: /root/.ssh/authorized_keys
+    mode: 0644
+
+- name: configure root's private ssh key
+  copy:
+    content: "{{ chef_databags[0]['ssh']['private'] | b64decode }}"
+    dest: /root/.ssh/id_ed25519
+    mode: 0600
+
+- name: configure root's ssh config
+  copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile=/dev/null
+    dest: /root/.ssh/config

@@ -230,6 +230,10 @@ end
 #
 # install and configure components ends
 
+service 'glance-registry' do
+  action [:disable, :stop]
+end
+
 execute 'wait for glance to come online' do
   environment os_adminrc
   retries 15

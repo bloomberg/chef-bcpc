@@ -108,33 +108,3 @@ template '/etc/xinetd.d/mysqlchk' do
   )
   notifies :restart, 'service[xinetd]', :immediately
 end
-
-# rubocop:disable Style/BlockComments
-=begin
-db_cleanup_script = '/usr/local/bin/db_cleanup.sh'
-cookbook_file db_cleanup_script do
-  source 'db_cleanup.sh'
-  mode   '755'
-  owner  'root'
-  group  'root'
-end
-
-cron 'db-cleanup-daily' do
-  home    '/root'
-  user    'root'
-  minute  '0'
-  hour    '3'
-  command "/usr/local/bin/if_primary_mysql #{db_cleanup_script}"
-end
-
-template '/usr/local/bin/mysql_slow_query_check.sh' do
-  source 'mysql_slow_query_check.sh.erb'
-  mode  '755'
-  owner 'root'
-  group 'root'
-  variables(
-    slow_query_log_file: node['bcpc']['mysql-head']['slow_query_log_file']
-  )
-end
-=end
-# rubocop:enable Style/BlockComments

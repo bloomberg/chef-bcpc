@@ -10,5 +10,4 @@ long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          IO.read(File.join(File.dirname(__FILE__), '.version'))
 chef_version     '~> 14'
 
-depends 'cron', '>= 5.1.0'
 depends 'logrotate', '>= 2.2.0'
