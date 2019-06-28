@@ -9,29 +9,3 @@
 # NOTE: the tests/daemon-conf regression test script requires
 # that each "PARAMETER = VALUE" line in this file have the parameter
 # name just after a leading "#".
-
-#################################################################
-#
-# Network connectivity controls
-#
-
-# Flag listening for secure TLS connections on the public TCP/IP port.
-# NB, must pass the --listen flag to the libvirtd process for this to
-# have any effect.
-#
-# It is necessary to setup a CA and issue server certificates before
-# using this capability.
-#
-# This is enabled by default, uncomment this to disable it
-listen_tls = 0
-
-# Listen for unencrypted TCP connections on the public TCP/IP port.
-# NB, must pass the --listen flag to the libvirtd process for this to
-# have any effect.
-#
-# Using the TCP socket requires SASL authentication by default. Only
-# SASL mechanisms which support data encryption are allowed. This is
-# DIGEST_MD5 and GSSAPI (Kerberos5)
-#
-# This is disabled by default, uncomment this to enable it.
-listen_tcp = 0

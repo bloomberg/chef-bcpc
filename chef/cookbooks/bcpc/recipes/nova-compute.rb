@@ -82,11 +82,6 @@ template '/etc/libvirt/libvirtd.conf' do
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
-cookbook_file '/etc/default/libvirtd' do
-  source 'libvirt/default'
-  notifies :restart, 'service[libvirtd]', :immediately
-end
-
 cookbook_file '/etc/libvirt/qemu.conf' do
   source 'libvirt/qemu.conf'
   notifies :restart, 'service[libvirtd]', :immediately
