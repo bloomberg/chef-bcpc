@@ -2,6 +2,8 @@
 # heat
 ###############################################################################
 
+default['bcpc']['heat']['enabled'] = false
+
 # database
 default['bcpc']['heat']['db']['dbname'] = 'heat'
 default['bcpc']['heat']['database']['max_overflow'] = 10
