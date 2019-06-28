@@ -27,4 +27,4 @@ if [ "${https_proxy}" != "" ] ; then
     echo 'https_proxy='"${https_proxy}" | sudo tee -a /etc/environment
 fi
 
-sudo rm /etc/apt/apt.conf.d/70debconf
+sudo rm -f /etc/apt/apt.conf.d/70debconf
