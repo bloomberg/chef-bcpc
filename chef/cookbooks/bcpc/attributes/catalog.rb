@@ -1,7 +1,6 @@
 default['bcpc']['catalog'] = {
   'identity' => {
     'name' => 'keystone',
-    'project' => 'keystone',
     'description' => 'OpenStack Identity',
     'ports' => {
       'admin' => 35357,
@@ -16,7 +15,6 @@ default['bcpc']['catalog'] = {
   },
   'compute' => {
     'name' => 'nova',
-    'project' => 'nova',
     'description' => 'OpenStack Compute Service',
     'ports' => {
       'admin' => 8774,
@@ -31,7 +29,6 @@ default['bcpc']['catalog'] = {
   },
   'placement' => {
     'name' => 'placement',
-    'project' => 'placement',
     'description' => 'Placement API',
     'ports' => {
       'admin' => 8778,
@@ -46,7 +43,6 @@ default['bcpc']['catalog'] = {
   },
   'volumev2' => {
     'name' => 'cinderv2',
-    'project' => 'cinder',
     'description' => 'OpenStack Block Storage v2',
     'ports' => {
       'admin' => 8776,
@@ -61,7 +57,6 @@ default['bcpc']['catalog'] = {
   },
   'volumev3' => {
     'name' => 'cinderv3',
-    'project' => 'cinder',
     'description' => 'OpenStack Block Storage v3',
     'ports' => {
       'admin' => 8776,
@@ -76,7 +71,6 @@ default['bcpc']['catalog'] = {
   },
   'image' => {
     'name' => 'glance',
-    'project' => 'glance',
     'description' => 'OpenStack Image Service',
     'ports' => {
       'admin' => 9292,
@@ -119,7 +113,6 @@ default['bcpc']['catalog'] = {
   },
   'network' => {
     'name' => 'neutron',
-    'project' => 'neutron',
     'description' => 'OpenStack Networking',
     'ports' => {
       'admin' => 9696,
