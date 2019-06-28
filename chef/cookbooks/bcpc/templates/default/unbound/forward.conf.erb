@@ -1,6 +1,0 @@
-server:
-<% @config.each_pair do |k, v| %>
-  forward-zone:
-    name: <%= k %>
-    forward-addr: <%= v %>
-<% end %>

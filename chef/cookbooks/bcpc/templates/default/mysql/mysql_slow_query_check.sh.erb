@@ -1,9 +1,0 @@
-#!/bin/bash
-
-SLOW_QUERY_LOG_FILE=<%= @slow_query_log_file %>
-
-if [[ -e $SLOW_QUERY_LOG_FILE ]]; then
-	echo $(grep 'Query_time' $SLOW_QUERY_LOG_FILE | wc -l)
-else
-	echo '0'
-fi
