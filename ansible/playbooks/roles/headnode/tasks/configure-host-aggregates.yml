@@ -15,3 +15,4 @@
     "{{ host_aggregates }}"
   args:
     executable: /bin/bash
+  changed_when: false
