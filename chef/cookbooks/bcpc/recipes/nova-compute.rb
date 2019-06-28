@@ -48,11 +48,18 @@ directory '/var/lib/nova/.ssh' do
   group 'nova'
 end
 
-file '/var/lib/nova/.ssh/authorized_keys' do
-  content Base64.decode64(config['nova']['ssh']['crt']).to_s
-  mode '644'
-  owner 'nova'
-  group 'nova'
+begin
+  nova_authkeys = []
+  nova_authkeys.push(Base64.decode64(config['nova']['ssh']['crt']).to_s)
+  # add roots public key for live migrations via libvirts qemu+ssh
+  nova_authkeys.push(Base64.decode64(config['ssh']['public']).to_s)
+
+  file '/var/lib/nova/.ssh/authorized_keys' do
+    content nova_authkeys.join("\n")
+    mode '644'
+    owner 'nova'
+    group 'nova'
+  end
 end
 
 file '/var/lib/nova/.ssh/id_ed25519' do

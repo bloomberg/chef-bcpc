@@ -14,6 +14,8 @@ rbd_user = <%= node['bcpc']['cinder']['ceph']['user'] %>
 rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
+live_migration_flag = VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE, VIR_MIGRATE_TUNNELLED
+live_migration_uri = qemu+ssh://nova@%s/system
 <% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
 cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
 <% end -%>
