@@ -16,16 +16,15 @@
 
 set -e
 
-main () {
+main() {
 
-  group='operators'
+    group='operators'
 
-  # create the operators group
-  groupadd -f ${group}
+    # create the operators group
+    groupadd -f ${group}
 
-  # add the vagrant user to the operators group
-  usermod -a -G ${group} vagrant
-
+    # add the vagrant user to the operators group
+    usermod -a -G ${group} vagrant
 }
 
 main
