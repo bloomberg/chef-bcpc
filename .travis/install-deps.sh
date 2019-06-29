@@ -18,7 +18,7 @@ upgrade_os_osx () {
 }
 
 install_linters_osx () {
-    brew install shellcheck ruby23
+    brew install shellcheck ruby
     sudo pip2 install -U pip setuptools
     sudo pip install bashate flake8 ansible-lint
     gem install foodcritic cookstyle
@@ -31,12 +31,32 @@ upgrade_os_linux () {
 }
 
 install_linters_linux () {
-    shellcheck_deb='shellcheck_0.4.7-1_amd64.deb'
     sudo pip install bashate flake8 ansible-lint
     gem install foodcritic cookstyle
-    wget http://ftp.debian.org/debian/pool/main/s/shellcheck/${shellcheck_deb}
-    sudo dpkg -i ${shellcheck_deb}
     git clone https://github.com/russell/git-lint-diff.git
+}
+
+install_pytest () {
+    sudo pip install testinfra
+}
+
+install_vagrant_osx () {
+    sudo spctl --master-disable
+    brew cask install vagrant
+}
+
+install_vagrant_linux () {
+    vagrant_ver=2.2.5
+    vagrant_deb="vagrant_${vagrant_ver}_x86_64.deb"
+    wget "https://releases.hashicorp.com/vagrant/${vagrant_ver}/${vagrant_deb}"
+    sudo dpkg -i ${vagrant_deb}
+    sudo apt-get -y install libopus0 libsdl1.2debian libcaca0
+    vb_ver=6.0.8
+    vb_build=130520
+    vb_v=${vb_ver:0:3}
+    vb_deb="virtualbox-${vb_v}_${vb_ver}-${vb_build}~Ubuntu~xenial_amd64.deb"
+    wget "http://download.virtualbox.org/virtualbox/${vb_ver}/${vb_deb}"
+    sudo dpkg -i ${vb_deb}
 }
 
 remove_dbs () {
@@ -62,3 +82,5 @@ fi
 
 upgrade_os_"${TRAVIS_OS_NAME}"
 install_linters_"${TRAVIS_OS_NAME}"
+install_pytest
+install_vagrant_"${TRAVIS_OS_NAME}"

@@ -20,6 +20,7 @@ config = data_bag_item(region, 'config')
 
 group 'etcd' do
   action :create
+  append true
 end
 
 directory node['bcpc']['etcd']['ssl']['dir'] do

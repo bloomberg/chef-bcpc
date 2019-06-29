@@ -17,7 +17,12 @@
 
 require 'yaml'
 
-# load the vm topoloy profile
+def local_cache(basebox_name)
+  user_data_path = Vagrant.user_data_path.to_s
+  File.join(user_data_path, 'cache', 'apt', basebox_name)
+end
+
+# load the vm topology profile
 topology = './topology/topology.yml'
 topology_overrides = './topology/topology.overrides.yml'
 
@@ -49,10 +54,11 @@ Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
   config.vm.box = 'bento/ubuntu-18.04'
   config.vm.box_download_insecure = true
+  cache_dir = local_cache(config.vm.box)
+  config.vm.synced_folder cache_dir, '/var/cache/apt/archives', create: true
 
   topology['nodes'].each do |node|
     vm_name = node['host']
-
     # get hardware profile for node
     hw_profiles = hardware['profiles']
     hw_profile = hw_profiles[node['hardware_profile']]

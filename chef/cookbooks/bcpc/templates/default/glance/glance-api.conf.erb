@@ -39,7 +39,7 @@ disk_formats = ami,ari,aki,vhd,vhdx,vmdk,raw,qcow2,vdi,iso,ploop.root-tar
 
 
 [keystone_authtoken]
-auth_uri = https://<%= node['bcpc']['cloud']['fqdn'] %>:5000/v2.0/
+auth_uri = https://<%= node['bcpc']['cloud']['fqdn'] %>:5000/v3/
 auth_url = https://<%= node['bcpc']['cloud']['fqdn'] %>:35357
 memcached_servers = <%= @headnodes.map{|x| "#{x['service_ip']}:11211" }.join(',') %>
 auth_type = password

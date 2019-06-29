@@ -1,6 +1,0 @@
-<% if @conf['proxy']['enabled'] %>
-<% @conf['proxies'].each do |schema,url| -%>
-Acquire::<%= schema %>::Proxy "<%= url %>";
-<% end %>
-<% end -%>
-APT::Get::AllowUnauthenticated "<%= @conf['allow_unauthenticated'] %>";
