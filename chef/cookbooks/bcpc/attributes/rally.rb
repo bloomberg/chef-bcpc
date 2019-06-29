@@ -20,5 +20,4 @@ default['bcpc']['rally']['install_dir'] = install_dir
 default['bcpc']['rally']['venv_dir'] = venv_dir
 default['bcpc']['rally']['conf_dir'] = conf_dir
 default['bcpc']['rally']['database_dir'] = database_dir
-default['bcpc']['rally']['deployment']['version'] = 'v2.0'
 default['bcpc']['rally']['keystone']['version'] = 'v3'
