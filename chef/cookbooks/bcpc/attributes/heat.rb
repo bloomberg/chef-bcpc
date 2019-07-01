@@ -2,7 +2,7 @@
 # heat
 ###############################################################################
 
-default['bcpc']['heat']['enabled'] = false
+default['bcpc']['heat']['enabled'] = true
 
 # database
 default['bcpc']['heat']['db']['dbname'] = 'heat'
