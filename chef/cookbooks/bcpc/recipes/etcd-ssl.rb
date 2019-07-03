@@ -39,14 +39,30 @@ file node['bcpc']['etcd']['ca']['crt']['filepath'] do
   group 'etcd'
 end
 
-# server and client key/certificate
-%w(server client-ro client-rw).each do |type|
-  %w(crt key).each do |pem|
-    file node['bcpc']['etcd'][type][pem]['filepath'] do
-      content Base64.decode64(config['etcd']['ssl'][type][pem])
-      mode '0640'
-      owner 'root'
-      group 'etcd'
+if headnode?
+  # server (root) and read-write client ssl certs
+  %w(server client-rw).each do |type|
+    %w(crt key).each do |pem|
+      file node['bcpc']['etcd'][type][pem]['filepath'] do
+        content Base64.decode64(config['etcd']['ssl'][type][pem])
+        mode '0640'
+        owner 'root'
+        group 'etcd'
+      end
+    end
+  end
+end
+
+if worknode?
+  # read-only client ssl certs
+  %w(client-ro).each do |type|
+    %w(crt key).each do |pem|
+      file node['bcpc']['etcd'][type][pem]['filepath'] do
+        content Base64.decode64(config['etcd']['ssl'][type][pem])
+        mode '0640'
+        owner 'root'
+        group 'etcd'
+      end
     end
   end
 end
