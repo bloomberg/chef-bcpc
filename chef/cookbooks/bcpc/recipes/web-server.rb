@@ -1,5 +1,5 @@
 # Cookbook:: bcpc
-# Recipe:: file-server
+# Recipe:: web-server
 #
 # Copyright:: 2019 Bloomberg Finance L.P.
 #
@@ -19,6 +19,6 @@ package 'nginx'
 service 'nginx'
 
 template '/etc/nginx/sites-available/default' do
-  source 'file_server/default.erb'
+  source 'web_server/default.erb'
   notifies :restart, 'service[nginx]', :immediately
 end

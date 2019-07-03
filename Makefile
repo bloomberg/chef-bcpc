@@ -17,7 +17,7 @@ all : \
 	configure-chef-server \
 	configure-chef-workstation \
 	configure-chef-nodes \
-	configure-file-server \
+	configure-web-server \
 	run-chef-client \
 	add-cloud-images \
 	register-compute-nodes
@@ -152,11 +152,11 @@ upload-all :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t upload-bcpc --limit bootstraps
 
-configure-file-server :
+configure-web-server :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t file-server --limit bootstraps
+		-t web-server --limit bootstraps
 
 configure-host-aggregates :
 

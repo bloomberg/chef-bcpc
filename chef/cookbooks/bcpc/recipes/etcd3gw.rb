@@ -19,10 +19,10 @@ package 'python-futurist'
 
 target = node['bcpc']['etcd3gw']['remote_file']['file']
 save_path = "#{Chef::Config[:file_cache_path]}/#{target}"
-file_server_url = node['bcpc']['file_server']['url']
+web_server_url = node['bcpc']['web_server']['url']
 
 remote_file save_path do
-  source "#{file_server_url}/#{target}"
+  source "#{web_server_url}/#{target}"
   checksum node['bcpc']['etcd3gw']['remote_file']['checksum']
   notifies :run, 'bash[install etcd3gw]', :immediately
 end

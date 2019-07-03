@@ -8,7 +8,7 @@ default['bcpc']['cloud']['region'] = node.chef_environment
 # file server
 ###############################################################################
 
-default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
+default['bcpc']['web_server']['url'] = 'http://bootstrap:8080/files/'
 
 ###############################################################################
 # ubuntu
