@@ -7,8 +7,8 @@ dns_domain = <%= node['bcpc']['cloud']['domain'] %>
 etcd_host = 127.0.0.1
 etcd_port = 2379
 etcd_ca_cert_file = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
-etcd_cert_file = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
-etcd_key_file = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>
+etcd_cert_file = <%= node['bcpc']['etcd']['client-ro']['crt']['filepath'] %>
+etcd_key_file = <%= node['bcpc']['etcd']['client-ro']['key']['filepath'] %>
 
 [oslo_concurrency]
 lock_path = $state_path/lock

@@ -40,7 +40,7 @@ file node['bcpc']['etcd']['ca']['crt']['filepath'] do
 end
 
 # server and client key/certificate
-%w(server client).each do |type|
+%w(server client-ro client-rw).each do |type|
   %w(crt key).each do |pem|
     file node['bcpc']['etcd'][type][pem]['filepath'] do
       content Base64.decode64(config['etcd']['ssl'][type][pem])
