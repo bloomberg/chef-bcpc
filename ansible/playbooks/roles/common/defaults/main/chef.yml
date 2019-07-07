@@ -53,9 +53,9 @@ chef_databags:
         osd:
           key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
         rgw:
-          key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
+          key: AQBLfRtdWPC3FhAA8uMHA69x7dbKIMuYsMHHXw==
         rbd:
-          key: AQBNiBlb4tnNMxAAJRMAVzczIADaHD7CDEw9Hg==
+          key: AQBQfRtdEhH7BRAAmCVkTxnTqdm/k4dadzK7lA==
       client:
         admin:
           key: AQBMiBlbzzxcBhAAd2HrPAGJoMHhCH6pF3aNkA==
@@ -64,7 +64,7 @@ chef_databags:
         glance:
           key: AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ==
         nova:
-          key: AQDKpyJbV9CYIRAA6aDb1mQb/Q+0hLmezA5iOQ==
+          key: AQBRfRtdLrfAFhAA48geldH/5rBKiBg/5mkoXQ==
     etcd:
       users:
         - username: root
@@ -91,11 +91,11 @@ chef_databags:
       creds:
         db:
           username: pdns
-          password: DUBSOwwBeqPj
+          password: s0fB4IV1cJGoVJcq0M6j
         webserver:
-          password: DUBSOwwBeqPj
+          password: c9KBy2dnry6KHxqKrjOx
         api:
-          key: DUBSOwwBeqPj
+          key: aFlXzmZKhmGIUzINRKpW
     keystone:
       db:
         username: keystone
@@ -112,23 +112,23 @@ chef_databags:
           password: 3Dhip8IKy_95O9LwOkpa
         os:
           username: glance
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: imQo35BowPbPx46OkYdR
     cinder:
       creds:
         db:
           username: cinder
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: R8H8IhmTOZr2yMCFYc7G
         os:
           username: cinder
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: EElHi6Zmasnx0MWno92N
     heat:
       creds:
         db:
           username: heat
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: dRnysxpuoQxINtSJASKw
         os:
           username: heat
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: qEEIxT47kXzYJaxEnQJw
     horizon:
       secret: XWmecfpS5wS7SMqi4un3
     libvirt:
@@ -137,18 +137,18 @@ chef_databags:
       creds:
         db:
           username: neutron
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: vobFVWV6ncl00RYHEUM3
         os:
           username: neutron
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: hIoEog8jsvVmFkfLn0Dj
     nova:
       creds:
         db:
           username: nova
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: j16SvTX95cqg5XjPxTLI
         os:
           username: nova
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: qHa04uIc1NnkBL9x3YZR
       ssh:
         crt: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUhBRjhJYVJiRCtpT0tQR0ZQclpHcGQvSnQ1MEh0SWwyZzRPbGZTcWF5dHAK
         key: LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNCd0JmQ0drV3cvb2ppanhoVDYyUnFYZnliZWRCN1NKZG9PRHBYMHFtc3JhUUFBQUlnbGRDV2pKWFFsCm93QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQndCZkNHa1d3L29qaWp4aFQ2MlJxWGZ5YmVkQjdTSmRvT0RwWDBxbXNyYVEKQUFBRUJBYmNzRnVIRkpDKzk5c25xZXhSbTRrSWMzRy93K2M3Y1RGZ3FHaURoeVNIQUY4SWFSYkQraU9LUEdGUHJaR3BkLwpKdDUwSHRJbDJnNE9sZlNxYXl0cEFBQUFBQUVDQXdRRgotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K  # noqa 204
@@ -156,7 +156,7 @@ chef_databags:
       creds:
         os:
           username: placement
-          password: 3Dhip8IKy_95O9LwOkpa
+          password: vB2h9aRbSzB8iqtrQsgt
     mysql:
       users:
         sst:
