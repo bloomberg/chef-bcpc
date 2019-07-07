@@ -5,5 +5,5 @@ spec:
   datastoreType: etcdv3
   etcdEndpoints: <%= @etcd_endpoints %>
   etcdCACertFile: <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
-  etcdCertFile: <%= node['bcpc']['etcd']['client-rw']['crt']['filepath'] %>
-  etcdKeyFile: <%= node['bcpc']['etcd']['client-rw']['key']['filepath'] %>
+  etcdCertFile: <%= node['bcpc']['etcd'][@cert_type]['crt']['filepath'] %>
+  etcdKeyFile: <%= node['bcpc']['etcd'][@cert_type]['key']['filepath'] %>

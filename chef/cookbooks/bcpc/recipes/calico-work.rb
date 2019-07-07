@@ -54,6 +54,14 @@ template '/etc/calico/felix.cfg' do
   notifies :restart, 'service[calico-felix]', :immediately
 end
 
+template '/etc/calico/calicoctl.cfg' do
+  source 'calico/calicoctl.cfg.erb'
+  variables(
+    cert_type: 'client-ro',
+    etcd_endpoints: etcd_endpoints.join(',')
+  )
+end
+
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
   mode '644'

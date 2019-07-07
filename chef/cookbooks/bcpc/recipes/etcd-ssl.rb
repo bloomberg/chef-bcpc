@@ -55,14 +55,12 @@ end
 
 if worknode?
   # read-only client ssl certs
-  %w(client-ro).each do |type|
-    %w(crt key).each do |pem|
-      file node['bcpc']['etcd'][type][pem]['filepath'] do
-        content Base64.decode64(config['etcd']['ssl'][type][pem])
-        mode '0640'
-        owner 'root'
-        group 'etcd'
-      end
+  %w(crt key).each do |pem|
+    file node['bcpc']['etcd']['client-ro'][pem]['filepath'] do
+      content Base64.decode64(config['etcd']['ssl']['client-ro'][pem])
+      mode '0640'
+      owner 'root'
+      group 'etcd'
     end
   end
 end
