@@ -22,10 +22,10 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
 etcd_users = config['etcd']['users']
-root = etcd_users.find{|user| user['username'] == 'root'}
-server = etcd_users.find{|user| user['username'] == 'server'}
-client_ro = etcd_users.find{|user| user['username'] == 'client-ro'}
-client_rw = etcd_users.find{|user| user['username'] == 'client-rw'}
+root = etcd_users.find { |user| user['username'] == 'root' }
+server = etcd_users.find { |user| user['username'] == 'server' }
+client_ro = etcd_users.find { |user| user['username'] == 'client-ro' }
+client_rw = etcd_users.find { |user| user['username'] == 'client-rw' }
 
 begin
   # attempt to register this node with an existing etcd cluster if one exists

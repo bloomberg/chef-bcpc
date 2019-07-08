@@ -108,8 +108,7 @@ def os_adminrc
   }
 end
 
-def etcdctl_env()
-
+def etcdctl_env
   if headnode?
     return {
       'ETCDCTL_API' => '3',
@@ -128,8 +127,7 @@ def etcdctl_env()
     }
   end
 
-  raise "unknown node type for etcdctl environment parameters"
-
+  raise 'unknown node type for etcdctl environment parameters'
 end
 
 def get_address(cidr)
