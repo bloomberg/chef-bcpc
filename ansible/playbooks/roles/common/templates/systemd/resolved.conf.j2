@@ -3,7 +3,7 @@
 ###############################################################################
 
 [Resolve]
-DNS={{ cloud_ip }}
+DNS={{ cloud_ip }} {{ dns['servers'] | join (' ') }}
 FallbackDNS={{ dns['servers'] | join (' ') }}
 Cache=no
 #Domains=

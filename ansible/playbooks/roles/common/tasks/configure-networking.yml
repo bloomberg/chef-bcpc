@@ -16,6 +16,26 @@
     src: etc/hosts.j2
     dest: /etc/hosts
 
+- name: configure systemd-resolved
+  template:
+    src: systemd/resolved.conf.j2
+    dest: /etc/systemd/resolved.conf
+  register: resolved
+
+- name: resolv.conf symlink
+  file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+  register: resolved
+
+- name: restart systemd-resolved
+  service:
+    name: systemd-resolved
+    state: restarted
+  when: resolved.changed
+
 - name: install bird
   apt:
     name: bird
@@ -88,26 +108,6 @@
 - name: netplan apply
   command: netplan apply
   when: netplan.changed
-
-- name: configure systemd-resolved
-  template:
-    src: systemd/resolved.conf.j2
-    dest: /etc/systemd/resolved.conf
-  register: resolved
-
-- name: resolv.conf symlink
-  file:
-    src: /run/systemd/resolve/resolv.conf
-    dest: /etc/resolv.conf
-    state: link
-    force: true
-  register: resolved
-
-- name: restart systemd-resolved
-  service:
-    name: systemd-resolved
-    state: restarted
-  when: resolved.changed
 
 - name: configure sshd
   template:
