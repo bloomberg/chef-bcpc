@@ -261,6 +261,12 @@ template '/etc/apache2/sites-available/heat-api.conf' do
   notifies :restart, 'service[heat-api-apache2]', :immediately
 end
 
+execute 'wait for heat api to become available' do
+  environment os_adminrc
+  retries 15
+  command 'openstack stack list'
+end
+
 # configure heat-api-cfn service
 template '/etc/apache2/sites-available/heat-api-cfn.conf' do
   source 'heat/heat-api-cfn.conf.erb'
