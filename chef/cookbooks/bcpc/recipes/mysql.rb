@@ -32,30 +32,31 @@ service 'xinetd'
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 mysqladmin = mysqladmin()
+mysql_init_db_file = "#{Chef::Config[:file_cache_path]}/mysql-init-db.sql"
+mysql_init_done_file = '/var/lib/mysql/done'
 
-file '/tmp/mysql-init-db.sql' do
+file mysql_init_db_file do
   action :nothing
 end
 
-template '/tmp/mysql-init.sql' do
+template mysql_init_db_file do
   source 'mysql/init.sql.erb'
 
   variables(
     users: config['mysql']['users']
   )
 
-  notifies :run, 'execute[configure mysql db]', :immediately
-
-  not_if <<-DOC
-    mysql -u #{mysqladmin['username']} mysql \
-      -e 'select user from user' | grep sst
-  DOC
+  notifies :run, 'bash[configure mysql db]', :immediately
+  not_if { ::File.exist?(mysql_init_done_file) }
 end
 
-execute 'configure mysql db' do
+bash 'configure mysql db' do
   action :nothing
-  command "mysql -u #{mysqladmin['username']} < /tmp/mysql-init.sql"
-  notifies :delete, 'file[/tmp/mysql-init-db.sql]', :immediately
+  code <<-EOH
+    mysql -u #{mysqladmin['username']} < #{mysql_init_db_file} && \
+    touch #{mysql_init_done_file}
+  EOH
+  notifies :delete, "file[#{mysql_init_db_file}]", :immediately
 end
 
 template '/root/.my.cnf' do

@@ -1,0 +1,33 @@
+[Unit]
+Description=etcd - highly-available key value store
+Documentation=https://github.com/coreos/etcd
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+Environment=data_dir=/var/lib/etcd
+ExecStartPre=/bin/mkdir -p ${data_dir}
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd \
+    --name=<%= node['fqdn'] %> \
+    --data-dir=${data_dir} \
+    --client-cert-auth \
+    --peer-auto-tls \
+    --trusted-ca-file=<%= node['bcpc']['etcd']['ca']['crt']['filepath'] %> \
+    --cert-file=<%= node['bcpc']['etcd']['server']['crt']['filepath'] %> \
+    --key-file=<%= node['bcpc']['etcd']['server']['key']['filepath'] %> \
+    --advertise-client-urls=https://<%= node['service_ip'] %>:2379 \
+    --listen-client-urls=https://<%= node['service_ip'] %>:2379,https://127.0.0.1:2379 \
+    --listen-peer-urls=https://<%= node['service_ip'] %>:2380 \
+    --initial-advertise-peer-urls=https://<%= node['service_ip'] %>:2380 \
+    --initial-cluster-token=<%= node['bcpc']['cloud']['region'] %>-etcd-cluster-01 \
+    --initial-cluster=<%= @initial_cluster %> \
+    --initial-cluster-state=<%= @initial_cluster_state %>
+
+[Install]
+WantedBy=multi-user.target

@@ -27,6 +27,16 @@ server = etcd_users.find { |user| user['username'] == 'server' }
 client_ro = etcd_users.find { |user| user['username'] == 'client-ro' }
 client_rw = etcd_users.find { |user| user['username'] == 'client-rw' }
 
+# joined state file
+etcd_joined_file = '/var/lib/etcd/joined'
+
+service 'etcd'
+
+directory '/var/lib/etcd' do
+  action :create
+  recursive true
+end
+
 begin
   # attempt to register this node with an existing etcd cluster if one exists
   unless init_cloud?
@@ -36,6 +46,7 @@ begin
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
       environment etcdctl_env
+      creates etcd_joined_file
       code <<-DOC
         member=''
 
@@ -69,6 +80,7 @@ begin
 
         if ${cmd}; then
           echo "successfully registered #{node['fqdn']}"
+          touch #{etcd_joined_file}
           exit 0
         fi
 
@@ -96,44 +108,27 @@ else
   initial_cluster = initial_cluster.join(',')
 end
 
-systemd_unit 'etcd.service' do
-  action %i(create enable restart)
+template '/etc/systemd/system/etcd.service' do
+  source 'etcd/etcd.service.erb'
+  variables(
+    initial_cluster: initial_cluster,
+    initial_cluster_state: initial_cluster_state
+  )
 
-  content <<-DOC.gsub(/^\s+/, '')
-    [Unit]
-    Description=etcd - highly-available key value store
-    Documentation=https://github.com/coreos/etcd
-    After=network.target
-    Wants=network-online.target
+  notifies :run, 'execute[enable etcd service]', :immediately
+  notifies :run, 'execute[reload systemd]', :immediately
+  notifies :restart, 'service[etcd]', :immediately
+end
 
-    [Service]
-    Type=notify
-    Environment=data_dir=/var/lib/etcd
-    ExecStartPre=/bin/mkdir -p ${data_dir}
-    Restart=always
-    RestartSec=5s
-    LimitNOFILE=40000
-    TimeoutStartSec=0
+execute 'enable etcd service' do
+  action :nothing
+  command 'systemctl enable etcd.service'
+  not_if 'systemctl is-enabled etcd.service'
+end
 
-    ExecStart=/usr/local/bin/etcd \\
-      --name=#{node['fqdn']} \\
-      --data-dir=${data_dir} \\
-      --client-cert-auth \\
-      --peer-auto-tls \\
-      --trusted-ca-file=#{node['bcpc']['etcd']['ca']['crt']['filepath']} \\
-      --cert-file=#{node['bcpc']['etcd']['server']['crt']['filepath']} \\
-      --key-file=#{node['bcpc']['etcd']['server']['key']['filepath']} \\
-      --advertise-client-urls=https://#{node['service_ip']}:2379 \\
-      --listen-client-urls=https://#{node['service_ip']}:2379,https://127.0.0.1:2379 \\
-      --listen-peer-urls=https://#{node['service_ip']}:2380 \\
-      --initial-advertise-peer-urls=https://#{node['service_ip']}:2380 \\
-      --initial-cluster-token=#{node['bcpc']['cloud']['region']}-etcd-cluster-01 \\
-      --initial-cluster=#{initial_cluster} \\
-      --initial-cluster-state=#{initial_cluster_state}
-
-    [Install]
-    WantedBy=multi-user.target
-  DOC
+execute 'reload systemd' do
+  action :nothing
+  command 'systemctl daemon-reload'
 end
 
 execute 'wait for etcd membership' do

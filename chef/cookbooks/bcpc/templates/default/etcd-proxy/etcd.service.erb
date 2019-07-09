@@ -1,0 +1,17 @@
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos/etcd
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd gateway start \
+  --endpoints=<%= @etcd_endpoints.join(',') %> \
+  --listen-addr=127.0.0.1:2379
+
+[Install]
+WantedBy=multi-user.target
