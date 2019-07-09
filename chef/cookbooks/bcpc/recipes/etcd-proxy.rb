@@ -51,5 +51,5 @@ end
 execute 'wait for etcd membership' do
   environment etcdctl_env
   retries 5
-  command "etcdctl member list"
+  command 'etcdctl member list'
 end
