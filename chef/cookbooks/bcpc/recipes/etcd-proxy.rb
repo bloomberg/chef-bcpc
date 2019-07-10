@@ -1,7 +1,7 @@
-# Cookbook Name:: bcpc
+# Cookbook:: bcpc
 # Recipe:: etcd-proxy
 #
-# Copyright 2019, Bloomberg Finance L.P.
+# Copyright:: 2019 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,31 +18,38 @@
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
 
+service 'etcd'
+
 headnodes = headnodes(all: true)
 
 etcd_endpoints = headnodes.collect do |headnode|
   "https://#{headnode['service_ip']}:2379"
 end
 
-systemd_unit 'etcd.service' do
-  action %i(create enable restart)
-  content <<-DOC.gsub(/^\s+/, '')
-    [Unit]
-    Description=etcd
-    Documentation=https://github.com/coreos/etcd
+template '/etc/systemd/system/etcd.service' do
+  source 'etcd-proxy/etcd.service.erb'
+  variables(
+    etcd_endpoints: etcd_endpoints
+  )
 
-    [Service]
-    Type=notify
-    Restart=always
-    RestartSec=5s
-    LimitNOFILE=40000
-    TimeoutStartSec=0
+  notifies :run, 'execute[enable etcd service]', :immediately
+  notifies :run, 'execute[reload systemd]', :immediately
+  notifies :restart, 'service[etcd]', :immediately
+end
 
-    ExecStart=/usr/local/bin/etcd gateway start \\
-      --endpoints=#{etcd_endpoints.join(',')} \\
-      --listen-addr=127.0.0.1:2379
+execute 'enable etcd service' do
+  action :nothing
+  command 'systemctl enable etcd.service'
+  not_if 'systemctl is-enabled etcd.service'
+end
 
-    [Install]
-    WantedBy=multi-user.target
-  DOC
+execute 'reload systemd' do
+  action :nothing
+  command 'systemctl daemon-reload'
+end
+
+execute 'wait for etcd membership' do
+  environment etcdctl_env
+  retries 5
+  command 'etcdctl member list'
 end

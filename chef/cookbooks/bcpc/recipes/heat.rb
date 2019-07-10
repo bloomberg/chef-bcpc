@@ -1,7 +1,7 @@
-# Cookbook Name:: bcpc
+# Cookbook:: bcpc
 # Recipe:: heat
 #
-# Copyright 2019, Bloomberg Finance L.P.
+# Copyright:: 2019 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+return unless node['bcpc']['heat']['enabled']
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
@@ -257,6 +259,12 @@ template '/etc/apache2/sites-available/heat-api.conf' do
   )
   notifies :run, 'execute[enable heat-api]', :immediately
   notifies :restart, 'service[heat-api-apache2]', :immediately
+end
+
+execute 'wait for heat api to become available' do
+  environment os_adminrc
+  retries 15
+  command 'openstack stack list'
 end
 
 # configure heat-api-cfn service

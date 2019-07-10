@@ -2,5 +2,5 @@
 DatastoreType = etcdv3
 EtcdEndpoints = <%= @etcd_endpoints %>
 EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
-EtcdCertFile = <%= node['bcpc']['etcd']['client']['crt']['filepath'] %>
-EtcdKeyFile = <%= node['bcpc']['etcd']['client']['key']['filepath'] %>
+EtcdCertFile = <%= node['bcpc']['etcd']['client-ro']['crt']['filepath'] %>
+EtcdKeyFile = <%= node['bcpc']['etcd']['client-ro']['key']['filepath'] %>

@@ -1,7 +1,7 @@
-# Cookbook Name:: bcpc
+# Cookbook:: bcpc
 # Recipe:: calico-head
 #
-# Copyright 2019, Bloomberg Finance L.P.
+# Copyright:: 2019 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ end
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
   variables(
+    cert_type: 'client-rw',
     etcd_endpoints: etcd_endpoints.join(',')
   )
 end

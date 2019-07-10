@@ -9,7 +9,9 @@ default['bcpc']['etcd']['remote']['checksum'] = '1620a59150ec0a0124a65540e238912
 
 default['bcpc']['etcd']['ssl']['dir'] = '/etc/etcd/ssl'
 default['bcpc']['etcd']['ca']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/ca.pem"
-default['bcpc']['etcd']['client']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client.pem"
-default['bcpc']['etcd']['client']['key']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-key.pem"
+default['bcpc']['etcd']['client-ro']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-ro.pem"
+default['bcpc']['etcd']['client-ro']['key']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-ro-key.pem"
+default['bcpc']['etcd']['client-rw']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-rw.pem"
+default['bcpc']['etcd']['client-rw']['key']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-rw-key.pem"
 default['bcpc']['etcd']['server']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/server.pem"
 default['bcpc']['etcd']['server']['key']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/server-key.pem"

@@ -1,7 +1,7 @@
-# Cookbook Name:: bcpc
+# Cookbook:: bcpc
 # Recipe:: glance
 #
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright:: 2019 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -79,12 +79,11 @@ end
 begin
   type = 'image'
   service = node['bcpc']['catalog'][type]
-  project = service['project']
+  name = service['name']
 
-  execute "create the #{project} #{type} service" do
+  execute "create the #{name} #{type} service" do
     environment os_adminrc
 
-    name = service['name']
     desc = service['description']
 
     command <<-DOC
@@ -97,7 +96,7 @@ begin
   %w(admin internal public).each do |uri|
     url = generate_service_catalog_uri(service, uri)
 
-    execute "create the #{project} #{type} #{uri} endpoint" do
+    execute "create the #{name} #{type} #{uri} endpoint" do
       environment os_adminrc
 
       command <<-DOC
