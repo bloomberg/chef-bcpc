@@ -73,8 +73,9 @@ execute 'install rally in virtualenv' do
   user 'rally'
   command <<-EOH
     virtualenv --no-download #{venv_dir}
-    #{venv_dir}/bin/pip install --upgrade pbr
-    #{venv_dir}/bin/pip install --upgrade rally-openstack==#{version}
+    . #{venv_dir}/bin/activate
+    pip install --upgrade pbr
+    pip install --upgrade rally-openstack==#{version}
   EOH
   not_if "rally --version | grep rally-openstack | grep #{version}"
 end
