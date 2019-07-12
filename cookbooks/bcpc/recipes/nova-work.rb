@@ -267,6 +267,11 @@ unless node['bcpc']['enabled']['neutron']
     shasums_after_apply  'python-nova-objects-instance-mitaka-AFTER.SHASUMS'
     only_if "dpkg --compare-versions $(dpkg -s python-nova | egrep '^Version:' | awk '{ print $NF }') ge 2:13.1.1 && dpkg --compare-versions $(dpkg -s python-nova | egrep '^Version:' | awk '{ print $NF }') lt 2:14.0.0"
   end
+
+  cookbook_file '/usr/lib/python2.7/dist-packages/nova/network/model.py' do
+    source 'nova-network-model.py'
+    notifies :restart, 'service[nova-network]', :immediately
+  end
 end
 
 include_recipe 'bcpc::calico-compute' if node['bcpc']['enabled']['neutron']
