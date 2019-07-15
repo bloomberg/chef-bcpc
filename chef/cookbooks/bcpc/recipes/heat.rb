@@ -215,16 +215,52 @@ service 'heat-api-cfn' do
   action [:stop, :disable]
 end
 
-service 'heat-api-apache2' do
-  service_name 'apache2'
-end
-
-service 'heat-api-cfn-apache2' do
+service 'heat-apis-apache2' do
   service_name 'apache2'
 end
 
 service 'haproxy-heat' do
   service_name 'haproxy'
+end
+
+execute 'wait for heat api to become available' do
+  environment os_adminrc
+  retries 15
+  command 'openstack stack list'
+  action :nothing
+  subscribes :run, 'service[heat-apis-apache2]', :immediately
+end
+
+# configure heat-api service
+template '/etc/apache2/sites-available/heat-api.conf' do
+  source 'heat/heat-api.conf.erb'
+  variables(
+    processes: node['bcpc']['heat']['api_workers']
+  )
+  notifies :run, 'execute[enable heat-api]', :immediately
+  notifies :create, 'template[/etc/apache2/sites-available/heat-api-cfn.conf]',
+           :immediately
+  notifies :create, 'template[/tmp/heat-create-db.sql]', :immediately
+end
+
+execute 'enable heat-api' do
+  command 'a2ensite heat-api'
+  not_if 'a2query -s heat-api'
+end
+
+# configure heat-api-cfn service
+template '/etc/apache2/sites-available/heat-api-cfn.conf' do
+  source 'heat/heat-api-cfn.conf.erb'
+  variables(
+    processes: node['bcpc']['heat']['api_workers']
+  )
+  notifies :run, 'execute[enable heat-api-cfn]', :immediately
+  notifies :create, 'template[/tmp/heat-create-db.sql]', :immediately
+end
+
+execute 'enable heat-api-cfn' do
+  command 'a2ensite heat-api-cfn'
+  not_if 'a2query -s heat-api-cfn'
 end
 
 # create policy.d dir for policy overrides
@@ -251,36 +287,6 @@ template '/tmp/heat-create-db.sql' do
   ", environment: { 'MYSQL_PWD' => mysqladmin['password'] }
 end
 
-# configure heat-api service
-template '/etc/apache2/sites-available/heat-api.conf' do
-  source 'heat/heat-api.conf.erb'
-  variables(
-    processes: node['bcpc']['heat']['api_workers']
-  )
-  notifies :run, 'execute[enable heat-api]', :immediately
-  notifies :restart, 'service[heat-api-apache2]', :immediately
-end
-
-# configure heat-api-cfn service
-template '/etc/apache2/sites-available/heat-api-cfn.conf' do
-  source 'heat/heat-api-cfn.conf.erb'
-  variables(
-    processes: node['bcpc']['heat']['api_workers']
-  )
-  notifies :run, 'execute[enable heat-api-cfn]', :immediately
-  notifies :restart, 'service[heat-api-cfn-apache2]', :immediately
-end
-
-execute 'enable heat-api' do
-  command 'a2ensite heat-api'
-  not_if 'a2query -s heat-api'
-end
-
-execute 'enable heat-api-cfn' do
-  command 'a2ensite heat-api-cfn'
-  not_if 'a2query -s heat-api-cfn'
-end
-
 execute 'create heat database' do
   action :nothing
   environment('MYSQL_PWD' => mysqladmin['password'])
@@ -288,8 +294,6 @@ execute 'create heat database' do
   notifies :delete, 'file[/tmp/heat-create-db.sql]', :immediately
   notifies :create, 'template[/etc/heat/heat.conf]', :immediately
   notifies :run, 'execute[heat-manage db_sync]', :immediately
-  notifies :restart, 'service[heat-api-apache2]', :immediately
-  notifies :restart, 'service[heat-api-cfn-apache2]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
 end
 
@@ -309,7 +313,7 @@ template '/etc/heat/heat.conf' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[heat-api-apache2]', :immediately
-  notifies :restart, 'service[heat-api-cfn-apache2]', :immediately
+  notifies :run, 'execute[heat-manage db_sync]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
+  notifies :restart, 'service[heat-apis-apache2]', :immediately
 end

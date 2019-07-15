@@ -187,3 +187,21 @@ ceph-destroy-osds:
 		-t ceph-destroy-osds \
 		-e "destroy_osds=$(destroy_osds)" \
 		--limit storagenodes
+
+###############################################################################
+# virtual environment helper targets
+###############################################################################
+
+vtunnel:
+
+	cd virtual ;\
+	ssh_tunnel_conf=/tmp/ssh-config.$$$$ ;\
+	vagrant ssh-config r1n0 > $${ssh_tunnel_conf} ;\
+	ssh -f -N -F $${ssh_tunnel_conf} -L 8443:10.65.0.254:443 -L 6080:10.65.0.254:6080 r1n0 ;\
+	rm $${ssh_tunnel_conf} ;\
+	echo "\nOpenStack Dashboard available at: https://127.0.0.1:8443/horizon/\n"
+
+host ?= r1n1
+vssh:
+
+	cd virtual; vagrant ssh $(host) -c 'sudo -i'

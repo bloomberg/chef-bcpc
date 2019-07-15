@@ -1,6 +1,6 @@
 DELETE FROM mysql.user WHERE user='';
 
-ALTER USER 'root'@'localhost' \
+ALTER USER IF EXISTS 'root'@'localhost' \
   IDENTIFIED WITH mysql_native_password BY '<%= @users['root']['password'] %>';
 
 UPDATE mysql.user \

@@ -58,7 +58,7 @@ Vagrant.configure(2) do |config|
     # Create 3 TORs
     (1..3).each do |i|
       config.vm.define "tor#{i}" do |node|
-        config.vm.provider 'virtualbox' do |vb|
+        node.vm.provider 'virtualbox' do |vb|
           vb.name = "tor#{i}"
           vb.memory = 512
         end
@@ -85,7 +85,7 @@ Vagrant.configure(2) do |config|
     # Create 2 spines
     (1..2).each do |i|
       config.vm.define "spine#{i}" do |node|
-        config.vm.provider 'virtualbox' do |vb|
+        node.vm.provider 'virtualbox' do |vb|
           vb.name = "spine#{i}"
           vb.memory = 512
         end
