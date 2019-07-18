@@ -194,6 +194,7 @@ chef_roles:
       - recipe[bcpc::file-server]
       - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
+      - recipe[bcpc::rally-deploy]
 
   - name: headnode
     description: cloud infrastructure services

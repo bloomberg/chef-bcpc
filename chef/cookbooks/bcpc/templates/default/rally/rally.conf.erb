@@ -5,14 +5,5 @@
 [DEFAULT]
 https_cacert = /usr/local/share/ca-certificates/ssl-bcpc.crt
 
-[benchmark]
-
 [database]
-connection = sqlite:///<%= @db_location %>/rally.sqlite
-
-[image]
-cirros_version = 0.3.4
-cirros_image = cirros-0.3.4-x86_64-disk.img
-
-[users_context]
-resource_management_workers = 30
+connection = sqlite:///<%= @database_dir %>/rally.sqlite

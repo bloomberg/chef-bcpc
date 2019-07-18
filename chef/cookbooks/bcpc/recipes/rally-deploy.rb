@@ -20,42 +20,60 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
-rally_user = node['bcpc']['rally']['user']
+service = node['bcpc']['catalog']['identity']
+auth_url = generate_service_catalog_uri(service, 'public')
 home_dir = node['bcpc']['rally']['home_dir']
-venv_dir = node['bcpc']['rally']['venv_dir']
-keystone_api_version = node['bcpc']['rally']['keystone']['version']
-file_cache = Chef::Config[:file_cache_path]
-deployment_config = "rally-existing-#{keystone_api_version}.json"
-deployment_config = File.join(file_cache, deployment_config)
-identity = node['bcpc']['catalog']['identity']
-auth_url = generate_service_catalog_uri(identity, 'public')
-env = { 'HOME' => home_dir }
 
-template deployment_config do
-  user rally_user
-  source 'rally/rally.existing.json.erb'
-  mode 0600
+env = { 'HOME' => home_dir,
+        'PATH' => '/usr/local/lib/rally/bin::/usr/sbin:/usr/bin:/sbin:/bin',
+      }
+
+if node['bcpc']['proxy']['enabled']
+  node['bcpc']['proxy']['proxies'].each do |key, value|
+    env["#{key}_proxy"] = value
+  end
+end
+
+env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
+
+template "#{home_dir}/rally-openstack.yml" do
+  owner 'rally'
+  group 'rally'
+  source 'rally/rally-existing.yml.erb'
+  mode '0600'
   variables(
     auth_url: auth_url,
     region_name: region,
     domain_name: 'default',
-    api_version: keystone_api_version,
     username: node['bcpc']['openstack']['admin']['username'],
     password: config['openstack']['admin']['password'],
     project_name: node['bcpc']['openstack']['admin']['project']
   )
 end
 
-bash "rally deployment create: #{keystone_api_version}" do
+execute 'create openstack rally deployment' do
   environment env
-  user rally_user
-  code <<-EOH
-    # Another approach is to use --fromenv...
-    source #{venv_dir}/bin/activate
-
-    rally deployment destroy #{keystone_api_version}
-    rally deployment create \
-      --filename="#{deployment_config}" \
-      --name=#{keystone_api_version}
+  user 'rally'
+  command <<-EOH
+    rally env create \
+      --spec "#{home_dir}/rally-openstack.yml" \
+      --name openstack
   EOH
+  not_if 'rally env show openstack'
+end
+
+execute 'create tempest verifier' do
+  # after this section, tempest can be run as follows
+  #  $ sudo -u rally -i
+  #  $ rally verify start tempest
+  #  $ rally verify list
+  #  $ rally verify report --type html-static --to rally.html --uuid <uuid>
+  environment env
+  user 'rally'
+  command <<-EOH
+    rally verify create-verifier \
+      --type tempest \
+      --name tempest
+  EOH
+  not_if 'rally verify show-verifier tempest'
 end

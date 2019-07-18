@@ -17,21 +17,18 @@
 
 return unless node['bcpc']['rally']['enabled']
 
-package 'virtualenv'
-
-rally_user = node['bcpc']['rally']['user']
-rally_group = node['bcpc']['rally']['group']
-home_dir = node['bcpc']['rally']['home_dir']
-install_dir = node['bcpc']['rally']['install_dir']
-venv_dir = node['bcpc']['rally']['venv_dir']
 conf_dir = node['bcpc']['rally']['conf_dir']
-database_dir = node['bcpc']['rally']['database_dir']
+home_dir = node['bcpc']['rally']['home_dir']
+venv_dir = node['bcpc']['rally']['venv_dir']
 version = node['bcpc']['rally']['version']
+database_dir = node['bcpc']['rally']['database_dir']
 
 # pip uses the HOME env to figure out the users home directory. chef
 # doesn't change this variable when running as another user so pip install
 # breaks because of permission errors
-env = { 'HOME' => home_dir }
+env = { 'HOME' => home_dir,
+        'PATH' => '/usr/local/lib/rally/bin::/usr/sbin:/usr/bin:/sbin:/bin',
+      }
 
 if node['bcpc']['proxy']['enabled']
   node['bcpc']['proxy']['proxies'].each do |key, value|
@@ -41,67 +38,72 @@ end
 
 env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
 
-group rally_group
+package 'virtualenv'
 
-user rally_user do
-  gid rally_group
+group 'rally'
+
+user 'rally' do
+  gid 'rally'
   home home_dir
   manage_home true
   shell '/bin/bash'
   comment 'Openstack Rally Runner'
 end
 
-sudo rally_user do
-  user rally_user
-  nopasswd true
-  commands ['/usr/bin/chef-client']
+directory home_dir do
+  owner 'rally'
+  group 'rally'
+  mode '0700'
 end
 
-directory install_dir do
-  owner rally_user
-  group rally_group
+file "#{home_dir}/.bash_profile" do
+  owner 'rally'
+  group 'rally'
+  mode '0600'
+  content 'export PATH=/usr/local/lib/rally/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 end
 
-execute 'create virtual env for rally' do
+directory venv_dir do
+  owner 'rally'
+  group 'rally'
+end
+
+execute 'install rally in virtualenv' do
   environment env
-  user rally_user
+  user 'rally'
   command <<-EOH
-    virtualenv #{venv_dir}
+    virtualenv --no-download #{venv_dir}
+    . #{venv_dir}/bin/activate
+    pip install --upgrade pbr
+    pip install --upgrade rally-openstack==#{version}
   EOH
-end
-
-bash 'install rally' do
-  environment env
-  user rally_user
-  code <<-EOH
-    #{venv_dir}/bin/pip install pbr
-    #{venv_dir}/bin/pip install rally-openstack==#{version}
-  EOH
+  not_if "rally --version | grep rally-openstack | grep #{version}"
 end
 
 directory conf_dir do
-  owner rally_user
-  group rally_group
+  owner 'rally'
+  group 'rally'
 end
 
 template "#{conf_dir}/rally.conf" do
   source 'rally/rally.conf.erb'
-  owner rally_user
-  group rally_group
+  owner 'rally'
+  group 'rally'
   variables(
-    db_location: database_dir
+    database_dir: database_dir
   )
 end
 
 directory database_dir do
-  owner rally_user
-  group rally_group
+  owner 'rally'
+  group 'rally'
 end
 
-bash 'setup rally database' do
-  user rally_user
-  code <<-EOH
-    source #{venv_dir}/bin/activate
-    rally-manage db recreate
+execute 'setup rally database' do
+  environment env
+  user 'rally'
+  command <<-EOH
+    rally db ensure
+    rally db upgrade
   EOH
 end
