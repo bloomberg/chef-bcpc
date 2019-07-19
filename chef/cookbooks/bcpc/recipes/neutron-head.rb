@@ -216,13 +216,26 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   raise "#{fixed_network}: no subnets defined" unless network.key?('fixed')
 
+  # build the create network command line options
+  network_create_opts = [
+    '--provider-network-type local'
+  ]
+
+  # networks are shared by default unless explicitly set to false in the config
+  if network.fetch('shared',true)
+    network_create_opts.push('--share')
+  else
+    network_create_opts.push('--no-share')
+  end
+
   # create fixed network
   execute "create the #{fixed_network} network" do
     environment os_adminrc
 
     command <<-DOC
-      openstack network create #{fixed_network} \
-        --share --provider-network-type local
+      openstack network create \
+        #{fixed_network} \
+        #{network_create_opts.join(' ')}
     DOC
 
     not_if "openstack network show #{fixed_network}"
