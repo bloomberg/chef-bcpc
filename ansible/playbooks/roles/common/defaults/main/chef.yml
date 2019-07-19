@@ -206,6 +206,7 @@ chef_roles:
       - role[node]
       - recipe[bcpc::haproxy]
       - recipe[bcpc::etcd-member]
+      - recipe[bcpc::calico-felix]
       - recipe[bcpc::rabbitmq]
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
