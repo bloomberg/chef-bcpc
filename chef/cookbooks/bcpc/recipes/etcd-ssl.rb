@@ -51,9 +51,7 @@ if headnode?
       end
     end
   end
-end
-
-if worknode?
+else
   # read-only client ssl certs
   %w(crt key).each do |pem|
     file node['bcpc']['etcd']['client-ro'][pem]['filepath'] do

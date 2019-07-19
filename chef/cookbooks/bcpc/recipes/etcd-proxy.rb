@@ -48,8 +48,10 @@ execute 'reload systemd' do
   command 'systemctl daemon-reload'
 end
 
-execute 'wait for etcd membership' do
-  environment etcdctl_env
-  retries 5
-  command 'etcdctl member list'
+unless bootstrap?
+  execute 'wait for etcd membership' do
+    environment etcdctl_env
+    retries 5
+    command 'etcdctl member list'
+  end
 end

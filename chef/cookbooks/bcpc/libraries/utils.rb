@@ -26,6 +26,10 @@ def init_cloud?
   nodes.empty?
 end
 
+def bootstrap?
+  search(:node, "role:bootstrap AND hostname:#{node['hostname']}").any?
+end
+
 def headnode?
   search(:node, "role:headnode AND hostname:#{node['hostname']}").any?
 end
@@ -116,9 +120,7 @@ def etcdctl_env
       'ETCDCTL_CERT' => node['bcpc']['etcd']['server']['crt']['filepath'],
       'ETCDCTL_KEY' => node['bcpc']['etcd']['server']['key']['filepath'],
     }
-  end
-
-  if worknode?
+  else
     return {
       'ETCDCTL_API' => '3',
       'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
@@ -126,8 +128,6 @@ def etcdctl_env
       'ETCDCTL_KEY' => node['bcpc']['etcd']['client-ro']['key']['filepath'],
     }
   end
-
-  raise 'unknown node type for etcdctl environment parameters'
 end
 
 def get_address(cidr)
