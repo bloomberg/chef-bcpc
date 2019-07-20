@@ -26,14 +26,9 @@ directory '/etc/calico' do
   action :create
 end
 
-etcd_endpoints = headnodes(all: true).map do |headnode|
-  "https://#{headnode['service_ip']}:2379"
-end
-
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
   variables(
-    cert_type: 'client-rw',
-    etcd_endpoints: etcd_endpoints.join(',')
+    cert_type: 'client-rw'
   )
 end

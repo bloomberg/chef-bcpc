@@ -3,7 +3,7 @@ kind: CalicoAPIConfig
 metadata:
 spec:
   datastoreType: etcdv3
-  etcdEndpoints: <%= @etcd_endpoints %>
+  etcdEndpoints: https://127.0.0.1:2379
   etcdCACertFile: <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
   etcdCertFile: <%= node['bcpc']['etcd'][@cert_type]['crt']['filepath'] %>
   etcdKeyFile: <%= node['bcpc']['etcd'][@cert_type]['key']['filepath'] %>

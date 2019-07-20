@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
 package 'calico-felix'
@@ -26,29 +25,19 @@ file '/etc/calico/felix.cfg.example' do
   action :delete
 end
 
-if headnode?
-  cert_type = 'client-rw'
-  etcd_endpoints = headnodes.collect do |headnode|
-    "https://#{headnode['service_ip']}:2379"
-  end
-else
-  cert_type = 'client-ro'
-  etcd_endpoints = ['https://127.0.0.1:2379']
+cert_type = headnode? ? 'client-rw' : 'client-ro'
+
+template '/etc/calico/calicoctl.cfg' do
+  source 'calico/calicoctl.cfg.erb'
+  variables(
+    cert_type: cert_type
+  )
 end
 
 template '/etc/calico/felix.cfg' do
   source 'calico/felix.cfg.erb'
   variables(
-    cert_type: cert_type,
-    etcd_endpoints: etcd_endpoints.join(',')
+    cert_type: cert_type
   )
   notifies :restart, 'service[calico-felix]', :immediately
-end
-
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    cert_type: cert_type,
-    etcd_endpoints: etcd_endpoints.join(',')
-  )
 end
