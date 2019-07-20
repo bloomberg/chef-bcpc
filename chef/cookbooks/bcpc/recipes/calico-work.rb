@@ -37,16 +37,6 @@ service 'calico-dhcp-agent'
   end
 end
 
-etcd_endpoints = ['https://127.0.0.1:2379']
-
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    cert_type: 'client-ro',
-    etcd_endpoints: etcd_endpoints.join(',')
-  )
-end
-
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
   mode '644'
