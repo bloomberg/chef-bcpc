@@ -25,6 +25,7 @@ file '/etc/calico/felix.cfg.example' do
   action :delete
 end
 
+# determine cert type
 cert_type = headnode? ? 'client-rw' : 'client-ro'
 
 template '/etc/calico/calicoctl.cfg' do
