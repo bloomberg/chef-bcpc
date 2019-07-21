@@ -1,6 +1,6 @@
 [global]
 DatastoreType = etcdv3
-EtcdEndpoints = <%= @etcd_endpoints %>
+EtcdEndpoints = https://127.0.0.1:2379
 EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
 EtcdCertFile = <%= node['bcpc']['etcd'][@cert_type]['crt']['filepath'] %>
 EtcdKeyFile = <%= node['bcpc']['etcd'][@cert_type]['key']['filepath'] %>
