@@ -25,13 +25,12 @@ database = {
   'password' => config['nova']['creds']['db']['password'],
 }
 
-package 'nova-compute'
-package 'ovmf'
-package 'nova-api-metadata'
-package 'pm-utils'
-package 'memcached'
-package 'sysfsutils'
 package 'ceph'
+package 'nova-compute'
+package 'nova-api-metadata'
+package 'ovmf'
+package 'pm-utils'
+package 'sysfsutils'
 
 service 'nova-compute'
 service 'nova-api-metadata'
