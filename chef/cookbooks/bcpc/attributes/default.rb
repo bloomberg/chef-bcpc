@@ -30,8 +30,8 @@ default['bcpc']['grub']['cmdline_linux'] = []
 ###############################################################################
 
 default['bcpc']['local_proxy']['enabled'] = false
-default['bcpc']['local_proxy']['proxies']['http'] = ''
-default['bcpc']['local_proxy']['proxies']['https'] = ''
+default['bcpc']['local_proxy']['config']['listen'] = '127.0.0.1'
+default['bcpc']['local_proxy']['proxies']['https'] = '8888'
 
 ###############################################################################
 # rabbitmq
