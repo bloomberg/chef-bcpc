@@ -26,15 +26,10 @@ database_dir = node['bcpc']['rally']['database_dir']
 # pip uses the HOME env to figure out the users home directory. chef
 # doesn't change this variable when running as another user so pip install
 # breaks because of permission errors
-env = { 'HOME' => home_dir,
-        'PATH' => '/usr/local/lib/rally/bin::/usr/sbin:/usr/bin:/sbin:/bin',
-      }
-
-if node['bcpc']['proxy']['enabled']
-  node['bcpc']['proxy']['proxies'].each do |key, value|
-    env["#{key}_proxy"] = value
-  end
-end
+env = {
+  'HOME' => home_dir,
+  'PATH' => '/usr/local/lib/rally/bin::/usr/sbin:/usr/bin:/sbin:/bin',
+}
 
 env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
 
