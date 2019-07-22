@@ -1,3 +1,2 @@
-{% for schema, url in proxy['proxies'].items() %}
-Acquire::{{ schema }}::Proxy "{{ url }}";
-{% endfor %}
+Acquire::http::Proxy "http://{{ local_proxy['config']['listen'] }}:{{ local_proxy['config']['port'] }}";
+Acquire::https::Proxy "http://{{ local_proxy['config']['listen'] }}:{{ local_proxy['config']['port'] }}";

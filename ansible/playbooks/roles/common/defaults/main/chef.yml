@@ -30,7 +30,7 @@ chef_environment:
       ntp: "{{ ntp }}"
       openstack-flavors:
         enabled: true
-      proxy: "{{ proxy }}"
+      local_proxy: "{{ local_proxy }}"
 
 ###############################################################################
 # chef databags

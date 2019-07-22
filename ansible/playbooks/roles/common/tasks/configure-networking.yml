@@ -36,6 +36,32 @@
     state: restarted
   when: resolved.changed
 
+- name: install tinyproxy
+  apt:
+    name: tinyproxy
+  environment: "{{ local_proxy['environment'] | default({}) }}"
+  when: local_proxy is defined and local_proxy['enabled']
+
+- name: configure tinyproxy
+  template:
+    src: tinyproxy/tinyproxy.conf.j2
+    dest: /etc/tinyproxy/tinyproxy.conf
+  register: tinyproxy
+  when: local_proxy is defined and local_proxy['enabled']
+
+- name: restart tinyproxy
+  service:
+    name: tinyproxy
+    state: restarted
+    enabled: yes
+  when: tinyproxy.changed
+
+- name: configure apt proxy
+  template:
+    src: apt/proxy.j2
+    dest: /etc/apt/apt.conf.d/proxy
+  when: local_proxy is defined and local_proxy['enabled']
+
 - name: install bird
   apt:
     name: bird

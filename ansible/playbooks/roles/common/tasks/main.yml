@@ -15,12 +15,6 @@
   become: true
   tags: [never,ceph-destroy-osds]
 
-- import_tasks: configure-apt.yml
-  vars:
-    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
-  become: true
-  tags: [never,configure-apt]
-
 - import_tasks: configure-networking.yml
   become: true
   vars:

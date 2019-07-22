@@ -12,7 +12,6 @@ storagenodes = \
 all : \
 	sync-assets \
 	configure-operator \
-	configure-apt \
 	configure-networking \
 	configure-chef-server \
 	configure-chef-workstation \
@@ -47,12 +46,6 @@ configure-operator :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t operator --limit cloud
-
-configure-apt :
-
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t configure-apt --limit cloud
 
 configure-networking :
 
