@@ -26,12 +26,12 @@ default['bcpc']['ubuntu']['components'] = %w(main restricted universe multiverse
 default['bcpc']['grub']['cmdline_linux'] = []
 
 ###############################################################################
-# proxy
+# local_proxy
 ###############################################################################
 
-default['bcpc']['proxy']['enabled'] = false
-default['bcpc']['proxy']['proxies']['http'] = ''
-default['bcpc']['proxy']['proxies']['https'] = ''
+default['bcpc']['local_proxy']['enabled'] = false
+default['bcpc']['local_proxy']['proxies']['http'] = ''
+default['bcpc']['local_proxy']['proxies']['https'] = ''
 
 ###############################################################################
 # rabbitmq

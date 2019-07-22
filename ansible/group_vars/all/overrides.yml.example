@@ -34,16 +34,23 @@
 #    - time2.google.com
 
 ###############################################################################
-# proxy settings
+# local_proxy settings
 ###############################################################################
 
-# list of http/https proxy servers
+# configures a locally running http/https proxy service to handle multiple
+# proxy endpoints.
 
-#proxy:
+#local_proxy:
 #  enabled: false
-#  proxies:
+#  environment:
 #    http: http://proxy.example.com
-#    https: https://proxy.example.com
+#    https: http://proxy.example.com
+#  config:
+#    listen: 127.0.0.1
+#    port: 8888
+#    upstream:
+#      - otherproxy.example.com ".google.com"
+#      - proxy.example.com # default proxy
 
 ###############################################################################
 # additional file assets

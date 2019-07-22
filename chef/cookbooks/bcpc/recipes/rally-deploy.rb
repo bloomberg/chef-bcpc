@@ -31,10 +31,13 @@ env = {
   'PATH' => '/usr/local/lib/rally/bin::/usr/sbin:/usr/bin:/sbin:/bin',
 }
 
-if node['bcpc']['proxy']['enabled']
-  node['bcpc']['proxy']['proxies'].each do |key, value|
-    env["#{key}_proxy"] = value
-  end
+if node['bcpc']['local_proxy']['enabled']
+  local_proxy_config = node['bcpc']['local_proxy']['config']
+  local_proxy_listen = local_proxy_config['listen']
+  local_proxy_port = local_proxy_config['port']
+  local_proxy_url = "http://#{local_proxy_listen}:#{local_proxy_port}"
+  env['http_proxy'] = local_proxy_url
+  env['https_proxy'] = local_proxy_url
 end
 
 env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
