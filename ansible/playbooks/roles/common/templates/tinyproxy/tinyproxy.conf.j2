@@ -109,8 +109,11 @@ PidFile "/run/tinyproxy/tinyproxy.pid"
 #  IP/bits  matches network/mask
 #  IP/mask  matches network/mask
 
+no upstream "{{ cloud_ip }}/32"
+no upstream "{{ cloud_fqdn }}"
+
 {% for upstream in local_proxy['config']['upstream'] %}
-Upstream {{ upstream }}
+upstream {{ upstream }}
 {% endfor %}
 
 # MaxClients: This is the absolute highest number of threads which will
