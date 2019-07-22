@@ -1,5 +1,5 @@
 # Cookbook:: bcpc
-# Recipe:: calico-head
+# Recipe:: calico-felix
 #
 # Copyright:: 2019 Bloomberg Finance L.P.
 #
@@ -15,25 +15,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
-%w(calico-control calico-common).each do |pkg|
-  package pkg
+package 'calico-felix'
+service 'calico-felix'
+
+# remove example felix cfg file
+file '/etc/calico/felix.cfg.example' do
+  action :delete
 end
 
-directory '/etc/calico' do
-  action :create
-end
-
-etcd_endpoints = headnodes(all: true).map do |headnode|
-  "https://#{headnode['service_ip']}:2379"
-end
+# determine cert type
+cert_type = headnode? ? 'client-rw' : 'client-ro'
 
 template '/etc/calico/calicoctl.cfg' do
   source 'calico/calicoctl.cfg.erb'
   variables(
-    cert_type: 'client-rw',
-    etcd_endpoints: etcd_endpoints.join(',')
+    cert_type: cert_type
   )
+end
+
+template '/etc/calico/felix.cfg' do
+  source 'calico/felix.cfg.erb'
+  variables(
+    cert_type: cert_type
+  )
+  notifies :restart, 'service[calico-felix]', :immediately
 end

@@ -195,6 +195,8 @@ chef_roles:
       - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
       - recipe[bcpc::rally-deploy]
+      - recipe[bcpc::etcd-proxy]
+      - recipe[bcpc::calico-felix]
 
   - name: headnode
     description: cloud infrastructure services
@@ -204,6 +206,7 @@ chef_roles:
       - role[node]
       - recipe[bcpc::haproxy]
       - recipe[bcpc::etcd-member]
+      - recipe[bcpc::calico-felix]
       - recipe[bcpc::rabbitmq]
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
@@ -249,6 +252,8 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::ceph-osd]
+      - recipe[bcpc::etcd-proxy]
+      - recipe[bcpc::calico-felix]
 
   - name: worknode
     description: cloud compute services
@@ -257,5 +262,6 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::etcd-proxy]
+      - recipe[bcpc::calico-felix]
       - recipe[bcpc::calico-work]
       - recipe[bcpc::nova-compute]
