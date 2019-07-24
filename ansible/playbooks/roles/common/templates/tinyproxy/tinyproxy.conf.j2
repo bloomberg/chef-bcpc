@@ -32,7 +32,7 @@ Listen {{ local_proxy['config']['listen'] }}
 # The upstream rules allow you to selectively route upstream connections
 # based on the host/domain of the site being accessed.
 
-{% for upstream in local_proxy['config']['upstream'] %}
+{% for upstream in local_proxy['config'].get('upstream',[]) %}
 upstream {{ upstream }}
 {% endfor %}
 
@@ -40,7 +40,7 @@ upstream {{ upstream }}
 
 no upstream "{{ cloud_ip }}/32"
 no upstream "{{ cloud_fqdn }}"
-{% for no_upstream in local_proxy['config']['no_upstream'] %}
+{% for no_upstream in local_proxy['config'].get('no_upstream',[]) %}
 no upstream "{{ no_upstream }}"
 {% endfor %}
 
