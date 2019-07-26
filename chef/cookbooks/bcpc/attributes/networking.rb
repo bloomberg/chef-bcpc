@@ -5,7 +5,7 @@
 default['bcpc']['networking']['networks']['primary']['aggregate-cidr'] = '10.65.0.0/24'
 
 default['bcpc']['networking']['racks'] = [
-  { 'id' => 1, },
-  { 'id' => 2, },
-  { 'id' => 3, },
+  { 'id' => 1 },
+  { 'id' => 2 },
+  { 'id' => 3 },
 ]
