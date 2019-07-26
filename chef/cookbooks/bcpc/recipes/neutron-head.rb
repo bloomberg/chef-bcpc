@@ -223,7 +223,7 @@ node['bcpc']['neutron']['networks'].each do |network|
 
   # build the create network command line options
   network_create_opts = [
-    '--provider-network-type local'
+    '--provider-network-type local',
   ]
 
   # networks are shared by default unless explicitly set to false in the config
