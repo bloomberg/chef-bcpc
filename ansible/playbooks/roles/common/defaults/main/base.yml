@@ -102,14 +102,23 @@ ntp:
     - time2.google.com
 
 ###############################################################################
-# proxy settings
+# local_proxy settings
 ###############################################################################
 
-proxy:
+# configures a locally running http/https proxy service to handle multiple
+# proxy endpoints.
+
+local_proxy:
   enabled: false
-  proxies:
+  environment:
     http: http://proxy.example.com
-    https: https://proxy.example.com
+    https: http://proxy.example.com
+  config:
+    listen: 127.0.0.1
+    port: 8888
+    upstream:
+      - otherproxy.example.com ".google.com"
+      - proxy.example.com # default proxy
 
 ###############################################################################
 # chef
@@ -126,19 +135,19 @@ all_chef_extra_cookbooks: "{{ chef_extra_cookbooks +
                               additional_chef_extra_cookbooks | default([]) }}"
 
 ###############################################################################
-# file server assets
+# web server file assets
 ###############################################################################
 
-file_server_assets:
+web_server_assets:
   - file_asset: cirros
   - file_asset: etcd
   - file_asset: calicoctl
   - file_asset: consul
   - file_asset: etcd3gw
 
-# all file server assets
-all_file_server_assets: "{{ file_server_assets +
-                            additional_file_server_assets | default([]) }}"
+# all web server file assets
+all_web_server_assets: "{{ web_server_assets +
+                            additional_web_server_assets | default([]) }}"
 
 ###############################################################################
 # external files (to be downloaded)

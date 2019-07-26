@@ -5,4 +5,4 @@
     - chef-server
     - chef-workstation
     - chef-node
-    - file-server
+    - web-server

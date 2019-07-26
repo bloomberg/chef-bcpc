@@ -1,5 +1,0 @@
-- name: configure apt proxy
-  template:
-    src: apt/proxy.j2
-    dest: /etc/apt/apt.conf.d/proxy
-  when: proxy is defined and proxy['enabled']

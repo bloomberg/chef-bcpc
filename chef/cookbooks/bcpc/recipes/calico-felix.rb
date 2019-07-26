@@ -1,5 +1,5 @@
 # Cookbook:: bcpc
-# Recipe:: file-server
+# Recipe:: calico-felix
 #
 # Copyright:: 2019 Bloomberg Finance L.P.
 #
@@ -15,10 +15,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'nginx'
-service 'nginx'
+include_recipe 'bcpc::calico-apt'
 
-template '/etc/nginx/sites-available/default' do
-  source 'file_server/default.erb'
-  notifies :restart, 'service[nginx]', :immediately
+package 'calico-felix'
+service 'calico-felix'
+
+# remove example felix cfg file
+file '/etc/calico/felix.cfg.example' do
+  action :delete
+end
+
+# determine cert type
+cert_type = headnode? ? 'client-rw' : 'client-ro'
+
+template '/etc/calico/calicoctl.cfg' do
+  source 'calico/calicoctl.cfg.erb'
+  variables(
+    cert_type: cert_type
+  )
+end
+
+template '/etc/calico/felix.cfg' do
+  source 'calico/felix.cfg.erb'
+  variables(
+    cert_type: cert_type
+  )
+  notifies :restart, 'service[calico-felix]', :immediately
 end

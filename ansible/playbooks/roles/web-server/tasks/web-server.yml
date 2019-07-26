@@ -1,0 +1,9 @@
+- name: create web server assets folder
+  file:
+    path: /var/bcpc/www/files
+    state: directory
+    mode: 0755
+    recurse: true
+
+- include: upload-web-server-file.yml
+  with_items: "{{ all_web_server_assets }}"

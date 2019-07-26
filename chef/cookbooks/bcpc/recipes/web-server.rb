@@ -1,5 +1,5 @@
 # Cookbook:: bcpc
-# Recipe:: calico-head
+# Recipe:: web-server
 #
 # Copyright:: 2019 Bloomberg Finance L.P.
 #
@@ -15,25 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include_recipe 'bcpc::etcd3gw'
-include_recipe 'bcpc::calico-apt'
+package 'nginx'
+service 'nginx'
 
-%w(calico-control calico-common).each do |pkg|
-  package pkg
-end
-
-directory '/etc/calico' do
-  action :create
-end
-
-etcd_endpoints = headnodes(all: true).map do |headnode|
-  "https://#{headnode['service_ip']}:2379"
-end
-
-template '/etc/calico/calicoctl.cfg' do
-  source 'calico/calicoctl.cfg.erb'
-  variables(
-    cert_type: 'client-rw',
-    etcd_endpoints: etcd_endpoints.join(',')
-  )
+template '/etc/nginx/sites-available/default' do
+  source 'web_server/default.erb'
+  notifies :restart, 'service[nginx]', :immediately
 end

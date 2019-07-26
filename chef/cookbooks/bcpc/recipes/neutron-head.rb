@@ -16,7 +16,9 @@
 # limitations under the License.
 
 require 'ipaddress'
-include_recipe 'bcpc::calico-head'
+
+include_recipe 'bcpc::etcd3gw'
+include_recipe 'bcpc::calico-apt'
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
@@ -130,7 +132,10 @@ end
 
 # neutron package installation and service definition starts
 #
-package 'neutron-server'
+%w(calico-control calico-common neutron-server).each do |pkg|
+  package pkg
+end
+
 service 'neutron-server'
 service 'haproxy-neutron' do
   service_name 'haproxy'

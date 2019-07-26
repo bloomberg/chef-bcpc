@@ -8,7 +8,7 @@ default['bcpc']['cloud']['region'] = node.chef_environment
 # file server
 ###############################################################################
 
-default['bcpc']['file_server']['url'] = 'http://bootstrap:8080'
+default['bcpc']['web_server']['url'] = 'http://bootstrap:8080/files/'
 
 ###############################################################################
 # ubuntu
@@ -26,12 +26,12 @@ default['bcpc']['ubuntu']['components'] = %w(main restricted universe multiverse
 default['bcpc']['grub']['cmdline_linux'] = []
 
 ###############################################################################
-# proxy
+# local_proxy
 ###############################################################################
 
-default['bcpc']['proxy']['enabled'] = false
-default['bcpc']['proxy']['proxies']['http'] = ''
-default['bcpc']['proxy']['proxies']['https'] = ''
+default['bcpc']['local_proxy']['enabled'] = false
+default['bcpc']['local_proxy']['config']['listen'] = '127.0.0.1'
+default['bcpc']['local_proxy']['config']['port'] = '8888'
 
 ###############################################################################
 # rabbitmq

@@ -2,7 +2,7 @@
   set_fact:
     file: "{{ item.file_asset | find_asset(all_file_assets) }}"
 
-- name: "upload file server asset: {{ file.name }}"
+- name: "upload web server asset: {{ file.name }}"
   copy:
     src: "{{ assets_download_dir }}/{{ file.filename }}"
-    dest: "/var/bcpc/file-server/"
+    dest: "/var/bcpc/www/files/"
