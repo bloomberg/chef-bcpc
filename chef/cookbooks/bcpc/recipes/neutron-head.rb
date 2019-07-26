@@ -222,7 +222,7 @@ node['bcpc']['neutron']['networks'].each do |network|
   ]
 
   # networks are shared by default unless explicitly set to false in the config
-  if network.fetch('shared',true)
+  if network.fetch('shared', true)
     network_create_opts.push('--share')
   else
     network_create_opts.push('--no-share')
