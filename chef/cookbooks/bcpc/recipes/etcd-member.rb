@@ -165,11 +165,10 @@ bash 'etcd: create ro role' do
     etcdctl --user root:#{root['password']} role grant-permission ro \
       --prefix=true read /
 
-    # allow worknodes read/write access to /calico/felix/v2/no-region/host
-    # so that calico-felix can provide health information via etcd
-    # to openstack
+    # allow worknodes read/write access to /calico/felix/ so that
+    # calico-felix can provide health information via etcd to OpenStack
     etcdctl --user root:#{root['password']} role grant-permission ro \
-      --prefix=true readwrite /calico/felix/v2/no-region/host
+      --prefix=true readwrite /calico/felix/
   EOH
   not_if "etcdctl --user root:#{root['password']} role list | grep -w ro"
 end
