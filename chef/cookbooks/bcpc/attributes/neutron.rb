@@ -27,3 +27,7 @@ default['bcpc']['neutron']['networks'] = [
     },
   },
 ]
+
+# per-project quota settings
+#
+default['bcpc']['neutron']['quota']['project']['admin']['rbac-policies'] = -1
