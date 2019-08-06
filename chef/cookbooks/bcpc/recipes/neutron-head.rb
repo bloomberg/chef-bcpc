@@ -215,19 +215,6 @@ execute 'wait for neutron to come online' do
   command 'openstack network list'
 end
 
-# configure quotas
-node['bcpc']['neutron']
-  .fetch('quota', {})
-  .fetch('project', {})
-  .each do |project_name, project_policies|
-  project_policies.each do |policy, value|
-    execute "configure neutron quotas for the #{project_name} project" do
-      environment os_adminrc
-      command "openstack quota set #{project_name} --#{policy} #{value}"
-    end
-  end
-end
-
 # create networks starts
 node['bcpc']['neutron']['networks'].each do |network|
   fixed_network = network['name']
