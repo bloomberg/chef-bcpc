@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-return unless node['bcpc']['openstack-flavors']['enabled']
+return unless node['bcpc']['openstack']['flavors']['enabled']
 
 execute 'wait for flavors' do
   environment os_adminrc
@@ -23,7 +23,9 @@ execute 'wait for flavors' do
   command 'openstack flavor list'
 end
 
-node['bcpc']['openstack-flavors']['flavors'].each do |flavor, spec|
+node['bcpc']['openstack']['flavors'].each do |flavor, spec|
+  # skip over the boolean we use to enable/disable this recipe
+  next if flavor == 'enabled'
   execute "create #{flavor} flavor" do
     environment os_adminrc
     command <<-DOC

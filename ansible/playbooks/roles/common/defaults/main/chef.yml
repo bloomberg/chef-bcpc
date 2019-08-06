@@ -28,8 +28,9 @@ chef_environment:
             - popcnt
             - sse4a
       ntp: "{{ ntp }}"
-      openstack-flavors:
-        enabled: true
+      openstack:
+        flavors:
+          enabled: true
       local_proxy: "{{ local_proxy }}"
 
 ###############################################################################
