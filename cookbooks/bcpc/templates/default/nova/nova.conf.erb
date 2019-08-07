@@ -17,6 +17,7 @@ auth_strategy=keystone
 api_paste_config=/etc/nova/api-paste.ini
 osapi_compute_listen=<%= node['bcpc']['management']['ip'] %>
 osapi_compute_workers=<%=node['bcpc']['nova']['workers']%>
+osapi_compute_link_prefix=<%=node['bcpc']['protocol']['nova']%>://openstack.<%=node['bcpc']['cluster_domain']%>:8774
 <% if node['bcpc']['enabled']['neutron'] %>
 metadata_listen=127.0.0.1
 <% else %>
