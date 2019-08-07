@@ -36,6 +36,8 @@ glance_api_version=2
 # Volume driver settings for RBD
 enabled_backends=<%= node['bcpc']['ceph']['enabled_pools'].map {|type| type.upcase}.join(",") %>
 
+osapi_volume_base_URL=<%=node['bcpc']['protocol']['cinder']%>://openstack.<%=node['bcpc']['cluster_domain']%>:8776
+
 [oslo_messaging_rabbit]
 # Rabbit message queue settings
 #rabbit_host=<%=node['bcpc']['management']['vip']%>
