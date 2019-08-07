@@ -6,7 +6,6 @@
 # used for tinyproxy after the initial binding to the port has been done
 # as the root user. Either the user or group name or the UID or GID
 # number may be used.
-
 User tinyproxy
 Group tinyproxy
 
@@ -14,14 +13,12 @@ Group tinyproxy
 # Port: Specify the port which tinyproxy will listen on.  Please note
 # that should you choose to run on a port lower than 1024 you will need
 # to start tinyproxy using root.
-
 Port {{ local_proxy['config']['port'] }}
 
 
 # Listen: If you have multiple interfaces this allows you to bind to
 # only one. If this is commented out, tinyproxy will bind to all
 # interfaces present.
-
 Listen {{ local_proxy['config']['listen'] }}
 
 
@@ -31,13 +28,11 @@ Listen {{ local_proxy['config']['listen'] }}
 #
 # The upstream rules allow you to selectively route upstream connections
 # based on the host/domain of the site being accessed.
-
 {% for upstream in local_proxy['config'].get('upstream',[]) %}
 upstream {{ upstream }}
 {% endfor %}
 
 # no upstream proxy for internal websites and unqualified hosts
-
 no upstream "{{ cloud_ip }}/32"
 no upstream "{{ cloud_fqdn }}"
 {% for no_upstream in local_proxy['config'].get('no_upstream',[]) %}
@@ -47,20 +42,17 @@ no upstream "{{ no_upstream }}"
 
 # Timeout: The maximum number of seconds of inactivity a connection is
 # allowed to have before it is closed by tinyproxy.
-
 Timeout 600
 
 # DefaultErrorFile: The HTML file that gets sent if there is no
 # HTML file defined with an ErrorFile keyword for the HTTP error
 # that has occured.
-
 DefaultErrorFile "/usr/share/tinyproxy/default.html"
 
 
 # StatFile: The HTML file that gets sent when a request is made
 # for the stathost.  If this file doesn't exist a basic page is
 # hardcoded in tinyproxy.
-
 StatFile "/usr/share/tinyproxy/stats.html"
 
 
@@ -68,7 +60,6 @@ StatFile "/usr/share/tinyproxy/stats.html"
 # be logged to.  If you would prefer to log to syslog, then disable this
 # and enable the Syslog directive.  These directives are mutually
 # exclusive.
-#
 Logfile "/var/log/tinyproxy/tinyproxy.log"
 
 
@@ -85,7 +76,6 @@ Logfile "/var/log/tinyproxy/tinyproxy.log"
 # The LogLevel logs from the set level and above. For example, if the
 # LogLevel was set to Warning, then all log messages from Warning to
 # Critical would be output, but Notice and below would be suppressed.
-#
 LogLevel Info
 
 #
@@ -97,7 +87,6 @@ PidFile "/run/tinyproxy/tinyproxy.pid"
 # MaxClients: This is the absolute highest number of threads which will
 # be created. In other words, only MaxClients number of clients can be
 # connected at the same time.
-
 MaxClients 100
 
 
@@ -107,13 +96,11 @@ MaxClients 100
 # If the number of spare servers falls below MinSpareServers then new
 # server processes will be spawned.  If the number of servers exceeds
 # MaxSpareServers then the extras will be killed off.
-
 MinSpareServers 5
 MaxSpareServers 20
 
 
 # StartServers: The number of servers to start initially.
-
 StartServers 10
 
 
@@ -121,7 +108,6 @@ StartServers 10
 # before it is killed. In practise this should be set to 0, which
 # disables thread reaping. If you do notice problems with memory
 # leakage, then set this to something like 10000.
-
 MaxRequestsPerChild 0
 
 
@@ -131,7 +117,6 @@ MaxRequestsPerChild 0
 #
 # The order of the controls are important. All incoming connections are
 # tested against the controls based on order.
-#
 Allow 127.0.0.1
 
 
@@ -139,15 +124,4 @@ Allow 127.0.0.1
 # the real host name is a security concern.  If the following directive
 # is enabled, the string supplied will be used as the host name in the
 # Via header; otherwise, the server's host name will be used.
-#
 ViaProxyName "tinyproxy"
-
-# ConnectPort: This is a list of ports allowed by tinyproxy when the
-# CONNECT method is used.  To disable the CONNECT method altogether, set
-# the value to 0.  If no ConnectPort line is found, all ports are
-# allowed (which is not very secure.)
-#
-# The following two ports are used by SSL.
-#
-ConnectPort 443
-ConnectPort 563
