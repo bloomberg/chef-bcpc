@@ -4,3 +4,12 @@ EtcdEndpoints = https://127.0.0.1:2379
 EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
 EtcdCertFile = <%= node['bcpc']['etcd'][@cert_type]['crt']['filepath'] %>
 EtcdKeyFile = <%= node['bcpc']['etcd'][@cert_type]['key']['filepath'] %>
+
+# The log severity above which logs are sent to the stdout.
+LogSeverityScreen = Warning
+
+# The log severity above which logs are sent to the log file.
+LogSeverityFile = Warning
+
+# The log severity above which logs are sent to the syslog.
+LogSeveritySys = Warning
