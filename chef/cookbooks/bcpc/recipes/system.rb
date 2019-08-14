@@ -153,3 +153,17 @@ disable_services.each do |svc|
     action [:stop, :disable]
   end
 end
+
+motd_packages = %w(
+  ubuntu-advantage-tools
+  update-notifier-common
+  ubuntu-release-upgrader-core
+)
+
+package motd_packages do
+  action :purge
+end
+
+file '/etc/default/motd-news' do
+  content 'ENABLED=0'
+end
