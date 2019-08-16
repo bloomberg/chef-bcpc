@@ -15,12 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+repo = node['bcpc']['mysql']['repo']
+codename = node['lsb']['codename']
+
 apt_repository 'percona' do
-  uri node['bcpc']['mysql']['apt']['url']
-  distribution node['lsb']['codename']
+  uri repo['url']
+  distribution codename
   components ['main']
-  key 'mysql/release.key'
-  only_if { node['bcpc']['mysql']['apt']['enabled'] }
+  key repo['key']
+  only_if { repo['enabled'] }
 end
 
 package 'debconf-utils'

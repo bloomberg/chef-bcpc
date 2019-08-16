@@ -23,10 +23,12 @@ repo = node['bcpc']['openstack']['repo']
 branch = repo['branch']
 release = repo['release']
 codename = node['lsb']['codename']
+distribution = "#{codename}-#{branch}"
+distribution = "#{codename}-#{branch}/#{release}" unless release.empty?
 
 apt_repository 'openstack' do
   uri repo['url']
-  distribution "#{codename}-#{branch}/#{release}"
+  distribution distribution
   components ['main']
-  key 'openstack/release.key'
+  key repo['key']
 end
