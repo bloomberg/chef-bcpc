@@ -32,9 +32,12 @@ remote_file 'install calicoctl' do
   source "file://#{fp}"
 end
 
+repo = node['bcpc']['calico']['repo']
+codename = node['lsb']['codename']
+
 apt_repository 'calico' do
-  uri node['bcpc']['calico']['repo']['url']
-  distribution node['lsb']['codename']
+  uri repo['url']
+  distribution codename
   components ['main']
-  key 'calico/release.key'
+  key repo['key']
 end

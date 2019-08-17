@@ -24,28 +24,32 @@ bash 'remove-foreign-arch' do
   only_if 'dpkg --print-foreign-architectures | grep i386'
 end
 
+repo = node['bcpc']['ubuntu']['repo']
 codename = node['lsb']['codename']
 
 # main ubuntu-archive repository
 apt_repository 'ubuntu-archive' do
-  uri node['bcpc']['ubuntu']['archive_url']
+  uri repo['archive_url']
   distribution codename
-  components node['bcpc']['ubuntu']['components']
+  components repo['components']
+  key repo['key']
 end
 
 # other ubuntu-archive repositories
 distributions = %w(updates backports)
 distributions.each do |dist|
   apt_repository "ubuntu-archive-#{dist}" do
-    uri node['bcpc']['ubuntu']['archive_url']
+    uri repo['archive_url']
     distribution "#{codename}-#{dist}"
-    components node['bcpc']['ubuntu']['components']
+    components repo['components']
+    key repo['key']
   end
 end
 
 # security ubuntu-archive repository
 apt_repository 'security-ubuntu-archive' do
-  uri node['bcpc']['ubuntu']['security_url']
+  uri repo['security_url']
   distribution "#{codename}-security"
-  components node['bcpc']['ubuntu']['components']
+  components repo['components']
+  key repo['key']
 end

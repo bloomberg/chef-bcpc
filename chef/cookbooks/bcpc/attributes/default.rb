@@ -14,10 +14,10 @@ default['bcpc']['web_server']['url'] = 'http://bootstrap:8080/files/'
 # ubuntu
 ###############################################################################
 
-default['bcpc']['ubuntu']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
-default['bcpc']['ubuntu']['security_url'] = 'http://security.ubuntu.com/ubuntu'
-default['bcpc']['ubuntu']['codename'] = node['lsb']['codename']
-default['bcpc']['ubuntu']['components'] = %w(main restricted universe multiverse)
+default['bcpc']['ubuntu']['repo']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
+default['bcpc']['ubuntu']['repo']['security_url'] = 'http://security.ubuntu.com/ubuntu'
+default['bcpc']['ubuntu']['repo']['key'] = 'apt/release.key'
+default['bcpc']['ubuntu']['repo']['components'] = %w(main restricted universe multiverse)
 
 ###############################################################################
 # grub
@@ -61,8 +61,9 @@ default['bcpc']['libvirt-bin']['ulimit']['nofile'] = 4096
 # mysql
 ###############################################################################
 
-default['bcpc']['mysql']['apt']['enabled'] = true
-default['bcpc']['mysql']['apt']['url'] = 'http://repo.percona.com/apt'
+default['bcpc']['mysql']['repo']['enabled'] = true
+default['bcpc']['mysql']['repo']['url'] = 'http://repo.percona.com/apt'
+default['bcpc']['mysql']['repo']['key'] = 'mysql/release.key'
 
 # fqdn of mysql server
 #

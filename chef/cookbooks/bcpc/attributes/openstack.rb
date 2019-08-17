@@ -7,6 +7,7 @@ default['bcpc']['openstack']['repo']['url'] = 'http://ubuntu-cloud.archive.canon
 
 default['bcpc']['openstack']['repo']['release'] = 'rocky'
 default['bcpc']['openstack']['repo']['branch'] = 'updates'
+default['bcpc']['openstack']['repo']['key'] = 'openstack/release.key'
 
 default['bcpc']['openstack']['admin']['username'] = 'admin'
 default['bcpc']['openstack']['admin']['project'] = 'admin'
