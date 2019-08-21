@@ -1,0 +1,138 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Copyright:: 2019 Bloomberg Finance L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'yaml'
+
+def load_topology
+  # load the vm topology profile
+  topology = './topology/topology.yml'
+  topology_overrides = './topology/topology.overrides.yml'
+
+  if File.file?(File.expand_path(topology_overrides))
+    YAML.load_file(File.expand_path(topology_overrides))
+  elsif File.file?(File.expand_path(topology))
+    YAML.load_file(File.expand_path(topology))
+  else
+    raise "#{topology} or #{topology_overrides} not found"
+  end
+end
+
+def load_hardware
+  # load the hardware profiles
+  hardware = './topology/hardware.yml'
+  hardware_overrides = './topology/hardware.overrides.yml'
+
+  if File.file?(File.expand_path(hardware_overrides))
+    YAML.load_file(File.expand_path(hardware_overrides))
+  elsif File.file?(File.expand_path(hardware))
+    YAML.load_file(File.expand_path(hardware))
+  else
+    raise "#{hardware} or #{hardware_overrides} not found"
+  end
+end
+
+def mount_apt_cache(config)
+  user_data_path = Vagrant.user_data_path.to_s
+  cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
+  apt_cache_dir = '/var/cache/apt/archives'
+  config.vm.synced_folder cache_dir, apt_cache_dir, create: true, type: '9p'
+end
+
+topology = load_topology
+hardware = load_hardware
+
+Vagrant.configure('2') do |config|
+  config.ssh.forward_x11 = true
+  config.vm.box = 'bento/ubuntu-18.04'
+  config.vm.box_download_insecure = true
+
+  config.vm.provider :libvirt do |lv|
+    if ENV['LIBVIRT_DRIVER'] == 'qemu'
+      lv.driver = 'qemu'
+      lv.cpu_mode = 'custom'
+      config.vm.synced_folder './', '/vagrant', type: 'rsync'
+    else
+      lv.driver = 'kvm'
+      lv.nested = true
+      lv.cpu_mode = 'host-passthrough'
+      config.vm.synced_folder './', '/vagrant', type: '9p'
+      mount_apt_cache(config)
+    end
+  end
+
+  topology['nodes'].each do |node|
+    vm_name = node['host']
+    # get hardware profile for node
+    hw_profiles = hardware['profiles']
+    hw_profile = hw_profiles[node['hardware_profile']]
+
+    config.vm.define vm_name do |subconfig|
+      # create default user
+      subconfig.vm.provision 'shell' do |shell|
+        shell.path = 'provisioners/create-default-user.sh'
+        shell.args = 'ubuntu 53cr37'
+      end
+
+      # modify the vagrant user
+      subconfig.vm.provision 'shell' do |shell|
+        shell.path = 'provisioners/modify-vagrant-user.sh'
+      end
+
+      # add swap space
+      if hw_profile.key?('swap_gb')
+        subconfig.vm.provision 'shell' do |s|
+          s.path = 'provisioners/swap.sh'
+          s.args = hw_profile['swap_gb']
+        end
+      end
+
+      # network connections
+      host_vars = node['host_vars']
+      transit = host_vars['interfaces']['transit']
+
+      transit.each do |t_iface|
+        args = {}.tap do |a|
+          a[:ip] = t_iface['ip'].split('/')[0]
+          a[:mac] = t_iface['mac'].delete(':')
+          a[:libvirt__network_name] = t_iface['neighbor']['name']
+          a[:libvirt__dhcp_enabled] = false
+          a[:libvirt__forward_mode] = 'none'
+        end
+        subconfig.vm.network('private_network', args)
+      end
+
+      subconfig.vm.provider :libvirt do |lv|
+        lv.cpus = hw_profile['cpus']
+        lv.memory = hw_profile['ram_gb'] * 1024
+        lv.machine_virtual_size = 10
+
+        # add additional hard drives
+        if hw_profile.key?('ext_disks')
+
+          size_gb = hw_profile['ext_disks']['size_gb']
+          count = hw_profile['ext_disks']['count']
+          drive_letters = ('a'..'z').to_a[1..count]
+
+          drive_letters.each do |l|
+            device = "sd#{l}"
+            lv.storage :file, size: "#{size_gb}G", device: device.to_s, bus: 'sata'
+          end
+        end
+      end
+    end
+  end
+end

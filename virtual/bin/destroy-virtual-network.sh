@@ -20,4 +20,8 @@ root_dir=$(git rev-parse --show-toplevel)
 virtual_dir="${root_dir}/virtual"
 network_dir="${virtual_dir}/network"
 
+if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
+fi
+
 (cd "${network_dir}"; vagrant destroy -f)

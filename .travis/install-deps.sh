@@ -1,6 +1,18 @@
 #!/bin/bash -x
 
-print_debug_info () {
+print_debug_info_osx () {
+    printenv
+    sysctl machdep.cpu
+    kextstat
+    sudo dmesg
+    vm_stat
+    df -h
+    diskutil list
+    ls -la
+    groups
+}
+
+print_debug_info_linux () {
     printenv
     lscpu
     cat /proc/cpuinfo
@@ -10,6 +22,8 @@ print_debug_info () {
     df -h
     lsblk
     ls -la
+    dpkg -l
+    groups
 }
 
 upgrade_os_osx () {
@@ -19,21 +33,18 @@ upgrade_os_osx () {
 
 install_linters_osx () {
     brew install shellcheck ruby
-    sudo pip2 install -U pip setuptools
     sudo pip install bashate flake8 ansible-lint
     gem install foodcritic cookstyle
-    git clone https://github.com/russell/git-lint-diff.git
 }
 
 upgrade_os_linux () {
-    sudo apt-get update
-    sudo aptitude -y full-upgrade
+    sudo apt update
+    sudo apt -y upgrade
 }
 
 install_linters_linux () {
     sudo pip install bashate flake8 ansible-lint
     gem install foodcritic cookstyle
-    git clone https://github.com/russell/git-lint-diff.git
 }
 
 install_pytest () {
@@ -42,7 +53,10 @@ install_pytest () {
 
 install_vagrant_osx () {
     sudo spctl --master-disable
+    brew install qemu libvirt
     brew cask install vagrant
+    sudo brew services start libvirt
+    sudo ln -sf /usr/local/var/run/libvirt /var/run/libvirt
 }
 
 install_vagrant_linux () {
@@ -50,30 +64,34 @@ install_vagrant_linux () {
     vagrant_deb="vagrant_${vagrant_ver}_x86_64.deb"
     wget "https://releases.hashicorp.com/vagrant/${vagrant_ver}/${vagrant_deb}"
     sudo dpkg -i ${vagrant_deb}
-    sudo apt-get -y install libopus0 libsdl1.2debian libcaca0
-    vb_ver=6.0.8
-    vb_build=130520
-    vb_v=${vb_ver:0:3}
-    vb_deb="virtualbox-${vb_v}_${vb_ver}-${vb_build}~Ubuntu~xenial_amd64.deb"
-    wget "http://download.virtualbox.org/virtualbox/${vb_ver}/${vb_deb}"
-    sudo dpkg -i ${vb_deb}
+    sudo apt -y install libvirt-bin libvirt-dev dnsmasq qemu qemu-utils sshpass
+    sudo systemctl restart libvirt-bin
+}
+
+install_vagrant_plugins () {
+    vagrant plugin install vagrant-libvirt
+    vagrant plugin install vagrant-mutate
+    vagrant box add bento/ubuntu-18.04 --provider virtualbox
+    vagrant mutate bento/ubuntu-18.04 libvirt
 }
 
 remove_dbs () {
     sudo /etc/init.d/mysql stop
     sudo /etc/init.d/postgresql stop
-    sudo apt-get purge mongodb-org mongodb-org-mongos mongodb-org-server \
-    mongodb-org-shell mongodb-org-tools postgresql-9.2 postgresql-9.3 \
-    postgresql-9.4 postgresql-9.5 postgresql-9.6 postgresql-client \
-    postgresql-client-9.2 postgresql-client-9.3 postgresql-client-9.4 \
-    postgresql-client-9.5 postgresql-client-9.6 postgresql-client-common \
-    postgresql-common postgresql-contrib-9.2 postgresql-contrib-9.3 \
-    postgresql-contrib-9.4 postgresql-contrib-9.5 postgresql-contrib-9.6 \
-    mysql-server-5.6 mysql-server-core-5.6 rabbitmq-server
+    sudo apt -y purge mongodb-org mongodb-org-mongos mongodb-org-server \
+    mongodb-org-shell mongodb-org-tools \
+    postgresql-9.4 postgresql-client-9.4 postgresql-contrib-9.4 \
+    postgresql-9.5 postgresql-client-9.5 postgresql-contrib-9.5 \
+    postgresql-9.6 postgresql-client-9.6 postgresql-contrib-9.6 \
+    postgresql-client postgresql-client-common \
+    mysql-server-5.7 mysql-server-core-5.7 mysql-client-5.7
 }
 
+print_debug_info_"${TRAVIS_OS_NAME}"
+
 if [ "${TRAVIS_OS_NAME}" == "osx" ] ; then
-    :
+    sudo pip2 install -U pip setuptools
+    export CONFIGURE_ARGS="with-libvirt-include=/usr/local/include/libvirt with-libvirt-lib=/usr/local/lib"
 fi
 
 if [ "${TRAVIS_OS_NAME}" == "linux" ] ; then
@@ -82,5 +100,6 @@ fi
 
 upgrade_os_"${TRAVIS_OS_NAME}"
 install_linters_"${TRAVIS_OS_NAME}"
-install_pytest
 install_vagrant_"${TRAVIS_OS_NAME}"
+install_vagrant_plugins
+install_pytest

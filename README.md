@@ -39,8 +39,34 @@ and your build environment. Other topologies exist in the same directory.
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:
 
+To create a virtualbox build (the default):
+
 ```shell
 make create all
+```
+
+To create a libvirt build:
+
+```shell
+vagrant plugin install vagrant-libvirt vagrant-mutate
+vagrant box add bento/ubuntu-18.04
+vagrant mutate bento/ubuntu-18.04 libvirt
+export VAGRANT_DEFAULT_PROVIDER=libvirt
+make create all
+```
+
+You may also want to change cpu model from `qemu64` to `kvm64` in
+`ansible/playbooks/roles/common/defaults/main/chef.yml`
+
+```
+chef_environment:
+  name: virtual
+  override_attributes:
+    bcpc:
+       nova:
+         cpu_config:
+           cpu_mode: custom
+           cpu_model: kvm64
 ```
 
 

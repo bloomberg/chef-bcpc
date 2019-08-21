@@ -19,4 +19,8 @@ set -xe
 root_dir=$(git rev-parse --show-toplevel)
 virtual_dir="${root_dir}/virtual"
 
+if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
+fi
+
 (cd "${virtual_dir}"; vagrant destroy -f)

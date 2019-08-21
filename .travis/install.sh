@@ -1,5 +1,6 @@
 #!/bin/bash -x
 
-export DEPLOY_NETWORK_VM=true
-#make create
-#make
+export VAGRANT_DEFAULT_PROVIDER=libvirt
+export LIBVIRT_DRIVER=qemu
+sudo -E make create
+sudo -E make
