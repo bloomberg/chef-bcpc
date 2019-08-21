@@ -17,9 +17,11 @@
 
 require 'yaml'
 
-def local_cache(basebox_name)
+def mount_apt_cache(config)
   user_data_path = Vagrant.user_data_path.to_s
-  File.join(user_data_path, 'cache', 'apt', basebox_name)
+  cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
+  apt_cache_dir = '/var/cache/apt/archives'
+  config.vm.synced_folder cache_dir, apt_cache_dir, create: true
 end
 
 # load the vm topology profile
@@ -54,8 +56,7 @@ Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
   config.vm.box = 'bento/ubuntu-18.04'
   config.vm.box_download_insecure = true
-  cache_dir = local_cache(config.vm.box)
-  config.vm.synced_folder cache_dir, '/var/cache/apt/archives', create: true
+  mount_apt_cache(config)
 
   topology['nodes'].each do |node|
     vm_name = node['host']

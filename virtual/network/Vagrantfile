@@ -17,9 +17,11 @@
 
 base_box = 'bento/ubuntu-18.04'
 
-def local_cache(basebox_name)
+def mount_apt_cache(config)
   user_data_path = Vagrant.user_data_path.to_s
-  File.join(user_data_path, 'cache', 'apt', basebox_name)
+  cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
+  apt_cache_dir = '/var/cache/apt/archives'
+  config.vm.synced_folder cache_dir, apt_cache_dir, create: true
 end
 
 def setup_proxy(node)
@@ -41,8 +43,7 @@ Vagrant.configure(2) do |config|
       node.vm.hostname = 'network'
       node.vm.box = base_box
       node.vm.box_download_insecure = true
-      cache_dir = local_cache(node.vm.box)
-      node.vm.synced_folder cache_dir, '/var/cache/apt/archives', create: true
+      mount_apt_cache(node)
       node.vm.network 'private_network', virtualbox__intnet: 'management1',
                                          auto_config: false
       node.vm.network 'private_network', virtualbox__intnet: 'management2',
@@ -64,8 +65,7 @@ Vagrant.configure(2) do |config|
         end
         node.vm.box = base_box
         node.vm.box_download_insecure = true
-        cache_dir = local_cache(node.vm.box)
-        node.vm.synced_folder cache_dir, '/var/cache/apt/archives', create: true
+        mount_apt_cache(node)
         node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine1",
                                            auto_config: false
         node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine2",
@@ -90,9 +90,8 @@ Vagrant.configure(2) do |config|
           vb.memory = 512
         end
         node.vm.box = base_box
-        cache_dir = local_cache(node.vm.box)
-        node.vm.synced_folder cache_dir, '/var/cache/apt/archives', create: true
         node.vm.box_download_insecure = true
+        mount_apt_cache(node)
         node.vm.network 'private_network', virtualbox__intnet: "tor1_spine#{i}",
                                            auto_config: false
         node.vm.network 'private_network', virtualbox__intnet: "tor2_spine#{i}",
