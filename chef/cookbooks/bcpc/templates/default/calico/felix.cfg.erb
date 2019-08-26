@@ -19,3 +19,9 @@ LogSeveritySys = Warning
 # example, if a significant security vulnerability has been discovered in
 # the version of Calico being used.
 UsageReportingEnabled = false
+
+FailsafeInboundHostPorts = none
+
+# TCP 53 (DNS), UDP 53 (DNS), UDP 123 (NTP), TCP 179 (BGP),
+# TCP 2379 & 2380 (etcd)
+FailsafeOutboundHostPorts = tcp:53,udp:53,udp:123,tcp:179,tcp:2379,tcp:2380
