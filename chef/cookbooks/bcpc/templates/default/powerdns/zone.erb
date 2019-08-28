@@ -14,7 +14,7 @@ $TTL 600
 <% end %>
 
 <% node['bcpc']['powerdns']['nameservers'].each do |host, ip| %>
-<%= host %> 3600 IN A <%= ip %>
+<%= host %> 600 IN A <%= ip %>
 <% end %>
 
 <%= node['bcpc']['cloud']['fqdn'] %>. IN A <%= node['bcpc']['cloud']['vip'] %>
