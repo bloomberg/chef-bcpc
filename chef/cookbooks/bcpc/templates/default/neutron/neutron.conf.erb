@@ -10,15 +10,15 @@ api_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 dns_domain = <%= node['bcpc']['cloud']['domain'] %>
 
+[agent]
+root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
+
 [calico]
 etcd_host = 127.0.0.1
 etcd_port = 2379
 etcd_ca_cert_file = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
 etcd_cert_file = <%= node['bcpc']['etcd']['client-rw']['crt']['filepath'] %>
 etcd_key_file = <%= node['bcpc']['etcd']['client-rw']['key']['filepath'] %>
-
-[agent]
-root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf
 
 [database]
 connection = mysql+pymysql://<%= "#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/#{@db['dbname']}" %>
@@ -34,7 +34,6 @@ project_name = service
 username = <%= @os['username'] %>
 password = <%= @os['password'] %>
 
-
 [nova]
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
 auth_type = password
@@ -47,3 +46,8 @@ password = <%= @config['nova']['creds']['os']['password'] %>
 
 [oslo_concurrency]
 lock_path = $state_path/lock
+
+[quotas]
+<% node['bcpc']['neutron']['quota'].fetch('default',{}).each do |resource, limit| %>
+<%= "#{resource} = #{limit}" %>
+<% end %>
