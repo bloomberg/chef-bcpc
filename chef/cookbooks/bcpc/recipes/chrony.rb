@@ -26,3 +26,19 @@ template '/etc/chrony/chrony.conf' do
   )
   notifies :restart, 'service[chrony]', :immediately
 end
+
+execute 'reload systemd' do
+  action :nothing
+  command 'systemctl daemon-reload'
+end
+
+directory '/etc/systemd/system/chrony.service.d' do
+  action :create
+end
+
+# Work-around so that Chrony daemon waits for network to become online.
+cookbook_file '/etc/systemd/system/chrony.service.d/custom.conf' do
+  source 'chrony/custom.conf'
+  notifies :run, 'execute[reload systemd]', :immediately
+  notifies :restart, 'service[chrony]', :immediately
+end
