@@ -91,15 +91,18 @@ print_debug_info_"${TRAVIS_OS_NAME}"
 
 if [ "${TRAVIS_OS_NAME}" == "osx" ] ; then
     sudo pip2 install -U pip setuptools
-    export CONFIGURE_ARGS="with-libvirt-include=/usr/local/include/libvirt with-libvirt-lib=/usr/local/lib"
+    CONFIGURE_ARGS="with-libvirt-include=/usr/local/include/libvirt"
+    CONFIGURE_ARGS="${CONFIGURE_ARGS} with-libvirt-lib=/usr/local/lib"
 fi
 
-if [ "${TRAVIS_OS_NAME}" == "linux" ] ; then
-    remove_dbs
+if [ "${1}" == "linter" ] ; then
+    install_linters_"${TRAVIS_OS_NAME}"
+elif [ "${1}" == "build" ] ; then
+    if [ "${TRAVIS_OS_NAME}" == "linux" ] ; then
+        remove_dbs
+    fi
+    upgrade_os_"${TRAVIS_OS_NAME}"
+    install_vagrant_"${TRAVIS_OS_NAME}"
+    install_vagrant_plugins
+    install_pytest
 fi
-
-upgrade_os_"${TRAVIS_OS_NAME}"
-install_linters_"${TRAVIS_OS_NAME}"
-install_vagrant_"${TRAVIS_OS_NAME}"
-install_vagrant_plugins
-install_pytest
