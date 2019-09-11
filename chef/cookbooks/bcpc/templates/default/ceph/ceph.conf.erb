@@ -33,7 +33,6 @@ osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
 osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
 osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
-osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
 
 # bluestore tunning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
