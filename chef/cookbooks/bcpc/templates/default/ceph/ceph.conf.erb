@@ -21,6 +21,7 @@ osd scrub end hour = <%= @node['bcpc']['ceph']['osd_scrub_end_hour'] %>
 osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
 osd scrub chunk min = <%= @node['bcpc']['ceph']['osd_scrub_chunk_min'] %>
 osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
+osd scrub max scrubs = <%= @node['bcpc']['ceph']['osd_max_scrubs'] %>
 
 # settings to throttle OSD recovery parameters
 osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
@@ -29,6 +30,13 @@ osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
+osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
+osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
+osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
+
+#Bluestoe Tunnings
+bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'] %>
+rocksdb cache size = <%= @node['bcpc']['ceph']['rocksdb_cache_size'] %>
 
 [client.cinder]
 rbd cache = true
