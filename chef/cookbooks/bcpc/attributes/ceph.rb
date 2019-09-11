@@ -34,11 +34,30 @@ default['bcpc']['ceph']['max_open_files'] = 2048
 # set tunables for ceph osd reovery
 default['bcpc']['ceph']['paxos_propose_interval'] = 1
 default['bcpc']['ceph']['osd_recovery_max_active'] = 1
-default['bcpc']['ceph']['osd_recovery_threads'] = 1
+default['bcpc']['ceph']['osd_recovery_threads'] = 2
 default['bcpc']['ceph']['osd_recovery_op_priority'] = 1
-default['bcpc']['ceph']['osd_max_backfills'] = 1
+default['bcpc']['ceph']['osd_max_backfills'] = 3
 default['bcpc']['ceph']['osd_op_threads'] = 2
 default['bcpc']['ceph']['osd_mon_report_interval_min'] = 5
+default['bcpc']['ceph']['osd_max_scrubs'] = 5
+default['bcpc']['ceph']['osd_deep_scrub_interval'] = 2592000
+default['bcpc']['ceph']['osd_scrub_max_interval'] = 604800
+default['bcpc']['ceph']['osd_scrub_sleep'] = 0.05
+default['bcpc']['ceph']['osd_memory_target'] = 9663676416
+
+# bluestore tunning
+default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
+  'compression=kNoCompression',
+  'max_write_buffer_number=4',
+  'min_write_buffer_number_to_merge=1',
+  'recycle_log_file_num=4',
+  'write_buffer_size=268435456',
+  'writable_file_max_buffer_size=0',
+  'compaction_readahead_size=2097152',
+  'max_background_compactions=4'
+]
+
+default['bcpc']['ceph']['rocksdb_cache_size'] = 536870912
 
 # Set RBD default feature set to only include layering and
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent
