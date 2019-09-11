@@ -37,7 +37,7 @@ osd scrub sleep = <%= @node['bcpc']['ceph']['osd_scrub_sleep'] %>
 
 # bluestore tunning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
-rocksdb cache size = <%= @node['bcpc']['ceph']['rocksdb_cache_size'] %>
+bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
 
 [client.cinder]
 rbd cache = true

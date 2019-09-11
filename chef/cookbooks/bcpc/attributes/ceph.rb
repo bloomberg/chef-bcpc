@@ -57,7 +57,7 @@ default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
   'max_background_compactions=4',
 ]
 
-default['bcpc']['ceph']['rocksdb_cache_size'] = 536870912
+default['bcpc']['ceph']['bluestore_cache_size_ssd'] = 10737418240
 
 # Set RBD default feature set to only include layering and
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent
