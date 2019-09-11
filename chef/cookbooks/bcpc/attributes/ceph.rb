@@ -54,7 +54,7 @@ default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
   'write_buffer_size=268435456',
   'writable_file_max_buffer_size=0',
   'compaction_readahead_size=2097152',
-  'max_background_compactions=4'
+  'max_background_compactions=4',
 ]
 
 default['bcpc']['ceph']['rocksdb_cache_size'] = 536870912
