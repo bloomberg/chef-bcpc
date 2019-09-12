@@ -19,7 +19,8 @@ all : \
 	configure-web-server \
 	run-chef-client \
 	add-cloud-images \
-	register-compute-nodes
+	register-compute-nodes \
+	configure-host-aggregates
 
 create: create-virtual-network create-virtual-hosts
 
