@@ -1,3 +1,4 @@
 [NetDev]
 Name=service0
 Kind=dummy
+MTUBytes={{ networking['mtu'] }}

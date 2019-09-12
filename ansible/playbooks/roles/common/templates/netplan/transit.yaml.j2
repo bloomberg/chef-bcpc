@@ -4,6 +4,9 @@ network:
     {{ item['name'] }}:
       addresses:
         - {{ item['ip'] }}
+      match:
+        macaddress: {{ item['mac'] }}
+      mtu: {{ networking['mtu'] }}
       nameservers:
         addresses:
           - {{ cloud_ip }}
