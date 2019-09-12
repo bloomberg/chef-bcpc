@@ -90,9 +90,9 @@ remove_dbs () {
 print_debug_info_"${TRAVIS_OS_NAME}"
 
 if [ "${TRAVIS_OS_NAME}" == "osx" ] ; then
-    sudo pip2 install -U pip setuptools
     CONFIGURE_ARGS="with-libvirt-include=/usr/local/include/libvirt"
     CONFIGURE_ARGS="${CONFIGURE_ARGS} with-libvirt-lib=/usr/local/lib"
+    export CONFIGURE_ARGS
 fi
 
 if [ "${1}" == "linter" ] ; then
