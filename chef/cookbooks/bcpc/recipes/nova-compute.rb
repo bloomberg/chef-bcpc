@@ -154,6 +154,24 @@ bash 'remove default virsh net' do
   only_if 'virsh net-list | grep -i default'
 end
 
+execute 'reload systemd' do
+  action :nothing
+  command 'systemctl daemon-reload'
+end
+
+directory '/etc/systemd/system/nova-api-metadata.service.d' do
+  action :create
+end
+
+# Work-around so that nova-api-metadata waits for systemd-resolved to
+# become online. This is necessary because eventlet's underlying resolver
+# library defaults to a stub configuration that is incorrect at boot and
+# the daemon never sees the updated configuration.
+cookbook_file '/etc/systemd/system/nova-api-metadata.service.d/custom.conf' do
+  source 'nova/custom.conf'
+  notifies :run, 'execute[reload systemd]', :immediately
+end
+
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
   variables(
