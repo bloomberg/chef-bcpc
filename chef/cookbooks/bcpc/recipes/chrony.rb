@@ -14,18 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 package 'chrony'
 service 'chrony'
-
-template '/etc/chrony/chrony.conf' do
-  source 'chrony/chrony.conf.erb'
-  variables(
-    servers: node['bcpc']['ntp']['servers']
-  )
-  notifies :restart, 'service[chrony]', :immediately
-end
 
 execute 'reload systemd' do
   action :nothing
@@ -40,5 +31,12 @@ end
 cookbook_file '/etc/systemd/system/chrony.service.d/custom.conf' do
   source 'chrony/custom.conf'
   notifies :run, 'execute[reload systemd]', :immediately
+end
+
+template '/etc/chrony/chrony.conf' do
+  source 'chrony/chrony.conf.erb'
+  variables(
+    servers: node['bcpc']['ntp']['servers']
+  )
   notifies :restart, 'service[chrony]', :immediately
 end
