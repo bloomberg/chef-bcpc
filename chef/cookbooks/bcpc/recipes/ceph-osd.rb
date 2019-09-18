@@ -40,6 +40,7 @@ end
 
 template '/etc/ceph/ceph.client.admin.keyring' do
   source 'ceph/ceph.client.keyring.erb'
+  mode '0600'
   variables(
     username: 'admin',
     client: config['ceph']['client']['admin'],
