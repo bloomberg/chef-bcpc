@@ -24,6 +24,7 @@ service "ceph-mon@#{node['hostname']}"
 
 template '/etc/ceph/ceph.client.admin.keyring' do
   source 'ceph/ceph.client.keyring.erb'
+  mode '0600'
   variables(
     username: 'admin',
     client: config['ceph']['client']['admin'],
@@ -133,6 +134,7 @@ begin
         # import the client.admin keyring first and move it to /etc/ceph
         #
         ceph auth import -i ${tmp_dir}/ceph.client.admin.keyring
+        chmod 0600 ${tmp_dir}/ceph.client.admin.keyring
         mv ${tmp_dir}/ceph.client.admin.keyring /etc/ceph
 
         for keyring in ${tmp_dir}/*.keyring; do
