@@ -25,13 +25,13 @@ default['bcpc']['ceph']['pg_warn_max_obj_skew'] = 10
 default['bcpc']['ceph']['osd_niceness'] = -10
 default['bcpc']['ceph']['mon_niceness'] = -10
 
-# set tcmalloc max total thread cache
+# Set tcmalloc max total thread cache
 default['bcpc']['ceph']['tcmalloc_max_total_thread_cache_bytes'] = '128MB'
 
-# sets the max open fds at the OS level
+# Set the max open fds at the OS level
 default['bcpc']['ceph']['max_open_files'] = 2048
 
-# set tunables for ceph osd reovery
+# Set tunables for ceph osd reovery
 default['bcpc']['ceph']['paxos_propose_interval'] = 1
 default['bcpc']['ceph']['osd_recovery_max_active'] = 1
 default['bcpc']['ceph']['osd_recovery_threads'] = 2
@@ -45,7 +45,7 @@ default['bcpc']['ceph']['osd_scrub_max_interval'] = 604800
 default['bcpc']['ceph']['osd_scrub_sleep'] = 0.05
 default['bcpc']['ceph']['osd_memory_target'] = 9663676416
 
-# bluestore tunning
+# BlueStore tuning
 default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
   'compression=kNoCompression',
   'max_write_buffer_number=4',
