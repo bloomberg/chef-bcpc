@@ -135,7 +135,7 @@
     src: netplan/libvirt.yaml.j2
     dest: "/etc/netplan/libvirt.yaml"
   register: netplan
-  when: ansible_virtualization_type == 'kvm' or ansible_system_vendor == 'QEMU'
+  when: ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest' and ansible_system_vendor == 'QEMU'
 
 - name: netplan transit interfaces
   template:
