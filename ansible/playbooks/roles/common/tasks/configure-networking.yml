@@ -7,6 +7,11 @@
     transit_interfaces: >
       {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
 
+- name: define libvirt_kvm_guest var
+  set_fact:
+    libvirt_kvm_guest: >
+      {{ ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest' and ansible_system_vendor == 'QEMU' }}
+
 - name: set hostname
   hostname:
     name: "{{ inventory_hostname }}"
@@ -135,7 +140,7 @@
     src: netplan/libvirt.yaml.j2
     dest: "/etc/netplan/libvirt.yaml"
   register: netplan
-  when: ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest' and ansible_system_vendor == 'QEMU'
+  when: libvirt_kvm_guest
 
 - name: netplan transit interfaces
   template:
