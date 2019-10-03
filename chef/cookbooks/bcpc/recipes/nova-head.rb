@@ -383,19 +383,20 @@ end
 # configure nova ends
 
 # configure placement-api starts
-#
+placement_processes = if !node['bcpc']['placement']['workers'].nil?
+                        node['bcpc']['placement']['workers']
+                      else
+                        node['bcpc']['openstack']['services']['workers']
+                      end
+
 template '/etc/apache2/sites-available/nova-placement-api.conf' do
   source 'nova/nova-placement-api.conf.erb'
-
   variables(
-    threads: node['bcpc']['placement']['wsgi']['threads'],
-    processes: node['bcpc']['placement']['wsgi']['processes']
+    processes: placement_processes
   )
-
   notifies :run, 'execute[enable placement-api]', :immediately
   notifies :restart, 'service[placement-api]', :immediately
 end
-#
 # configure placement-api ends
 
 execute 'enable placement-api' do

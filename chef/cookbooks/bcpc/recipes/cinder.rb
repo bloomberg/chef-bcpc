@@ -235,11 +235,16 @@ file '/etc/apache2/conf-available/cinder-wsgi.conf' do
 end
 
 # configure cinder service starts
+cinder_processes = if !node['bcpc']['cinder']['workers'].nil?
+                     node['bcpc']['cinder']['workers']
+                   else
+                     node['bcpc']['openstack']['services']['workers']
+                   end
+
 template '/etc/apache2/sites-available/cinder-api.conf' do
   source 'cinder/cinder-api.conf.erb'
   variables(
-    processes: node['bcpc']['cinder']['wsgi']['processes'],
-    threads: node['bcpc']['cinder']['wsgi']['threads']
+    processes: cinder_processes
   )
   notifies :run, 'execute[enable cinder-api]', :immediately
   notifies :restart, 'service[cinder-api]', :immediately

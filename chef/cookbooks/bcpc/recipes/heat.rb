@@ -231,11 +231,17 @@ execute 'wait for heat api to become available' do
   subscribes :run, 'service[heat-apis-apache2]', :immediately
 end
 
+heat_processes = if !node['bcpc']['heat']['api_workers'].nil?
+                   node['bcpc']['heat']['api_workers']
+                 else
+                   node['bcpc']['openstack']['services']['workers']
+                 end
+
 # configure heat-api service
 template '/etc/apache2/sites-available/heat-api.conf' do
   source 'heat/heat-api.conf.erb'
   variables(
-    processes: node['bcpc']['heat']['api_workers']
+    processes: heat_processes
   )
   notifies :run, 'execute[enable heat-api]', :immediately
   notifies :create, 'template[/etc/apache2/sites-available/heat-api-cfn.conf]',
@@ -252,7 +258,7 @@ end
 template '/etc/apache2/sites-available/heat-api-cfn.conf' do
   source 'heat/heat-api-cfn.conf.erb'
   variables(
-    processes: node['bcpc']['heat']['api_workers']
+    processes: heat_processes
   )
   notifies :run, 'execute[enable heat-api-cfn]', :immediately
   notifies :create, 'template[/tmp/heat-create-db.sql]', :immediately

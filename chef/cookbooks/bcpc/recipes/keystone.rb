@@ -96,12 +96,17 @@ file '/etc/apache2/sites-available/keystone.conf' do
 end
 
 # configure apache2 wsgi proxy vhost
+keystone_processes = if !node['bcpc']['keystone']['workers'].nil?
+                       node['bcpc']['keystone']['workers']
+                     else
+                       node['bcpc']['openstack']['services']['workers']
+                     end
+
 template '/etc/apache2/sites-available/keystone-api.conf' do
   source 'keystone/keystone-api.conf.erb'
   mode '644'
   variables(
-    processes: node['bcpc']['keystone']['wsgi']['processes'],
-    threads: node['bcpc']['keystone']['wsgi']['threads']
+    processes: keystone_processes
   )
   notifies :run, 'execute[enable keystone-api]', :immediately
   notifies :reload, 'service[keystone]', :immediately
