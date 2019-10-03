@@ -102,3 +102,13 @@
 #       - --property foo=bar
 #     hosts:
 #       - r1n2
+
+###############################################################################
+# networking
+###############################################################################
+
+# uncomment the following if you wish to set global networking options like
+# interface mtu
+
+# networking
+#   mtu: 1500

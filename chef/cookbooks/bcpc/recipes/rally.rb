@@ -20,7 +20,8 @@ return unless node['bcpc']['rally']['enabled']
 conf_dir = node['bcpc']['rally']['conf_dir']
 home_dir = node['bcpc']['rally']['home_dir']
 venv_dir = node['bcpc']['rally']['venv_dir']
-version = node['bcpc']['rally']['version']
+rally_version = node['bcpc']['rally']['rally']['version']
+rally_openstack_version = node['bcpc']['rally']['rally_openstack']['version']
 database_dir = node['bcpc']['rally']['database_dir']
 
 # pip uses the HOME env to figure out the users home directory. chef
@@ -80,9 +81,9 @@ execute 'install rally in virtualenv' do
     virtualenv --no-download #{venv_dir}
     . #{venv_dir}/bin/activate
     pip install --upgrade pbr
-    pip install --upgrade rally-openstack==#{version}
+    pip install --upgrade rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
-  not_if "rally --version | grep rally-openstack | grep #{version}"
+  not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
 end
 
 directory conf_dir do
