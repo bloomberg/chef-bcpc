@@ -13,7 +13,11 @@ stack_domain_admin_password = <%= @config['heat']['creds']['os']['password'] %>
 
 # Number of heat-engine processes to fork and run. Will default to either to 4
 # or number of CPUs on the host, whichever is greater. (integer value)
+<% if node['bcpc']['heat']['engine_workers'] %>
 num_engine_workers = <%= node['bcpc']['heat']['engine_workers'] %>
+<% else %>
+num_engine_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 
 # For full details on the fields in the URL see the documentation of
 # oslo_messaging.TransportURL at
@@ -58,8 +62,11 @@ bind_host = <%= node['service_ip'] %>
 # Number of workers for Heat service. Default value 0 means, that service will
 # start number of workers equal number of cores on server. (integer value)
 # Minimum value: 0
+<% if node['bcpc']['heat']['api_workers'] %>
 workers = <%= node['bcpc']['heat']['api_workers'] %>
-
+<% else %>
+workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 
 [heat_api_cfn]
 
@@ -69,7 +76,11 @@ bind_host = <%= node['service_ip'] %>
 
 # Number of workers for Heat service. (integer value)
 # Minimum value: 0
+<% if node['bcpc']['heat']['api_workers'] %>
 workers = <%= node['bcpc']['heat']['api_workers'] %>
+<% else %>
+workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% end %>
 
 
 [keystone_authtoken]
