@@ -206,7 +206,12 @@ template '/etc/neutron/plugins/ml2/ml2_conf.ini' do
   source 'neutron/neutron.ml2_conf.ini.erb'
   notifies :restart, 'service[neutron-server]', :immediately
 end
-#
+
+cookbook_file '/etc/neutron/api-paste.ini' do
+  source 'neutron/api-paste.ini'
+  mode '0640'
+  notifies :restart, 'service[neutron-server]', :immediately
+end
 # configure neutron ends
 
 execute 'wait for neutron to come online' do

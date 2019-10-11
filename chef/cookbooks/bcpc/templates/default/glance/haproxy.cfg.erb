@@ -6,7 +6,7 @@ listen glance-api
   bind <%= @vip %>:9292 ssl crt /etc/haproxy/haproxy.pem
   balance source
   option tcpka
-  option httpchk
+  option httpchk GET /healthcheck
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>

@@ -270,6 +270,12 @@ template '/etc/cinder/cinder.conf' do
   notifies :restart, 'service[cinder-volume]', :immediately
   notifies :restart, 'service[cinder-scheduler]', :immediately
 end
+
+cookbook_file '/etc/cinder/api-paste.ini' do
+  source 'cinder/api-paste.ini'
+  mode '0640'
+  notifies :restart, 'service[cinder-api]', :immediately
+end
 # configure cinder service ends
 
 execute 'wait for cinder to come online' do

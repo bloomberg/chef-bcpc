@@ -223,14 +223,6 @@ service 'haproxy-heat' do
   service_name 'haproxy'
 end
 
-execute 'wait for heat api to become available' do
-  environment os_adminrc
-  retries 15
-  command 'openstack stack list'
-  action :nothing
-  subscribes :run, 'service[heat-apis-apache2]', :immediately
-end
-
 heat_processes = if !node['bcpc']['heat']['api_workers'].nil?
                    node['bcpc']['heat']['api_workers']
                  else
@@ -298,7 +290,7 @@ execute 'create heat database' do
   environment('MYSQL_PWD' => mysqladmin['password'])
   command "mysql -u #{mysqladmin['username']} < /tmp/heat-create-db.sql"
   notifies :delete, 'file[/tmp/heat-create-db.sql]', :immediately
-  notifies :create, 'template[/etc/heat/heat.conf]', :immediately
+  notifies :create, 'cookbook_file[/etc/heat/api-paste.ini]', :immediately
   notifies :run, 'execute[heat-manage db_sync]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
 end
@@ -309,6 +301,13 @@ execute 'heat-manage db_sync' do
 end
 
 # configure heat
+cookbook_file '/etc/heat/api-paste.ini' do
+  source 'heat/api-paste.ini'
+  mode '0640'
+  notifies :restart, 'service[heat-apis-apache2]', :immediately
+  notifies :create, 'template[/etc/heat/heat.conf]', :immediately
+end
+
 template '/etc/heat/heat.conf' do
   source 'heat/heat.conf.erb'
   variables(
@@ -322,4 +321,10 @@ template '/etc/heat/heat.conf' do
   notifies :run, 'execute[heat-manage db_sync]', :immediately
   notifies :restart, 'service[heat-engine]', :immediately
   notifies :restart, 'service[heat-apis-apache2]', :immediately
+end
+
+execute 'wait for heat api to become available' do
+  environment os_adminrc
+  retries 15
+  command 'openstack stack list'
 end

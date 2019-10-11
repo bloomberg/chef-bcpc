@@ -6,7 +6,7 @@ listen neutron-api
   bind <%= @vip %>:9696 ssl crt /etc/haproxy/haproxy.pem
   balance source
   option tcpka
-  option httpchk
+  option httpchk GET /healthcheck
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>

@@ -6,7 +6,7 @@ listen heat-api
   bind <%= @vip %>:8004 ssl crt /etc/haproxy/haproxy.pem
   balance source
   option tcpka
-  option httpchk
+  option httpchk GET /healthcheck
   option httplog
   option forwardfor
   reqadd X-Forwarded-Proto:\ https
@@ -18,7 +18,7 @@ listen heat-api-cfn
   bind <%= @vip %>:8000 ssl crt /etc/haproxy/haproxy.pem
   balance source
   option tcpka
-  option httpchk
+  option httpchk GET /healthcheck
   option httplog
   option forwardfor
   reqadd X-Forwarded-Proto:\ https
