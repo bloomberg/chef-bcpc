@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+base_box = 'bento/ubuntu-18.04'
+base_box_version = '201812.27.0'
+
 require 'yaml'
 
 def mount_apt_cache(config)
@@ -54,7 +57,8 @@ vb_folder = vb_folder.match(/^Default machine folder:\s+(.+)$/)[1]
 
 Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
-  config.vm.box = 'bento/ubuntu-18.04'
+  config.vm.box = base_box
+  config.vm.box_version = base_box_version
   config.vm.box_download_insecure = true
   mount_apt_cache(config)
 
