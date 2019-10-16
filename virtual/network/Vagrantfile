@@ -16,6 +16,7 @@
 # limitations under the License.
 
 base_box = 'bento/ubuntu-18.04'
+base_box_version = '201812.27.0'
 
 def mount_apt_cache(config)
   user_data_path = Vagrant.user_data_path.to_s
@@ -42,6 +43,7 @@ Vagrant.configure(2) do |config|
       end
       node.vm.hostname = 'network'
       node.vm.box = base_box
+      config.vm.box_version = base_box_version
       node.vm.box_download_insecure = true
       mount_apt_cache(node)
       node.vm.network 'private_network', virtualbox__intnet: 'management1',
@@ -64,6 +66,7 @@ Vagrant.configure(2) do |config|
           vb.memory = 512
         end
         node.vm.box = base_box
+        config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         mount_apt_cache(node)
         node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine1",
@@ -90,6 +93,7 @@ Vagrant.configure(2) do |config|
           vb.memory = 512
         end
         node.vm.box = base_box
+        config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         mount_apt_cache(node)
         node.vm.network 'private_network', virtualbox__intnet: "tor1_spine#{i}",

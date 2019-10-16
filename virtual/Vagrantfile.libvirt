@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+base_box = 'bento/ubuntu-18.04'
+base_box_version = '201812.27.0'
+
 require 'yaml'
 
 def load_topology
@@ -57,7 +60,8 @@ hardware = load_hardware
 
 Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
-  config.vm.box = 'bento/ubuntu-18.04'
+  config.vm.box = base_box
+  config.vm.box_version = base_box_version
   config.vm.box_download_insecure = true
 
   config.vm.provider :libvirt do |lv|
@@ -129,7 +133,8 @@ Vagrant.configure('2') do |config|
 
           drive_letters.each do |l|
             device = "sd#{l}"
-            lv.storage :file, size: "#{size_gb}G", device: device.to_s, bus: 'sata'
+            lv.storage :file, size: "#{size_gb}G", device: device.to_s,
+                                                   bus: 'sata'
           end
         end
       end
