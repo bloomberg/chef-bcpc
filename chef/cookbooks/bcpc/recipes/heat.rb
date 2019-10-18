@@ -201,8 +201,13 @@ template '/etc/haproxy/haproxy.d/heat.cfg' do
   notifies :restart, 'service[haproxy-heat]', :immediately
 end
 
+link '/usr/share/openstack-dashboard/themes' do
+  # https://bugs.launchpad.net/ubuntu/+source/heat-dashboard/+bug/1848495
+  to '/usr/share/openstack-dashboard/openstack_dashboard/themes'
+end
+
 # heat packages installation and service definitions
-heat_packages = %w(heat-api heat-api-cfn heat-engine)
+heat_packages = %w(heat-api heat-api-cfn heat-engine python-heat-dashboard)
 package heat_packages
 
 service 'heat-engine'
