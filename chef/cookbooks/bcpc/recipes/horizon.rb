@@ -53,3 +53,9 @@ template '/etc/openstack-dashboard/local_settings.py' do
   )
   notifies :restart, 'service[horizon]', :delayed
 end
+
+execute 'wait for keystone to come online' do
+  environment os_adminrc
+  retries 15
+  command 'openstack catalog list'
+end
