@@ -222,8 +222,8 @@ chef_roles:
       - recipe[bcpc::neutron-head]
       - recipe[bcpc::nova-head]
       - recipe[bcpc::cinder]
-      - recipe[bcpc::heat]
       - recipe[bcpc::horizon]
+      - recipe[bcpc::heat]
       - recipe[bcpc::os-quota]
       - recipe[bcpc::flavors]
 
