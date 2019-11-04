@@ -5,7 +5,7 @@
 listen keystone-admin-api
   bind <%= @vip %>:35357 ssl crt /etc/haproxy/haproxy.pem
   option tcpka
-  option httpchk GET /healthcheck
+  option httpchk
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>
@@ -16,7 +16,7 @@ listen keystone-public-api
   bind <%= @vip %>:5000 ssl crt /etc/haproxy/haproxy.pem
   balance source
   option tcpka
-  option httpchk GET /healthcheck
+  option httpchk
   option httplog
   option forwardfor
 <% @headnodes.each do |n| -%>

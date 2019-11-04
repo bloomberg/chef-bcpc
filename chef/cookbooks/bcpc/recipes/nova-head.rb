@@ -349,6 +349,7 @@ end
 # create/manage nova databases ends
 
 # configure nova starts
+#
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
 
@@ -401,13 +402,6 @@ end
 execute 'enable placement-api' do
   command 'a2ensite nova-placement-api'
   not_if 'a2query -s nova-placement-api'
-end
-
-cookbook_file '/etc/nova/api-paste.ini' do
-  source 'nova/api-paste.ini'
-  mode '0640'
-  notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
 end
 
 execute 'wait for nova to come online' do
