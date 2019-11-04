@@ -28,7 +28,7 @@ listen placement-api
   balance source
   option httplog
   option forwardfor
-  option httpchk GET /
+  option httpchk GET /healthcheck
   http-check expect status 200
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8778 check inter 5s rise 1 fall 1
