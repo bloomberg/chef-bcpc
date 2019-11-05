@@ -21,7 +21,7 @@ admin_role = <%= node['bcpc']['keystone']['roles']['admin'] %>
 image_cache_dir = /var/lib/glance/image-cache/
 log_file = /var/log/glance/api.log
 transport_url = rabbit://<%= @headnodes.map{|x| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{x['service_ip']}:5672" }.join(',') %>
-
+image_member_quota = -1
 
 [database]
 connection = mysql+pymysql://<%= @db['username'] %>:<%= @db['password'] %>@<%= @db['host'] %>/<%= @db['dbname'] %>
