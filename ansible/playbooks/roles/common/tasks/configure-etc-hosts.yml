@@ -1,0 +1,8 @@
+- name: set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: populate /etc/hosts
+  template:
+    src: etc/hosts.j2
+    dest: /etc/hosts

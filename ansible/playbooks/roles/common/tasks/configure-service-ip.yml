@@ -1,0 +1,17 @@
+- name: service ip netdev config
+  template:
+    src: systemd/network/10-service0.netdev
+    dest: /etc/systemd/network/10-service0.netdev
+  register: networkd
+
+- name: service ip network config
+  template:
+    src: systemd/network/20-service0.network
+    dest: /etc/systemd/network/20-service0.network
+  register: networkd
+
+- name: restart systemd-networkd
+  service:
+    name: systemd-networkd
+    state: restarted
+  when: networkd.changed

@@ -1,193 +1,36 @@
-- name: setup configure networking
+- name: gather host facts
   setup:
     gather_subset: all
 
-- name: define transit_interfaces var
+- name: define ansible_host
+  set_fact:
+    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
+  when: use_primary_transit_interface
+
+- name: define transit_interfaces
   set_fact:
     transit_interfaces: >
       {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
 
-- name: define libvirt_kvm_guest var
+- name: define libvirt_kvm_guest
   set_fact:
     libvirt_kvm_guest: >
-      {{ ansible_virtualization_type == 'kvm' and ansible_virtualization_role == 'guest' and ansible_system_vendor == 'QEMU' }}
+      {{ ansible_virtualization_type == 'kvm'
+          and ansible_virtualization_role == 'guest'
+          and ansible_system_vendor == 'QEMU'}}
 
-- name: set hostname
-  hostname:
-    name: "{{ inventory_hostname }}"
+- import_tasks: configure-etc-hosts.yml
+- import_tasks: configure-root-user-ssh.yml
+- import_tasks: configure-systemd-resolved.yml
+- import_tasks: configure-local-proxy.yml
 
-- name: populate /etc/hosts
-  template:
-    src: etc/hosts.j2
-    dest: /etc/hosts
+- import_tasks: configure-bgp.yml
+  when: configure_bgp | default(true)
 
-- name: configure systemd-resolved
-  template:
-    src: systemd/resolved.conf.j2
-    dest: /etc/systemd/resolved.conf
-  register: resolved
+- import_tasks: configure-service-ip.yml
+  when: configure_service_ip | default(true)
 
-- name: resolv.conf symlink
-  file:
-    src: /run/systemd/resolve/resolv.conf
-    dest: /etc/resolv.conf
-    state: link
-    force: true
-  register: resolved
+- import_tasks: configure-network-interfaces.yml
+  when: configure_network_interfaces | default(true)
 
-- name: restart systemd-resolved
-  service:
-    name: systemd-resolved
-    state: restarted
-  when: resolved.changed
-
-- name: install tinyproxy
-  apt:
-    name: tinyproxy
-  environment: "{{ local_proxy['environment'] | default({}) }}"
-  when: local_proxy is defined and local_proxy['enabled']
-
-- name: configure tinyproxy
-  template:
-    src: tinyproxy/tinyproxy.conf.j2
-    dest: /etc/tinyproxy/tinyproxy.conf
-  register: tinyproxy
-  when: local_proxy is defined and local_proxy['enabled']
-
-- name: restart tinyproxy
-  service:
-    name: tinyproxy
-    state: restarted
-    enabled: yes
-  when: tinyproxy.changed
-
-- name: configure apt proxy
-  template:
-    src: apt/proxy.j2
-    dest: /etc/apt/apt.conf.d/proxy
-  when: local_proxy is defined and local_proxy['enabled']
-
-- name: install bird
-  apt:
-    name: bird
-
-- name: configure bird
-  template:
-    src: bird/bird.conf.j2
-    dest: /etc/bird/bird.conf
-  register: bird
-
-- name: restart bird
-  service:
-    name: bird
-    state: restarted
-    enabled: yes
-  when: bird.changed
-
-- name: check for default gateway from tor
-  shell: |
-    set -o pipefail
-    /usr/sbin/birdc show route | grep 0.0.0.0/0
-  args:
-    executable: /bin/bash
-  retries: 30
-  delay: 5
-  register: result
-  until: result.rc == 0
-  when: ansible_virtualization_type != 'virtualbox'
-
-- name: service ip netdev config
-  template:
-    src: systemd/network/10-service0.netdev
-    dest: /etc/systemd/network/10-service0.netdev
-  register: networkd
-
-- name: service ip network config
-  template:
-    src: systemd/network/20-service0.network
-    dest: /etc/systemd/network/20-service0.network
-  register: networkd
-
-- name: restart systemd-networkd
-  service:
-    name: systemd-networkd
-    state: restarted
-  when: networkd.changed
-
-- name: rename default netplan config
-  command: mv /etc/netplan/01-netcfg.yaml /etc/netplan/01-netcfg.yaml.orig
-  args:
-    removes: /etc/netplan/01-netcfg.yaml
-    creates: /etc/netplan/01-netcfg.yaml.orig
-  register: netplan
-
-- name: rename default vagrant netplan config
-  command: mv /etc/netplan/50-vagrant.yaml /etc/netplan/50-vagrant.yaml.orig
-  args:
-    removes: /etc/netplan/50-vagrant.yaml
-    creates: /etc/netplan/50-vagrant.yaml.orig
-  register: netplan
-
-- name: install virtualbox nat interface config
-  template:
-    src: netplan/virtualbox.yaml.j2
-    dest: "/etc/netplan/virtualbox.yaml"
-  register: netplan
-  when: ansible_virtualization_type == 'virtualbox'
-
-- name: install libvirt nat interface config
-  template:
-    src: netplan/libvirt.yaml.j2
-    dest: "/etc/netplan/libvirt.yaml"
-  register: netplan
-  when: libvirt_kvm_guest
-
-- name: netplan transit interfaces
-  template:
-    src: netplan/transit.yaml.j2
-    dest: "/etc/netplan/{{ item['name'] }}.yaml"
-  with_items:
-    "{{ interfaces['transit'] | transit_interfaces(ansible_facts) }}"
-  register: netplan
-
-- name: netplan apply
-  command: netplan apply
-  when: netplan.changed
-
-- name: configure sshd
-  template:
-    src: ssh/sshd_config.j2
-    dest: /etc/ssh/sshd_config
-  register: sshd
-
-- name: restart sshd
-  service:
-    name: sshd
-    state: restarted
-  when: sshd.changed
-
-- name: create root's .ssh directory
-  file:
-    path: /root/.ssh
-    state: directory
-    mode: 0700
-
-- name: configure root's authorized_keys
-  copy:
-    content: "{{ chef_databags[0]['ssh']['public'] | b64decode }}"
-    dest: /root/.ssh/authorized_keys
-    mode: 0644
-
-- name: configure root's private ssh key
-  copy:
-    content: "{{ chef_databags[0]['ssh']['private'] | b64decode }}"
-    dest: /root/.ssh/id_ed25519
-    mode: 0600
-
-- name: configure root's ssh config
-  copy:
-    content: |
-      Host *
-        StrictHostKeyChecking no
-        UserKnownHostsFile=/dev/null
-    dest: /root/.ssh/config
+- import_tasks: configure-sshd.yml

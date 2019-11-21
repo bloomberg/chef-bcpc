@@ -1,0 +1,25 @@
+- name: create root's .ssh directory
+  file:
+    path: /root/.ssh
+    state: directory
+    mode: 0700
+
+- name: configure root's authorized_keys
+  copy:
+    content: "{{ chef_databags[0]['ssh']['public'] | b64decode }}"
+    dest: /root/.ssh/authorized_keys
+    mode: 0644
+
+- name: configure root's private ssh key
+  copy:
+    content: "{{ chef_databags[0]['ssh']['private'] | b64decode }}"
+    dest: /root/.ssh/id_ed25519
+    mode: 0600
+
+- name: configure root's ssh config
+  copy:
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile=/dev/null
+    dest: /root/.ssh/config

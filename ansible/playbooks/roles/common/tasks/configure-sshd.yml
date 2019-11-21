@@ -1,0 +1,11 @@
+- name: configure sshd
+  template:
+    src: ssh/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  register: sshd
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+  when: sshd.changed
