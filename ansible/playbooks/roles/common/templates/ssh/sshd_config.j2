@@ -23,6 +23,9 @@ ListenAddress {{ virtualbox['nat_ip'] }}
 ListenAddress {{ ansible_eth0.ipv4.address }}
 {% endif %}
 ListenAddress {{ interfaces['service']['ip'] }}
+{% for transit in transit_interfaces -%}
+ListenAddress {{ transit['ip'] | ipaddr('address') }}
+{% endfor %}
 
 # Logging
 SyslogFacility AUTH
