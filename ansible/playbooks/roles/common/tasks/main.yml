@@ -1,11 +1,7 @@
-- import_tasks: operator.yml
+- import_tasks: configure-operator.yml
   become: true
-  vars:
-    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
-    ansible_ssh_user: "{{ initial_ssh_user }}"
-    ansible_ssh_pass: "{{ initial_ssh_pass }}"
-    ansible_sudo_pass: "{{ initial_ssh_pass }}"
-  tags: [never,operator]
+  tags: [never,configure-operator]
+  when: configure_operator | default(true)
 
 - import_tasks: chef-client.yml
   become: true
@@ -17,6 +13,4 @@
 
 - import_tasks: configure-networking.yml
   become: true
-  vars:
-    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
   tags: [never,configure-networking]

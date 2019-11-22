@@ -19,11 +19,11 @@ Protocol 2
 Port 22
 {% if ansible_virtualization_type == 'virtualbox' %}
 ListenAddress {{ virtualbox['nat_ip'] }}
-{% elif libvirt_kvm_guest %}
+{% elif libvirt_kvm_guest == True %}
 ListenAddress {{ ansible_eth0.ipv4.address }}
 {% endif %}
 ListenAddress {{ interfaces['service']['ip'] }}
-{% for transit in transit_interfaces %}
+{% for transit in transit_interfaces -%}
 ListenAddress {{ transit['ip'] | ipaddr('address') }}
 {% endfor %}
 
