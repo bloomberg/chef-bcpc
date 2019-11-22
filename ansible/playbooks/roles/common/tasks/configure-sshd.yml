@@ -2,6 +2,8 @@
   template:
     src: ssh/sshd_config.j2
     dest: /etc/ssh/sshd_config
+    validate: /usr/sbin/sshd -t -f %s
+    backup: true
   register: sshd
 
 - name: restart sshd
