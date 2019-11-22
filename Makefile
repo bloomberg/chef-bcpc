@@ -46,7 +46,7 @@ configure-operator :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t operator --limit cloud
+		-t configure-operator --limit cloud
 
 configure-networking :
 
