@@ -15,6 +15,7 @@
 
         # prefer to use ceph-volume if available
         if which ceph-volume; then
+          /sbin/pvremove -v -f -f -y ${device}
           /usr/sbin/ceph-volume lvm zap --destroy ${device}
         else
           /sbin/wipefs -a ${device}
