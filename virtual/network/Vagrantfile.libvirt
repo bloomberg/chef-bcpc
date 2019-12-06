@@ -71,9 +71,10 @@ Vagrant.configure(2) do |config|
     (1..network['network']['ethernets'].length-1).each do |i|
       eth = "eth#{i}"
       a = network['network']['ethernets'][eth]['addresses'][0].split('/')
+      netmask = IPAddr.new('255.255.255.255').mask(a[1]).to_s
       node.vm.network 'private_network',
                       ip: a[0],
-                      libvirt__netmask: a[1],
+                      libvirt__netmask: netmask,
                       libvirt__network_name: "management#{i}",
                       libvirt__dhcp_enabled: false,
                       libvirt__forward_mode: 'none'
