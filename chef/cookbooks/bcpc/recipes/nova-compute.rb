@@ -75,8 +75,8 @@ cookbook_file '/var/lib/nova/.ssh/config' do
   group 'nova'
 end
 
-host_uuid = ""
-ruby_block "generate host uuid" do
+host_uuid = ''
+ruby_block 'generate host uuid' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
     cmd = "uuidgen --md5 --name #{node['fqdn']} --namespace @dns"
