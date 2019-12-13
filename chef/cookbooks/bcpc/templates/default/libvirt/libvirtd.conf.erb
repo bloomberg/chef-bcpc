@@ -56,6 +56,6 @@ unix_sock_rw_perms = "0770"
 # provided here, a temporary UUID will be generated.
 #
 # The UUID provided by 'dmidecode' is similar across multiple systems. In such
-# cases, virtual machine migrations will fail because those systems will be
-# considered the same host
+# cases, virtual machine migrations between those systems will fail because
+# they will be considered the same host
 host_uuid = "<%= @host_uuid %>"
