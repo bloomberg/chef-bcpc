@@ -60,3 +60,9 @@ template '/etc/neutron/neutron.conf' do
   group 'neutron'
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end
+
+# patch calico-dhcp-agent to work against neutron 13.0.2 and 13.0.4
+cookbook_file '/usr/lib/python2.7/dist-packages/networking_calico/agent/linux/dhcp.py' do
+  source 'calico/dhcp.py'
+  notifies :restart, 'service[calico-dhcp-agent]', :immediately
+end

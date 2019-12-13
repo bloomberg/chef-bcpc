@@ -75,9 +75,22 @@ cookbook_file '/var/lib/nova/.ssh/config' do
   group 'nova'
 end
 
+host_uuid = ''
+ruby_block 'generate host uuid' do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    cmd = "uuidgen --md5 --name #{node['fqdn']} --namespace @dns"
+    cmd = shell_out(cmd)
+    host_uuid = cmd.stdout.chomp()
+  end
+end
+
 # configure libvirt
 template '/etc/libvirt/libvirtd.conf' do
   source 'libvirt/libvirtd.conf.erb'
+  variables(
+    host_uuid: lazy { host_uuid }
+  )
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
