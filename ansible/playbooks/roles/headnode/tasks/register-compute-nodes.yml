@@ -1,24 +1,3 @@
 - name: nova-manage discover_hosts
   changed_when: false
   command: nova-manage cell_v2 discover_hosts --verbose
-
-- name: enable compute service
-  changed_when: false
-  shell: |
-    set -o pipefail
-    set -xe
-    # get the status of all nova-compute servies in json format
-    services=$(openstack compute service list \
-      --service nova-compute -c Host -c Status -f json)
-
-    # filter status results for only hosts that have disabled services
-    disabled=$(echo ${services} | \
-      jq -r '.[] | select(.Status == "disabled") .Host')
-
-    # enable nova-compute services on disabled hosts
-    echo "${disabled}" | \
-      xargs -n 1 -I % openstack compute service set --enable % nova-compute
-  args:
-    executable: /bin/bash
-  environment:
-    "{{ cloud_vars | osadmin() }}"
