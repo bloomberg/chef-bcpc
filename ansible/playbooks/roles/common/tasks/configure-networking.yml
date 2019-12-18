@@ -14,10 +14,10 @@
 
 - name: define libvirt_kvm_guest
   set_fact:
-    libvirt_kvm_guest: >
+    libvirt_kvm_guest: >-
       {{ ansible_virtualization_type == 'kvm'
           and ansible_virtualization_role == 'guest'
-          and ansible_system_vendor == 'QEMU'}}
+          and ansible_system_vendor == 'QEMU' }}
 
 - import_tasks: configure-etc-hosts.yml
   tags: [configure-etc-hosts]
