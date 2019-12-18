@@ -20,6 +20,7 @@ all : \
 	run-chef-client \
 	add-cloud-images \
 	register-compute-nodes \
+	enable-compute-service \
 	configure-host-aggregates
 
 create: create-virtual-network create-virtual-hosts
@@ -123,6 +124,12 @@ add-cloud-images:
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t add-cloud-images --limit headnodes
+
+enable-compute-service:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t enable-compute-service --limit headnodes
 
 register-compute-nodes:
 

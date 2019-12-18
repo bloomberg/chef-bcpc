@@ -20,6 +20,7 @@
           and ansible_system_vendor == 'QEMU'}}
 
 - import_tasks: configure-etc-hosts.yml
+  tags: [configure-etc-hosts]
 - import_tasks: configure-root-user-ssh.yml
 - import_tasks: configure-systemd-resolved.yml
 - import_tasks: configure-local-proxy.yml
