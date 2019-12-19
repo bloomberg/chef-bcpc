@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 # ipmi module loading and configuration
 execute 'load ipmi_devintf kernel module' do
   command 'modprobe ipmi_devintf'
