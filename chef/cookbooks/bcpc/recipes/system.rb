@@ -15,30 +15,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kernel_packages = %w(
-  linux-image
-  linux-headers
-  linux-tools
-  linux-cloud-tools
-)
-
-if node['bcpc']['kernel']['pin_version']
-  version = node['bcpc']['kernel']['version']
-
-  kernel_packages.each do |pkg|
-    pkg = "#{pkg}-#{version}"
-    package pkg
-
-    execute "place hold on #{pkg}" do
-      command "echo #{pkg} hold | dpkg --set-selections"
-      not_if "dpkg -s #{pkg} | grep ^Status: | grep -q ' hold '"
-    end
-  end
-else
-  kernel_packages.each do |pkg|
-    package "#{pkg}-generic"
-  end
-end
+#kernel_packages = %w(
+#  linux-image
+#  linux-headers
+#  linux-tools
+#  linux-cloud-tools
+#)
+#
+#if node['bcpc']['kernel']['pin_version']
+#  version = node['bcpc']['kernel']['version']
+#
+#  kernel_packages.each do |pkg|
+#    pkg = "#{pkg}-#{version}"
+#    package pkg
+#
+#    execute "place hold on #{pkg}" do
+#      command "echo #{pkg} hold | dpkg --set-selections"
+#      not_if "dpkg -s #{pkg} | grep ^Status: | grep -q ' hold '"
+#    end
+#  end
+#else
+#  kernel_packages.each do |pkg|
+#    package "#{pkg}-generic"
+#  end
+#end
 
 # ipmi module loading and configuration
 execute 'load ipmi_devintf kernel module' do

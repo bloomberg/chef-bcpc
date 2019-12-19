@@ -23,6 +23,7 @@ service 'rng-tools'
 execute 'load rng kernel module' do
   command 'modprobe tpm_rng'
   not_if 'lsmod | grep -q tpm_rng'
+  not_if { ::File.directory?('/sys/module/tpm') }
 end
 
 execute 'load rng kernel module on boot' do
@@ -30,6 +31,7 @@ execute 'load rng kernel module on boot' do
     echo 'tpm_rng' >> /etc/modules
   DOC
   not_if 'grep -w tpm_rng /etc/modules'
+  not_if { ::File.directory?('/sys/module/tpm') }
 end
 
 template '/etc/default/rng-tools' do
