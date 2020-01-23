@@ -56,8 +56,11 @@ template '/etc/default/grub' do
   source 'grub/default.erb'
 
   cmdline = []
-  io_scheduler = node['bcpc']['hardware']['io_scheduler']
+  # This addresses the issue with controller vs.  disk/device naming issues,
+  # providing consistent, deterministic device naming conventions.
+  cmdline.push("nvme_core.multipath=0")
 
+  io_scheduler = node['bcpc']['hardware']['io_scheduler']
   cmdline.push("elevator=#{io_scheduler}")
 
   unless node['bcpc']['grub']['cmdline_linux'].empty?
