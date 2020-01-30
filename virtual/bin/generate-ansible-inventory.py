@@ -55,7 +55,7 @@ def parse_ssh_config(ssh_config_file):
 def parse_topology_config(topology_config_file):
 
     with open(topology_config_file) as f:
-        return yaml.load(f)
+        return yaml.safe_load(f)
 
 
 def get_group_hosts(group, ssh_config, nodes):
