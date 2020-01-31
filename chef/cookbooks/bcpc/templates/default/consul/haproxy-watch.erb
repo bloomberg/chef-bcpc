@@ -29,7 +29,7 @@ add_cloud_ip() {
 self_ip="<%= node['service_ip'] %>"
 leader=$(curl -qs http://localhost:8500/v1/status/leader | jq -r '.')
 if [ "${self_ip}" != "${leader%:8300}" ]; then
-    disable_bgp
+    remove_cloud_ip
     exit 0
 fi
 
