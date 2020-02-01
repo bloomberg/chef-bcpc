@@ -21,8 +21,11 @@
 
 - import_tasks: configure-etc-hosts.yml
   tags: [configure-etc-hosts]
+
 - import_tasks: configure-root-user-ssh.yml
+
 - import_tasks: configure-systemd-resolved.yml
+
 - import_tasks: configure-local-proxy.yml
 
 - import_tasks: configure-bgp.yml
@@ -33,5 +36,7 @@
 
 - import_tasks: configure-network-interfaces.yml
   when: configure_network_interfaces | default(true)
+
+- import_tasks: configure-chrony.yml
 
 - import_tasks: configure-sshd.yml
