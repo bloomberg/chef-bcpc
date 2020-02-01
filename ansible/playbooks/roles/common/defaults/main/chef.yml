@@ -236,7 +236,6 @@ chef_roles:
       - recipe[bcpc::apt]
       - recipe[bcpc::ssl]
       - recipe[bcpc::cloud-archive]
-      - recipe[bcpc::chrony]
       - recipe[bcpc::postfix]
       - recipe[bcpc::common-packages]
       - recipe[bcpc::kexec]

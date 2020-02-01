@@ -1,0 +1,33 @@
+- name: install chrony
+  apt:
+    name: chrony
+
+- name: configure chrony
+  template:
+    src: chrony/chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+  register: chrony
+
+- name: create systemd dependency work-around directory for chrony
+  file:
+    path: /etc/systemd/system/chrony.service.d
+    recurse: yes
+    state: directory
+
+- name: install systemd dependency work-around for chrony
+  copy:
+    content: |
+      [Unit]
+      After=
+      After=network.target network-online.target
+      Wants=network-online.target
+    dest: /etc/systemd/system/chrony.service.d/custom.conf
+  register: chrony
+
+- name: restart chrony
+  systemd:
+    name: chrony
+    daemon_reload: yes
+    enabled: yes
+    state: restarted
+  when: chrony.changed
