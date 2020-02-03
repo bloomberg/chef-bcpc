@@ -56,7 +56,7 @@ template '/etc/default/grub' do
   source 'grub/default.erb'
 
   cmdline = []
-  # This addresses the issue with controller vs.  disk/device naming issues,
+  # This addresses the issue with controller vs. disk/device naming issues,
   # providing consistent, deterministic device naming conventions.
   cmdline.push("nvme_core.multipath=0")
 
