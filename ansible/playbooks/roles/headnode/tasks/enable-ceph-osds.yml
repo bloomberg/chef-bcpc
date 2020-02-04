@@ -1,0 +1,11 @@
+- name: enable ceph osds
+  changed_when: false
+  shell: |
+    set -o pipefail
+    set -xe
+
+    osd_tree=$(ceph osd tree --format json)
+    osd_ids=$(echo ${osd_tree} | jq '.nodes[] | select(.type == "osd") .id')
+    echo "${osd_ids}" | xargs -I% -n1 ceph osd in osd.%
+  args:
+    executable: /bin/bash

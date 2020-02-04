@@ -22,3 +22,8 @@
   become: true
   run_once: true
   tags: [never,configure-host-aggregates]
+
+- import_tasks: enable-ceph-osds.yml
+  become: true
+  run_once: true
+  tags: [never,enable-ceph-osds]

@@ -18,6 +18,7 @@ all : \
 	configure-chef-nodes \
 	configure-web-server \
 	run-chef-client \
+	enable-ceph-osds \
 	add-cloud-images \
 	register-compute-nodes \
 	enable-compute-service \
@@ -118,6 +119,12 @@ run-chef-client-storagenodes :
 			-i ${inventory} ${playbooks}/site.yml \
 			-t chef-client --limit storagenodes; \
 	fi
+
+enable-ceph-osds:
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t enable-ceph-osds --limit headnodes
 
 add-cloud-images:
 

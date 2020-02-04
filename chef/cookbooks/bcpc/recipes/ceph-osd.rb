@@ -64,6 +64,14 @@ begin
         ceph-volume lvm zap --destroy /dev/#{osd}
         ceph-volume lvm create --bluestore --data /dev/#{osd}
         sleep 5
+
+        # get osd id from ceph-volume lvm list
+        osd_info=$(ceph-volume lvm list /dev/#{osd} --format json)
+        osd_id=$(echo ${osd_info} | jq -r '.[][] .tags ."ceph.osd_id"')
+
+        # mark osd as out
+        # this osd will be added back in a later task
+        ceph osd out osd.${osd_id}
       EOH
       only_if "lsblk /dev/#{osd}"
       not_if "pvdisplay /dev/#{osd} | grep ceph"
