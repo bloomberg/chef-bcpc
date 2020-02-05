@@ -27,6 +27,15 @@ def mount_apt_cache(config)
   config.vm.synced_folder cache_dir, apt_cache_dir, create: true, owner: '_apt'
 end
 
+# get virtualbox private network suffix to use
+# * set to environment variable 'VBOX_NET_SUFFIX'
+# * default to login name (eg: _login)
+# * eg: vbox_net_suffix = ENV['VBOX_NET_SUFFIX'] || '_'+ENV['USER']
+vbox_net_suffix = '_' + ENV['USER']
+if ENV.has_key? 'VBOX_NET_SUFFIX'
+  vbox_net_suffix = ENV['VBOX_NET_SUFFIX']
+end
+
 # load the vm topology profile
 topology = './topology/topology.yml'
 topology_overrides = './topology/topology.overrides.yml'
@@ -99,7 +108,7 @@ Vagrant.configure('2') do |config|
 
       transit.each do |t_iface|
         args = {}.tap do |a|
-          a[:virtualbox__intnet] = t_iface['neighbor']['name']
+          a[:virtualbox__intnet] = t_iface['neighbor']['name']+vbox_net_suffix
           a[:nic_type] = '82543GC'
           a[:auto_config] = false
           a[:mac] = t_iface['mac'].delete(':')

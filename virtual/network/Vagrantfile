@@ -33,6 +33,15 @@ def setup_proxy(node)
                              args: [http_proxy, https_proxy]
 end
 
+# get virtualbox private network suffix to use
+# * set to environment variable 'VBOX_NET_SUFFIX'
+# * default to login name (eg: _login)
+# * eg: vbox_net_suffix = ENV['VBOX_NET_SUFFIX'] || '_'+ENV['USER']
+vbox_net_suffix = '_' + ENV['USER']
+if ENV.has_key? 'VBOX_NET_SUFFIX'
+  vbox_net_suffix = ENV['VBOX_NET_SUFFIX']
+end
+
 Vagrant.configure(2) do |config|
   if ENV['DEPLOY_NETWORK_VM'] == 'true'
 
@@ -46,12 +55,15 @@ Vagrant.configure(2) do |config|
       config.vm.box_version = base_box_version
       node.vm.box_download_insecure = true
       mount_apt_cache(node)
-      node.vm.network 'private_network', virtualbox__intnet: 'management1',
-                                         auto_config: false
-      node.vm.network 'private_network', virtualbox__intnet: 'management2',
-                                         auto_config: false
-      node.vm.network 'private_network', virtualbox__intnet: 'management3',
-                                         auto_config: false
+      node.vm.network 'private_network',
+		virtualbox__intnet: 'management1'+vbox_net_suffix,
+                auto_config: false
+      node.vm.network 'private_network',
+		virtualbox__intnet: 'management2'+vbox_net_suffix,
+		auto_config: false
+      node.vm.network 'private_network',
+		virtualbox__intnet: 'management3'+vbox_net_suffix,
+		auto_config: false
       setup_proxy(node)
       node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
     end
@@ -69,16 +81,21 @@ Vagrant.configure(2) do |config|
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         mount_apt_cache(node)
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine1",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_spine2",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor#{i}_hv",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "management#{i}",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "storage#{i}",
-                                           auto_config: false
+        node.vm.network 'private_network',
+		virtualbox__intnet: "tor#{i}_spine1"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network',
+		virtualbox__intnet: "tor#{i}_spine2"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network',
+		virtualbox__intnet: "tor#{i}_hv"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network',
+		virtualbox__intnet: "management#{i}"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network',
+		virtualbox__intnet: "storage#{i}"+vbox_net_suffix,
+                auto_config: false
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "tor#{i}"
         node.vm.hostname = "tor#{i}"
@@ -96,12 +113,15 @@ Vagrant.configure(2) do |config|
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         mount_apt_cache(node)
-        node.vm.network 'private_network', virtualbox__intnet: "tor1_spine#{i}",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor2_spine#{i}",
-                                           auto_config: false
-        node.vm.network 'private_network', virtualbox__intnet: "tor3_spine#{i}",
-                                           auto_config: false
+        node.vm.network 'private_network', 
+		virtualbox__intnet: "tor1_spine#{i}"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network', 
+		virtualbox__intnet: "tor2_spine#{i}"+vbox_net_suffix,
+                auto_config: false
+        node.vm.network 'private_network', 
+		virtualbox__intnet: "tor3_spine#{i}"+vbox_net_suffix,
+                auto_config: false
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "spine#{i}"
         node.vm.hostname = "spine#{i}"
