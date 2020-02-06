@@ -3,19 +3,25 @@ module Util
 
 # get virtualbox private network suffix to use
 # * set to environment variable 'VBOX_NET_SUFFIX'
-# * default to login name (eg: _login)
-# * eg: VBOX_NET_SUFFIX = ENV['VBOX_NET_SUFFIX'] || '_'+ENV['USER']
+# * default to a static hash
+# * eg: VBOX_NET_SUFFIX = ENV['VBOX_NET_SUFFIX'] || '_'+hash(__dir__)
 VBOX_NET_SUFFIX = begin 
-  suffix = '_' + ENV['USER']
   if ENV.has_key? 'VBOX_NET_SUFFIX'
     suffix = ENV['VBOX_NET_SUFFIX']
+  else
+    require 'digest'
+    seed = Digest::SHA1.hexdigest __dir__
+    rgen = Random::new(seed.hex)
+    space = [('a'..'z'), ('A'..'Z'), ('0'..'9')].map(&:to_a).flatten
+    hash = (0...5).map { space[rgen.rand(space.length)] }.join
+    suffix = '_' + hash
   end
   suffix
 end
 
 def Util.privnet_args(name, nic_type: '82543GC', macaddr: nil)
   vbox_args = { }
-  vbox_args[:virtualbox__intnet] = name+VBOX_NET_SUFFIX
+  vbox_args[:virtualbox__intnet] = name + VBOX_NET_SUFFIX
   vbox_args[:nic_type] = nic_type
   vbox_args[:auto_config] = false
   if not macaddr.nil?
