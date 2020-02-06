@@ -21,12 +21,7 @@ base_box_version = '201812.27.0'
 require 'yaml'
 
 # load util module
-util_path = './lib/util.rb'
-if File.file?(File.expand_path(util_path))
-  require File.expand_path(util_path)
-else
-  raise "#{util_path} not found"
-end
+require './lib/util.rb'
 
 # load the vm topology profile
 topology = './topology/topology.yml'

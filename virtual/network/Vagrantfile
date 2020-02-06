@@ -27,12 +27,7 @@ def setup_proxy(node)
 end
 
 # load util module
-util_path = '../lib/util.rb'
-if File.file?(File.expand_path(util_path))
-  require File.expand_path(util_path)
-else
-  raise "#{util_path} not found"
-end
+require '../lib/util.rb'
 
 Vagrant.configure(2) do |config|
   if ENV['DEPLOY_NETWORK_VM'] == 'true'
