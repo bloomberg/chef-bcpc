@@ -18,7 +18,6 @@
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '201812.27.0'
 
-
 def setup_proxy(node)
   http_proxy  = ENV['http_proxy']  || ''
   https_proxy = ENV['https_proxy'] || ''
