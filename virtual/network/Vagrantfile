@@ -18,12 +18,6 @@
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '201812.27.0'
 
-def mount_apt_cache(config)
-  user_data_path = Vagrant.user_data_path.to_s
-  cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
-  apt_cache_dir = '/var/cache/apt/archives'
-  config.vm.synced_folder cache_dir, apt_cache_dir, create: true, owner: '_apt'
-end
 
 def setup_proxy(node)
   http_proxy  = ENV['http_proxy']  || ''
@@ -33,13 +27,12 @@ def setup_proxy(node)
                              args: [http_proxy, https_proxy]
 end
 
-# get virtualbox private network suffix to use
-# * set to environment variable 'VBOX_NET_SUFFIX'
-# * default to login name (eg: _login)
-# * eg: vbox_net_suffix = ENV['VBOX_NET_SUFFIX'] || '_'+ENV['USER']
-vbox_net_suffix = '_' + ENV['USER']
-if ENV.has_key? 'VBOX_NET_SUFFIX'
-  vbox_net_suffix = ENV['VBOX_NET_SUFFIX']
+# load util module
+util_path = '../lib/util.rb'
+if File.file?(File.expand_path(util_path))
+  require File.expand_path(util_path)
+else
+  raise "#{util_path} not found"
 end
 
 Vagrant.configure(2) do |config|
@@ -54,16 +47,10 @@ Vagrant.configure(2) do |config|
       node.vm.box = base_box
       config.vm.box_version = base_box_version
       node.vm.box_download_insecure = true
-      mount_apt_cache(node)
-      node.vm.network 'private_network',
-		virtualbox__intnet: 'management1'+vbox_net_suffix,
-                auto_config: false
-      node.vm.network 'private_network',
-		virtualbox__intnet: 'management2'+vbox_net_suffix,
-		auto_config: false
-      node.vm.network 'private_network',
-		virtualbox__intnet: 'management3'+vbox_net_suffix,
-		auto_config: false
+      Util.mount_apt_cache(node)
+      node.vm.network('private_network', Util.privnet_args('management1'))
+      node.vm.network('private_network', Util.privnet_args('management2'))
+      node.vm.network('private_network', Util.privnet_args('management3'))
       setup_proxy(node)
       node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
     end
@@ -80,22 +67,12 @@ Vagrant.configure(2) do |config|
         node.vm.box = base_box
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
-        mount_apt_cache(node)
-        node.vm.network 'private_network',
-		virtualbox__intnet: "tor#{i}_spine1"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network',
-		virtualbox__intnet: "tor#{i}_spine2"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network',
-		virtualbox__intnet: "tor#{i}_hv"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network',
-		virtualbox__intnet: "management#{i}"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network',
-		virtualbox__intnet: "storage#{i}"+vbox_net_suffix,
-                auto_config: false
+        Util.mount_apt_cache(node)
+        node.vm.network('private_network', Util.privnet_args("tor#{i}_spine1"))
+        node.vm.network('private_network', Util.privnet_args("tor#{i}_spine2"))
+        node.vm.network('private_network', Util.privnet_args("tor#{i}_hv"))
+        node.vm.network('private_network', Util.privnet_args("management#{i}"))
+        node.vm.network('private_network', Util.privnet_args("storage#{i}"))
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "tor#{i}"
         node.vm.hostname = "tor#{i}"
@@ -112,16 +89,10 @@ Vagrant.configure(2) do |config|
         node.vm.box = base_box
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
-        mount_apt_cache(node)
-        node.vm.network 'private_network', 
-		virtualbox__intnet: "tor1_spine#{i}"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network', 
-		virtualbox__intnet: "tor2_spine#{i}"+vbox_net_suffix,
-                auto_config: false
-        node.vm.network 'private_network', 
-		virtualbox__intnet: "tor3_spine#{i}"+vbox_net_suffix,
-                auto_config: false
+        Util.mount_apt_cache(node)
+        node.vm.network('private_network', Util.privnet_args("tor1_spine#{i}"))
+        node.vm.network('private_network', Util.privnet_args("tor2_spine#{i}"))
+        node.vm.network('private_network', Util.privnet_args("tor3_spine#{i}"))
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "spine#{i}"
         node.vm.hostname = "spine#{i}"
