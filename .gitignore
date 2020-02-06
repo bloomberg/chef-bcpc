@@ -6,6 +6,7 @@
 *.swo
 assets/
 ansible/inventory.yml
+ansible/group_vars/all/overrides.yml
 chef/roles/node.json
 chef/roles/bootstrap.json
 chef/roles/headnode.json
@@ -14,3 +15,5 @@ chef/roles/storagenode.json
 chef/environments/
 chef/databags/
 virtual/files/ssh/id_*
+hardware.overrides.yml
+topology.overrides.yml
