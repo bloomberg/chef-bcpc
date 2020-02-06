@@ -23,12 +23,7 @@ module Util
     vbox_args[:virtualbox__intnet] = name + VBOX_NET_SUFFIX
     vbox_args[:nic_type] = nic_type
     vbox_args[:auto_config] = false
-    unless macaddr.nil?
-      unless macaddr.scan(/\D/).empty?
-        raise "mac addr to virtualbox should only be numbers (got #{macaddr})"
-      end
-      vbox_args[:mac] = macaddr
-    end
+    vbox_args[:mac] = macaddr unless macaddr.nil?
     vbox_args
   end
 
