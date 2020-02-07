@@ -15,7 +15,7 @@
       size_kb=$(echo $id_size | awk '{print $2}')
 
       # convert the kb representation into tb
-      size_tb=$(echo "scale=3; (${size_kb}/1024)/1024/1024" | bc)
+      size_tb=$(echo "scale=5; ${size_kb}/(1024^3)" | bc)
       ceph osd crush reweight osd.${id} ${size_tb}
     done
   args:
