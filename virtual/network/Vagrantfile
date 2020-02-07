@@ -34,7 +34,7 @@ Vagrant.configure(2) do |config|
 
     config.vm.define 'network' do |node|
       config.vm.provider 'virtualbox' do |vb|
-        vb.name = 'network'
+        vb.name = Util.vbox_name('network')
         vb.memory = 512
       end
       node.vm.hostname = 'network'
@@ -42,9 +42,15 @@ Vagrant.configure(2) do |config|
       config.vm.box_version = base_box_version
       node.vm.box_download_insecure = true
       Util.mount_apt_cache(node)
-      node.vm.network('private_network', Util.privnet_args('management1'))
-      node.vm.network('private_network', Util.privnet_args('management2'))
-      node.vm.network('private_network', Util.privnet_args('management3'))
+      node.vm.network('private_network',
+        virtualbox__intnet: Util.vbox_name('management1'),
+        auto_config: false)
+      node.vm.network('private_network',
+        virtualbox__intnet: Util.vbox_name('management2'),
+        auto_config: false)
+      node.vm.network('private_network',
+        virtualbox__intnet: Util.vbox_name('management3'),
+        auto_config: false)
       setup_proxy(node)
       node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
     end
@@ -55,18 +61,28 @@ Vagrant.configure(2) do |config|
     (1..3).each do |i|
       config.vm.define "tor#{i}" do |node|
         node.vm.provider 'virtualbox' do |vb|
-          vb.name = "tor#{i}"
+          vb.name = Util.vbox_name("tor#{i}")
           vb.memory = 512
         end
         node.vm.box = base_box
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         Util.mount_apt_cache(node)
-        node.vm.network('private_network', Util.privnet_args("tor#{i}_spine1"))
-        node.vm.network('private_network', Util.privnet_args("tor#{i}_spine2"))
-        node.vm.network('private_network', Util.privnet_args("tor#{i}_hv"))
-        node.vm.network('private_network', Util.privnet_args("management#{i}"))
-        node.vm.network('private_network', Util.privnet_args("storage#{i}"))
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor#{i}_spine1"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor#{i}_spine2"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor#{i}_hv"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("management#{i}"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("storage#{i}"),
+          auto_config: false)
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "tor#{i}"
         node.vm.hostname = "tor#{i}"
@@ -77,16 +93,22 @@ Vagrant.configure(2) do |config|
     (1..2).each do |i|
       config.vm.define "spine#{i}" do |node|
         node.vm.provider 'virtualbox' do |vb|
-          vb.name = "spine#{i}"
+          vb.name = Util.vbox_name("spine#{i}")
           vb.memory = 512
         end
         node.vm.box = base_box
         config.vm.box_version = base_box_version
         node.vm.box_download_insecure = true
         Util.mount_apt_cache(node)
-        node.vm.network('private_network', Util.privnet_args("tor1_spine#{i}"))
-        node.vm.network('private_network', Util.privnet_args("tor2_spine#{i}"))
-        node.vm.network('private_network', Util.privnet_args("tor3_spine#{i}"))
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor1_spine#{i}"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor2_spine#{i}"),
+          auto_config: false)
+        node.vm.network('private_network',
+          virtualbox__intnet: Util.vbox_name("tor3_spine#{i}"),
+          auto_config: false)
         setup_proxy(node)
         node.vm.provision 'shell', path: 'provisioner.sh', args: "spine#{i}"
         node.vm.hostname = "spine#{i}"
