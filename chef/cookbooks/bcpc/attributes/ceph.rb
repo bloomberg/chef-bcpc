@@ -11,6 +11,9 @@ default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
 default['bcpc']['ceph']['choose_leaf_type'] = 0
 default['bcpc']['ceph']['osd_scrub_load_threshold'] = 0.5
 
+# new osds will be weighted to 0 by default
+default['bcpc']['ceph']['osd_crush_initial_weight'] = 0
+
 # Help minimize scrub influence on cluster performance
 default['bcpc']['ceph']['osd_scrub_begin_hour'] = 21
 default['bcpc']['ceph']['osd_scrub_end_hour'] = 10

@@ -1,0 +1,22 @@
+- name: reweight ceph osds
+  changed_when: false
+  shell: |
+    set -o pipefail
+    set -xe
+
+    ceph_df=$(ceph osd df tree --format json)
+    ceph_osd_id_size_map=$(echo $ceph_df | \
+      jq '.nodes[] | select(.type == "osd") | .id,.kb' | \
+      paste - -)
+
+    IFS=$'\n'
+    for id_size in $ceph_osd_id_size_map; do
+      id=$(echo $id_size | awk '{print $1}')
+      size_kb=$(echo $id_size | awk '{print $2}')
+
+      # convert the kb representation into tb
+      size_tb=$(echo "scale=3; (${size_kb}/1024)/1024/1024" | bc)
+      ceph osd crush reweight osd.${id} ${size_tb}
+    done
+  args:
+    executable: /bin/bash
