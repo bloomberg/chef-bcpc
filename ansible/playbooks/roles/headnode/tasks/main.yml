@@ -22,3 +22,8 @@
   become: true
   run_once: true
   tags: [never,configure-host-aggregates]
+
+- import_tasks: reweight-ceph-osds.yml
+  become: true
+  run_once: true
+  tags: [never,reweight-ceph-osds]

@@ -63,7 +63,6 @@ begin
       code <<-EOH
         ceph-volume lvm zap --destroy /dev/#{osd}
         ceph-volume lvm create --bluestore --data /dev/#{osd}
-        sleep 5
       EOH
       only_if "lsblk /dev/#{osd}"
       not_if "pvdisplay /dev/#{osd} | grep ceph"
