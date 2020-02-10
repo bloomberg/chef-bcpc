@@ -4,7 +4,17 @@ module Util
   # * control by environment variable 'ENABLE_VBOX_SUFFIX'
   # * set and non-empty -> set to a static hash base off full path of this file
   # * not set or empty -> set to empty (as if there's no suffix)
-  VBOX_SUFFIX = begin
+def self.vbox_name(name:) 
+  # return name if suffix not enabled
+  unless ENV.key?('ENABLE_VBOX_SUFFIX')
+    return name
+  end
+
+  # return name + hashed __dir__
+  require 'digest/sha1'
+  hash = Digest::SHA1.hexdigest(__dir__)[0,7]
+  return name + '_' + hash
+end
     if ENV.key?('ENABLE_VBOX_SUFFIX') && !ENV['ENABLE_VBOX_SUFFIX'].empty?
       require 'digest'
       seed = Digest::SHA1.hexdigest __dir__
