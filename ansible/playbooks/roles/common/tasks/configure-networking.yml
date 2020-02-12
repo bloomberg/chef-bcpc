@@ -25,6 +25,7 @@
 - import_tasks: configure-root-user-ssh.yml
 
 - import_tasks: configure-systemd-resolved.yml
+  tags: [configure-systemd-resolved]
 
 - import_tasks: configure-local-proxy.yml
 
