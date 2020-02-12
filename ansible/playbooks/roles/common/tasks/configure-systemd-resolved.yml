@@ -6,7 +6,7 @@
 
 - name: resolv.conf symlink
   file:
-    src: /run/systemd/resolve/resolv.conf
+    src: /run/systemd/resolve/stub-resolv.conf
     dest: /etc/resolv.conf
     state: link
     force: true

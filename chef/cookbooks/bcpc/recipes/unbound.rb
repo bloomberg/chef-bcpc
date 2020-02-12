@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: unbound
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 # limitations under the License.
 
 package 'unbound'
-
-# libnss-resolve package is needed for glibc based binaries that require name
-# resolution from /etc/resolv.conf which is now managed by systemd-resolve
-package 'libnss-resolve'
-
 service 'unbound'
-service 'systemd-resolved'
 
 template '/etc/default/unbound' do
   source 'unbound/default.erb'
