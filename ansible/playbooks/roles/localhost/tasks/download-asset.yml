@@ -12,4 +12,3 @@
     dest: "{{ assets_download_dir }}/{{ item.filename }}"
     validate_certs: "{{ validate_certs | default(true) }}"
   environment: "{{ local_environment | default({}) }}"
-  when: not (item.skip_download | default(false))
