@@ -74,12 +74,14 @@ nodes:
               name: management4
       run_list:
         - role[worknode]
+        - role[storagenode]
       zone: dev
 
   - host: r1n3
-    group: storagenodes
+    group: worknodes
     hardware_profile: worknode
     host_vars:
+      aggregate: prod-1
       bgp:
         asn: 4200858801
       interfaces:
@@ -99,4 +101,6 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
+        - role[worknode]
         - role[storagenode]
+      zone: prod

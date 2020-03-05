@@ -4,15 +4,22 @@
     state: directory
     mode: 0700
 
+- name: set chef config fact
+  set_fact:
+    chef_config: "{{ chef_databags
+      | selectattr('id', 'equalto', 'config')
+      | list
+      | first }}"
+
 - name: configure root's authorized_keys
   copy:
-    content: "{{ chef_databags[0]['ssh']['public'] | b64decode }}"
+    content: "{{ chef_config['ssh']['public'] | b64decode }}"
     dest: /root/.ssh/authorized_keys
     mode: 0644
 
 - name: configure root's private ssh key
   copy:
-    content: "{{ chef_databags[0]['ssh']['private'] | b64decode }}"
+    content: "{{ chef_config['ssh']['private'] | b64decode }}"
     dest: /root/.ssh/id_ed25519
     mode: 0600
 

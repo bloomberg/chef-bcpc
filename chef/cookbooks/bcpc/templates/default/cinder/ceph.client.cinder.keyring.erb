@@ -1,4 +1,4 @@
-[client.cinder]
+[client.<%= @client %>]
   key = <%= @key %>
   caps mon = allow r
-  caps osd = allow class-read object_prefix rbd_children, allow rwx pool=vms,allow rwx pool=volumes, allow rx pool=images
+  caps osd = allow class-read object_prefix rbd_children, allow rx pool=images, <%= @pools.map{ |p| "allow rwx pool=#{p}" }.join(', ') %>

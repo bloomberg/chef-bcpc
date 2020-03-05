@@ -23,6 +23,7 @@
   tags: [configure-etc-hosts]
 
 - import_tasks: configure-root-user-ssh.yml
+  tags: [configure-root-user-ssh]
 
 - import_tasks: configure-systemd-resolved.yml
   tags: [configure-systemd-resolved]

@@ -1,18 +1,18 @@
 - name: configuring host aggregates
   shell: |
-    name="{{ item.name }}"
-    args="{{ item.args | join(' ') }}"
-    hosts="{{ item.hosts | join(' ') }}"
+    aggregate={{ hostvars[item]['aggregate'] }}
+    hostname={{ item }}
+    zone={{ hostvars[item]['zone'] }}
 
-    if ! openstack aggregate show ${name}; then
-        openstack aggregate create ${name} ${args} --zone ${name}
+    if ! openstack aggregate show ${aggregate}; then
+        openstack aggregate create ${aggregate} \
+            --property network=${zone} \
+            --zone ${aggregate}
 
-        for h in ${hosts}; do
-          openstack aggregate add host ${name} ${h}
-        done
+        openstack aggregate add host ${aggregate} ${hostname}
     fi
   with_items:
-    "{{ host_aggregates }}"
+    "{{ groups['worknodes'] }}"
   args:
     executable: /bin/bash
   changed_when: false

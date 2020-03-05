@@ -1,6 +1,5 @@
-
 """
-Copyright 2019, Bloomberg Finance L.P.
+Copyright 2020, Bloomberg Finance L.P.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -66,6 +65,20 @@ def update_chef_node_host_vars(a, *args, **kw):
     node_details['normal']['service_ip'] = interfaces['service']['ip']
     node_details['normal']['host_vars'] = {}
     node_details['normal']['host_vars'].update({'interfaces': interfaces})
+
+    # add aggregate to top level node attributes section
+    aggregate = hostvars.get('aggregate')
+
+    if aggregate is not None:
+        aggregate = {'aggregate': aggregate}
+        node_details['normal'].update(aggregate)
+
+    # add zone to top level node attributes section
+    zone = hostvars.get('zone')
+
+    if zone is not None:
+        zone = {'zone': zone}
+        node_details['normal'].update(zone)
 
     return node_details
 

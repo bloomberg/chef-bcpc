@@ -13,11 +13,14 @@ osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
 osapi_volume_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 my_ip = <%= node['service_ip'] %>
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @headnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
 glance_api_insecure = true
-enabled_backends = ceph
+enabled_backends = <%= @backends.map {|b| b['name']}.join(',') %>
 enable_v3_api = true
+<% if @scheduler_default_filters.any? %>
+scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
+<% end %>
 
 [database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}/#{@db['dbname']}" %>
@@ -42,15 +45,17 @@ project_name = service
 username = <%= @config['cinder']['creds']['os']['username'] %>
 password = <%= @config['cinder']['creds']['os']['password'] %>
 
-[ceph]
+<% @backends.each do |backend| %>
+[<%= backend['name'] %>]
 volume_driver = cinder.volume.drivers.rbd.RBDDriver
-volume_backend_name = ceph
-rbd_user = cinder
-rbd_pool = volumes
-rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
+volume_backend_name = <%= backend['name'] %>
+rbd_user = <%= backend['client'] %>
+rbd_pool = <%= backend['pool'] %>
+rbd_secret_uuid = <%= backend['libvirt_secret'] %>
 rbd_flatten_volume_from_snapshot = <%= node['bcpc']['cinder']['rbd_flatten_volume_from_snapshot'] %>
 rbd_max_clone_depth = <%= node['bcpc']['cinder']['rbd_max_clone_depth'] %>
 rbd_store_chunk_size = 4
 rados_connect_timeout = -1
 glance_api_version = 2
 
+<% end %>

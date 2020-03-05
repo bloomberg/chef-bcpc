@@ -17,6 +17,8 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
+nova_compute_config = zone_config.nova_compute_config
 
 database = {
   'host' => node['bcpc']['mysql']['host'],
@@ -85,6 +87,30 @@ ruby_block 'generate host uuid' do
   end
 end
 
+# if this node is a worknode and storage node then we want the storage node
+# ceph recipe to takes precedence (ie: this block won't execute)
+unless storagenode?
+  rbd_users = []
+  rbd_users.append(nova_compute_config.ceph_user)
+
+  template '/etc/ceph/ceph.conf' do
+    source 'ceph/ceph.conf.erb'
+    variables(
+      config: config,
+      headnodes: headnodes,
+      public_network: primary_network_aggregate_cidr,
+      rbd_users: rbd_users
+    )
+  end
+end
+
+# install ceph keys
+file "/etc/ceph/ceph.client.#{nova_compute_config.ceph_user}.keyring" do
+  content "[client.#{nova_compute_config.ceph_user}]\n\tkey = #{nova_compute_config.ceph_key}\n"
+  mode '0640'
+  group 'libvirt'
+end
+
 # configure libvirt
 template '/etc/libvirt/libvirtd.conf' do
   source 'libvirt/libvirtd.conf.erb'
@@ -99,52 +125,16 @@ cookbook_file '/etc/libvirt/qemu.conf' do
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
-template '/etc/ceph/ceph.conf' do
-  source 'ceph/ceph.conf.erb'
-  variables(
-    config: config,
-    headnodes: init_cloud? ? [node] : headnodes,
-    public_network: primary_network_aggregate_cidr
-  )
-end
-
-template '/etc/ceph/ceph.client.admin.keyring' do
-  source 'ceph/ceph.client.keyring.erb'
-  mode '0640'
-  variables(
-    username: 'admin',
-    client: config['ceph']['client']['admin'],
-    caps: [
-      'caps mds = "allow *"',
-      'caps mgr = "allow *"',
-      'caps mon = "allow *"',
-      'caps osd = "allow *"',
-    ]
-  )
-end
-
-%w(nova cinder).each do |user|
-  execute "export #{user} ceph client key" do
-    command <<-EOH
-      ceph auth get client.#{user} -o /etc/ceph/ceph.client.#{user}.keyring
-    EOH
-  end
-
-  file "/etc/ceph/ceph.client.#{user}.keyring" do
-    mode '0640'
-    group 'libvirt'
-  end
-end
-
 template '/etc/nova/virsh-secret.xml' do
   source 'nova/virsh-secret.xml.erb'
 
   variables(
-    config: config
+    ceph_user: nova_compute_config.ceph_user,
+    libvirt_secret: nova_compute_config.libvirt_secret
   )
 
   notifies :run, 'bash[load virsh secrets]', :immediately
-  not_if "virsh secret-list | grep -i #{config['libvirt']['secret']}"
+  not_if "virsh secret-list | grep -i #{nova_compute_config.libvirt_secret}"
 end
 
 bash 'load virsh secrets' do
@@ -153,8 +143,8 @@ bash 'load virsh secrets' do
   code <<-DOC
     virsh secret-define --file /etc/nova/virsh-secret.xml
     virsh secret-set-value \
-      --secret #{config['libvirt']['secret']} \
-      --base64 #{config['ceph']['client']['cinder']['key']}
+      --secret #{nova_compute_config.libvirt_secret} \
+      --base64 #{nova_compute_config.ceph_key}
   DOC
 
   notifies :restart, 'service[libvirtd]', :immediately
@@ -202,8 +192,10 @@ template '/etc/nova/nova-compute.conf' do
   source 'nova/nova-compute.conf.erb'
 
   variables(
-    config: config,
-    virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu'
+    virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu',
+    images_rbd_pool: nova_compute_config.ceph_pool,
+    rbd_user: nova_compute_config.ceph_user,
+    rbd_secret_uuid: nova_compute_config.libvirt_secret
   )
 
   notifies :restart, 'service[libvirtd]', :immediately

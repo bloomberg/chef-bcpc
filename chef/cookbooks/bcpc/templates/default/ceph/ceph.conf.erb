@@ -39,12 +39,9 @@ osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
 bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
 
-[client.cinder]
+<% @rbd_users.each do |user| %>
+<%= "[client.#{user}]" %>
 rbd cache = true
 rbd cache writethrough until flush = true
 rbd concurrent management ops = 20
-
-[client.glance]
-rbd cache = true
-rbd cache writethrough until flush = true
-rbd concurrent management ops = 20
+<% end %>
