@@ -32,18 +32,36 @@ end
 service 'apache2'
 
 %w(
+  mpm_prefork
+  mpm_worker
+).each do |mod|
+  execute "disable #{mod} apache2 module" do
+    command "a2dismod #{mod}"
+    only_if "a2query -m #{mod}"
+    notifies :restart, 'service[apache2]', :delayed
+  end
+end
+
+%w(
   ssl
   wsgi
   proxy_http
   rewrite
   cache
   cache_disk
+  mpm_event
 ).each do |mod|
   execute "enable #{mod} apache2 module" do
     command "a2enmod #{mod}"
     not_if "a2query -m #{mod}"
     notifies :restart, 'service[apache2]', :delayed
   end
+end
+
+# mpm_event tuning
+template '/etc/apache2/mods-available/mpm_event.conf' do
+  source 'apache2/mpm_event.conf.erb'
+  notifies :restart, 'service[apache2]', :delayed
 end
 
 # remote default ssl site conf
