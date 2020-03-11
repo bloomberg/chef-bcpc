@@ -2,6 +2,9 @@
 # apache2
 ###############################################################################
 
+# mod_status is a security hazard in production environments
+default['bcpc']['apache2']['status']['enabled'] = false
+
 # event mpm module (ubuntu packaging defaults)
 default['bcpc']['apache2']['mpm_event']['start_servers'] = 2
 default['bcpc']['apache2']['mpm_event']['min_spare_threads'] = 25

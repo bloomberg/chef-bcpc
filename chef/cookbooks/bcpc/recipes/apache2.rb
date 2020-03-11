@@ -31,10 +31,15 @@ end
 
 service 'apache2'
 
+# module selection
+extra_mods = ['status']
+extra_disabled_mods = extra_mods.map { |x| x unless node['bcpc']['apache2'][x]['enabled'] }.compact
+extra_enabled_mods = extra_mods.map { |x| x if node['bcpc']['apache2'][x]['enabled'] }.compact
+
 %w(
   mpm_prefork
   mpm_worker
-).each do |mod|
+).concat(extra_disabled_mods).each do |mod|
   execute "disable #{mod} apache2 module" do
     command "a2dismod #{mod}"
     only_if "a2query -m #{mod}"
@@ -50,7 +55,7 @@ end
   cache
   cache_disk
   mpm_event
-).each do |mod|
+).concat(extra_enabled_mods).each do |mod|
   execute "enable #{mod} apache2 module" do
     command "a2enmod #{mod}"
     not_if "a2query -m #{mod}"
