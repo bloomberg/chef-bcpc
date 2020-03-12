@@ -31,6 +31,22 @@ end
 
 service 'apache2'
 
+# server configuration
+template '/etc/apache2/conf-available/keepalive.conf' do
+  source 'apache2/keepalive.conf.erb'
+  notifies :restart, 'service[apache2]', :delayed
+end
+
+%w(
+  keepalive
+).each do |conf|
+  execute "enable #{conf} apache2 configuration" do
+    command "a2enconf #{conf}"
+    not_if "a2query -c #{conf}"
+    notifies :restart, 'service[apache2]', :delayed
+  end
+end
+
 # module selection
 extra_mods = ['status']
 extra_disabled_mods = extra_mods.map { |x| x unless node['bcpc']['apache2'][x]['enabled'] }.compact
