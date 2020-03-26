@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-compute
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ end
 host_uuid = ''
 ruby_block 'generate host uuid' do
   block do
-    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    Chef::Resource::RubyBlock.include Chef::Mixin::ShellOut
     cmd = "uuidgen --md5 --name #{node['fqdn']} --namespace @dns"
     cmd = shell_out(cmd)
     host_uuid = cmd.stdout.chomp()

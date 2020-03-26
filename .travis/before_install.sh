@@ -29,6 +29,7 @@ print_debug_info_linux () {
 upgrade_os_osx () {
     brew update
     brew upgrade
+    sudo easy_install pip
 }
 
 install_linters_osx () {
@@ -48,7 +49,8 @@ install_linters_linux () {
 }
 
 install_pytest () {
-    sudo pip install testinfra
+    sudo pip install --ignore-installed six
+    sudo pip install nose tornado testinfra --user
 }
 
 install_vagrant_osx () {

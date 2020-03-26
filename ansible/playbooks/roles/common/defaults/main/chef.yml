@@ -251,9 +251,9 @@ chef_roles:
     chef_type: role
     run_list:
       - role[node]
-      - recipe[bcpc::ceph-osd]
       - recipe[bcpc::etcd-proxy]
       - recipe[bcpc::calico-felix]
+      - recipe[bcpc::ceph-osd]
 
   - name: worknode
     description: cloud compute services

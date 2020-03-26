@@ -17,7 +17,6 @@
 
 apt_repository 'ceph' do
   uri node['bcpc']['ceph']['repo']['url']
-  distribution node['lsb']['codename']
   components ['main']
   key 'ceph/release.key'
   only_if { node['bcpc']['ceph']['repo']['enabled'] }

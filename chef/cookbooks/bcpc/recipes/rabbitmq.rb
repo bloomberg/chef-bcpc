@@ -17,7 +17,6 @@
 
 apt_repository 'rabbitmq' do
   uri node['bcpc']['rabbitmq']['repo']['url']
-  distribution node['lsb']['codename']
   components ['main']
   key 'rabbitmq/rabbitmq.key'
   only_if { node['bcpc']['rabbitmq']['repo']['enabled'] }
