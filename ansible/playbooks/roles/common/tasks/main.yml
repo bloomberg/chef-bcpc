@@ -14,3 +14,7 @@
 - import_tasks: configure-networking.yml
   become: true
   tags: [never,configure-networking]
+
+- import_tasks: configure-chrony.yml
+  become: true
+  tags: [never,configure-chrony]
