@@ -45,7 +45,7 @@ protocol device {
 }
 
 {% for transit in transit_interfaces %}
-protocol bgp '{{ transit['neighbor']['name'] }}:{{ inventory_hostname }}' {
+protocol bgp '{{ transit['neighbor']['name'] }}:{{ transit['name'] }}' {
   multihop;
   next hop self;
   graceful restart;
