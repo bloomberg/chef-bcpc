@@ -44,6 +44,7 @@ end
 env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
 
 package 'virtualenv'
+package 'python3-dev'
 
 group 'rally'
 
