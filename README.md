@@ -95,8 +95,12 @@ chef-bcpc is built with the following open source software:
 
  - [Ansible](https://www.ansible.com/)
  - [Apache HTTP Server](http://httpd.apache.org/)
+ - [BIRD](https://bird.network.cz)
+ - [Calico](https://www.projectcalico.org)
  - [Ceph](http://ceph.com/)
  - [Chef](http://www.opscode.com/chef/)
+ - [Consul](https://www.consul.io)
+ - [etcd](https://etcd.io)
  - [HAProxy](http://haproxy.1wt.eu/)
  - [Memcached](http://memcached.org)
  - [OpenStack](http://www.openstack.org/)
@@ -104,6 +108,7 @@ chef-bcpc is built with the following open source software:
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)
  - [Ubuntu](http://www.ubuntu.com/)
+ - [Unbound](https://nlnetlabs.nl/projects/unbound/about/)
  - [Vagrant](http://www.vagrantup.com/)
  - [VirtualBox](https://www.virtualbox.org/)
 
