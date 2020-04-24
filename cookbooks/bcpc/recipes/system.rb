@@ -95,7 +95,7 @@ end
 begin
   sys_params = node['bcpc']['system']['parameters']
   nf_conntrack_max = sys_params['net.nf_conntrack_max']
-  hashsize = nf_conntrack_max / 8
+  hashsize = nf_conntrack_max / 4
 
   template '/etc/modprobe.d/nf_conntrack.conf' do
     source 'modprobe.d/nf_conntrack.conf.erb'
