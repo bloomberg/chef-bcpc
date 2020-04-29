@@ -25,23 +25,6 @@ default['bcpc']['local_proxy']['config']['listen'] = '127.0.0.1'
 default['bcpc']['local_proxy']['config']['port'] = '8888'
 
 ###############################################################################
-# rabbitmq
-###############################################################################
-
-default['bcpc']['rabbitmq']['repo']['enabled'] = false
-default['bcpc']['rabbitmq']['repo']['url'] = 'http://dl.bintray.com/rabbitmq/debian'
-
-# if changing this setting, you will need to reset Mnesia
-# on all RabbitMQ nodes in the cluster
-default['bcpc']['rabbitmq']['durable_queues'] = true
-
-# ulimits for RabbitMQ server
-default['bcpc']['rabbitmq']['ulimit']['nofile'] = 4096
-
-# Heartbeat timeout to detect dead RabbitMQ brokers
-default['bcpc']['rabbitmq']['heartbeat'] = 60
-
-###############################################################################
 # libvirt
 ###############################################################################
 
