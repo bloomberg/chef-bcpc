@@ -244,3 +244,10 @@ ubuntu_apt:
       url: http://security.ubuntu.com/ubuntu
     - dist: bionic-updates
       url: http://archive.ubuntu.com/ubuntu
+
+###############################################################################
+# bird
+###############################################################################
+bird:
+  distribution:
+    name: bionic-backports

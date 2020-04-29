@@ -33,6 +33,9 @@
 - import_tasks: configure-ubuntu-apt-sources.yml
   tags: [configure-ubuntu-apt-sources]
 
+- import_tasks: upgrade-bird.yml
+  when: configure_bgp | default(true)
+
 - import_tasks: configure-bgp.yml
   when: configure_bgp | default(true)
 
