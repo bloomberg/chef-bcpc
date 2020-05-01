@@ -1,0 +1,51 @@
+# Copyright:: 2020 Bloomberg Finance L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: add ubuntu apt signing key
+  apt_key:
+    url: "{{ ubuntu_apt.key_url }}"
+    state: present
+  when: ubuntu_apt.key_url | default(false)
+
+- name: remove old sources.list.d files
+  file:
+    path: "/etc/apt/sources.list.d/{{ item }}"
+    state: absent
+  with_items:
+    - security-ubuntu-archive.list
+    - ubuntu-archive.list
+    - ubuntu-archive-backports.list
+    - ubuntu-archive-updates.list
+
+- name: check for i386 architecture support
+  shell: dpkg --print-foreign-architectures | grep i386
+  register: check_for_i386_apt_support
+  failed_when: check_for_i386_apt_support.rc == 0
+  ignore_errors: true
+  changed_when: false
+
+- name: remove i386 architecture from apt
+  command: dpkg --remove-architecture i386
+  when: check_for_i386_apt_support is failed
+
+- name: generate apt sources.list
+  template:
+    src: apt/sources.list.j2
+    dest: /etc/apt/sources.list
+  register: sources_list
+
+- name: apt-get update
+  apt:
+    update_cache: yes
+  when: sources_list.changed
