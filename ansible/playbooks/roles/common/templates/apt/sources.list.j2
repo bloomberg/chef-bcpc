@@ -1,0 +1,5 @@
+# managed by ansible
+
+{% for source in ubuntu_apt.sources %}
+deb {{ source['url'] }} {{ source['dist'] }} {{ ubuntu_apt.pools | join(" ") }}
+{% endfor %}

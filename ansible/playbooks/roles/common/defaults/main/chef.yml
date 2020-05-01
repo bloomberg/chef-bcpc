@@ -242,7 +242,6 @@ chef_roles:
     chef_type: role
     run_list:
       - recipe[bcpc::default]
-      - recipe[bcpc::apt]
       - recipe[bcpc::ssl]
       - recipe[bcpc::cloud-archive]
       - recipe[bcpc::postfix]

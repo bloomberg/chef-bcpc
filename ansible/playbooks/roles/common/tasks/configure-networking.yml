@@ -30,6 +30,9 @@
 
 - import_tasks: configure-local-proxy.yml
 
+- import_tasks: configure-ubuntu-apt-sources.yml
+  tags: [configure-ubuntu-apt-sources]
+
 - import_tasks: configure-bgp.yml
   when: configure_bgp | default(true)
 
