@@ -223,3 +223,24 @@ use_primary_transit_interface: true
 configure_bgp: true
 configure_service_ip: true
 configure_network_interfaces: true
+
+###############################################################################
+# ubuntu apt sources.list
+###############################################################################
+
+ubuntu_apt:
+  key_url: false
+  pools:
+    - main
+    - restricted
+    - universe
+    - multiverse
+  sources:
+    - dist: bionic
+      url: http://archive.ubuntu.com/ubuntu
+    - dist: bionic-backports
+      url: http://archive.ubuntu.com/ubuntu
+    - dist: bionic-security
+      url: http://security.ubuntu.com/ubuntu
+    - dist: bionic-updates
+      url: http://archive.ubuntu.com/ubuntu

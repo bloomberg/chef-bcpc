@@ -16,10 +16,18 @@
 # limitations under the License.
 
 apt_repository 'rabbitmq' do
-  uri node['bcpc']['rabbitmq']['repo']['url']
+  uri node['bcpc']['rabbitmq']['source']['repo']['url']
   components ['main']
   key 'rabbitmq/rabbitmq.key'
-  only_if { node['bcpc']['rabbitmq']['repo']['enabled'] }
+  only_if { node['bcpc']['rabbitmq']['source']['repo']['enabled'] }
+end
+
+template '/etc/apt/preferences.d/99rabbitmq' do
+  source 'rabbitmq/apt-preferences.erb'
+  variables(
+    release: node['bcpc']['rabbitmq']['source']['distribution']['name']
+  )
+  only_if { node['bcpc']['rabbitmq']['source']['distribution']['enabled'] }
 end
 
 region = node['bcpc']['cloud']['region']
