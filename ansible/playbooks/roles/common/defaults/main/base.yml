@@ -172,9 +172,9 @@ assets_files:
     filename: calicoctl
 
   - name: consul
-    url: https://releases.hashicorp.com/consul/1.4.0/consul_1.4.0_linux_amd64.zip
-    checksum: sha256:41f8c3d63a18ef4e51372522c1e052618cdfcffa3d9f02dba0b50820e8279824
-    filename: consul_1.4.0_linux_amd64.zip
+    url: https://releases.hashicorp.com/consul/1.7.2/consul_1.7.2_linux_amd64.zip
+    checksum: sha256:5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a756773e698
+    filename: consul_1.7.2_linux_amd64.zip
 
   - name: chef_client
     url: https://packages.chef.io/files/stable/chef/14.13.11/ubuntu/18.04/chef_14.13.11-1_amd64.deb
