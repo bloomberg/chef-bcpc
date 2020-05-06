@@ -1,15 +1,25 @@
 - name: configuring host aggregates
   shell: |
+    set -o pipefail
+
     aggregate={{ hostvars[item]['aggregate'] }}
     hostname={{ item }}
     zone={{ hostvars[item]['zone'] }}
 
+    # create aggregate if it does not exist
     if ! openstack aggregate show ${aggregate}; then
         openstack aggregate create ${aggregate} \
             --property network=${zone} \
             --zone ${aggregate}
+    fi
 
-        openstack aggregate add host ${aggregate} ${hostname}
+    # compute service list json output
+    csl=$(openstack compute service list --service nova-compute -f json)
+
+    # add the host to the aggregate only if it is not already a member of one
+    if echo $csl | jq -e --arg h ${hostname} \
+        '.[] | select(.Host == $h and .Zone == "nova")'; then
+      openstack aggregate add host ${aggregate} ${hostname}
     fi
   with_items:
     "{{ groups['worknodes'] }}"
