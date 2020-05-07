@@ -42,6 +42,11 @@ to provide the best out-of-the-box experience.
 * Review `virtual/topology/topology.yml` for the topology you will build and
 make changes as required, e.g. assign more or less RAM based on your topology
 and your build environment. Other topologies exist in the same directory.
+* To make changes to the virtual topology without dirtying the tree, copy the
+[hardware.yml](virtual/topology/hardware.yml) and
+[topology.yml](virtual/topology/topology.yml) to files named
+`hardware.overrides.yml` and `topology.overrides.yml`, respectively, and make
+changes to them instead.
 * If a proxy server is required for internet access, set the variables TBD
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:
