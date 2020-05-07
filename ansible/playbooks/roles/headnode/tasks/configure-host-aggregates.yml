@@ -1,3 +1,13 @@
+- name: capture aggregate list
+  command: openstack aggregate list -f json
+  register: aggregate_list_json
+  changed_when: false
+
+- name: capture compute service list
+  command: openstack compute service list --service nova-compute -f json
+  register: compute_service_list_json
+  changed_when: false
+
 - name: configuring host aggregates
   shell: |
     set -o pipefail
@@ -7,16 +17,17 @@
     zone={{ hostvars[item]['zone'] }}
 
     # create aggregate if it does not exist
-    if ! openstack aggregate show ${aggregate}; then
+    al='{{ aggregate_list_json.stdout }}'
+
+    if ! echo $al | jq -e --arg a $aggregate '.[] | select(.Name == $a)'; then
         openstack aggregate create ${aggregate} \
             --property network=${zone} \
             --zone ${aggregate}
     fi
 
-    # compute service list json output
-    csl=$(openstack compute service list --service nova-compute -f json)
+    # add host to aggregate if it is not a member of one
+    csl='{{ compute_service_list_json.stdout }}'
 
-    # add the host to the aggregate only if it is not already a member of one
     if echo $csl | jq -e --arg h ${hostname} \
         '.[] | select(.Host == $h and .Zone == "nova")'; then
       openstack aggregate add host ${aggregate} ${hostname}
