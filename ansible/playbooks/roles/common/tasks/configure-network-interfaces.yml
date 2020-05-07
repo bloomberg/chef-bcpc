@@ -1,3 +1,6 @@
+- import_tasks: configure-etc-hosts.yml
+  tags: [configure-etc-hosts]
+
 - name: rename default netplan config
   command: mv /etc/netplan/01-netcfg.yaml /etc/netplan/01-netcfg.yaml.orig
   args:

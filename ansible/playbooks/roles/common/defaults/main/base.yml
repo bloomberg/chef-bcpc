@@ -220,7 +220,6 @@ networking:
   mtu: 1500
 
 use_primary_transit_interface: true
-configure_bgp: true
 configure_service_ip: true
 configure_network_interfaces: true
 

@@ -1,16 +1,6 @@
-- name: gather host facts
+- name: gather network and hardware/vm facts
   setup:
-    gather_subset: all
-
-- name: define ansible_host
-  set_fact:
-    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
-  when: use_primary_transit_interface
-
-- name: define transit_interfaces
-  set_fact:
-    transit_interfaces: >
-      {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
+    gather_subset: "!all,!min,hardware,network,virtual"
 
 - name: define libvirt_kvm_guest
   set_fact:
@@ -18,9 +8,6 @@
       {{ ansible_virtualization_type == 'kvm'
           and ansible_virtualization_role == 'guest'
           and ansible_system_vendor == 'QEMU' }}
-
-- import_tasks: configure-etc-hosts.yml
-  tags: [configure-etc-hosts]
 
 - import_tasks: configure-root-user-ssh.yml
   tags: [configure-root-user-ssh]
@@ -33,17 +20,14 @@
 - import_tasks: configure-ubuntu-apt-sources.yml
   tags: [configure-ubuntu-apt-sources]
 
-- import_tasks: upgrade-bird.yml
-  when: configure_bgp | default(true)
-
-- import_tasks: configure-bgp.yml
-  when: configure_bgp | default(true)
+- import_tasks: configure-network-interfaces.yml
+  when: configure_network_interfaces | default(true)
 
 - import_tasks: configure-service-ip.yml
   when: configure_service_ip | default(true)
 
-- import_tasks: configure-network-interfaces.yml
-  when: configure_network_interfaces | default(true)
+- import_tasks: configure-bgp.yml
+  tags: [configure-bgp]
 
 - import_tasks: configure-chrony.yml
   tags: [configure-chrony]

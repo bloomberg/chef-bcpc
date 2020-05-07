@@ -1,3 +1,6 @@
+- import_tasks: define-transits.yml
+- import_tasks: upgrade-bird.yml
+
 - name: generate apt preferences for bird2 and dependencies
   template:
     src: bird/apt-preferences.j2
@@ -46,6 +49,6 @@
     executable: /bin/bash
   retries: 30
   delay: 5
+  changed_when: false
   register: result
   until: result.rc == 0
-  when: ansible_virtualization_type != 'virtualbox'
