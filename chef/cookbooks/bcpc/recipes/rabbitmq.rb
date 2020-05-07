@@ -138,9 +138,17 @@ execute 'set rabbitmq user password' do
   command "rabbitmqctl change_password #{username} #{password}"
 end
 
+# Use n/2+1 queue mirrors as long as we have at least three headnodes.
+# If we have fewer than three headnodes, fallback to ha-all.
+headnodes = headnodes(all: true)
+ha_exactly = { 'ha-mode' => 'exactly', 'ha-params' => headnodes.length / 2 + 1 }
+ha_all = { 'ha-mode': 'all' }
+
+ha_policy = headnodes.length >= 3 ? ha_exactly : ha_all
+
 execute 'set rabbitmq ha policy' do
   command <<-DOC
-    rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '{"ha-mode": "all"}'
+    rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '#{ha_policy.to_json}'
   DOC
 end
 
