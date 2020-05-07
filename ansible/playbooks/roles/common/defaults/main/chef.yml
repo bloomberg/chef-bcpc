@@ -9,6 +9,9 @@ chef_environment:
   chef_type: environment
   override_attributes:
     bcpc:
+      ceph:
+        pg_num: 32
+        pgp_num: 32
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
