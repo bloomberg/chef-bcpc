@@ -24,7 +24,7 @@ deploy the chef-bcpc on hardware.
 * OS X or Linux
 * Quad-core CPU that supports VT-x virtualization extensions
 * 32 GB of memory
-* 100 GB of free disk space
+* 128 GB of free disk space
 * Vagrant 2.1+
 * VirtualBox 5.2+
 * git, curl, rsync, ssh, jq, make, ansible
