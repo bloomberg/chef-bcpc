@@ -51,13 +51,19 @@ base_config() {
     sudo systemctl restart lldpd
 }
 
+apt_configuration() {
+    # ref: ansible/playbooks/roles/common/tasks/configure-bgp.yml
+    sudo cp "/vagrant/apt-preferences" /etc/apt/preferences.d/98-bird
+}
+
 package_installation() {
     dpkg --remove-architecture i386
     apt="sudo DEBIAN_FRONTEND=noninteractive apt-get -y"
     ${apt} update
-    ${apt} install lldpd traceroute bird iptables-persistent
+    ${apt} install lldpd traceroute bird2 iptables-persistent
 }
 
+apt_configuration
 package_installation
 base_config "${1}"
 switch_config "${1}"
