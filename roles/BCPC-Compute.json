@@ -5,7 +5,6 @@
       "role[BCPC-Base]",
       "role[BCPC-CephOSD]",
       "recipe[bcpc::nova-work]",
-      "recipe[bcpc::diamond]",
       "recipe[bcpc::fluentd]",
       "recipe[bcpc::tpm]",
       "recipe[bcpc::checks-work]",

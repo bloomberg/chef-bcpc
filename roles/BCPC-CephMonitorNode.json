@@ -8,7 +8,6 @@
     "role[BCPC-Base]",
     "role[BCPC-CephMonitor]",
     "recipe[bcpc::tpm]",
-    "recipe[bcpc::diamond]",
     "recipe[bcpc::fluentd]",
     "recipe[bcpc::zabbix-agent]"
   ]
