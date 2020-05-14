@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: calico-work
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,12 +18,24 @@
 include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
-%w(
-  calico-common
-  calico-compute
-  calico-dhcp-agent
-).each do |pkg|
-  package pkg
+package 'calico-compute' do
+  action :remove
+end
+
+package 'neutron-dhcp-agent'
+
+package %w(calico-felix networking-calico calico-dhcp-agent) do
+  action :upgrade
+end
+
+execute 'reload sysctl' do
+  action :nothing
+  command 'sysctl --system'
+end
+
+cookbook_file '/etc/sysctl.d/99-networking-calico.conf' do
+  source 'calico/99-networking-calico.conf'
+  notifies :run, 'execute[reload sysctl]', :immediately
 end
 
 service 'calico-dhcp-agent'
@@ -58,11 +70,5 @@ template '/etc/neutron/neutron.conf' do
   mode '644'
   owner 'root'
   group 'neutron'
-  notifies :restart, 'service[calico-dhcp-agent]', :immediately
-end
-
-# patch calico-dhcp-agent to work against neutron 13.0.2 and 13.0.4
-cookbook_file '/usr/lib/python2.7/dist-packages/networking_calico/agent/linux/dhcp.py' do
-  source 'calico/dhcp.py'
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end

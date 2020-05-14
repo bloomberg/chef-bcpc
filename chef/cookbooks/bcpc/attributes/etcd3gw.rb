@@ -3,6 +3,6 @@
 ###############################################################################
 
 default['bcpc']['etcd3gw']['remote_file'] = {
-  'file' => 'etcd3gw-0.2.4.tar.gz',
-  'checksum' => '397a97a6089a996696e4a45ba1a6c1920faa494f0412750dc090d546249fd243',
+  'file' => 'etcd3gw-0.2.5.tar.gz',
+  'checksum' => 'a382ecbe9c15464d30520a802b9ca1e29cb06fd751393c80389566f1fd8747bf',
 }
