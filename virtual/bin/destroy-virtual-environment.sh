@@ -23,4 +23,4 @@ if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
     export VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
 fi
 
-(cd "${virtual_dir}"; vagrant destroy -f)
+(cd "${virtual_dir}"; vagrant destroy -f || true)

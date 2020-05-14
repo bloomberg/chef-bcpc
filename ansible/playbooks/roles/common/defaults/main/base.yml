@@ -167,8 +167,8 @@ assets_files:
     filename: etcd-v3.3.10-linux-amd64.tar.gz
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calicoctl/releases/download/v3.6.0/calicoctl-linux-amd64
-    checksum: sha256:b17659ca43f8812c6bea3fe30135c1d44857a756b13ed49c83895e74e2761359
+    url: https://github.com/projectcalico/calicoctl/releases/download/v3.15.0/calicoctl-linux-amd64
+    checksum: sha256:4600d5d7f08ed9cf479fc8fa87518dbbca32a473d0a4a212cfecb610c18216aa
     filename: calicoctl
 
   - name: consul
@@ -192,9 +192,9 @@ assets_files:
     filename: logrotate-2.2.0.tar.gz
 
   - name: etcd3gw
-    url: https://files.pythonhosted.org/packages/08/02/63d5eb103943ce18c38dd1b11a2d63e6ff7260d44067458e7faa092c2b9e/etcd3gw-0.2.4.tar.gz
-    checksum: sha256:397a97a6089a996696e4a45ba1a6c1920faa494f0412750dc090d546249fd243
-    filename: etcd3gw-0.2.4.tar.gz
+    url: https://files.pythonhosted.org/packages/ea/17/a6f33e3681ec7c07b5885a636cf601b03486e7184eb1f419bd99617f6560/etcd3gw-0.2.5.tar.gz
+    checksum: sha256:a382ecbe9c15464d30520a802b9ca1e29cb06fd751393c80389566f1fd8747bf
+    filename: etcd3gw-0.2.5.tar.gz
 
 # all file assets
 all_file_assets: "{{ assets_files + additional_assets_files | default([]) }}"
@@ -220,7 +220,6 @@ networking:
   mtu: 1500
 
 use_primary_transit_interface: true
-configure_bgp: true
 configure_service_ip: true
 configure_network_interfaces: true
 
@@ -244,3 +243,51 @@ ubuntu_apt:
       url: http://security.ubuntu.com/ubuntu
     - dist: bionic-updates
       url: http://archive.ubuntu.com/ubuntu
+
+###############################################################################
+# bird
+###############################################################################
+
+bird:
+  distribution:
+    name: bionic-backports
+
+###############################################################################
+# grub
+###############################################################################
+
+grub_cmdline_linux: []
+
+###############################################################################
+# system configuration
+###############################################################################
+
+# Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
+hardware_io_scheduler: deadline
+
+# Select kernel NVMe multipath support.
+# Disabling addresses the issue with controller vs. disk/device naming issues,
+# providing consistent, deterministic device naming conventions.
+hardware_nvme_multipath: false
+
+# If pin_version is true, pin to {{ version }}-{{ variant }}
+# For example, {{ 5.0.0-32 }}-{{ lowlatency }}
+# If pin_version is false, track linux-{{ variant }} upstream
+# For example, linux-{{ generic-hwe-18.04 }}
+kernel_pin_version: false
+kernel_variant: generic
+kernel_version: ''
+
+# Use this to *add* more reserved ports; i.e. modify value of
+# net.ipv4.ip_local_reserved_ports
+system_additional_reserved_ports: []
+
+# Select IPv6 support.
+system_enable_ipv6: false
+
+# Any other sysctl parameters that are to be overidden
+system_parameters_kernel.pid_max: 4194303
+system_parameters_net.nf_conntrack_max: 262144
+
+# Read-ahead value for all block devices, in kb
+system_readahead_kb: 512

@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: calico-felix
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 
 include_recipe 'bcpc::calico-apt'
 
-package 'calico-felix'
+package 'calico-felix' do
+  action :upgrade
+end
 service 'calico-felix'
 
 # remove example felix cfg file

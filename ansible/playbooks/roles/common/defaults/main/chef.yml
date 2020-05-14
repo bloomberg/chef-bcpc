@@ -264,7 +264,6 @@ chef_roles:
       - recipe[bcpc::cpupower]
       - recipe[bcpc::getty]
       - recipe[bcpc::hwrng]
-      - recipe[bcpc::system]
 
   - name: storagenode
     description: storage node

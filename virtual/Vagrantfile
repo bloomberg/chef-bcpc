@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # limitations under the License.
 
 base_box = 'bento/ubuntu-18.04'
-base_box_version = '201812.27.0'
+base_box_version = '202005.21.0'
 
 require 'yaml'
 
@@ -60,32 +60,44 @@ Vagrant.configure('2') do |config|
 
   topology['nodes'].each do |node|
     vm_name = node['host']
+
     # get hardware profile for node
     hw_profiles = hardware['profiles']
     hw_profile = hw_profiles[node['hardware_profile']]
 
     config.vm.define vm_name do |subconfig|
-      # vm provisioners starts
+      # finish provisioner
+      finish_args = []
 
-      # create default user
-      subconfig.vm.provision 'shell' do |shell|
-        shell.path = 'provisioners/create-default-user.sh'
-        shell.args = 'ubuntu 53cr37'
+      if ENV.key?('BCC_APT_URL')
+        finish_args.append("--apt-url #{ENV['BCC_APT_URL']}")
       end
 
-      # modify the vagrant user
-      subconfig.vm.provision 'shell' do |shell|
-        shell.path = 'provisioners/modify-vagrant-user.sh'
+      if ENV.key?('BCC_APT_KEY_URL')
+        finish_args.append("--apt-key-url #{ENV['BCC_APT_KEY_URL']}")
       end
 
-      # vm provisioners ends
+      if ENV.key?('http_proxy')
+        finish_args.append("--http-proxy #{ENV['http_proxy']}")
+      end
 
-      # add swap space
+      if ENV.key?('https_proxy')
+        finish_args.append("--https-proxy #{ENV['https_proxy']}")
+      end
+
       if hw_profile.key?('swap_gb')
-        subconfig.vm.provision 'shell' do |s|
-          s.path = 'provisioners/swap.sh'
-          s.args = hw_profile['swap_gb']
-        end
+        finish_args.append("--swap-size-gb #{hw_profile['swap_gb']}")
+      end
+
+      # operations user
+      operations_user = 'operations'
+      operations_user_ssh_pub_key = File.read('files/ssh/id_ed25519.pub')
+      finish_args.append("--operations-user #{operations_user}")
+      finish_args.append("--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\"")
+
+      subconfig.vm.provision 'shell' do |shell|
+        shell.path = 'provisioners/finish.sh'
+        shell.args = finish_args.join(' ')
       end
 
       # network connections

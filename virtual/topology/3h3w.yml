@@ -73,8 +73,8 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[worknode]
         - role[storagenode]
+        - role[worknode]
       zone: dev
 
   - host: r2n1
@@ -126,8 +126,8 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
-        - role[worknode]
         - role[storagenode]
+        - role[worknode]
       zone: dev
 
   - host: r3n1
@@ -179,6 +179,6 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
-        - role[worknode]
         - role[storagenode]
+        - role[worknode]
       zone: dev

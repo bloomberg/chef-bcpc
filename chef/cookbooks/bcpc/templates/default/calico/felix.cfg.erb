@@ -1,8 +1,21 @@
 [global]
+
+# The datastore that Felix should read endpoints and policy information
+# from.
 DatastoreType = etcdv3
+
+# Comma-delimited list of etcd endpoints to connect to.
 EtcdEndpoints = https://127.0.0.1:2379
+
+# Path to the file containing the root certificate of the certificate
+# authority (CA) that issued the etcd server certificate.
 EtcdCaFile = <%= node['bcpc']['etcd']['ca']['crt']['filepath'] %>
+
+# Path to the file containing the client certificate issued to Felix.
 EtcdCertFile = <%= node['bcpc']['etcd'][@cert_type]['crt']['filepath'] %>
+
+# Path to the file containing the private key matching Felix's client
+# certificate.
 EtcdKeyFile = <%= node['bcpc']['etcd'][@cert_type]['key']['filepath'] %>
 
 # The log severity above which logs are sent to the stdout.
@@ -20,8 +33,15 @@ LogSeveritySys = Warning
 # the version of Calico being used.
 UsageReportingEnabled = false
 
+# UDP/TCP/SCTP protocol/port pairs that Felix will allow incoming traffic
+# to host endpoints on irrespective of the security policy.
 FailsafeInboundHostPorts = none
 
+# UDP/TCP/SCTP protocol/port pairs that Felix will allow outgoing traffic
+# from host endpoints to irrespective of the security policy.
 # TCP 53 (DNS), UDP 53 (DNS), UDP 123 (NTP), TCP 179 (BGP),
 # TCP 2379 & 2380 (etcd)
 FailsafeOutboundHostPorts = tcp:53,udp:53,udp:123,tcp:179,tcp:2379,tcp:2380
+
+# IPv6 support for Felix
+Ipv6Support = false

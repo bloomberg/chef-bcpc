@@ -27,16 +27,18 @@ protocol kernel {
   scan time 2;    # Scan kernel routing table every 2 seconds
   merge paths on;
   graceful restart;
-  export filter to_kernel;
-  import filter from_kernel;
+  ipv4 {
+    export filter to_kernel;
+    import filter from_kernel;
+  };
 }
-
 {% set interfaces = ['"lo"','"service*"'] %}
-{% for transit in transit_interfaces %}
-  {{ interfaces.append('"' + transit['name'] + '"') }}
-{% endfor %}
+{% for transit in transit_interfaces -%}
+  {% set interfaces = interfaces.append('"' + transit['name'] + '"') %}
+{%- endfor %}
 
 protocol direct {
+  ipv4;
   interface {{ interfaces | join(', ') }};
 }
 
@@ -47,12 +49,14 @@ protocol device {
 {% for transit in transit_interfaces %}
 protocol bgp '{{ transit['neighbor']['name'] }}:{{ transit['name'] }}' {
   multihop;
-  next hop self;
   graceful restart;
   local {{ transit['ip'] | ipaddr('address') }} as {{ bgp['asn'] }};
   neighbor {{ transit['neighbor']['ip'] }} as {{ transit['neighbor']['asn'] }};
-  import all;
-  export filter to_tor;
+  ipv4 {
+    next hop self;
+    import all;
+    export filter to_tor;
+  };
 }
 
 {% endfor %}
