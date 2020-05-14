@@ -72,8 +72,8 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[worknode]
         - role[storagenode]
+        - role[worknode]
 
   - host: r1n3
     group: worknodes
@@ -98,5 +98,5 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[worknode]
         - role[storagenode]
+        - role[worknode]

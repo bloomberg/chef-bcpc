@@ -1,0 +1,8 @@
+- name: gather host facts for interfaces
+  setup:
+    gather_subset: "!all,!min,network"
+
+- name: define transit_interfaces
+  set_fact:
+    transit_interfaces: >
+      {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}

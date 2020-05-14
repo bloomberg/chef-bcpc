@@ -51,7 +51,7 @@ Vagrant.configure(2) do |config|
   config.vm.box_download_insecure = true
 
   config.vm.provider :libvirt do |lv|
-    if ENV['LIBVIRT_DRIVER'] == 'qemu'
+    if ENV['BCC_LIBVIRT_DRIVER'] == 'qemu'
       lv.driver = 'qemu'
       lv.cpu_mode = 'custom'
       config.vm.synced_folder './', '/vagrant', type: 'rsync'

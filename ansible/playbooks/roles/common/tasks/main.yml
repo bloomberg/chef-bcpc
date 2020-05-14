@@ -11,6 +11,6 @@
   become: true
   tags: [never,ceph-destroy-osds]
 
-- import_tasks: configure-networking.yml
+- import_tasks: configure-node.yml
   become: true
-  tags: [never,configure-networking]
+  tags: [never,configure-node]

@@ -30,7 +30,7 @@ end
 require '../lib/util.rb'
 
 Vagrant.configure(2) do |config|
-  if ENV['DEPLOY_NETWORK_VM'] == 'true'
+  if ENV['BCC_DEPLOY_NETWORK_VM'] == 'true'
 
     config.vm.define 'network' do |node|
       config.vm.provider 'virtualbox' do |vb|

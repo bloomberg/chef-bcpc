@@ -3,7 +3,7 @@ module Util
   # of the environment var 'ENABLE_VBOX_SUFFIX'
   def self.vbox_name(name)
     # return name if suffix not enabled
-    unless ENV.key?('ENABLE_VBOX_SUFFIX')
+    unless ENV.key?('BCC_ENABLE_VBOX_SUFFIX')
       return name
     end
     # return name + hashed __dir__
@@ -13,6 +13,9 @@ module Util
   end
 
   def self.mount_apt_cache(config)
+    if ENV.key?('BCC_DISABLE_APT_CACHE')
+      return
+    end
     user_data_path = Vagrant.user_data_path.to_s
     cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
     apt_cache_dir = '/var/cache/apt/archives'

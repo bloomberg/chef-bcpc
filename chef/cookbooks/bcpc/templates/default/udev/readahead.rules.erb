@@ -1,1 +1,0 @@
-SUBSYSTEM=="block", ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{bdi/read_ahead_kb}="<%= node['bcpc']['system']['readahead_kb'] %>"
