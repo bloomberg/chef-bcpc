@@ -11,12 +11,12 @@ key = /etc/nova/ssl-bcpc.key
 cert = /etc/nova/ssl-bcpc.pem
 my_ip = <%= node['service_ip'] %>
 enable_new_services = false
-cpu_allocation_ratio = <%= @nova_compute_config.cpu_allocation_ratio %>
+cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
 <% if node['bcpc']['nova']['vcpu_pin_set'] %>
 vcpu_pin_set =  <%= node['bcpc']['nova']['vcpu_pin_set'] %>
 <% end %>
 force_config_drive = true
-ram_allocation_ratio = <%= @nova_compute_config.ram_allocation_ratio %>
+ram_allocation_ratio = <%= node['bcpc']['nova']['ram_allocation_ratio'] %>
 reserved_host_memory_mb = <%= node['bcpc']['nova']['reserved_host_memory_mb'] %>
 resume_guests_state_on_host_boot = <%= node['bcpc']['nova']['resume_guests_state_on_host_boot'] %>
 max_concurrent_builds = <%= node['bcpc']['nova']['max_concurrent_builds'] %>

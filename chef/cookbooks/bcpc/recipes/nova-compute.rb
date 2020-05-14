@@ -181,7 +181,6 @@ template '/etc/nova/nova.conf' do
   variables(
     db: database,
     config: config,
-    nova_compute_config: nova_compute_config,
     headnodes: headnodes,
     vip: node['bcpc']['cloud']['vip']
   )

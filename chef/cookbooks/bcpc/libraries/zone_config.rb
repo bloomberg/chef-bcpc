@@ -229,28 +229,4 @@ class NovaComputeConfig
     zone = databag[@zone_config.zone]
     zone['libvirt']['secret']
   end
-
-  def cpu_allocation_ratio
-    effective_nova_config('cpu_allocation_ratio')
-  end
-
-  def ram_allocation_ratio
-    effective_nova_config('ram_allocation_ratio')
-  end
-
-  private
-
-  # effective nova config taking into account of per-network-zone overrides
-  def effective_nova_config(key)
-    default_val = @zone_config.node['bcpc']['nova'][key]
-    unless @zone_config.enabled?
-      return default_val
-    end
-    zone = @zone_config.zone_attr(zone: @zone_config.zone)
-    zone_val = zone['nova'][key]
-    if zone_val.nil?
-      return default_val
-    end
-    zone_val
-  end
 end
