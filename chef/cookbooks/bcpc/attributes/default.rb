@@ -11,12 +11,6 @@ default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['web_server']['url'] = 'http://bootstrap:8080/files/'
 
 ###############################################################################
-# grub
-###############################################################################
-
-default['bcpc']['grub']['cmdline_linux'] = []
-
-###############################################################################
 # local_proxy
 ###############################################################################
 
@@ -81,10 +75,6 @@ default['bcpc']['haproxy']['apt']['url'] = 'http://ppa.launchpad.net/vbernat/hap
 # misc settings
 ###############################################################################
 
-# pin the system kernel to a fixed version
-default['bcpc']['kernel']['pin_version'] = false
-default['bcpc']['kernel']['version'] = ''
-
 # debugging process crashes
 default['bcpc']['apport']['enabled'] = true
 
@@ -105,24 +95,8 @@ default['bcpc']['management']['firewall_tcp_ports'] = [
   8088, 7480, 35357, 8004, 8000
 ]
 
-# use this to *add* more reserved ports; i.e. modify value of
-# net.ipv4.ip_local_reserved_ports
-default['bcpc']['system']['additional_reserved_ports'] = []
-
-# any other sysctl parameters (register under parameters)
-default['bcpc']['system']['parameters']['kernel.pid_max'] = 4194303
-
-# connection tracking table max size
-default['bcpc']['system']['parameters']['net.nf_conntrack_max'] = 262144
-
-# readhead value for all disks in the system, in kb
-default['bcpc']['system']['readahead_kb'] = 512
-
 # used for SOL (serial over lan) communication
 default['bcpc']['getty']['ttys'] = %w(ttyS0 ttyS1)
-
-# select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
-default['bcpc']['hardware']['io_scheduler'] = 'deadline'
 
 # enable power-saving CPU scaling governor
 default['bcpc']['hardware']['powersave']['enabled'] = false

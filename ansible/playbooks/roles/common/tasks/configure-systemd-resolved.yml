@@ -10,10 +10,10 @@
     dest: /etc/resolv.conf
     state: link
     force: true
-  register: resolved
+  register: resolv_conf
 
 - name: restart systemd-resolved
   service:
     name: systemd-resolved
     state: restarted
-  when: resolved.changed
+  when: resolved.changed or resolv_conf.changed

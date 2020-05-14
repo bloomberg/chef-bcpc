@@ -1,7 +1,6 @@
 ---
 - name: define connection parameters
   set_fact:
-    ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
     ansible_ssh_user: "{{ initial_ssh_user }}"
     ansible_ssh_pass: "{{ initial_ssh_pass }}"
     ansible_sudo_pass: "{{ initial_ssh_pass }}"

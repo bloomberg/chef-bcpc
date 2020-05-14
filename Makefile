@@ -12,7 +12,7 @@ storagenodes = \
 all : \
 	sync-assets \
 	configure-operator \
-	configure-networking \
+	configure-node \
 	configure-chef-server \
 	configure-chef-workstation \
 	configure-chef-nodes \
@@ -50,11 +50,11 @@ configure-operator :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t configure-operator --limit cloud
 
-configure-networking :
+configure-node :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t configure-networking --limit cloud
+		-t configure-node --limit cloud
 
 sync-assets :
 
