@@ -107,11 +107,14 @@ begin
         #
         [ -z "$member" ] && exit 1
 
+        # get rabbit cluster status in json format
+        #
+        rcs=$(rabbitmqctl cluster_status --formatter json)
+
         # check to see if we're already a member
         #
-        member_list=$(rabbitmqctl cluster_status | grep running_nodes)
-
-        if echo ${member_list} | grep ${member}; then
+        if echo ${rcs} | \
+            jq -e --arg m ${member} '.running_nodes[] | select(. == $m)'; then
           echo "#{node['hostname']} is already a member of this cluster"
           exit 0
         fi
