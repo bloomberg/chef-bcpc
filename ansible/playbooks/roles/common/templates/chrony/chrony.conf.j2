@@ -1,3 +1,6 @@
+# Welcome to the chrony configuration file. See chrony.conf(5) for more
+# information about usuable directives.
+
 {% for server in ntp['servers'] %}
 pool {{server}}
 {% endfor %}
@@ -6,7 +9,7 @@ pool {{server}}
 # information.
 driftfile /var/lib/chrony/chrony.drift
 
-log tracking measurements statistics
+log measurements rtc statistics tracking
 
 # Log files location.
 logdir /var/log/chrony
@@ -14,9 +17,7 @@ logdir /var/log/chrony
 # Stop bad estimates upsetting machine clock.
 maxupdateskew 100.0
 
-# This directive enables kernel synchronisation (every 11 minutes) of the
-# real-time clock. Note that it can~@~Yt be used along with the 'rtcfile' directive.
-rtcsync
+rtcfile /var/lib/chrony/rtc
 
 # Step the system clock instead of slewing it if the adjustment is larger than
 # one second, but only in the first three clock updates.
