@@ -18,6 +18,7 @@ logdir /var/log/chrony
 maxupdateskew 100.0
 
 rtcfile /var/lib/chrony/rtc
+rtcautotrim 1
 
 # Step the system clock instead of slewing it if the adjustment is larger than
 # one second, but only in the first three clock updates.
