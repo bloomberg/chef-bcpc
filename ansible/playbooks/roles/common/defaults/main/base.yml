@@ -244,3 +244,34 @@ ubuntu_apt:
       url: http://security.ubuntu.com/ubuntu
     - dist: bionic-updates
       url: http://archive.ubuntu.com/ubuntu
+
+###############################################################################
+# grub
+###############################################################################
+grub:
+  cmdline_linux: []
+
+###############################################################################
+# system configuration
+###############################################################################
+hardware:
+  # Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
+  io_scheduler: deadline
+
+kernel:
+  # Pin the system kernel to a fixed version?
+  pin_version: false
+  version: ''
+
+system:
+  # Use this to *add* more reserved ports; i.e. modify value of
+  # net.ipv4.ip_local_reserved_ports
+  additional_reserved_ports: []
+
+  # Any other sysctl parameters that are to be overidden
+  parameters:
+    kernel_pid_max: 4194303
+    net.nf_conntrack_max: 262144
+
+  # Read-ahead value for all block devices, in kb
+  readahead_kb: 512

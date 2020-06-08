@@ -1,0 +1,170 @@
+# IPMI module configuration and loading
+- name: Load ipmi_devintf kernel module
+  modprobe:
+    name: ipmi_devintf
+
+- name: Ensure ipmi_devintf is loaded at boot
+  template:
+    src: system/modules-load.conf.j2
+    dest: /etc/modules-load.d/ipmi_devintf.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    kernel_module_name: ipmi_devintf
+
+# ip_conntrack module configuration and loading
+- name: Configure ip_conntrack kernel module when loaded
+  template:
+    src: system/modprobe.conf.j2
+    dest: /etc/modprobe.d/nf_conntrack.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    kernel_module_name: ip_conntrack
+    kernel_module_options:
+      hashsize: "{{ system['parameters']['net.nf_conntrack_max'] // 8 }}"
+
+# Specifying the alias (ip_conntrack) makes this non-idempotent
+- name: Load nf_conntrack_ipv4 (ip_conntrack) kernel module
+  modprobe:
+    name: nf_conntrack_ipv4
+
+- name: Configure ip_conntrack kernel module hashsize setting
+  template:
+    src: system/sysfs_variable.j2
+    dest: /sys/module/nf_conntrack/parameters/hashsize
+    owner: root
+    group: root
+    mode: '0600'
+    unsafe_writes: yes
+  vars:
+    value: "{{ system['parameters']['net.nf_conntrack_max'] // 8 }}"
+
+- name: Ensure ip_conntrack is loaded at boot
+  template:
+    src: system/modules-load.conf.j2
+    dest: /etc/modules-load.d/ip_conntrack.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    kernel_module_name: ip_conntrack
+
+# Configure grub
+- name: Configure grub
+  template:
+    src: grub/default.j2
+    dest: /etc/default/grub
+    owner: root
+    group: root
+    mode: '0644'
+  register: grub_defaults
+  vars:
+    cmdline: "{{ ' '.join(['elevator=' + hardware['io_scheduler']] + grub['cmdline_linux']) }}"
+
+- name: Run update-grub
+  command: update-grub
+  when: grub_defaults.changed
+
+# Ensure elevator changes are effective
+- name: Gather a list of hardware/block devices
+  setup:
+    gather_subset:
+      - '!all'
+      - '!any'
+      - hardware
+
+- name: Check current block device I/O scheduler settings
+  shell: "grep -E '( |^){{ hardware['io_scheduler'] }}( |$)' /sys/block/{{ item }}/queue/scheduler"
+  with_items: "{{ ansible_facts.devices | select('match', '^sd') | list }}"
+  register: block_device_schedulers
+  failed_when: block_device_schedulers.rc == 0
+  ignore_errors: true
+  changed_when: false
+
+- name: Apply I/O scheduler settings to block devices
+  shell: "echo {{ hardware['io_scheduler'] }} > /sys/block/{{ item.item }}/queue/scheduler"
+  when: item is failed
+  with_items: "{{ block_device_schedulers.results }}"
+
+# Configure sysctl parameters
+- name: Configure sysctl parameters
+  template:
+    src: sysctl/bcpc.conf.j2
+    dest: /etc/sysctl.d/70-bcpc.conf
+    owner: root
+    group: root
+    mode: '0644'
+  register: sysctl_bcpc
+  vars:
+    additional_reserved_ports: "{{ system['additional_reserved_ports'] }}"
+    sysctl_parameters: "{{ system['parameters'] }}"
+
+- name: Reload sysctl settings
+  command: sysctl -p /etc/sysctl.d/70-bcpc.conf
+  when: sysctl_bcpc.changed
+
+# Configure block device readahead
+- name: Configure block device readahead
+  template:
+    src: udev/99-readahead.rules
+    dest: /etc/udev/rules.d/99-readahead.rules
+    owner: root
+    group: root
+    mode: '0644'
+  register: udev_readahead
+
+- name: Reload udevadm rules
+  command: udevadm control --reload-rules
+  when: udev_readahead.changed
+
+- name: Replay udev events
+  command: udevadm trigger
+  when: udev_readahead.changed
+
+# Configure /etc/updatedb.conf
+- name: Configure /etc/updatedb.conf
+  copy:
+    src: files/updatedb/conf
+    dest: /etc/updatedb.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+# Stop and disable unused services
+- name: Configure system services
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  with_items:
+    - iscsid
+    - lxcfs
+    - lxd
+    - rpcbind
+    - snapd
+  ignore_errors: yes
+
+# Purge some Ubuntu packages
+- name: Purge undesirable packages
+  apt:
+    name: "{{ item }}"
+    purge: yes
+    state: absent
+  with_items:
+    - ubuntu-advantage-tools
+    - update-notifier-common
+    - ubuntu-release-upgrader-core
+
+# Configure motd-news
+- name: Configure motd-news
+  template:
+    src: system/motd-news.j2
+    dest: /etc/default/motd-news
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+   enabled: false
