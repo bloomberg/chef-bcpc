@@ -58,6 +58,6 @@ vm.min_free_kbytes = 135168
 # Customized parameters
 {% if sysctl_parameters is mapping and sysctl_parameters | length > 0 -%}
 {% for key, value in sysctl_parameters.items() | sort -%}
-{{ key }} = {{ value }}
+{{ key | regex_replace('^system_parameters_', '') }} = {{ value }}
 {% endfor -%}
 {% endif -%}

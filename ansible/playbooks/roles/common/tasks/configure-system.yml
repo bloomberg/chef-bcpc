@@ -24,7 +24,7 @@
   vars:
     kernel_module_name: ip_conntrack
     kernel_module_options:
-      hashsize: "{{ system['parameters']['net.nf_conntrack_max'] // 8 }}"
+      hashsize: "{{ vars['system_parameters_net.nf_conntrack_max'] // 8 }}"
 
 # Specifying the alias (ip_conntrack) makes this non-idempotent
 - name: Load nf_conntrack_ipv4 (ip_conntrack) kernel module
@@ -40,7 +40,7 @@
     mode: '0600'
     unsafe_writes: yes
   vars:
-    value: "{{ system['parameters']['net.nf_conntrack_max'] // 8 }}"
+    value: "{{ vars['system_parameters_net.nf_conntrack_max'] // 8 }}"
 
 - name: Ensure ip_conntrack is loaded at boot
   template:
@@ -62,7 +62,7 @@
     mode: '0644'
   register: grub_defaults
   vars:
-    cmdline: "{{ ' '.join(['elevator=' + hardware['io_scheduler']] + grub['cmdline_linux']) }}"
+    cmdline: "{{ ' '.join(['elevator=' + hardware_io_scheduler] + grub_cmdline_linux) }}"
 
 - name: Run update-grub
   command: update-grub
@@ -77,7 +77,7 @@
       - hardware
 
 - name: Check current block device I/O scheduler settings
-  shell: "grep -E '( |^){{ hardware['io_scheduler'] }}( |$)' /sys/block/{{ item }}/queue/scheduler"
+  shell: "grep -E '( |^){{ hardware_io_scheduler }}( |$)' /sys/block/{{ item }}/queue/scheduler"
   with_items: "{{ ansible_facts.devices | select('match', '^sd') | list }}"
   register: block_device_schedulers
   failed_when: block_device_schedulers.rc == 0
@@ -85,7 +85,7 @@
   changed_when: false
 
 - name: Apply I/O scheduler settings to block devices
-  shell: "echo {{ hardware['io_scheduler'] }} > /sys/block/{{ item.item }}/queue/scheduler"
+  shell: "echo {{ hardware_io_scheduler }} > /sys/block/{{ item.item }}/queue/scheduler"
   when: item is failed
   with_items: "{{ block_device_schedulers.results }}"
 
@@ -99,8 +99,8 @@
     mode: '0644'
   register: sysctl_bcpc
   vars:
-    additional_reserved_ports: "{{ system['additional_reserved_ports'] }}"
-    sysctl_parameters: "{{ system['parameters'] }}"
+    additional_reserved_ports: "{{ system_additional_reserved_ports }}"
+    sysctl_parameters: "{{ vars | dict2items | selectattr('key', 'match', '^system_parameters_') | list | items2dict }}"
 
 - name: Reload sysctl settings
   command: sysctl -p /etc/sysctl.d/70-bcpc.conf
