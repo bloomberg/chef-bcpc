@@ -26,10 +26,9 @@
     kernel_module_options:
       hashsize: "{{ vars['system_parameters_net.nf_conntrack_max'] // 8 }}"
 
-# Specifying the alias (ip_conntrack) makes this non-idempotent
-- name: Load nf_conntrack_ipv4 (ip_conntrack) kernel module
+- name: Load nf_conntrack (ip_conntrack) kernel module
   modprobe:
-    name: nf_conntrack_ipv4
+    name: nf_conntrack
 
 - name: Configure ip_conntrack kernel module hashsize setting
   template:
@@ -163,3 +162,24 @@
     mode: '0644'
   vars:
    enabled: false
+
+# Configure system kernel
+- name: Configure system kernel
+  apt:
+    name: "{{ item }}"
+  when: not kernel_pin_version
+  with_items:
+    - "linux-{{ kernel_variant }}"
+    - "linux-tools-{{ kernel_variant }}"
+
+- name: Configure versioned system kernel
+  apt:
+    name: "{{ item }}"
+  when: kernel_pin_version
+  with_items:
+    - "linux-headers-{{ kernel_version }}-{{ kernel_variant }}"
+    - "linux-image-{{ kernel_version }}-{{ kernel_variant }}"
+    - "linux-modules-{{ kernel_version }}-{{ kernel_variant }}"
+    - "linux-modules-extra-{{ kernel_version }}-{{ kernel_variant }}"
+    # HWE kernel-specific tools are pulled in by {{ version }}-generic metapackages.
+    - "linux-tools-{{ kernel_version }}-{{ 'generic' if kernel_variant != 'lowlatency' else 'lowlatency' }}"
