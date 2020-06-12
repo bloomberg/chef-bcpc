@@ -7,7 +7,7 @@ net.ipv4.ip_local_port_range = 10000 65000
 
 # Reserve additional ports
 {% set default_reserved = [10050,10051,11211,15672,16509,16514,25672,35357,35358,55672] -%}
-{% set reserved_set = default_reserved + (additional_reserved_ports | map('int') | list) -%}
+{% set reserved_set = default_reserved + (system_additional_reserved_ports | map('int') | list) -%}
 net.ipv4.ip_local_reserved_ports = {{ ','.join(reserved_set | sort | map('string')) }}
 
 # Increase Linux autotuning TCP buffer limits
@@ -56,7 +56,8 @@ vm.swappiness = 0
 vm.min_free_kbytes = 135168
 
 # Customized parameters
-{% if sysctl_parameters is mapping and sysctl_parameters | length > 0 -%}
+{% set sysctl_parameters = vars | dict2items | selectattr('key', 'match', '^system_parameters_') | list | items2dict -%}
+{% if sysctl_parameters | length > 0 -%}
 {% for key, value in sysctl_parameters.items() | sort -%}
 {{ key | regex_replace('^system_parameters_', '') }} = {{ value }}
 {% endfor -%}

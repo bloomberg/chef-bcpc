@@ -96,9 +96,6 @@
     group: root
     mode: '0644'
   register: sysctl_bcpc
-  vars:
-    additional_reserved_ports: "{{ system_additional_reserved_ports }}"
-    sysctl_parameters: "{{ vars | dict2items | selectattr('key', 'match', '^system_parameters_') | list | items2dict }}"
 
 - name: Reload sysctl settings
   command: sysctl -p /etc/sysctl.d/70-bcpc.conf
