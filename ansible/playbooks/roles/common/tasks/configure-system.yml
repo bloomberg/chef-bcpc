@@ -61,8 +61,6 @@
     group: root
     mode: '0644'
   register: grub_defaults
-  vars:
-    cmdline: "{{ ' '.join(['elevator=' + hardware_io_scheduler] + grub_cmdline_linux) }}"
 
 - name: Run update-grub
   command: update-grub
