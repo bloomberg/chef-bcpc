@@ -1,6 +1,9 @@
 router id {{ interfaces['service']['ip'] }};
 
-log syslog { info, remote, warning, error, auth, fatal, bug };
+log "/var/log/bird/bird.log" { info, remote, warning, error, auth, fatal, bug, trace, debug };
+
+debug protocols all;
+watchdog warning 2 s;
 
 filter to_tor {
   if net != 127.0.0.0/8 then accept;
@@ -42,7 +45,7 @@ protocol device {
 }
 
 {% for transit in transit_interfaces %}
-protocol bgp '{{ transit['neighbor']['name'] }}:{{ inventory_hostname }}' {
+protocol bgp '{{ transit['neighbor']['name'] }}:{{ transit['name'] }}' {
   multihop;
   next hop self;
   graceful restart;

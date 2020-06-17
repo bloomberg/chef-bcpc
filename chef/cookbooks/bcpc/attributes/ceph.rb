@@ -5,8 +5,8 @@
 default['bcpc']['ceph']['repo']['enabled'] = false
 default['bcpc']['ceph']['repo']['url'] = ''
 
-default['bcpc']['ceph']['pg_num'] = 64
-default['bcpc']['ceph']['pgp_num'] = 64
+default['bcpc']['ceph']['pg_num'] = 8
+default['bcpc']['ceph']['pgp_num'] = 8
 default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
 default['bcpc']['ceph']['choose_leaf_type'] = 0
 default['bcpc']['ceph']['osd_scrub_load_threshold'] = 0.5

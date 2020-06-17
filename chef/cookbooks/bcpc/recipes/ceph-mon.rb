@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: ceph-mon
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -95,7 +95,8 @@ template '/etc/ceph/ceph.conf' do
   variables(
     config: config,
     headnodes: init_cloud? ? [node] : headnodes,
-    public_network: primary_network_aggregate_cidr
+    public_network: primary_network_aggregate_cidr,
+    rbd_users: ['glance']
   )
 
   notifies :restart, "service[ceph-mon@#{node['hostname']}]", :immediately

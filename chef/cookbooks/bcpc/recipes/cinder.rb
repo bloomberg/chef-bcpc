@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: cinder
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
+cinder_config = zone_config.cinder_config
 
 mysqladmin = mysqladmin()
 
@@ -145,45 +147,47 @@ directory '/etc/cinder/policy.d' do
   action :create
 end
 
-# create ceph rbd pool
-bash 'create ceph pool' do
-  pool = node['bcpc']['cinder']['ceph']['pool']['name']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
+# create ceph rbd pools
+cinder_config.ceph_pools.each do |pool|
+  pool_name = pool['pool']
+  bash "create the #{pool_name} ceph pool" do
+    pg_num = node['bcpc']['ceph']['pg_num']
+    pgp_num = node['bcpc']['ceph']['pgp_num']
 
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
+    code <<-DOC
+      ceph osd pool create #{pool_name} #{pg_num} #{pgp_num}
+      ceph osd pool application enable #{pool_name} rbd
+    DOC
 
-  not_if "ceph osd pool ls | grep -w #{pool}"
+    not_if "ceph osd pool ls | grep -w #{pool_name}"
+  end
+
+  execute 'set ceph pool size' do
+    size = node['bcpc']['cinder']['ceph']['pool']['size']
+    command "ceph osd pool set #{pool_name} size #{size}"
+    not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
+  end
 end
 
-execute 'set ceph pool size' do
-  size = node['bcpc']['cinder']['ceph']['pool']['size']
-  pool = node['bcpc']['cinder']['ceph']['pool']['name']
+# create cinder ceph clients
+cinder_config.ceph_clients.each do |client|
+  template "/etc/ceph/ceph.client.#{client['client']}.keyring" do
+    source 'cinder/ceph.client.cinder.keyring.erb'
 
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
+    mode '0640'
+    owner 'root'
+    group 'cinder'
 
-# create client.cinder ceph user and keyring
-template '/etc/ceph/ceph.client.cinder.keyring' do
-  source 'cinder/ceph.client.cinder.keyring.erb'
+    variables(
+      client: client['client'],
+      key: client['key'],
+      pools: client['pools']
+    )
+  end
 
-  mode '0640'
-  owner 'root'
-  group 'cinder'
-
-  variables(
-    key: config['ceph']['client']['cinder']['key']
-  )
-  notifies :run, 'execute[import cinder ceph client key]', :immediately
-end
-
-execute 'import cinder ceph client key' do
-  action :nothing
-  command 'ceph auth import -i /etc/ceph/ceph.client.cinder.keyring'
+  execute 'import cinder ceph client key' do
+    command "ceph auth import -i /etc/ceph/ceph.client.#{client['client']}.keyring"
+  end
 end
 
 # create/manage cinder database starts
@@ -263,12 +267,39 @@ template '/etc/cinder/cinder.conf' do
 
   variables(
     db: database,
+    backends: cinder_config.backends,
     config: config,
-    headnodes: headnodes(all: true)
+    headnodes: headnodes(all: true),
+    scheduler_default_filters: cinder_config.filters
   )
 
   notifies :restart, 'service[cinder-volume]', :immediately
   notifies :restart, 'service[cinder-scheduler]', :immediately
+end
+
+# add AccessList filter and update cinder entry_points.txt
+if zone_config.enabled?
+
+  cookbook_file '/usr/lib/python2.7/dist-packages/cinder/scheduler/filters/access_filter.py' do
+    source 'cinder/access_filter.py'
+  end
+
+  bash 'add AccessList filter to cinder' do
+    code <<-EOH
+      entry_points_txt=$(dpkg -L python-cinder | grep entry_points.txt)
+
+      if [ -z ${entry_points_txt} ]; then
+        echo "entry_points.txt file path could not be found"
+        exit 1
+      fi
+
+      if ! grep AccessFilter ${entry_points_txt}; then
+        crudini --set ${entry_points_txt} cinder.scheduler.filters \
+          AccessFilter cinder.scheduler.filters.access_filter:AccessFilter
+        systemctl restart cinder-scheduler
+      fi
+    EOH
+  end
 end
 
 cookbook_file '/etc/cinder/api-paste.ini' do
@@ -284,20 +315,39 @@ execute 'wait for cinder to come online' do
   command 'openstack volume service list'
 end
 
-execute 'create ceph cinder backend type' do
-  environment os_adminrc
-  retries 3
-  command <<-DOC
-    openstack volume type create ceph
-  DOC
-  not_if 'openstack volume type show ceph'
+cinder_config.backends.each do |backend|
+  backend_name = backend['name']
+  create_args = []
+  create_args.append(backend_name)
+
+  if backend['private']
+    create_args.append('--private')
+  else
+    create_args.append('--public')
+  end
+
+  execute "create ceph cinder backend type: #{backend_name}" do
+    environment os_adminrc
+    retries 3
+    command <<-EOH
+      openstack volume type create #{create_args.join(' ')}
+    EOH
+    not_if "openstack volume type show #{backend_name}"
+  end
+
+  execute "set cinder backend properties for: #{backend_name}" do
+    environment os_adminrc
+    retries 3
+    command <<-DOC
+      openstack volume type set #{backend_name} \
+        --property volume_backend_name=#{backend_name}
+    DOC
+    not_if "openstack volume type show #{backend_name} -c properties -f value | grep #{backend_name}"
+  end
 end
 
-execute 'set ceph backend properties' do
-  environment os_adminrc
-  retries 3
-  command <<-DOC
-    openstack volume type set ceph --property volume_backend_name=ceph
-  DOC
-  not_if 'openstack volume type show ceph -c properties -f value | grep ceph'
+service 'cinder-volume' do
+  action :start
+  retries 30
+  not_if 'systemctl status cinder-volume'
 end

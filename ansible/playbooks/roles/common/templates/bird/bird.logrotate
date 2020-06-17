@@ -1,0 +1,11 @@
+/var/log/bird/bird.log
+{
+    rotate 7
+    daily
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+        /bin/systemctl reload bird
+    endscript
+}

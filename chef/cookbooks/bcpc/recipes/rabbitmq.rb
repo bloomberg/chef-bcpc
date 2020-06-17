@@ -16,11 +16,18 @@
 # limitations under the License.
 
 apt_repository 'rabbitmq' do
-  uri node['bcpc']['rabbitmq']['repo']['url']
-  distribution node['lsb']['codename']
+  uri node['bcpc']['rabbitmq']['source']['repo']['url']
   components ['main']
   key 'rabbitmq/rabbitmq.key'
-  only_if { node['bcpc']['rabbitmq']['repo']['enabled'] }
+  only_if { node['bcpc']['rabbitmq']['source']['repo']['enabled'] }
+end
+
+template '/etc/apt/preferences.d/99rabbitmq' do
+  source 'rabbitmq/apt-preferences.erb'
+  variables(
+    release: node['bcpc']['rabbitmq']['source']['distribution']['name']
+  )
+  only_if { node['bcpc']['rabbitmq']['source']['distribution']['enabled'] }
 end
 
 region = node['bcpc']['cloud']['region']
@@ -100,11 +107,14 @@ begin
         #
         [ -z "$member" ] && exit 1
 
+        # get rabbit cluster status in json format
+        #
+        rcs=$(rabbitmqctl cluster_status --formatter json)
+
         # check to see if we're already a member
         #
-        member_list=$(rabbitmqctl cluster_status | grep running_nodes)
-
-        if echo ${member_list} | grep ${member}; then
+        if echo ${rcs} | \
+            jq -e --arg m ${member} '.running_nodes[] | select(. == $m)'; then
           echo "#{node['hostname']} is already a member of this cluster"
           exit 0
         fi
@@ -131,9 +141,17 @@ execute 'set rabbitmq user password' do
   command "rabbitmqctl change_password #{username} #{password}"
 end
 
+# Use n/2+1 queue mirrors as long as we have at least three headnodes.
+# If we have fewer than three headnodes, fallback to ha-all.
+headnodes = headnodes(all: true)
+ha_exactly = { 'ha-mode' => 'exactly', 'ha-params' => headnodes.length / 2 + 1 }
+ha_all = { 'ha-mode': 'all' }
+
+ha_policy = headnodes.length >= 3 ? ha_exactly : ha_all
+
 execute 'set rabbitmq ha policy' do
   command <<-DOC
-    rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '{"ha-mode": "all"}'
+    rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '#{ha_policy.to_json}'
   DOC
 end
 

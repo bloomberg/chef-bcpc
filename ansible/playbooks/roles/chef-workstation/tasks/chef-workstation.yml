@@ -86,4 +86,4 @@
 
 - name: create environment data bag
   when: databag_check is failed
-  command: knife data bag create '{{ cloud_region }}'
+  command: knife data bag create "{{ cloud_region }}"

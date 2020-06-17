@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: ceph-osd
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,13 +19,23 @@ include_recipe 'bcpc::ceph-packages'
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
+nova_compute_config = zone_config.nova_compute_config
+rbd_users = []
+
+# if this node is a storagenode and worknode then this ceph.conf will take
+# precedence and append the worknode ceph user to the list of rbd_users
+if worknode?
+  rbd_users.append(nova_compute_config.ceph_user)
+end
 
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
   variables(
     config: config,
-    headnodes: init_cloud? ? [node] : headnodes,
-    public_network: primary_network_aggregate_cidr
+    headnodes: headnodes,
+    public_network: primary_network_aggregate_cidr,
+    rbd_users: rbd_users
   )
 end
 

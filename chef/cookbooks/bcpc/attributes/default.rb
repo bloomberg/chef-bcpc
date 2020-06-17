@@ -11,15 +11,6 @@ default['bcpc']['cloud']['region'] = node.chef_environment
 default['bcpc']['web_server']['url'] = 'http://bootstrap:8080/files/'
 
 ###############################################################################
-# ubuntu
-###############################################################################
-
-default['bcpc']['ubuntu']['repo']['archive_url'] = 'http://archive.ubuntu.com/ubuntu'
-default['bcpc']['ubuntu']['repo']['security_url'] = 'http://security.ubuntu.com/ubuntu'
-default['bcpc']['ubuntu']['repo']['key'] = 'apt/release.key'
-default['bcpc']['ubuntu']['repo']['components'] = %w(main restricted universe multiverse)
-
-###############################################################################
 # grub
 ###############################################################################
 
@@ -32,23 +23,6 @@ default['bcpc']['grub']['cmdline_linux'] = []
 default['bcpc']['local_proxy']['enabled'] = false
 default['bcpc']['local_proxy']['config']['listen'] = '127.0.0.1'
 default['bcpc']['local_proxy']['config']['port'] = '8888'
-
-###############################################################################
-# rabbitmq
-###############################################################################
-
-default['bcpc']['rabbitmq']['repo']['enabled'] = false
-default['bcpc']['rabbitmq']['repo']['url'] = 'http://dl.bintray.com/rabbitmq/debian'
-
-# if changing this setting, you will need to reset Mnesia
-# on all RabbitMQ nodes in the cluster
-default['bcpc']['rabbitmq']['durable_queues'] = true
-
-# ulimits for RabbitMQ server
-default['bcpc']['rabbitmq']['ulimit']['nofile'] = 4096
-
-# Heartbeat timeout to detect dead RabbitMQ brokers
-default['bcpc']['rabbitmq']['heartbeat'] = 60
 
 ###############################################################################
 # libvirt

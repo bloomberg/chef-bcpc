@@ -8,10 +8,10 @@ enable_new_services = false
 [libvirt]
 virt_type = <%= @virt_type %>
 images_type = rbd
-images_rbd_pool = <%= node['bcpc']['nova']['ceph']['pool']['name'] %>
+images_rbd_pool = <%= @images_rbd_pool %>
 images_rbd_ceph_conf = /etc/ceph/ceph.conf
-rbd_user = <%= node['bcpc']['cinder']['ceph']['user'] %>
-rbd_secret_uuid = <%= @config['libvirt']['secret'] %>
+rbd_user = <%= @rbd_user %>
+rbd_secret_uuid = <%= @rbd_secret_uuid %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
 live_migration_uri = qemu+ssh://nova@%s/system

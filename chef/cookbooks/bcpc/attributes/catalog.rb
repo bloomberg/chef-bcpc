@@ -125,4 +125,18 @@ default['bcpc']['catalog'] = {
       'public' => '',
     },
   },
+  'infra-optim' => {
+    'name' => 'watcher',
+    'description' => 'Infrastructure Optimization',
+    'ports' => {
+      'admin' => 9322,
+      'internal' => 9322,
+      'public' => 9322,
+    },
+    'uris' => {
+      'admin' => '',
+      'internal' => '',
+      'public' => '',
+    },
+  },
 }

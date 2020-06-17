@@ -9,6 +9,9 @@ chef_environment:
   chef_type: environment
   override_attributes:
     bcpc:
+      ceph:
+        pg_num: 32
+        pgp_num: 32
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
@@ -32,6 +35,7 @@ chef_environment:
         flavors:
           enabled: true
       local_proxy: "{{ local_proxy }}"
+      zones: "{{ zones }}"
 
 ###############################################################################
 # chef databags
@@ -122,6 +126,14 @@ chef_databags:
         os:
           username: cinder
           password: EElHi6Zmasnx0MWno92N
+    watcher:
+      creds:
+        db:
+          username: watcher
+          password: bg1oBTj4h7ZOmzkPtdI6
+        os:
+          username: watcher
+          password: eqwneo6W1muRpHnPDG6p
     heat:
       creds:
         db:
@@ -180,6 +192,14 @@ chef_databags:
       key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUNlQUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQW1Jd2dnSmVBZ0VBQW9HQkFOUzBBUFJDRlM3eWZtNWQKcC9XVUN4bTNuN2NGVnFTTlROZjFoUGhwckQ4NkRKdzU4akVmTnp2a2ZoZk1TVzJoejJwSHpNY0VXZXIvODd6YwpwNDRJQ1pOeEp3Y0ZPWDJ6d2dRN3kwelM1bWo2NjM3aHpEYU5saXptMDlTSDl2YlNnYThteXEzL3JPYmFlb01hCk1KRTNuZjZvSGZhL1JEVGtGUm1XMjZzMEI4bFJBZ01CQUFFQ2dZQVBncXpMSXdKK2NPcHRTK0VTbEdBVzJRQUoKalpjYTJyN3V4SldVczhmK3VGSHhGbnlsdmx2OXZ4UyswWVBOUGM1dE5wMGxLaGtRZk9lZUx3ejgyM012TGlxdwoyU1F1ZWp5dXQ0VDlsczFPem5QR0RlU1czdm5NWjBGZisrUkJVOUIvV0ZLTjBMMjZUVU10WnZ1RXpLelg1RmkvClQ1b3F1bno1dnBHeVFaYXFBUUpCQVBlRGkrK1pHdVNPd2kyR3VSd05GQnFHa1Nxc3cyV3lwK25qY0hucVp1MkMKdlovM0ExcEh2SllMeWdCcmpuK0JkUEdTQWNvbUhCaFl6NWNMTTE4ZDlhRUNRUURiL3V1SU5NbjFWUFJmSzdjOQpvWHMrYlpSVUpocllrcHlwZmhDSFVFS0ovbVkwN1Y4blJJcEMybmMwTHNQU0FQbEl6a3JCRSthNmdLZmZ6NUVaCnN0V3hBa0VBcE9FcmNkTnk5N2dsb0FBMEJYeXMzTEt4dDFUWTRVRXUyLzVYYWM5OCsxRHhrc01RcDY1TDhVUXYKTHpKMi9YYzJlTW5EaVc3em5rQmpJUUlrR1lPeW9RSkJBSzE1UUlUeEMyZTNDOU9ZQnpCRUM0allvNlFQUUJBUwozQklTNURtdklpanFQL0h3VTU0RlAva2poK2ZRRUgyaVl1LzBLNkpBYlNvWGxVaTR4alE3ZnFFQ1FRQ25QRGVxClhlNXJBVUJyZlJFRFVLNXg3R2hLclAvZUNyM1NwSEFWVzlVYkl6S2FmY2pKZkFIbzZwbmdxbVlCMkRzY2c1emYKT0xDY3FVY3lTVXRveHQ4cAotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==  # noqa 204
       crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM5akNDQWwrZ0F3SUJBZ0lKQU5YbURnNlVDd0JGTUEwR0NTcUdTSWIzRFFFQkN3VUFNSDh4Q3pBSkJnTlYKQkFZVEFsVlRNUkV3RHdZRFZRUUlEQWhPWlhjZ1dXOXlhekVSTUE4R0ExVUVCd3dJVG1WM0lGbHZjbXN4RWpBUQpCZ05WQkFvTUNVSnNiMjl0WW1WeVp6RVJNQThHQTFVRUN3d0lRMnh2ZFdSRmJtY3hJekFoQmdOVkJBTU1HbTl3ClpXNXpkR0ZqYXk1aVkzQmpMbVY0WVcxd2JHVXVZMjl0TUI0WERURTVNREV4TURFM05UZzFNRm9YRFRJME1ERXcKT1RFM05UZzFNRm93ZnpFTE1Ba0dBMVVFQmhNQ1ZWTXhFVEFQQmdOVkJBZ01DRTVsZHlCWmIzSnJNUkV3RHdZRApWUVFIREFoT1pYY2dXVzl5YXpFU01CQUdBMVVFQ2d3SlFteHZiMjFpWlhKbk1SRXdEd1lEVlFRTERBaERiRzkxClpFVnVaekVqTUNFR0ExVUVBd3dhYjNCbGJuTjBZV05yTG1KamNHTXVaWGhoYlhCc1pTNWpiMjB3Z1o4d0RRWUoKS29aSWh2Y05BUUVCQlFBRGdZMEFNSUdKQW9HQkFOUzBBUFJDRlM3eWZtNWRwL1dVQ3htM243Y0ZWcVNOVE5mMQpoUGhwckQ4NkRKdzU4akVmTnp2a2ZoZk1TVzJoejJwSHpNY0VXZXIvODd6Y3A0NElDWk54SndjRk9YMnp3Z1E3CnkwelM1bWo2NjM3aHpEYU5saXptMDlTSDl2YlNnYThteXEzL3JPYmFlb01hTUpFM25mNm9IZmEvUkRUa0ZSbVcKMjZzMEI4bFJBZ01CQUFHamVqQjRNQjBHQTFVZERnUVdCQlRoMnphUE1Va2RQL1BsRFFVTHNadjJrOU5oU3pBZgpCZ05WSFNNRUdEQVdnQlRoMnphUE1Va2RQL1BsRFFVTHNadjJrOU5oU3pBUEJnTlZIUk1CQWY4RUJUQURBUUgvCk1DVUdBMVVkRVFRZU1CeUNHbTl3Wlc1emRHRmpheTVpWTNCakxtVjRZVzF3YkdVdVkyOXRNQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNEdCQUxMV1J0RS9QeGdnN0ZIZGMxTlh4dWVscXNVSUhjY1BJM1BDQzNSZEc2S3lWS2NUVm8zZgpDbm9OUGlyamI1KzlJeEFVMkc1YVNYZzFNVVlBd3pZb2YyWU12azRmRGxvNDlodkdBdVJPR0lkMEhQcnlXYkUzCnpHVW4yNWJuWGNoeEc4SHJIamRBWWRrOHd3RjgxbFpzOHdWOU1ub2JjazJjamVyMmZKVVlmRlpBCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K  # noqa 204
       intermediate: null
+  - id: zones
+    dev:
+      ceph:
+        client:
+          cinder:
+            key: AQBCmINeHP4/LRAA2Zm5VJLwsmBVWdOGBBUDyQ==
+      libvirt:
+        secret: abdf5329-4ae0-47da-bcde-b16ef2540eb5
 
 ###############################################################################
 # chef roles
@@ -226,13 +246,14 @@ chef_roles:
       - recipe[bcpc::heat]
       - recipe[bcpc::os-quota]
       - recipe[bcpc::flavors]
+      - recipe[bcpc::watcher]
 
   - name: node
     description: common role for all bcpc nodes
     json_class: Chef::Role
     chef_type: role
     run_list:
-      - recipe[bcpc::apt]
+      - recipe[bcpc::default]
       - recipe[bcpc::ssl]
       - recipe[bcpc::cloud-archive]
       - recipe[bcpc::postfix]
@@ -251,9 +272,9 @@ chef_roles:
     chef_type: role
     run_list:
       - role[node]
-      - recipe[bcpc::ceph-osd]
       - recipe[bcpc::etcd-proxy]
       - recipe[bcpc::calico-felix]
+      - recipe[bcpc::ceph-osd]
 
   - name: worknode
     description: cloud compute services
@@ -265,3 +286,25 @@ chef_roles:
       - recipe[bcpc::calico-felix]
       - recipe[bcpc::calico-work]
       - recipe[bcpc::nova-compute]
+
+###############################################################################
+# zones
+###############################################################################
+
+zones:
+  enabled: false
+  partitions:
+    - zone: dev
+      ceph:
+        client: cinder
+      cinder:
+        backend:
+          name: ceph
+          private: true
+          type: ceph
+          pool:
+            name: volumes
+      nova:
+        ceph:
+          pool:
+            name: vms

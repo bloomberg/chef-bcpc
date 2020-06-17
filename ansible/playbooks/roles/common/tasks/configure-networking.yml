@@ -23,11 +23,15 @@
   tags: [configure-etc-hosts]
 
 - import_tasks: configure-root-user-ssh.yml
+  tags: [configure-root-user-ssh]
 
 - import_tasks: configure-systemd-resolved.yml
   tags: [configure-systemd-resolved]
 
 - import_tasks: configure-local-proxy.yml
+
+- import_tasks: configure-ubuntu-apt-sources.yml
+  tags: [configure-ubuntu-apt-sources]
 
 - import_tasks: configure-bgp.yml
   when: configure_bgp | default(true)
@@ -39,5 +43,6 @@
   when: configure_network_interfaces | default(true)
 
 - import_tasks: configure-chrony.yml
+  tags: [configure-chrony]
 
 - import_tasks: configure-sshd.yml

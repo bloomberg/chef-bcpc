@@ -2,18 +2,36 @@
   apt:
     name: bird
 
+- name: create /var/log/bird
+  file:
+    path: /var/log/bird
+    state: directory
+    group: bird
+    owner: bird
+
+- name: create bird.log with correct permission
+  file:
+    path: /var/log/bird/bird.log
+    state: touch
+    group: bird
+    owner: bird
+
 - name: configure bird
   template:
     src: bird/bird.conf.j2
     dest: /etc/bird/bird.conf
-  register: bird
+  register: bird_conf
 
-- name: restart bird
+- name: reload bird
   service:
     name: bird
-    state: restarted
-    enabled: yes
-  when: bird.changed
+    state: reloaded
+  when: bird_conf.changed
+
+- name: deploy bird logrotate config file
+  template:
+    src: bird/bird.logrotate
+    dest: /etc/logrotate.d/bird
 
 - name: check for default gateway from tor
   shell: |

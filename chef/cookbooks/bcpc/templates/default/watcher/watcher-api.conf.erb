@@ -1,0 +1,18 @@
+Listen <%= "#{node['service_ip']}:9322" %>
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\" %D(us)" watcher_combined
+
+<VirtualHost <%= "#{node['service_ip']}:9322" %>>
+  WSGIDaemonProcess watcher-wsgi-api processes=<%= @processes %> threads=1 user=watcher group=watcher display-name=%{GROUP}
+  WSGIProcessGroup watcher-wsgi-api
+  WSGIScriptAlias / /usr/share/watcher-common/app.wsgi
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  ErrorLogFormat "%{cu}t %M"
+
+  ErrorLog /var/log/apache2/watcher-api_error.log
+  CustomLog /var/log/apache2/watcher-api.log watcher_combined
+
+  <Directory /usr/bin>
+    Require all granted
+  </Directory>
+</VirtualHost>

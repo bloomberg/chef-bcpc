@@ -17,7 +17,6 @@
 
 apt_repository 'haproxy' do
   uri node['bcpc']['haproxy']['apt']['url']
-  distribution node['lsb']['codename']
   components ['main']
   key 'haproxy/haproxy.key'
   only_if { node['bcpc']['haproxy']['apt']['enabled'] }

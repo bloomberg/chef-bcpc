@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-head
 #
-# Copyright:: 2019 Bloomberg Finance L.P.
+# Copyright:: 2020 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
+nova_config = zone_config.nova_config
 
 mysqladmin = mysqladmin()
 
@@ -245,42 +247,28 @@ end
 #
 # ssl certs ends
 
-# create ceph rbd pool
-bash 'create ceph pool' do
-  pool = node['bcpc']['nova']['ceph']['pool']['name']
+# create ceph rbd pools
+nova_config.ceph_pools.each do |pool|
+  pool_name = pool['pool']
   pg_num = node['bcpc']['ceph']['pg_num']
   pgp_num = node['bcpc']['ceph']['pgp_num']
 
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
+  bash "create the #{pool_name} ceph pool" do
+    code <<-DOC
+      ceph osd pool create #{pool_name} #{pg_num} #{pgp_num}
+      ceph osd pool application enable #{pool_name} rbd
+    DOC
 
-  not_if "ceph osd pool ls | grep -w #{pool}"
+    not_if "ceph osd pool ls | grep -w #{pool_name}"
+  end
+
+  execute 'set ceph pool size' do
+    size = node['bcpc']['nova']['ceph']['pool']['size']
+    command "ceph osd pool set #{pool_name} size #{size}"
+    not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
+  end
 end
-
-execute 'set ceph pool size' do
-  size = node['bcpc']['nova']['ceph']['pool']['size']
-  pool = node['bcpc']['nova']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-
-# create client.nova ceph user and keyring
-template '/etc/ceph/ceph.client.nova.keyring' do
-  source 'nova/ceph.client.nova.keyring.erb'
-  mode '0640'
-  variables(
-    key: config['ceph']['client']['nova']['key']
-  )
-  notifies :run, 'execute[import nova ceph client key]', :immediately
-end
-
-execute 'import nova ceph client key' do
-  action :nothing
-  command 'ceph auth import -i /etc/ceph/ceph.client.nova.keyring'
-end
+# create ceph rbd pools ends
 
 # create/manage nova databases starts
 #
