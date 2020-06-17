@@ -258,6 +258,11 @@ grub_cmdline_linux: []
 # Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
 hardware_io_scheduler: deadline
 
+# Select kernel NVMe multipath support.
+# Disabling addresses the issue with controller vs. disk/device naming issues,
+# providing consistent, deterministic device naming conventions.
+hardware_nvme_multipath: false
+
 # If pin_version is true, pin to {{ version }}-{{ variant }}
 # For example, {{ 5.0.0-32 }}-{{ lowlatency }}
 # If pin_version is false, track linux-{{ variant }} upstream
