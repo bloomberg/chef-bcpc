@@ -18,7 +18,6 @@ chef_environment:
         cmdline_linux:
           - net.ifnames=0
           - biosdevname=0
-          - nvme_core.multipath=0
       nova:
         cpu_config:
           cpu_mode: custom

@@ -150,6 +150,11 @@ default['bcpc']['getty']['ttys'] = %w(ttyS0 ttyS1)
 # select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
 default['bcpc']['hardware']['io_scheduler'] = 'deadline'
 
+# select kernel NVMe multipath support
+# Disabling addresses the issue with controller vs. disk/device naming issues,
+# providing consistent, deterministic device naming conventions.
+default['bcpc']['hardware']['nvme_multipath'] = false
+
 # enable power-saving CPU scaling governor
 default['bcpc']['hardware']['powersave']['enabled'] = false
 
