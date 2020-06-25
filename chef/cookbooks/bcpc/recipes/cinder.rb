@@ -121,8 +121,9 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
 end
 
 # cinder package installation and service definition
-package 'cinder-scheduler'
-package 'cinder-volume'
+package ['cinder-scheduler', 'cinder-volume'] do
+  action :upgrade
+end
 
 service 'cinder-api' do
   service_name 'apache2'
