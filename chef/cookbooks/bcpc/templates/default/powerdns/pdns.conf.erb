@@ -92,3 +92,6 @@ security-poll-suffix = <%= node['bcpc']['powerdns']['security_poll_suffix'] %>
 only-notify =
 also-notify = <%= node['bcpc']['powerdns']['also-notify']['ips'].join(',') %>
 <% end %>
+
+# disable ipv6 listening
+local-ipv6 =
