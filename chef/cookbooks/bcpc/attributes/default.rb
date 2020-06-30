@@ -26,45 +26,6 @@ default['bcpc']['local_proxy']['config']['port'] = '8888'
 default['bcpc']['libvirt-bin']['ulimit']['nofile'] = 4096
 
 ###############################################################################
-# mysql
-###############################################################################
-
-default['bcpc']['mysql']['repo']['enabled'] = true
-default['bcpc']['mysql']['repo']['url'] = 'http://repo.percona.com/apt'
-default['bcpc']['mysql']['repo']['key'] = 'mysql/release.key'
-
-# fqdn of mysql server
-#
-default['bcpc']['mysql']['host'] = 'primary.mysql.service.consul'
-
-# if set to 0, max_connections for MySQL on heads will default to an
-# auto-calculated value.
-#
-default['bcpc']['mysql']['max_connections'] = 8192
-
-# for pools larger than 1GB, it is recommended to divide it into multiple
-# pools of at least 1GB in size each
-#
-default['bcpc']['mysql']['innodb_buffer_pool_instances'] = 1
-default['bcpc']['mysql']['innodb_buffer_pool_size'] = '128M'
-default['bcpc']['mysql']['thread_cache_size'] = nil
-default['bcpc']['mysql']['innodb_io_capacity'] = 200
-default['bcpc']['mysql']['innodb_log_buffer_size'] = '8M'
-default['bcpc']['mysql']['innodb_flush_method'] = 'O_DIRECT'
-default['bcpc']['mysql']['wsrep_slave_threads'] = 4
-default['bcpc']['mysql']['max_heap_table_size'] = '16M'
-default['bcpc']['mysql']['tmp_table_size'] = '16M'
-default['bcpc']['mysql']['join_buffer_size'] = '256K'
-default['bcpc']['mysql']['sort_buffer_size'] = '256K'
-
-# slow query log settings
-default['bcpc']['mysql']['slow_query_log'] = true
-default['bcpc']['mysql']['slow_query_log_file'] = '/var/log/mysql/slow.log'
-default['bcpc']['mysql']['long_query_time'] = 10
-default['bcpc']['mysql']['log_queries_not_using_indexes'] = false
-default['bcpc']['mysql']['service_hostname'] = 'primary.mysql.service.consul'
-
-###############################################################################
 # haproxy
 ###############################################################################
 

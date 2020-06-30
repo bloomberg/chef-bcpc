@@ -36,9 +36,7 @@ innodb_buffer_pool_size=<%= node['bcpc']['mysql']['innodb_buffer_pool_size'] %>
 # Number of buffer pool instances. Only takes effect if pool size is 1GB+.
 innodb_buffer_pool_instances=<%= node['bcpc']['mysql']['innodb_buffer_pool_instances'] %>
 
-<% if not node['bcpc']['mysql']['thread_cache_size'].nil? %>
 thread_cache_size=<%= node['bcpc']['mysql']['thread_cache_size'] %>
-<% end %>
 innodb_io_capacity=<%= node['bcpc']['mysql']['innodb_io_capacity'] %>
 
 # Less thrash on restarts by dumping and loading buffer pools
@@ -52,7 +50,7 @@ innodb_flush_log_at_trx_commit=0
 innodb_file_per_table=1
 
 # Set log file larger than the 5M default
-innodb_log_file_size=64M
+innodb_log_file_size=<%= node['bcpc']['mysql']['innodb_log_file_size'] %>
 
 # Set memory buffer size for the log
 innodb_log_buffer_size=<%= node['bcpc']['mysql']['innodb_log_buffer_size'] %>
@@ -60,6 +58,15 @@ innodb_log_buffer_size=<%= node['bcpc']['mysql']['innodb_log_buffer_size'] %>
 # Use direct I/O to avoid double buffering writes
 # note: 'O_DIRECT_NO_FSYNC' should not be used with XFS file system
 innodb_flush_method=<%= node['bcpc']['mysql']['innodb_flush_method'] %>
+
+innodb_log_files_in_group=<%= node['bcpc']['mysql']['innodb_log_files_in_group'] %>
+
+innodb_read_io_threads=<%= node['bcpc']['mysql']['innodb_read_io_threads'] %>
+innodb_write_io_threads=<%= node['bcpc']['mysql']['innodb_write_io_threads'] %>
+innodb_thread_concurrency=<%= node['bcpc']['mysql']['innodb_thread_concurrency'] %>
+
+table_open_cache=<%= node['bcpc']['mysql']['table_open_cache'] %>
+table_open_cache_instances=<%= node['bcpc']['mysql']['table_open_cache_instances'] %>
 
 # Query Cache is not supported with wsrep
 query_cache_size=0

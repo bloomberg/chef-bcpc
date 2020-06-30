@@ -14,14 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require 'yaml'
+require './lib/util'
 
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '202005.21.0'
-
-require 'yaml'
-
-# load util module
-require './lib/util.rb'
 
 # load the vm topology profile
 topology = './topology/topology.yml'

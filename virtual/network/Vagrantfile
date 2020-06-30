@@ -14,6 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require '../lib/util'
 
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '202005.21.0'
@@ -25,9 +26,6 @@ def setup_proxy(node)
   node.vm.provision 'shell', path: 'proxyconfig.sh',
                              args: [http_proxy, https_proxy]
 end
-
-# load util module
-require '../lib/util.rb'
 
 Vagrant.configure(2) do |config|
   if ENV.key?('BCC_DEPLOY_NETWORK_VM')
