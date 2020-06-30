@@ -24,3 +24,10 @@ default['bcpc']['powerdns']['nameservers']['ns1'] = node['bcpc']['cloud']['vip']
 # also-notify
 default['bcpc']['powerdns']['also-notify']['enabled'] = false
 default['bcpc']['powerdns']['also-notify']['ips'] = []
+
+# soa ttl
+default['bcpc']['powerdns']['soa-ttl']['refresh'] = 600
+default['bcpc']['powerdns']['soa-ttl']['retry'] = 300
+default['bcpc']['powerdns']['soa-ttl']['expiry'] = 86400
+default['bcpc']['powerdns']['soa-ttl']['nx'] = 120
+
