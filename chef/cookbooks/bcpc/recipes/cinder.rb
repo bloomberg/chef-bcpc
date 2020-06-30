@@ -160,7 +160,7 @@ cinder_config.ceph_pools.each do |pool|
       ceph osd pool application enable #{pool_name} rbd
     DOC
 
-    not_if "ceph osd pool ls | grep -w #{pool_name}"
+    not_if "ceph osd pool ls | grep -w ^#{pool_name}$"
   end
 
   execute 'set ceph pool size' do
