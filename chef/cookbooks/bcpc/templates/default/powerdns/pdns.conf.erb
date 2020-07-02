@@ -12,7 +12,7 @@ setgid = pdns
 
 # local-address Local IP address to which we bind
 #
-local-address = <%= node['bcpc']['powerdns']['local_address'] %>
+local-address = <%= node['service_ip'] %> <%= node['bcpc']['powerdns']['listen_address'] %>
 
 # local-port    The port on which we listen
 #
@@ -34,11 +34,11 @@ guardian = yes
 #                   IP addresses
 #
 <% if node['bcpc']['powerdns']['axfr']['enabled'] %>
-<% ips = node['bcpc']['powerdns']['axfr']['ips'].dup %>
-<% ips.unshift(node['bcpc']['powerdns']['local_address']) %>
+  <% ips = node['bcpc']['powerdns']['axfr']['ips'].dup %>
+  <% ips.unshift(node['bcpc']['powerdns']['listen_address']) %>
 disable-axfr = no
 allow-axfr-ips = <%= ips.join(',') %>
-<% else %>
+  <% else %>
 disable-axfr = yes
 <% end %>
 

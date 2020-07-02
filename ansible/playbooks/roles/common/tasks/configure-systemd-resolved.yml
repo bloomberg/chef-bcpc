@@ -1,19 +1,11 @@
-- name: configure systemd-resolved
-  template:
-    src: systemd/resolved.conf.j2
-    dest: /etc/systemd/resolved.conf
-  register: resolved
-
-- name: resolv.conf symlink
-  file:
-    src: /run/systemd/resolve/stub-resolv.conf
-    dest: /etc/resolv.conf
-    state: link
-    force: true
-  register: resolved
-
-- name: restart systemd-resolved
+- name: stop, disable and mask systemd-resolved
   service:
     name: systemd-resolved
-    state: restarted
-  when: resolved.changed
+    state: stopped
+    enabled: false
+    masked: true
+
+- name: install resolv.conf file
+  template:
+    src: etc/resolv.conf.j2
+    dest: /etc/resolv.conf

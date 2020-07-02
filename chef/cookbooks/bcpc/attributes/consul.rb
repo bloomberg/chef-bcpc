@@ -18,9 +18,9 @@ default['bcpc']['consul']['config']['enable_script_checks'] = true
 default['bcpc']['consul']['config']['server'] = true
 default['bcpc']['consul']['config']['log_level'] = 'INFO'
 default['bcpc']['consul']['config']['node_name'] = node['hostname']
-default['bcpc']['consul']['config']['addresses']['dns'] = node['bcpc']['cloud']['vip']
+default['bcpc']['consul']['config']['addresses']['dns'] = node['service_ip']
 default['bcpc']['consul']['config']['ports']['dns'] = 8600
-default['bcpc']['consul']['config']['recursors'] = [node['bcpc']['cloud']['vip']]
+default['bcpc']['consul']['config']['recursors'] = [node['service_ip']]
 
 # Service definitions reference:
 # https://www.consul.io/docs/agent/services.html

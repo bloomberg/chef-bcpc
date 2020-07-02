@@ -13,6 +13,9 @@ module Util
   end
 
   def self.mount_apt_cache(config)
+    if ENV.key?('BCC_DISABLE_APT_CACHE')
+      return
+    end
     user_data_path = Vagrant.user_data_path.to_s
     cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
     apt_cache_dir = '/var/cache/apt/archives'

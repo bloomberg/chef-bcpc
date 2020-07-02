@@ -3,7 +3,7 @@
 ###############################################################################
 default['bcpc']['powerdns']['db']['dbname'] = 'pdns'
 
-default['bcpc']['powerdns']['local_address'] = node['bcpc']['cloud']['vip']
+default['bcpc']['powerdns']['listen_address'] = node['bcpc']['cloud']['vip']
 default['bcpc']['powerdns']['local_port'] = 5300
 default['bcpc']['powerdns']['security_poll_suffix'] = ''
 

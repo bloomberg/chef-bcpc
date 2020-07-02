@@ -1,0 +1,36 @@
+- name: sysctl allow non-local ip bind
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    state: present
+
+- name: install unbound
+  apt:
+    name: unbound
+    state: present
+
+- name: remove default unbound conf files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf
+  register: unbound_conf
+
+- name: install unbround default config
+  template:
+    src: unbound/default.j2
+    dest: /etc/default/unbound
+  register: unbound_default_conf
+
+- name: install unbound server config
+  template:
+    src: unbound/server.conf.j2
+    dest: /etc/unbound/unbound.conf.d/server.conf
+  register: unbound_conf
+
+- name: restart unbound
+  service:
+    name: unbound
+    state: restarted
+  when: unbound_conf.changed or unbound_default_conf.changed

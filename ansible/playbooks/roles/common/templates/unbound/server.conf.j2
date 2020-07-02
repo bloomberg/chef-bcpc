@@ -1,0 +1,37 @@
+server:
+    access-control: 0.0.0.0/0 allow
+    chroot: ""
+    directory: /etc/unbound
+    do-ip4: yes
+    do-ip6: no
+    do-tcp: yes
+    do-udp: yes
+    domain-insecure: *
+    interface: 127.0.0.1
+{% if 'headnodes' is in group_names %}
+    interface: {{ cloud_ip }}
+{% endif %}
+    logfile: ""
+    num-threads: 2
+    pidfile: /var/run/unbound.pid
+    port: 53
+    unblock-lan-zones: yes
+    use-syslog: yes
+    verbosity: 1
+{% if 'headnodes' is in group_names %}
+    forward-zone:
+      name: consul
+      forward-addr: {{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}@8600
+    forward-zone:
+      name: {{ cloud_domain }}
+      forward-addr: {{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}@5300
+    forward-zone:
+      name: .
+{% for ns in dns['servers'] %}
+      forward-addr: {{ ns }}
+{% endfor %}
+{% else %}
+    forward-zone:
+      name: .
+      forward-addr: {{ cloud_ip }}
+{% endif %}

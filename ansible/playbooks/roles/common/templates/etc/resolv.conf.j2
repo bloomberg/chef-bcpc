@@ -2,13 +2,9 @@
 # managed by ansible
 ###############################################################################
 
-[Resolve]
-#DNS=
-#FallbackDNS=
-#Cache=no
-#FallbackDNS=
-#Domains=
-#LLMNR=no
-#MulticastDNS=no
-#DNSSEC=no
-#DNSStubListener=yes
+nameserver 127.0.0.1
+{% for ns in dns['servers'] %}
+nameserver {{ ns }}
+{% endfor %}
+
+options timeout:1

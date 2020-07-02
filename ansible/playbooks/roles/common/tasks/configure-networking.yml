@@ -7,11 +7,6 @@
     ansible_host: "{{ interfaces['transit'] | primary_ip(hostvars[inventory_hostname]) }}"
   when: use_primary_transit_interface
 
-- name: define transit_interfaces
-  set_fact:
-    transit_interfaces: >
-      {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
-
 - name: define libvirt_kvm_guest
   set_fact:
     libvirt_kvm_guest: >-
@@ -19,19 +14,13 @@
           and ansible_virtualization_role == 'guest'
           and ansible_system_vendor == 'QEMU' }}
 
-- import_tasks: configure-etc-hosts.yml
-  tags: [configure-etc-hosts]
+- name: define transit_interfaces
+  set_fact:
+    transit_interfaces: >
+      {{ interfaces['transit'] | transit_interfaces(ansible_facts) }}
 
-- import_tasks: configure-root-user-ssh.yml
-  tags: [configure-root-user-ssh]
-
-- import_tasks: configure-systemd-resolved.yml
-  tags: [configure-systemd-resolved]
-
-- import_tasks: configure-local-proxy.yml
-
-- import_tasks: configure-ubuntu-apt-sources.yml
-  tags: [configure-ubuntu-apt-sources]
+- import_tasks: configure-network-interfaces.yml
+  when: configure_network_interfaces | default(true)
 
 - import_tasks: configure-bgp.yml
   when: configure_bgp | default(true)
@@ -39,10 +28,26 @@
 - import_tasks: configure-service-ip.yml
   when: configure_service_ip | default(true)
 
-- import_tasks: configure-network-interfaces.yml
-  when: configure_network_interfaces | default(true)
+- import_tasks: configure-systemd-resolved.yml
+  tags: [configure-systemd-resolved]
+
+- import_tasks: configure-unbound.yml
+  tags: [configure-unbound]
+
+- import_tasks: configure-tinyproxy.yml
+  tags: [configure-tinyproxy]
+
+- import_tasks: configure-ubuntu-apt-sources.yml
+  tags: [configure-ubuntu-apt-sources]
 
 - import_tasks: configure-chrony.yml
   tags: [configure-chrony]
 
 - import_tasks: configure-sshd.yml
+  tags: [configure-sshd]
+
+- import_tasks: configure-root-user-ssh.yml
+  tags: [configure-root-user-ssh]
+
+- import_tasks: configure-etc-hosts.yml
+  tags: [configure-etc-hosts]
