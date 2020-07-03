@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+service 'systemd-journald'
+
 # ipmi module loading and configuration
 execute 'load ipmi_devintf kernel module' do
   command 'modprobe ipmi_devintf'
@@ -59,6 +61,7 @@ template '/etc/default/grub' do
   io_scheduler = node['bcpc']['hardware']['io_scheduler']
 
   cmdline.push("elevator=#{io_scheduler}")
+  cmdline.push("nvme_core.multipath=0")
 
   unless node['bcpc']['grub']['cmdline_linux'].empty?
     cmdline += node['bcpc']['grub']['cmdline_linux']
@@ -141,4 +144,10 @@ end
 
 file '/etc/default/motd-news' do
   content 'ENABLED=0'
+end
+
+# Update the default journal configuration to allow for greater logging
+cookbook_file '/etc/systemd/journal.conf' do
+  source 'journal/journal.conf'
+  notifies :restart, 'service[systemd-journald]', :immediately
 end
