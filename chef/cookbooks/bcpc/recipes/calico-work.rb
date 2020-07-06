@@ -22,9 +22,12 @@ package 'calico-compute' do
   action :remove
 end
 
-package 'neutron-dhcp-agent'
-
-package %w(calico-felix networking-calico calico-dhcp-agent) do
+package %w(
+  calico-dhcp-agent
+  calico-felix
+  networking-calico
+  neutron-dhcp-agent
+) do
   action :upgrade
 end
 
