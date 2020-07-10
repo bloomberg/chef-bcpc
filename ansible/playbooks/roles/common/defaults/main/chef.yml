@@ -182,6 +182,10 @@ chef_databags:
       username: guest
       password: Rv1GjTlGmfHPiSRt5bqK
       cookie: Y7SAgyFKPcxlzLdT5lJV
+    apache:
+      status:
+        username: apache_status
+        password: jwKed76du3edGsdshjs8
     haproxy:
       username: haproxy
       password: nr7oTiMPn3h3ciFv0ZgL

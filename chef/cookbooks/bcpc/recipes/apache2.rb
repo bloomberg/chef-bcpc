@@ -85,6 +85,37 @@ template '/etc/apache2/mods-available/mpm_event.conf' do
   notifies :restart, 'service[apache2]', :delayed
 end
 
+# apache status module
+if node['bcpc']['apache2']['status']['enabled']
+  # create htpasswd file for apache status
+  apache_status_username = config['apache']['status']['username']
+  apache_status_password = config['apache']['status']['password']
+  execute "set password for apache_status user" do
+    command "htpasswd -cb /etc/apache2/server_status_htpasswd #{apache_status_username} #{apache_status_password}"
+    creates "/etc/apache2/server_status_htpasswd"
+    sensitive true
+    notifies :restart, 'service[apache2]', :delayed
+  end
+
+  # secure the htpasswd file for apache_status
+  file '/etc/apache2/server_status_htpasswd' do
+    mode '0600'
+    owner 'www-data'
+    group 'www-data'
+    notifies :restart, 'service[apache2]', :delayed
+  end
+
+  # status module tuning
+  template '/etc/apache2/mods-available/status.conf' do
+    source 'apache2/status.conf.erb'
+    variables(
+      status_user: apache_status_username,
+      htpasswd_file: "/etc/apache2/server_status_htpasswd"
+    )
+    notifies :restart, 'service[apache2]', :delayed
+  end
+end
+
 # remote default ssl site conf
 file '/etc/apache2/sites-available/default-ssl.conf' do
   action :delete
