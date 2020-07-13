@@ -92,9 +92,9 @@ if node['bcpc']['apache2']['status']['enabled']
   apache_status_password = config['apache']['status']['password']
   execute 'set password for apache_status user' do
     command "htpasswd -cb /etc/apache2/server_status_htpasswd #{apache_status_username} #{apache_status_password}"
-    creates '/etc/apache2/server_status_htpasswd'
     sensitive true
     notifies :restart, 'service[apache2]', :delayed
+    not_if "htpasswd -bv /etc/apache2/server_status_htpasswd #{apache_status_username} #{apache_status_password}"
   end
 
   # secure the htpasswd file for apache_status
