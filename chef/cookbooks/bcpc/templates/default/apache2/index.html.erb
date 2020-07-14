@@ -64,6 +64,13 @@
           <td><a href="https://<%= node['bcpc']['cloud']['fqdn'] %>/rabbitmq/">https://<%= node['bcpc']['cloud']['fqdn'] %>/rabbitmq/</a></td>
           <td><a href="https://<%= @vip %>/rabbitmq/">https://<%= @vip %>/rabbitmq/</a></td>
       </tr>
+      <%- if node['bcpc']['apache2']['status']['enabled'] %>
+      <tr>
+          <td><em>Apache Status</em></td>
+          <td><a href="https://<%= node['bcpc']['cloud']['fqdn'] %>/server-status">https://<%= node['bcpc']['cloud']['fqdn'] %>/server-status</a></td>
+          <td><a href="https://<%= @vip %>/server-status">https://<%= @vip %>/server-status</a></td>
+      </tr>
+      <%- end %>
     </table>
 
     <h3>API Endpoints</h3>

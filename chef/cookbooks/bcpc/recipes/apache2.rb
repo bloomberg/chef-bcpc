@@ -99,8 +99,8 @@ if node['bcpc']['apache2']['status']['enabled']
 
   # secure the htpasswd file for apache_status
   file '/etc/apache2/server_status_htpasswd' do
-    mode '0600'
-    owner 'www-data'
+    mode '0640'
+    owner 'root'
     group 'www-data'
     notifies :restart, 'service[apache2]', :delayed
   end
