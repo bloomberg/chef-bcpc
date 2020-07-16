@@ -9,6 +9,9 @@
           and ansible_virtualization_role == 'guest'
           and ansible_system_vendor == 'QEMU' }}
 
+- import_tasks: configure-etc-hosts.yml
+  tags: [configure-etc-hosts]
+
 - import_tasks: configure-root-user-ssh.yml
   tags: [configure-root-user-ssh]
 
