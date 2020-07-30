@@ -18,13 +18,7 @@
 include_recipe 'bcpc::etcd3gw'
 include_recipe 'bcpc::calico-apt'
 
-%w(
-  calico-common
-  calico-compute
-  calico-dhcp-agent
-).each do |pkg|
-  package pkg
-end
+package %w(calico-common calico-compute calico-dhcp-agent)
 
 service 'calico-dhcp-agent'
 

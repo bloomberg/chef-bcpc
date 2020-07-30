@@ -61,8 +61,7 @@ end
 #
 # create/manage pdns database ends
 
-package 'pdns-server'
-package 'pdns-backend-mysql'
+package %w(pdns-server pdns-backend-mysql)
 service 'pdns'
 
 # remove default pdns.d directory

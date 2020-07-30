@@ -27,12 +27,7 @@ database = {
   'password' => config['nova']['creds']['db']['password'],
 }
 
-package 'ceph'
-package 'nova-compute'
-package 'nova-api-metadata'
-package 'ovmf'
-package 'pm-utils'
-package 'sysfsutils'
+package %w(ceph nova-compute nova-api-metadata ovmf pm-utils sysfsutils)
 
 service 'nova-compute'
 service 'nova-api-metadata'

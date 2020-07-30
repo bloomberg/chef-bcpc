@@ -1,3 +1,4 @@
+# coding: utf-8
 # Cookbook:: bcpc
 # Recipe:: common-packages
 #
@@ -15,49 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# system related packages
-package 'lldpd'
-
-# Network troubleshooting tools
-package 'ethtool'
-package 'bmon'
-package 'tshark'
-package 'nmap'
-package 'iperf'
-package 'curl'
-package 'conntrack'
-package 'dhcpdump'
-package 'traceroute'
-
-# I/O troubleshooting tools
-package 'fio'
-package 'bc'
-package 'iotop'
-
-# System troubleshooting tools
-package 'htop'
-package 'sysstat'
-package 'linux-tools-common'
-package 'sosreport'
-
-# various python packages
-package 'python-pip'
-package 'python-memcache'
-package 'python-mysqldb'
-package 'python-six'
-package 'python-ldap'
-package 'python-configparser'
-
-# used for monitoring various services
-package 'xinetd'
-
-# openstack client cli
-package 'python-openstackclient'
-
-# packages used for operatons and file edits
-package 'jq'
-package 'tmux'
-package 'crudini'
+package %w(lldpd ethtool bmon tshark nmap iperf curl conntrack dhcpdump traceroute fio bc iotop htop sysstat linux-tools-common sosreport python-pip python-memcache python-mysqldb python-six python-ldap python-configparser xinetd python-openstackclient jq tmux crudini ksh bash-completion)
 
 package 'screen'
 cookbook_file '/etc/screenrc' do
@@ -69,8 +28,3 @@ cookbook_file '/etc/vim/vimrc' do
   source 'vim/vimrc'
 end
 
-# some people like kornshell ¯\_(ツ)_/¯
-package 'ksh'
-
-# bash completion for operators
-package 'bash-completion'

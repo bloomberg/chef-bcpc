@@ -20,14 +20,7 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-%w(
-  apache2
-  apache2-utils
-  libapache2-mod-fcgid
-  libapache2-mod-wsgi
-).each do |pkg|
-  package pkg
-end
+package %w(apache2 apache2-utils libapache2-mod-fcgid libapache2-mod-wsgi)
 
 service 'apache2'
 

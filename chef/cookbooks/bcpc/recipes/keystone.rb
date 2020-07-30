@@ -36,9 +36,7 @@ template '/etc/haproxy/haproxy.d/keystone.cfg' do
 end
 
 # package installation and service definition starts
-%w(keystone python-ldap python-ldappool).each do |pkg|
-  package pkg
-end
+package %w(keystone python-ldap python-ldappool)
 
 service 'keystone' do
   service_name 'apache2'
