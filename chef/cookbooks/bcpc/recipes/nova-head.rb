@@ -207,12 +207,14 @@ template '/etc/haproxy/haproxy.d/nova.cfg' do
 end
 
 # nova package installation and service definition
-package 'nova-api'
-package 'nova-conductor'
-package 'nova-consoleauth'
-package 'nova-novncproxy'
-package 'nova-scheduler'
-package 'nova-placement-api'
+package %w(
+  nova-api
+  nova-conductor
+  nova-consoleauth
+  nova-novncproxy
+  nova-scheduler
+  nova-placement-api
+)
 
 service 'nova-api'
 service 'nova-consoleauth'
@@ -259,7 +261,7 @@ nova_config.ceph_pools.each do |pool|
       ceph osd pool application enable #{pool_name} rbd
     DOC
 
-    not_if "ceph osd pool ls | grep -w #{pool_name}"
+    not_if "ceph osd pool ls | grep -w ^#{pool_name}$"
   end
 
   execute 'set ceph pool size' do

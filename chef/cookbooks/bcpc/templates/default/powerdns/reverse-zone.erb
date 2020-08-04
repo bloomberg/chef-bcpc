@@ -1,12 +1,12 @@
 $ORIGIN .
-$TTL 600
+$TTL <%= node['bcpc']['powerdns']['soa-ttl']['refresh'] %>
 
 <%= @zone['zone'] %> IN SOA <%= node['bcpc']['powerdns']['nameservers'].first[0] %>.<%= node['bcpc']['cloud']['domain'] %>. <%= @email %>. (
-    <%= @serial %> ; serial
-    600 ; refresh
-    300 ; retry
-    86400 ; expire
-    600 ; minimum
+    <%= @serial %>
+    <%= node['bcpc']['powerdns']['soa-ttl']['refresh'] %>
+    <%= node['bcpc']['powerdns']['soa-ttl']['retry'] %>
+    <%= node['bcpc']['powerdns']['soa-ttl']['expiry'] %>
+    <%= node['bcpc']['powerdns']['soa-ttl']['nx'] %>
 )
 
 <% node['bcpc']['powerdns']['nameservers'].each do |host, ip| %>

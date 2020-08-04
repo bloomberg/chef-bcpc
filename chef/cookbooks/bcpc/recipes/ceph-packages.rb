@@ -22,6 +22,7 @@ apt_repository 'ceph' do
   only_if { node['bcpc']['ceph']['repo']['enabled'] }
 end
 
-%w(ceph ceph-deploy).each do |pkg|
-  package pkg
-end
+package %w(
+  ceph
+  ceph-deploy
+)

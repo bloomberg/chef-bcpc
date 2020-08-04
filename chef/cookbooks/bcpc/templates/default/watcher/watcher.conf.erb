@@ -1,0 +1,38 @@
+[DEFAULT]
+control_exchange = watcher
+transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+
+[api]
+bind_host = <%= node['service_ip'] %>
+
+[database]
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/watcher?charset=utf8" %>
+
+[keystone_authtoken]
+auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
+project_name = service
+project_domain_name = Default
+user_domain_name = Default
+username = <%= @config['watcher']['creds']['os']['username'] %>
+password = <%= @config['watcher']['creds']['os']['password'] %>
+auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
+auth_type = password
+
+[oslo_concurrency]
+lock_path = /var/lock/watcher
+
+[oslo_messaging_notifications]
+ver = messagingv2
+
+[watcher_clients_auth]
+auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
+project_name = service
+project_domain_name = Default
+user_domain_name = Default
+username = <%= @config['watcher']['creds']['os']['username'] %>
+password = <%= @config['watcher']['creds']['os']['password'] %>
+auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
+memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
+auth_type = password
+

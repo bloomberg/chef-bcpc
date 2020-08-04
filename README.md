@@ -22,12 +22,19 @@ deploy the chef-bcpc on hardware.
 ### Prerequisites
 
 * OS X or Linux
-* CPU that supports VT-x virtualization extensions
-* 16 GB of memory
-* 100 GB of free disk space
+* Quad-core CPU that supports VT-x or AMD-V virtualization extensions
+* 32 GB of memory
+* 128 GB of free disk space
 * Vagrant 2.1+
 * VirtualBox 5.2+
 * git, curl, rsync, ssh, jq, make, ansible
+
+**NOTE**: It is likely possible to build an environment with 16GB of RAM or less
+if one is willing to make slight modifications to the
+ [virtual topology](virtual/topology/hardware.yml) and/or change some of the
+build settings and overrides.  However, we've opted to spec the minimum
+requirements slightly more aggressively and target hosts with 32GB RAM or more
+to provide the best out-of-the-box experience.
 
 
 ### Local Build
@@ -35,6 +42,11 @@ deploy the chef-bcpc on hardware.
 * Review `virtual/topology/topology.yml` for the topology you will build and
 make changes as required, e.g. assign more or less RAM based on your topology
 and your build environment. Other topologies exist in the same directory.
+* To make changes to the virtual topology without dirtying the tree, copy the
+[hardware.yml](virtual/topology/hardware.yml) and
+[topology.yml](virtual/topology/topology.yml) to files named
+`hardware.overrides.yml` and `topology.overrides.yml`, respectively, and make
+changes to them instead.
 * If a proxy server is required for internet access, set the variables TBD
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:

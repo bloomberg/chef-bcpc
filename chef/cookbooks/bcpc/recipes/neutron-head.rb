@@ -132,9 +132,11 @@ end
 
 # neutron package installation and service definition starts
 #
-%w(calico-control calico-common neutron-server).each do |pkg|
-  package pkg
-end
+package %w(
+  calico-control
+  calico-common
+  neutron-server
+)
 
 service 'neutron-server'
 service 'haproxy-neutron' do

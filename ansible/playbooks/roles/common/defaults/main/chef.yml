@@ -9,6 +9,9 @@ chef_environment:
   chef_type: environment
   override_attributes:
     bcpc:
+      ceph:
+        pg_num: 32
+        pgp_num: 32
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
@@ -123,6 +126,14 @@ chef_databags:
         os:
           username: cinder
           password: EElHi6Zmasnx0MWno92N
+    watcher:
+      creds:
+        db:
+          username: watcher
+          password: bg1oBTj4h7ZOmzkPtdI6
+        os:
+          username: watcher
+          password: eqwneo6W1muRpHnPDG6p
     heat:
       creds:
         db:
@@ -235,6 +246,7 @@ chef_roles:
       - recipe[bcpc::heat]
       - recipe[bcpc::os-quota]
       - recipe[bcpc::flavors]
+      - recipe[bcpc::watcher]
 
   - name: node
     description: common role for all bcpc nodes

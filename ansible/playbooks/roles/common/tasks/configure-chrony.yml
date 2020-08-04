@@ -22,12 +22,17 @@
       After=network.target network-online.target
       Wants=network-online.target
     dest: /etc/systemd/system/chrony.service.d/custom.conf
-  register: chrony
+  register: chrony_custom
 
-- name: restart chrony
+- name: reload chrony
   systemd:
     name: chrony
     daemon_reload: yes
     enabled: yes
+  when: chrony_custom.changed
+
+- name: restart chrony
+  systemd:
+    name: chrony
     state: restarted
   when: chrony.changed

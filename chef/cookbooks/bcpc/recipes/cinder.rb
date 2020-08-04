@@ -121,8 +121,9 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
 end
 
 # cinder package installation and service definition
-package 'cinder-scheduler'
-package 'cinder-volume'
+package ['cinder-scheduler', 'cinder-volume'] do
+  action :upgrade
+end
 
 service 'cinder-api' do
   service_name 'apache2'
@@ -159,7 +160,7 @@ cinder_config.ceph_pools.each do |pool|
       ceph osd pool application enable #{pool_name} rbd
     DOC
 
-    not_if "ceph osd pool ls | grep -w #{pool_name}"
+    not_if "ceph osd pool ls | grep -w ^#{pool_name}$"
   end
 
   execute 'set ceph pool size' do

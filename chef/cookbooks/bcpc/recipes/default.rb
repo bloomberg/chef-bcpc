@@ -19,6 +19,10 @@ region = node['bcpc']['cloud']['region']
 zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 
 if zone_config.enabled? && worknode?
+  if zone_config.zone.nil?
+    raise 'zones are enabled but this node is not configured to be in a zone'
+  end
+
   unless File.file?(zone_config.state_file)
     FileUtils.mkdir_p File.dirname(zone_config.state_file)
     File.write(zone_config.state_file, "#{zone_config.zone}\n")
