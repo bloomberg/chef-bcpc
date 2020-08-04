@@ -22,8 +22,10 @@ package 'exim4' do
   action :remove
 end
 
-package 'bsd-mailx'
-package 'postfix'
+package %w(
+  bsd-mailx
+  postfix
+)
 service 'postfix'
 
 template '/etc/postfix/main.cf' do

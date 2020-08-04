@@ -121,8 +121,10 @@ template '/etc/haproxy/haproxy.d/glance.cfg' do
 end
 
 # glance package installation and service definition
-package 'glance'
-package 'qemu-utils'
+package %w(
+  glance
+  qemu-utils
+)
 service 'glance-api'
 service 'haproxy-glance' do
   service_name 'haproxy'

@@ -26,8 +26,10 @@ apt_repository 'percona' do
   only_if { repo['enabled'] }
 end
 
-package 'debconf-utils'
-package 'percona-xtradb-cluster-57'
+package %w(
+  debconf-utils
+  percona-xtradb-cluster-57
+)
 
 service 'mysql'
 service 'xinetd'

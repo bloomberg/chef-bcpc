@@ -16,8 +16,10 @@
 # limitations under the License.
 #
 
-package 'git'
-package 'etckeeper'
+package %w(
+  git
+  etckeeper
+)
 
 cookbook_file '/etc/etckeeper/etckeeper.conf' do
   source 'etckeeper/etckeeper.conf'
