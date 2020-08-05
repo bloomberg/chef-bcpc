@@ -27,15 +27,20 @@ default['bcpc']['consul']['config']['recursors'] = [node['bcpc']['cloud']['vip']
 default['bcpc']['consul']['services'] = [
   {
     'name' => 'mysql',
-    'port' => 3306,
-    'enable_tag_override' => true,
     'tags' => ['mysql'],
-    'check' => {
-      'name' => 'mysql',
-      'args' => ['/usr/local/bcpc/bin/mysql-check'],
-      'interval' => '10s',
-      'timeout' => '2s',
-    },
+    'enable_tag_override' => true,
+    'address' => node['service_ip'],
+    'port' => 3306,
+    'checks' => [
+      {
+        'name' => 'MySQL Health Check',
+        'http' => 'http://127.0.0.1:3307',
+        'tls_skip_verify' => true,
+        'method' => 'GET',
+        'interval' => '10s',
+        'timeout' => '2s',
+      },
+    ],
   },
   {
     'name' => 'haproxy',
@@ -69,11 +74,6 @@ default['bcpc']['consul']['watches'] = [
     'service' => 'mysql',
     'type' => 'checks',
     'args' => ['/usr/local/bcpc/bin/mysql-elect-watch'],
-  },
-  {
-    'service' => 'mysql',
-    'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-watch'],
   },
   {
     'service' => 'dns',

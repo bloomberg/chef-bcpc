@@ -31,6 +31,8 @@ end
 end
 
 node['bcpc']['consul']['services'].each do |s|
+  next if !s.key?('check') || !s['check'].key?('args')
+
   fp = s['check']['args'][0]
   fn = File.basename(fp)
 
@@ -41,6 +43,8 @@ node['bcpc']['consul']['services'].each do |s|
 end
 
 node['bcpc']['consul']['watches'].each do |w|
+  next unless w.key?('args')
+
   fp = w['args'][0]
   fn = File.basename(fp)
 
