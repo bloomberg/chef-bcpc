@@ -37,6 +37,6 @@ else
         echo performance > $CPUFREQ
       done
     DOC
-    only_if 'test -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor'
+    only_if { ::File.exist?('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor') }
   end
 end
