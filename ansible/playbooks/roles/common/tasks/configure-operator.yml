@@ -1,11 +1,4 @@
 ---
-- name: define connection parameters
-  set_fact:
-    ansible_ssh_user: "{{ initial_ssh_user }}"
-    ansible_ssh_pass: "{{ initial_ssh_pass }}"
-    ansible_sudo_pass: "{{ initial_ssh_pass }}"
-  when: use_primary_transit_interface | default(true)
-
 - name: "create the cloud operator group"
   group:
     name: "{{ operator_group }}"
