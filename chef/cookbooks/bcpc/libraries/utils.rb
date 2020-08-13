@@ -196,12 +196,10 @@ def cloud_networks(network: nil)
 end
 
 def node_primary_interface
-  interface = node_interface(
+  node_interface(
     type: 'primary',
     ip_address: node['service_ip']
   )
-
-  interface
 end
 
 def node_interface(type: nil, ip_address: nil)
