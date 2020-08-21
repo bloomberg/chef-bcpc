@@ -1,25 +1,14 @@
+before_install:
+  - .travis/install_linters.sh
+
+dist: bionic
+
+git:
+  depth: 1
+
 language: generic
 
-jobs:
-  include:
-    - stage: linter
-      os: linux
-      dist: bionic
-      sudo: required
-      env: job_type=linter
-      before_install: .travis/before_install.sh ${job_type}
-      script: .travis/script.sh ${job_type}
-    - stage: build
-      os: linux
-      dist: bionic
-      sudo: required
-      env: job_type=build
-      before_install: .travis/before_install.sh ${job_type}
-      install: .travis/install.sh
-      script: .travis/script.sh ${job_type}
-    - os: osx
-      osx_image: xcode11
-      env: job_type=build
-      before_install: .travis/before_install.sh ${job_type}
-      install: .travis/install.sh
-      script: .travis/script.sh ${job_type}
+script:
+  - .travis/run_linters.sh
+
+sudo: required
