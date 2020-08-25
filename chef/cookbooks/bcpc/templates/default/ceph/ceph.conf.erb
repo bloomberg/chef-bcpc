@@ -9,6 +9,7 @@ mon host = <%= @headnodes.map{ |n| n['service_ip'] }.join(',') %>
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
+admin socket mode = 0775
 
 [mon]
 mon compact on start = true

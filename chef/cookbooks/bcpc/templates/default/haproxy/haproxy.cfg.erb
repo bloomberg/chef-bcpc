@@ -7,7 +7,7 @@ global
   user haproxy
   group haproxy
   pidfile /var/run/haproxy.pid
-  stats socket /var/run/haproxy/haproxy.asok level admin
+  stats socket /var/run/haproxy/haproxy.asok user root group haproxy mode 775 level admin
   log /dev/log local0 info alert
   maxconn 8000
 
