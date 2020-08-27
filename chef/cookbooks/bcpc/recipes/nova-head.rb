@@ -405,3 +405,19 @@ execute 'wait for nova to come online' do
   retries 30
   command 'openstack compute service list'
 end
+
+cron 'nova-manage db archive' do
+  action  :create
+  minute  node['bcpc']['nova']['db-archive']['cron_minute']
+  hour    node['bcpc']['nova']['db-archive']['cron_hour']
+  weekday node['bcpc']['nova']['db-archive']['cron_weekday']
+  day     node['bcpc']['nova']['db-archive']['cron_day']
+  month   node['bcpc']['nova']['db-archive']['cron_month']
+  user    'root'
+  command <<-DOC
+    /usr/local/bcpc/bin/if_leader \
+    nova-manage db archive_deleted_rows --until-complete --verbose 2>&1 \
+    | logger -t nova-db-archive-deleted-rows
+  DOC
+  only_if { node['bcpc']['nova']['db-archive']['enabled'] }
+end

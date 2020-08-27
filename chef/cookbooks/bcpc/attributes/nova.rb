@@ -96,3 +96,16 @@ default['bcpc']['nova']['quota']['project']['admin']['gigabytes'] = -1
 #
 default['bcpc']['nova']['vendordata']['name'] = nil
 default['bcpc']['nova']['vendordata']['port'] = 8444
+
+# nova db archive deleted rows
+#
+
+# is nova db archive enabled
+default['bcpc']['nova']['db-archive']['enabled'] = false
+
+# if enabled, what is the schedule to run
+default['bcpc']['nova']['db-archive']['cron_month'] = '*'
+default['bcpc']['nova']['db-archive']['cron_day'] = '*'
+default['bcpc']['nova']['db-archive']['cron_weekday'] = '6'
+default['bcpc']['nova']['db-archive']['cron_hour'] = '4'
+default['bcpc']['nova']['db-archive']['cron_minute'] = '0'
