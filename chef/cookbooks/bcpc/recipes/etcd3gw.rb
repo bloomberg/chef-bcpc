@@ -15,10 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package %w(
-  python-futurist
-  python-setuptools
-) do
+package 'python-futurist' do
   options '--no-install-recommends'
 end
 

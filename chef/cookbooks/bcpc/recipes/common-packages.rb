@@ -39,6 +39,7 @@ package %w(
   python-six
   python-ldap
   python-configparser
+  python-setuptools
   xinetd
   python-openstackclient
   jq
