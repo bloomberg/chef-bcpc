@@ -29,6 +29,7 @@ package %w(
   neutron-dhcp-agent
 ) do
   action :upgrade
+  options '--no-install-recommends'
 end
 
 execute 'reload sysctl' do

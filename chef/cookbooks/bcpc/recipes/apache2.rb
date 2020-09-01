@@ -25,7 +25,9 @@ package %w(
   apache2-utils
   libapache2-mod-fcgid
   libapache2-mod-wsgi
-)
+) do
+  options '--no-install-recommends'
+end
 
 service 'apache2'
 

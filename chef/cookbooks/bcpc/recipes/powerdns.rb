@@ -63,7 +63,9 @@ end
 package %w(
   pdns-server
   pdns-backend-mysql
-)
+) do
+  options '--no-install-recommends'
+end
 service 'pdns'
 
 # remove default pdns.d directory

@@ -214,7 +214,9 @@ package %w(
   nova-novncproxy
   nova-scheduler
   nova-placement-api
-)
+) do
+  options '--no-install-recommends'
+end
 
 service 'nova-api'
 service 'nova-consoleauth'

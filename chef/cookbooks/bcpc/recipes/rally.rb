@@ -46,7 +46,9 @@ env['CURL_CA_BUNDLE'] = '' unless node['bcpc']['rally']['ssl_verify']
 package %w(
   virtualenv
   python3-dev
-)
+) do
+  options '--no-install-recommends'
+end
 
 group 'rally'
 

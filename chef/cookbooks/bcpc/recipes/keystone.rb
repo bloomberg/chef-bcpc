@@ -40,7 +40,9 @@ package %w(
   keystone
   python-ldap
   python-ldappool
-)
+) do
+  options '--no-install-recommends'
+end
 
 service 'keystone' do
   service_name 'apache2'

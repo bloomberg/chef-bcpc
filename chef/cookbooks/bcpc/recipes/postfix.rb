@@ -25,7 +25,9 @@ end
 package %w(
   bsd-mailx
   postfix
-)
+) do
+  options '--no-install-recommends'
+end
 service 'postfix'
 
 template '/etc/postfix/main.cf' do

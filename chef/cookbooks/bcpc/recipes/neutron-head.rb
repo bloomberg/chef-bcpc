@@ -134,9 +134,12 @@ end
 #
 package 'calico-control' do
   action :upgrade
+  options '--no-install-recommends'
 end
 
-package 'neutron-server'
+package 'neutron-server' do
+  options '--no-install-recommends'
+end
 service 'neutron-server'
 
 service 'haproxy-neutron' do
