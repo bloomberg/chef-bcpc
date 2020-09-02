@@ -51,9 +51,18 @@ changes to them instead.
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:
 
+Create a Python virtual environment (virtualenv) and activate it
+
+```shell
+python3 -mvenv venv
+source venv/bin/activate
+pip install PyYaml ansible netaddr pyOpenSSL pycryptodome
+```
+
 To create a virtualbox build (the default):
 
 ```shell
+make generate-chef-databags
 make create all
 ```
 

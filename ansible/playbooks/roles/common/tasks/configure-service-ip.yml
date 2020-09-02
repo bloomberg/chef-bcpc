@@ -2,12 +2,14 @@
   template:
     src: systemd/network/10-service0.netdev
     dest: /etc/systemd/network/10-service0.netdev
+    mode: 0644
   register: networkd
 
 - name: service ip network config
   template:
     src: systemd/network/20-service0.network
     dest: /etc/systemd/network/20-service0.network
+    mode: 0644
   register: networkd
 
 - name: restart systemd-networkd

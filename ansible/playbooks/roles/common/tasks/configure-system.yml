@@ -183,3 +183,8 @@
     - "linux-modules-extra-{{ kernel_version }}-{{ kernel_variant }}"
     # HWE kernel-specific tools are pulled in by {{ version }}-generic metapackages.
     - "linux-tools-{{ kernel_version }}-{{ 'generic' if kernel_variant != 'lowlatency' else 'lowlatency' }}"
+
+# Install kexec-tools
+- name: Install kexec-tools
+  apt:
+    name: kexec-tools

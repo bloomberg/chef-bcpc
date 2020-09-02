@@ -6,3 +6,4 @@
   copy:
     src: "{{ assets_download_dir }}/{{ file.filename }}"
     dest: "/var/bcpc/www/files/"
+    mode: 0644

@@ -45,3 +45,6 @@ FailsafeOutboundHostPorts = tcp:53,udp:53,udp:123,tcp:179,tcp:2379,tcp:2380
 
 # IPv6 support for Felix
 Ipv6Support = false
+
+# Port to use for VXLAN traffic.
+VXLANPort = <%= node['bcpc']['calico']['calico-felix']['vxlan_port'] %>

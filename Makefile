@@ -44,6 +44,10 @@ destroy-virtual-network :
 
 	virtual/bin/destroy-virtual-network.sh
 
+generate-chef-databags :
+
+	virtual/bin/generate-chef-databags.py -s
+
 configure-operator :
 
 	ansible-playbook -v \
