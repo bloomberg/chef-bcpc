@@ -287,6 +287,12 @@ class BCCChefDatabags:
                     'password': self.generate_string()
                 }
             },
+            'apache': {
+                'status': {
+                    'username': 'apache_status',
+                    'password': self.generate_string()
+                }
+            },
             'ceph': {
                 'fsid': self.generate_uuid(),
                 'mon': {
