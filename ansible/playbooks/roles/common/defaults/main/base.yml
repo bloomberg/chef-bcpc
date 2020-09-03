@@ -270,6 +270,10 @@ hardware_io_scheduler: deadline
 # providing consistent, deterministic device naming conventions.
 hardware_nvme_multipath: false
 
+# Select whether or not to load newer CPU microcode mitigations at runtime
+# when possible (and when it is newer than what the BIOS firmware provides).
+hardware_cpu_load_microcode: true
+
 # If pin_version is true, pin to {{ version }}-{{ variant }}
 # For example, {{ 5.0.0-32 }}-{{ lowlatency }}
 # If pin_version is false, track linux-{{ variant }} upstream

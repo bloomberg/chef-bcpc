@@ -188,3 +188,48 @@
 - name: Install kexec-tools
   apt:
     name: kexec-tools
+
+# Control processor microcode application
+- name: Check if AMD processor
+  command: grep -q AuthenticAMD /proc/cpuinfo
+  ignore_errors: true
+  register: is_amd
+
+- name: Install amd64-microcode package
+  apt:
+    name: amd64-microcode
+  when: is_amd is successful
+
+- name: Configure amd64-microcode package
+  template:
+    src: amd64-microcode/default.j2
+    dest: /etc/default/amd64-microcode
+    owner: root
+    group: root
+    mode: '0644'
+  register: amd_microcode
+  when: is_amd is successful
+
+- name: Check if Intel processor
+  command: grep -q GenuineIntel /proc/cpuinfo
+  ignore_errors: true
+  register: is_intel
+
+- name: Install intel-microcode package
+  apt:
+    name: intel-microcode
+  when: is_intel is successful
+
+- name: Configure intel-microcode package
+  template:
+    src: intel-microcode/default.j2
+    dest: /etc/default/intel-microcode
+    owner: root
+    group: root
+    mode: '0644'
+  register: intel_microcode
+  when: is_intel is successful
+
+- name: Update initramfs for all kernels
+  command: update-initramfs -uk all
+  when: amd_microcode.changed or intel_microcode.changed
