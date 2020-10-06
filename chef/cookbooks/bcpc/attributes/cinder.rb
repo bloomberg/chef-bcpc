@@ -7,6 +7,7 @@ default['bcpc']['cinder']['db']['dbname'] = 'cinder'
 default['bcpc']['cinder']['debug'] = false
 default['bcpc']['cinder']['workers'] = nil
 default['bcpc']['cinder']['allow_az_fallback'] = true
+default['bcpc']['cinder']['backend_native_threads_pool_size'] = nil
 default['bcpc']['cinder']['rbd_flatten_volume_from_snapshot'] = true
 default['bcpc']['cinder']['rbd_max_clone_depth'] = 5
 default['bcpc']['cinder']['database']['max_overflow'] = 10

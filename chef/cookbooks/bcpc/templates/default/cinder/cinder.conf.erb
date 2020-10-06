@@ -22,6 +22,11 @@ enable_v3_api = true
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% end %>
 
+<% if !node['bcpc']['cinder']['backend_native_threads_pool_size'].nil? %>
+[backend_defaults]
+backend_native_threads_pool_size = <%= node['bcpc']['cinder']['backend_native_threads_pool_size'] %>
+
+<% end %>
 [database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}/#{@db['dbname']}" %>
 max_overflow = <%= node['bcpc']['cinder']['database']['max_overflow'] %>

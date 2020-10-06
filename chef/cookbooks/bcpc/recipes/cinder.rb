@@ -347,8 +347,9 @@ cinder_config.backends.each do |backend|
   end
 end
 
-service 'cinder-volume' do
-  action :start
+execute 'make sure cinder-volume comes up' do # ~FC004
+  action :nothing
   retries 30
+  command 'systemctl start cinder-volume'
   not_if 'systemctl status cinder-volume'
 end
