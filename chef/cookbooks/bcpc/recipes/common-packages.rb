@@ -32,10 +32,12 @@ package %w(
   htop
   sysstat
   linux-tools-common
+  lm-sensors
   sosreport
   python-pip
   python-memcache
   python-mysqldb
+  python-setuptools
   python-six
   python-ldap
   python-configparser
@@ -48,7 +50,13 @@ package %w(
   vim
   ksh
   bash-completion
-)
+) do
+  options '--no-install-recommends'
+end
+
+cookbook_file '/etc/sensors.d/power-acpi-monitor.conf' do
+  source 'lm-sensors/power-acpi-monitor.conf'
+end
 
 cookbook_file '/etc/screenrc' do
   source 'screen/screenrc'
