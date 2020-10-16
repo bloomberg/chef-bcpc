@@ -14,11 +14,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require 'yaml'
+require './lib/util'
 
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '202005.21.0'
-
-require 'yaml'
 
 def load_topology
   # load the vm topology profile
@@ -73,35 +73,54 @@ Vagrant.configure('2') do |config|
       lv.driver = 'kvm'
       lv.nested = true
       lv.cpu_mode = 'host-passthrough'
+      if ENV['BCC_LIBVIRT_KVM_HUGEPAGES'] == 'true'
+        lv.memorybacking :hugepages
+      end
       config.vm.synced_folder './', '/vagrant', type: '9p'
       #mount_apt_cache(config)
     end
   end
 
   topology['nodes'].each do |node|
-    vm_name = node['host']
+    vm_name = Util.vbox_name(node['host'])
+
     # get hardware profile for node
     hw_profiles = hardware['profiles']
     hw_profile = hw_profiles[node['hardware_profile']]
 
     config.vm.define vm_name do |subconfig|
-      # create default user
-      subconfig.vm.provision 'shell' do |shell|
-        shell.path = 'provisioners/create-default-user.sh'
-        shell.args = 'ubuntu 53cr37'
+      # finish provisioner
+      finish_args = []
+
+      if ENV.key?('BCC_APT_URL')
+        finish_args.append("--apt-url #{ENV['BCC_APT_URL']}")
       end
 
-      # modify the vagrant user
-      subconfig.vm.provision 'shell' do |shell|
-        shell.path = 'provisioners/modify-vagrant-user.sh'
+      if ENV.key?('BCC_APT_KEY_URL')
+        finish_args.append("--apt-key-url #{ENV['BCC_APT_KEY_URL']}")
       end
 
-      # add swap space
+      if ENV.key?('http_proxy')
+        finish_args.append("--http-proxy #{ENV['http_proxy']}")
+      end
+
+      if ENV.key?('https_proxy')
+        finish_args.append("--https-proxy #{ENV['https_proxy']}")
+      end
+
       if hw_profile.key?('swap_gb')
-        subconfig.vm.provision 'shell' do |s|
-          s.path = 'provisioners/swap.sh'
-          s.args = hw_profile['swap_gb']
-        end
+        finish_args.append("--swap-size-gb #{hw_profile['swap_gb']}")
+      end
+
+      # operations user
+      operations_user = 'operations'
+      operations_user_ssh_pub_key = File.read('files/ssh/id_ed25519.pub')
+      finish_args.append("--operations-user #{operations_user}")
+      finish_args.append("--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\"")
+
+      subconfig.vm.provision 'shell' do |shell|
+        shell.path = 'provisioners/finish.sh'
+        shell.args = finish_args.join(' ')
       end
 
       # network connections
@@ -112,16 +131,19 @@ Vagrant.configure('2') do |config|
         args = {}.tap do |a|
           a[:ip] = t_iface['ip'].split('/')[0]
           a[:mac] = t_iface['mac'].delete(':')
-          a[:libvirt__network_name] = t_iface['neighbor']['name']
+          a[:libvirt__network_name] = Util.vbox_name(t_iface['neighbor']['name'])
           a[:libvirt__dhcp_enabled] = false
-          a[:libvirt__forward_mode] = 'none'
+          a[:libvirt__forward_mode] = 'veryisolated'
         end
         subconfig.vm.network('private_network', args)
       end
 
       subconfig.vm.provider :libvirt do |lv|
+        lv.default_prefix = Util.libvirt_prefix()
         lv.cpus = hw_profile['cpus']
         lv.memory = hw_profile['ram_gb'] * 1024
+        lv.disk_bus = 'scsi'
+        lv.disk_device = 'sda'
         lv.machine_virtual_size = 10
 
         # add additional hard drives
@@ -134,7 +156,7 @@ Vagrant.configure('2') do |config|
           drive_letters.each do |l|
             device = "sd#{l}"
             lv.storage :file, size: "#{size_gb}G", device: device.to_s,
-                                                   bus: 'sata'
+                                                   bus: 'scsi', type: 'raw'
           end
         end
       end

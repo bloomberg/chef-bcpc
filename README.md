@@ -69,10 +69,12 @@ make create all
 To create a libvirt build:
 
 ```shell
+sudo apt-get install build-essential libvirt-dev qemu-utils
 vagrant plugin install vagrant-libvirt vagrant-mutate
-vagrant box add bento/ubuntu-18.04
+vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualbox
 vagrant mutate bento/ubuntu-18.04 libvirt
-export VAGRANT_DEFAULT_PROVIDER=libvirt
+export VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
+make generate-chef-databags
 make create all
 ```
 

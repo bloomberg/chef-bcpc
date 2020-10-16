@@ -1,6 +1,18 @@
 module Util
+  # returns 'virtual_' (the vagrant-libvirt default) or a prefix based on
+  # whether or not the environment var 'BCC_ENABLE_LIBVIRT_PREFIX is set
+  def self.libvirt_prefix
+    # return 'virtual' if prefix not enabled
+    unless ENV.key?('BCC_ENABLE_LIBVIRT_PREFIX')
+      return 'virtual_'
+    end
+
+    require 'digest/sha1'
+    Digest::SHA1.hexdigest(__dir__)[0, 7] + '_'
+  end
+
   # returns vbox_name with or without suffix base on set vs unset
-  # of the environment var 'ENABLE_VBOX_SUFFIX'
+  # of the environment var 'BCC_ENABLE_VBOX_SUFFIX'
   def self.vbox_name(name)
     # return name if suffix not enabled
     unless ENV.key?('BCC_ENABLE_VBOX_SUFFIX')

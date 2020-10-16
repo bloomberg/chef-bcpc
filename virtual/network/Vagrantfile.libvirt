@@ -14,6 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require '../lib/util'
 
 base_box = 'bento/ubuntu-18.04'
 base_box_version = '202005.21.0'
@@ -21,7 +22,7 @@ base_box_version = '202005.21.0'
 def setup_proxy(node)
   http_proxy = ENV['http_proxy'] || ''
   https_proxy = ENV['https_proxy'] || ''
-  return if http_proxy == '' and https_proxy == ''
+  return unless http_proxy != ''
   node.vm.provision 'shell', path: 'proxyconfig.sh',
                              args: [http_proxy, https_proxy]
 end
@@ -51,6 +52,7 @@ Vagrant.configure(2) do |config|
   config.vm.box_download_insecure = true
 
   config.vm.provider :libvirt do |lv|
+    lv.default_prefix = Util.libvirt_prefix()
     if ENV['BCC_LIBVIRT_DRIVER'] == 'qemu'
       lv.driver = 'qemu'
       lv.cpu_mode = 'custom'
@@ -60,10 +62,15 @@ Vagrant.configure(2) do |config|
       lv.nested = true
       lv.cpu_mode = 'host-passthrough'
       config.vm.synced_folder './', '/vagrant', type: '9p'
+      if ENV['BCC_LIBVIRT_KVM_HUGEPAGES'] == 'true'
+        lv.memorybacking :hugepages
+      end
       #mount_apt_cache(config)
     end
     lv.cpus = 1
-    lv.memory = 512
+    lv.memory = 1024
+    lv.disk_bus = 'scsi'
+    lv.disk_device = 'sda'
   end
 
   config.vm.define 'network' do |node|
@@ -75,9 +82,9 @@ Vagrant.configure(2) do |config|
       node.vm.network 'private_network',
                       ip: a[0],
                       libvirt__netmask: netmask,
-                      libvirt__network_name: "management#{i}",
+                      libvirt__network_name: Util.vbox_name("management#{i}"),
                       libvirt__dhcp_enabled: false,
-                      libvirt__forward_mode: 'none'
+                      libvirt__forward_mode: 'veryisolated'
     end
     setup_proxy(node)
     node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
