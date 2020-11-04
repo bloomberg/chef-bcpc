@@ -316,6 +316,7 @@ template '/etc/heat/heat.conf' do
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :run, 'execute[heat-manage db_sync]', :immediately

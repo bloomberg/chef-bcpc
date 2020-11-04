@@ -47,6 +47,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
+        - role[rmqnode]
         - role[headnode]
 
   - host: r1n2

@@ -81,8 +81,8 @@ end
 
 begin
   # add this node to the existing rabbitmq cluster if one exists
-  unless init_cloud?
-    members = headnodes(exclude: node['hostname'])
+  unless init_rmq?
+    members = rmqnodes(exclude: node['hostname'])
 
     hosts = members.collect do |m|
       "rabbit@#{m['hostname']}"
@@ -141,13 +141,13 @@ execute 'set rabbitmq user password' do
   command "rabbitmqctl change_password #{username} #{password}"
 end
 
-# Use n/2+1 queue mirrors as long as we have at least three headnodes.
-# If we have fewer than three headnodes, fallback to ha-all.
-headnodes = headnodes(all: true)
-ha_exactly = { 'ha-mode' => 'exactly', 'ha-params' => headnodes.length / 2 + 1 }
+# Use n/2+1 queue mirrors as long as we have at least three rmqnodes.
+# If we have fewer than three rmqnodes, fallback to ha-all.
+rmqnodes = rmqnodes(all: true)
+ha_exactly = { 'ha-mode' => 'exactly', 'ha-params' => rmqnodes.length / 2 + 1 }
 ha_all = { 'ha-mode': 'all' }
 
-ha_policy = headnodes.length >= 3 ? ha_exactly : ha_all
+ha_policy = rmqnodes.length >= 3 ? ha_exactly : ha_all
 
 execute 'set rabbitmq ha policy' do
   command <<-DOC

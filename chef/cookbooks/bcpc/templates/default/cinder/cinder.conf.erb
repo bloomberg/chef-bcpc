@@ -13,7 +13,7 @@ osapi_volume_workers = <%= node['bcpc']['cinder']['workers'] %>
 osapi_volume_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 my_ip = <%= node['service_ip'] %>
-transport_url = rabbit://<%= @headnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @rmqnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
 glance_api_insecure = true
 enabled_backends = <%= @backends.map {|b| b['name']}.join(',') %>

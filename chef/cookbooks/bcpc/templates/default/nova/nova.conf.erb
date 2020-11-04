@@ -24,7 +24,7 @@ sync_power_state_interval = <%= node['bcpc']['nova']['sync_power_state_interval'
 send_arp_for_ha = true
 state_path = /var/lib/nova
 
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
 <% if @is_headnode -%>
 osapi_compute_link_prefix = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:8774" %>
