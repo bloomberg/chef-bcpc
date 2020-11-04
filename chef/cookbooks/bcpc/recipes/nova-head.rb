@@ -348,6 +348,7 @@ template '/etc/nova/nova.conf' do
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
 

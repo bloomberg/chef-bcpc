@@ -180,6 +180,7 @@ template '/etc/watcher/watcher.conf' do
     config: config,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :run, 'execute[watcher-manage db_sync]', :immediately

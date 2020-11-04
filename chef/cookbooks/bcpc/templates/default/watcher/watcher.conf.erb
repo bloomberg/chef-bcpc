@@ -1,6 +1,6 @@
 [DEFAULT]
 control_exchange = watcher
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
 [api]
 bind_host = <%= node['service_ip'] %>

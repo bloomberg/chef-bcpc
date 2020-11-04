@@ -23,7 +23,7 @@ num_engine_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 # oslo_messaging.TransportURL at
 # https://docs.openstack.org/oslo.messaging/latest/reference/transport.html
 # (string value)
-transport_url = rabbit://<%= @headnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
+transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
 
 [clients_keystone]

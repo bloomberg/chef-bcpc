@@ -271,6 +271,7 @@ template '/etc/cinder/cinder.conf' do
     backends: cinder_config.backends,
     config: config,
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     scheduler_default_filters: cinder_config.filters
   )
 

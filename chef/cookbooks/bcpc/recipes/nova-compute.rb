@@ -184,6 +184,7 @@ template '/etc/nova/nova.conf' do
     db: database,
     config: config,
     headnodes: headnodes,
+    rmqnodes: rmqnodes,
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
