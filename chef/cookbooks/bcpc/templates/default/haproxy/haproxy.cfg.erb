@@ -75,7 +75,7 @@ backend rabbitmq-web-backend
   option httpchk GET /
   http-check expect status 200
   reqrep ^([^\ :]*)\ /rabbitmq/(.*) \1\ /\2
-<% @headnodes.each do |n| -%>
+<% @rmqnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:55672 check inter 5s rise 1 fall 1
 <% end -%>
 

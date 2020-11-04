@@ -6,6 +6,7 @@ export playbooks = ansible/playbooks
 export ANSIBLE_CONFIG = ansible/ansible.cfg
 
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
+rmqnodes = $$(ansible rmqnodes -i ${inventory} --list | tail -n +2 | wc -l)
 storagenodes = \
         $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 
@@ -93,6 +94,7 @@ configure-common-node :
 
 run-chef-client : \
 	run-chef-client-bootstraps \
+	run-chef-client-rmqnodes \
 	run-chef-client-headnodes \
 	run-chef-client-worknodes \
 	run-chef-client-storagenodes
@@ -102,6 +104,22 @@ run-chef-client-bootstraps :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t chef-client --limit bootstraps
+
+run-chef-client-rmqnodes :
+
+	@if [ "${rmqnodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t chef-client --limit rmqnodes \
+			-e "step=1"; \
+		\
+		if [ "${rmqnodes}" -gt 1 ]; then \
+			ansible-playbook -v \
+				-i ${inventory} ${playbooks}/site.yml \
+				-t chef-client --limit rmqnodes \
+				-e "step=1"; \
+		fi \
+	fi
 
 run-chef-client-headnodes :
 

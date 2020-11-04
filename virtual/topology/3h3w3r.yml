@@ -47,7 +47,6 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[rmqnode]
         - role[headnode]
 
   - host: r1n2
@@ -79,10 +78,9 @@ nodes:
       zone: dev
 
   - host: r1n3
-    group: worknodes
-    hardware_profile: worknode
+    group: rmqnodes
+    hardware_profile: headnode
     host_vars:
-      aggregate: dev-1
       bgp:
         asn: 4200858801
       interfaces:
@@ -102,9 +100,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[storagenode]
-        - role[worknode]
-      zone: dev
+        - role[rmqnode]
 
   - host: r2n1
     group: headnodes
@@ -129,7 +125,6 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
-        - role[rmqnode]
         - role[headnode]
 
   - host: r2n2
@@ -161,10 +156,9 @@ nodes:
       zone: dev
 
   - host: r2n3
-    group: worknodes
-    hardware_profile: worknode
+    group: rmqnodes
+    hardware_profile: headnode
     host_vars:
-      aggregate: dev-2
       bgp:
         asn: 4200858801
       interfaces:
@@ -184,9 +178,7 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
-        - role[storagenode]
-        - role[worknode]
-      zone: dev
+        - role[rmqnode]
 
   - host: r3n1
     group: headnodes
@@ -211,7 +203,6 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
-        - role[rmqnode]
         - role[headnode]
 
   - host: r3n2
@@ -243,10 +234,9 @@ nodes:
       zone: dev
 
   - host: r3n3
-    group: worknodes
-    hardware_profile: worknode
+    group: rmqnodes
+    hardware_profile: headnode
     host_vars:
-      aggregate: dev-3
       bgp:
         asn: 4200858801
       interfaces:
@@ -266,6 +256,4 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
-        - role[storagenode]
-        - role[worknode]
-      zone: dev
+        - role[rmqnode]

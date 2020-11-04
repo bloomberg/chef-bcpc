@@ -47,7 +47,6 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[rmqnode]
         - role[headnode]
 
   - host: r1n2
@@ -77,3 +76,28 @@ nodes:
         - role[storagenode]
         - role[worknode]
       zone: dev
+
+  - host: r1n3
+    group: rmqnodes
+    hardware_profile: headnode
+    host_vars:
+      bgp:
+        asn: 4200858801
+      interfaces:
+        service:
+          ip: 10.65.0.4
+        transit:
+          - ip: 10.121.84.5/28
+            mac: '08:00:27:00:00:16'
+            neighbor:
+              ip: 10.121.84.1
+              asn: 4200858701
+              name: management1
+          - ip: 10.121.88.5/28
+            mac: '08:00:27:00:00:17'
+            neighbor:
+              ip: 10.121.88.1
+              asn: 4200858702
+              name: management4
+      run_list:
+        - role[rmqnode]

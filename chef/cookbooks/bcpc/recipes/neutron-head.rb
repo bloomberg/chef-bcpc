@@ -199,7 +199,8 @@ template '/etc/neutron/neutron.conf' do
     db: database,
     os: openstack,
     config: config,
-    headnodes: headnodes(all: true)
+    headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true)
   )
   notifies :restart, 'service[neutron-server]', :immediately
 end
