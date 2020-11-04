@@ -35,3 +35,7 @@ default['bcpc']['neutron']['quota']['default']['quota_floatingip'] = 0
 
 # per-project quota settings
 default['bcpc']['neutron']['quota']['project']['admin']['rbac-policies'] = -1
+
+# database connection pool settings
+default['bcpc']['neutron']['db']['max_pool_size'] = 64
+default['bcpc']['neutron']['db']['max_overflow'] = 128
