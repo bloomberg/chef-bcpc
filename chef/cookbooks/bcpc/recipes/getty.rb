@@ -19,6 +19,6 @@
 
 node['bcpc']['getty']['ttys'].each do |ttyname|
   systemd_unit "getty@#{ttyname}.service" do
-    action %i(enable start)
+    action %i(disable stop)
   end
 end
