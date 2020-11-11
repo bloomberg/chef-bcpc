@@ -295,9 +295,17 @@ if zone_config.enabled?
       fi
 
       if ! grep AccessFilter ${entry_points_txt}; then
+
+        # update entry points file using crudini
         crudini --set ${entry_points_txt} cinder.scheduler.filters \
           AccessFilter cinder.scheduler.filters.access_filter:AccessFilter
+
+        # sleep for a brief moment before restarting cinder-scheduler
+        sleep 10
+
+        # restart cinder-scheduler
         systemctl restart cinder-scheduler
+
       fi
     EOH
   end
