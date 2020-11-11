@@ -1,0 +1,9 @@
+<% if node['bcpc']['haproxy']['qos']['enabled'] %>
+  # QoS-related options
+  errorfile 429 /etc/haproxy/errors/429.http
+  tcp-request content reject if { src,table_conn_cur(stick-table-qos) gt <%= node['bcpc']['haproxy']['qos']['conn_limit'] %> }
+  tcp-request content reject if { src,table_conn_rate(stick-table-qos) gt <%= node['bcpc']['haproxy']['qos']['conn_rate'] %> }
+  http-request deny deny_status 429 if { src,table_http_req_rate(stick-table-qos) gt <%= node['bcpc']['haproxy']['qos']['http_req_rate'] %> }
+  http-request deny deny_status 429 if { src,table_http_err_rate(stick-table-qos) gt <%= node['bcpc']['haproxy']['qos']['http_err_rate'] %> }
+  http-request track-sc0 src table stick-table-qos if !{ src -f /etc/haproxy/acls/qos-exempt.acl }
+<% end %>

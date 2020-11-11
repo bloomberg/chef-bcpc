@@ -203,7 +203,7 @@ template '/etc/haproxy/haproxy.d/nova.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-nova]', :immediately
+  notifies :reload, 'service[haproxy-nova]', :immediately
 end
 
 # nova package installation and service definition

@@ -12,3 +12,5 @@ listen glance-api
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:9292 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>

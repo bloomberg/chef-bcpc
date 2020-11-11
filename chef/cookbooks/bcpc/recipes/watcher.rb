@@ -200,7 +200,7 @@ template '/etc/haproxy/haproxy.d/watcher.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-watcher]', :immediately
+  notifies :reload, 'service[haproxy-watcher]', :immediately
 end
 
 execute 'wait for watcher api to become available' do

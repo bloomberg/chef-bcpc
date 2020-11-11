@@ -9,10 +9,12 @@ listen heat-api
   option httpchk GET /healthcheck
   option httplog
   option forwardfor
-  reqadd X-Forwarded-Proto:\ https
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8004 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
+  reqadd X-Forwarded-Proto:\ https
 
 listen heat-api-cfn
   bind <%= @vip %>:8000 ssl crt /etc/haproxy/haproxy.pem
@@ -21,7 +23,9 @@ listen heat-api-cfn
   option httpchk GET /healthcheck
   option httplog
   option forwardfor
-  reqadd X-Forwarded-Proto:\ https
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8000 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
+  reqadd X-Forwarded-Proto:\ https

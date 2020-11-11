@@ -67,5 +67,19 @@ template '/etc/haproxy/haproxy.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy]', :immediately
+  notifies :reload, 'service[haproxy]', :immediately
+end
+
+template '/etc/haproxy/errors/429.http' do
+  source 'haproxy/429.http.erb'
+  notifies :reload, 'service[haproxy]', :immediately
+end
+
+directory '/etc/haproxy/acls' do
+  action :create
+end
+
+template '/etc/haproxy/acls/qos-exempt.acl' do
+  source 'haproxy/qos-exempt.acl.erb'
+  notifies :reload, 'service[haproxy]', :immediately
 end

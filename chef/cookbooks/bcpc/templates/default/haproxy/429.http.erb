@@ -1,0 +1,8 @@
+HTTP/1.0 429 Too Many Requests
+Cache-Control: no-cache
+Connection: close
+Content-Type: text/html
+
+<html><body><h1>429 Too Many Requests</h1>
+You have executed too many requests and have been rate limited. Please see the service <% if not node['bcpc']['haproxy']['qos']['slo_url'].nil? %><a href="<%= node['bcpc']['haproxy']['qos']['slo_url'] %>">SLO</a><% else %>SLO<% end %> for more information.
+</body></html>

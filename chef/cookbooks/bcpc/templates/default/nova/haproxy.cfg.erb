@@ -13,6 +13,8 @@ listen nova-api
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8774 check inter 5s rise 1 fall 1
 <% end -%>
 
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
+
 listen novncproxy
   bind <%= @vip %>:6080 ssl crt /etc/haproxy/haproxy.pem
   balance source
@@ -22,6 +24,8 @@ listen novncproxy
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:6080 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
 
 listen placement-api
   bind <%= @vip %>:8778 ssl crt /etc/haproxy/haproxy.pem
@@ -33,3 +37,5 @@ listen placement-api
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:8778 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>

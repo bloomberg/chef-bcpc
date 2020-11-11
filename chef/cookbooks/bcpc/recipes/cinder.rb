@@ -117,7 +117,7 @@ template '/etc/haproxy/haproxy.d/cinder.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-cinder]', :immediately
+  notifies :reload, 'service[haproxy-cinder]', :immediately
 end
 
 # cinder package installation and service definition
