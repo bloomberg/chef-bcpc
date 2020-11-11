@@ -1,0 +1,31 @@
+# When we bring-up a new cluster, there are some circular dependencies that
+# present themselves (depending on how roles are broken out).  This playbook
+# attempts to resolve those dependencies before chef is used to converge
+# each node so that things go smoothly.
+#
+# The list of dependencies we resolve in configure-web-server [1] and here [2]:
+#   * [1] etcd requires bcpc::web-server (to obtain packages)
+#   * [2] etcd-proxy (non-headnodes) requires etcd (headnodes)
+#   * [2] calico-felix requires etcd-proxy or etcd-member
+#
+# In the future, we should move Consul, etcd, etc. out of Chef and into
+# Ansible so these dependencies can be resolved more elegantly.
+- hosts: headnodes
+  gather_facts: no
+  become: yes
+  order: inventory
+  tasks:
+    - name: provision the first etcd server
+      become: true
+      command: chef-client -o bcpc::etcd-member
+      run_once: true
+      changed_when: false
+
+- hosts: cloud
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: run chef-client with role[node]'s run_list
+      become: true
+      command: chef-client -o role[node]
+      changed_when: false

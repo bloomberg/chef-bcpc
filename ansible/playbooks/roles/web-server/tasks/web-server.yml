@@ -7,3 +7,5 @@
 
 - include: upload-web-server-file.yml
   with_items: "{{ all_web_server_assets }}"
+
+- include: chef-web-server.yml

@@ -1,0 +1,4 @@
+- name: provision the bootstraps' web-servers
+  become: true
+  command: chef-client -o bcpc::web-server
+  changed_when: false
