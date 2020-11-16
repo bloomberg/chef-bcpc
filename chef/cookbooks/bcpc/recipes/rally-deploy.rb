@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Note: The rally.rb recipe must have already been executed before running this one.
+# NOTE: The rally.rb recipe must have already been executed before running this one.
 # IMPORTANT: The head nodes MUST have already been installed and the keystone endpoints working. Rally verifies.
 
 return unless node['bcpc']['rally']['enabled']
