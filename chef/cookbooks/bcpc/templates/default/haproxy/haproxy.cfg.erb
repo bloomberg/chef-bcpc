@@ -20,7 +20,11 @@ defaults
   option dontlognull
   option redispatch
   retries 3
+<% if node['bcpc']['haproxy']['qos']['enabled'] %>
+  timeout http-request <%= node['bcpc']['haproxy']['qos']['http_request_timeout'] %>
+<% else %>
   timeout http-request 10s
+<% end %>
   timeout queue 1m
   timeout connect 5s
   timeout check 10s
@@ -74,3 +78,11 @@ backend rabbitmq-web-backend
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:55672 check inter 5s rise 1 fall 1
 <% end -%>
+
+peers headnodes
+<% @headnodes.each do |n| -%>
+  peer <%= n['hostname'] %> <%= n['service_ip'] %>:32768
+<% end -%>
+
+backend stick-table-qos
+  stick-table type ip size <%= node['bcpc']['haproxy']['qos']['max_entries'] %> expire <%= node['bcpc']['haproxy']['qos']['entry_expiration'] %> peers headnodes store conn_cur,conn_rate(<%= node['bcpc']['haproxy']['qos']['conn_rate_period'] %>),http_req_rate(<%= node['bcpc']['haproxy']['qos']['http_req_rate_period'] %>),http_err_rate(<%= node['bcpc']['haproxy']['qos']['http_err_rate_period'] %>)

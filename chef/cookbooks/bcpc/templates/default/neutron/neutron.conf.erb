@@ -28,6 +28,8 @@ etcd_key_file = <%= node['bcpc']['etcd']['client-rw']['key']['filepath'] %>
 
 [database]
 connection = mysql+pymysql://<%= "#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/#{@db['dbname']}" %>
+max_pool_size = <%= node['bcpc']['neutron']['db']['max_pool_size'] %>
+max_overflow = <%= node['bcpc']['neutron']['db']['max_overflow'] %>
 
 [keystone_authtoken]
 auth_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>

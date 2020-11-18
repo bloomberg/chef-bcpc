@@ -198,7 +198,7 @@ template '/etc/haproxy/haproxy.d/heat.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-heat]', :immediately
+  notifies :reload, 'service[haproxy-heat]', :immediately
 end
 
 # heat packages installation and service definitions

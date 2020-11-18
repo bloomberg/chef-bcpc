@@ -17,8 +17,8 @@ default['bcpc']['keystone']['debug'] = false
 default['bcpc']['keystone']['workers'] = nil
 
 # configure SQLAlchemy overflow/QueuePool sizes
-default['bcpc']['keystone']['database']['max_overflow'] = 10
-default['bcpc']['keystone']['database']['max_pool_size'] = 5
+default['bcpc']['keystone']['database']['max_overflow'] = 128
+default['bcpc']['keystone']['database']['max_pool_size'] = 64
 # The driver section below allows either 'sql' or 'ldap' (or 'templated' for catalog)
 # Note that not all drivers may support SQL/LDAP, only tinker if you know what you're getting into
 default['bcpc']['keystone']['drivers']['assignment'] = 'sql'

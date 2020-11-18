@@ -12,6 +12,8 @@ listen keystone-admin-api
   server <%= n['hostname'] %> <%= n['service_ip'] %>:35357 check inter 5s rise 1 fall 1
 <% end -%>
 
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
+
 listen keystone-public-api
   bind <%= @vip %>:5000 ssl crt /etc/haproxy/haproxy.pem
   balance source
@@ -22,3 +24,5 @@ listen keystone-public-api
 <% @headnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:5000 check inter 5s rise 1 fall 1
 <% end -%>
+
+<%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>

@@ -32,7 +32,7 @@ template '/etc/haproxy/haproxy.d/keystone.cfg' do
     headnodes: headnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
-  notifies :restart, 'service[haproxy-keystone]', :immediately
+  notifies :reload, 'service[haproxy-keystone]', :immediately
 end
 
 # package installation and service definition starts
