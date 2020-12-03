@@ -65,6 +65,7 @@ template '/etc/haproxy/haproxy.cfg' do
   variables(
     user: config['haproxy'],
     headnodes: headnodes(all: true),
+    rmqnodes: rmqnodes(all: true),
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :reload, 'service[haproxy]', :immediately
