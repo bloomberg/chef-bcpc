@@ -44,12 +44,16 @@ def rmqnode?
   search(:node, "role:rmqnode AND hostname:#{node['hostname']}").any?
 end
 
-def worknode?
-  search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
-end
-
 def storagenode?
   search(:node, "role:storagenode AND hostname:#{node['hostname']}").any?
+end
+
+def stubnode?
+  search(:node, "role:stubnode AND hostname:#{node['hostname']}").any?
+end
+
+def worknode?
+  search(:node, "role:worknode AND hostname:#{node['hostname']}").any?
 end
 
 def bootstraps

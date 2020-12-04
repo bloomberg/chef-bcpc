@@ -42,6 +42,13 @@ chef_environment:
 ###############################################################################
 
 chef_roles:
+  - name: stubnode
+    description: cloud infrastructure foundational role
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+
   - name: bootstrap
     description: bootstrap node
     json_class: Chef::Role
