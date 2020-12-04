@@ -82,7 +82,7 @@ Vagrant.configure('2') do |config|
   end
 
   topology['nodes'].each do |node|
-    vm_name = Util.vbox_name(node['host'])
+    vm_name = node['host']
 
     # get hardware profile for node
     hw_profiles = hardware['profiles']
@@ -131,7 +131,7 @@ Vagrant.configure('2') do |config|
         args = {}.tap do |a|
           a[:ip] = t_iface['ip'].split('/')[0]
           a[:mac] = t_iface['mac'].delete(':')
-          a[:libvirt__network_name] = Util.vbox_name(t_iface['neighbor']['name'])
+          a[:libvirt__network_name] = Util.libvirt_prefix() + '_' + t_iface['neighbor']['name']
           a[:libvirt__dhcp_enabled] = false
           a[:libvirt__forward_mode] = 'veryisolated'
         end
