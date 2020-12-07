@@ -9,13 +9,13 @@ nodes:
         service:
           ip: 10.65.0.1
         transit:
-          - ip: 10.121.84.2/28
+          - ip: 10.121.84.2/27
             mac: '08:00:27:00:00:10'
             neighbor:
               ip: 10.121.84.1
               asn: 4200858701
               name: management1
-          - ip: 10.121.88.2/28
+          - ip: 10.121.88.2/27
             mac: '08:00:27:00:00:11'
             neighbor:
               ip: 10.121.88.1
@@ -34,13 +34,13 @@ nodes:
         service:
           ip: 10.65.0.2
         transit:
-          - ip: 10.121.84.3/28
+          - ip: 10.121.84.3/27
             mac: '08:00:27:00:00:12'
             neighbor:
               ip: 10.121.84.1
               asn: 4200858701
               name: management1
-          - ip: 10.121.88.3/28
+          - ip: 10.121.88.3/27
             mac: '08:00:27:00:00:13'
             neighbor:
               ip: 10.121.88.1
@@ -53,30 +53,31 @@ nodes:
     group: worknodes
     hardware_profile: worknode
     host_vars:
+      aggregate: dev-1
       bgp:
         asn: 4200858801
       interfaces:
         service:
           ip: 10.65.0.3
         transit:
-          - ip: 10.121.84.4/28
+          - ip: 10.121.84.4/27
             mac: '08:00:27:00:00:14'
             neighbor:
               ip: 10.121.84.1
               asn: 4200858701
               name: management1
-          - ip: 10.121.88.4/28
+          - ip: 10.121.88.4/27
             mac: '08:00:27:00:00:15'
             neighbor:
               ip: 10.121.88.1
               asn: 4200858702
               name: management4
       run_list:
-        - role[storagenode]
         - role[worknode]
+      zone: dev
 
   - host: r1n3
-    group: worknodes
+    group: storagenodes
     hardware_profile: worknode
     host_vars:
       bgp:
@@ -85,13 +86,13 @@ nodes:
         service:
           ip: 10.65.0.4
         transit:
-          - ip: 10.121.84.5/28
+          - ip: 10.121.84.5/27
             mac: '08:00:27:00:00:16'
             neighbor:
               ip: 10.121.84.1
               asn: 4200858701
               name: management1
-          - ip: 10.121.88.5/28
+          - ip: 10.121.88.5/27
             mac: '08:00:27:00:00:17'
             neighbor:
               ip: 10.121.88.1
@@ -99,4 +100,28 @@ nodes:
               name: management4
       run_list:
         - role[storagenode]
-        - role[worknode]
+
+  - host: r1n4
+    group: rmqnodes
+    hardware_profile: headnode
+    host_vars:
+      bgp:
+        asn: 4200858801
+      interfaces:
+        service:
+          ip: 10.65.0.5
+        transit:
+          - ip: 10.121.84.6/27
+            mac: '08:00:27:00:00:18'
+            neighbor:
+              ip: 10.121.84.1
+              asn: 4200858701
+              name: management1
+          - ip: 10.121.88.6/27
+            mac: '08:00:27:00:00:19'
+            neighbor:
+              ip: 10.121.88.1
+              asn: 4200858702
+              name: management4
+      run_list:
+        - role[rmqnode]
