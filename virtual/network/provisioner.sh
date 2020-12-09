@@ -1,6 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash
 
-# Copyright 2019, Bloomberg Finance L.P.
+# Copyright 2020, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-is_tor() {
-    [[ ${1} =~ ^tor ]]
-}
+# The on_edge_flag defines whether a router should be left "connected" to
+# the outside such as running DHCP and adding a masquerade source NAT rule.
 
-is_spine() {
-    [[ ${1} =~ ^spine || ${1} =~ ^network ]]
+set -eux
+
+on_edge_flag=0
+
+DHCP_CONF='      dhcp4: true'
+STATIC_CONF='      addresses:\n        - 10.0.2.15/24\n      nameservers:\
+        addresses:\n          - 10.0.2.3'
+
+on_edge() {
+    [[ ${on_edge_flag} == 1 ]]
 }
 
 switch_config() {
@@ -27,8 +34,8 @@ switch_config() {
     sudo sed -i 's/#\(net.ipv4.ip_forward\)/\1/g' /etc/sysctl.d/99-sysctl.conf
     sudo sysctl -q -p /etc/sysctl.d/99-sysctl.conf
 
-    if is_spine "${1}" ; then
-        # add masquerading source NAT rule on spines
+    if on_edge "${1}" ; then
+        # add masquerading source NAT rule on spines or super spines
         sudo iptables -A POSTROUTING -j MASQUERADE -o eth0 -t nat
         sudo iptables-save | sudo tee /etc/iptables/rules.v4
     fi
@@ -43,10 +50,13 @@ base_config() {
         sudo systemctl stop ${s}
         sudo systemctl disable ${s}
     done
-    if is_tor "${1}" ; then
+    if on_edge "${1}" ; then
+        sudo cp "/vagrant/netplan/${1}.yaml" /etc/netplan/01-netcfg.yaml
+    else
         sudo dhclient -x
+        sed "s|${DHCP_CONF}|${STATIC_CONF}|" \
+          "/vagrant/netplan/${1}.yaml" | sudo tee /etc/netplan/01-netcfg.yaml
     fi
-    sudo cp "/vagrant/netplan/${1}.yaml" /etc/netplan/01-netcfg.yaml
     sudo netplan apply
     sudo systemctl restart lldpd
 }
@@ -63,7 +73,25 @@ package_installation() {
     ${apt} install lldpd traceroute bird2 iptables-persistent
 }
 
+opts=$(getopt E "$@")
+# shellcheck disable=SC2086
+set -- ${opts}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -E)
+            on_edge_flag=1
+            shift
+            ;;
+        *)
+            shift
+            break
+            ;;
+    esac
+done
+
 apt_configuration
 package_installation
 base_config "${1}"
 switch_config "${1}"
+exit 0

@@ -5,10 +5,7 @@ network:
       dhcp4: true
     eth1:
       addresses:
-        - 172.16.0.1/31
+        - 172.16.0.73/31
     eth2:
       addresses:
-        - 172.16.0.5/31
-    eth3:
-      addresses:
-        - 172.16.0.9/31
+        - 172.16.0.77/31

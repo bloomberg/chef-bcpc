@@ -8,11 +8,8 @@ assets/
 ansible/inventory.yml
 ansible/group_vars/all/overrides.yml
 ansible/group_vars/all/chef_databags.yml
-chef/roles/node.json
+chef/roles/*node.json
 chef/roles/bootstrap.json
-chef/roles/headnode.json
-chef/roles/worknode.json
-chef/roles/storagenode.json
 chef/environments/
 chef/databags/
 virtual/files/ssh/id_*

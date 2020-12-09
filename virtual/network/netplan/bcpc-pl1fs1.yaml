@@ -1,0 +1,11 @@
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+    eth1:
+      addresses:
+        - 172.16.0.65/31
+    eth2:
+      addresses:
+        - 172.16.0.69/31

@@ -79,14 +79,11 @@ Vagrant.configure(2) do |config|
       eth = "eth#{i}"
       a = network['network']['ethernets'][eth]['addresses'][0].split('/')
       netmask = IPAddr.new('255.255.255.255').mask(a[1]).to_s
-      node.vm.network 'private_network',
-                      ip: a[0],
-                      libvirt__netmask: netmask,
-                      libvirt__network_name: Util.vbox_name("management#{i}"),
-                      libvirt__dhcp_enabled: false,
-                      libvirt__forward_mode: 'veryisolated'
+      node.vm.network('private_network', ip: a[0], libvirt__netmask: netmask,
+        libvirt__network_name: Util.libvirt_prefix() + "_management#{i}",
+        libvirt__dhcp_enabled: false, libvirt__forward_mode: 'veryisolated')
     end
     setup_proxy(node)
-    node.vm.provision 'shell', path: 'provisioner.sh', args: 'network'
+    node.vm.provision 'shell', path: 'provisioner.sh', args: '-E network'
   end
 end
