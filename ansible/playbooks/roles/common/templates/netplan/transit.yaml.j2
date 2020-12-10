@@ -7,9 +7,3 @@ network:
       match:
         macaddress: {{ item['mac'] }}
       mtu: {{ networking['mtu'] }}
-      nameservers:
-        addresses:
-          - {{ cloud_ip }}
-{% for s in dns['servers'] %}
-          - {{s}}
-{% endfor %}

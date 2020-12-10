@@ -15,16 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'unbound'
 service 'unbound'
-
-template '/etc/default/unbound' do
-  source 'unbound/default.erb'
-  variables(
-    config: node['bcpc']['unbound']['default']
-  )
-  notifies :restart, 'service[unbound]', :delayed
-end
 
 begin
   powerdns_address = node['bcpc']['powerdns']['local_address']
@@ -32,31 +23,24 @@ begin
   powerdns_ns = "#{powerdns_address}@#{powerdns_port}"
   local_zones = {}
   networks = node['bcpc']['neutron']['networks'].dup
+
   networks.each do |network|
     %w(fixed float).each do |type|
       next unless network[type]['dns-zones']['create']
       network[type].fetch('subnets', []).each do |subnet|
         zones = cidr_to_reverse_zones(IPAddress(subnet['allocation']))
         zones.each do |z|
-          local_zones[z['zone']] = [powerdns_ns]
+          local_zones[z['zone']] = powerdns_ns
         end
       end
     end
   end
 
-  template '/etc/unbound/unbound.conf.d/server.conf' do
-    source 'unbound/server.conf.erb'
+  template '/etc/unbound/unbound.conf.d/local-zones.conf' do
+    source 'unbound/local-zones.conf.erb'
     variables(
-      server: node['bcpc']['unbound']['server'],
-      forward: node['bcpc']['unbound']['forward-zone'],
       local_zones: local_zones
     )
     notifies :restart, 'service[unbound]', :delayed
   end
-end
-
-# Disable DNSSEC
-file '/etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf' do
-  action :delete
-  notifies :restart, 'service[unbound]', :immediately
 end

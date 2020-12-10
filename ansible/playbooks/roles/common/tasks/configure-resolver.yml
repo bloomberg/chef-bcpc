@@ -1,0 +1,67 @@
+###############################################################################
+# configure unbound
+#
+# the following section will configure unbound to be the primary name resolver
+###############################################################################
+
+- name: sysctl allow non-local ip bind
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    state: present
+  when: "'headnodes' is in group_names"
+
+- name: install unbound
+  apt:
+    name: unbound
+    state: present
+
+- name: remove default unbound conf files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf
+  register: unbound_defualt_conf
+
+- name: install unbound default config
+  copy:
+    src: files/unbound/default
+    dest: /etc/default/unbound
+  register: unbound_default_conf
+
+- name: install unbound server config
+  template:
+    src: unbound/server.conf.j2
+    dest: /etc/unbound/unbound.conf.d/server.conf
+  register: unbound_conf
+
+- name: restart unbound
+  service:
+    name: unbound
+    state: restarted
+  when: unbound_conf.changed or unbound_default_conf.changed
+
+- name: install /etc/resolv.conf
+  template:
+    src: etc/resolv.conf.j2
+    dest: /etc/resolv.conf
+
+###############################################################################
+# configure systemd-resolved
+#
+# the following section will stop, disable and mask the systemd-resolved
+# service and revert its configuration
+###############################################################################
+
+- name: stop, disable and mask systemd-resolved
+  service:
+    name: systemd-resolved
+    state: stopped
+    enabled: false
+    masked: true
+
+- name: install original resolved config file
+  copy:
+    src: files/systemd/resolved.conf
+    dest: /etc/systemd/resolved.conf
