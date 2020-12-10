@@ -12,27 +12,29 @@
 - import_tasks: configure-etc-hosts.yml
   tags: [configure-etc-hosts]
 
-- import_tasks: configure-root-user-ssh.yml
-  tags: [configure-root-user-ssh]
-
-- import_tasks: configure-systemd-resolved.yml
-  tags: [configure-systemd-resolved]
-
-- import_tasks: configure-local-proxy.yml
-
-- import_tasks: configure-ubuntu-apt-sources.yml
-  tags: [configure-ubuntu-apt-sources]
-
 - import_tasks: configure-network-interfaces.yml
-  when: configure_network_interfaces | default(true)
+  tags: [configure_network_interfaces]
 
 - import_tasks: configure-service-ip.yml
-  when: configure_service_ip | default(true)
+  tags: [configure_service_ip]
 
 - import_tasks: configure-bgp.yml
   tags: [configure-bgp]
+
+- import_tasks: configure-resolver.yml
+  tags: [configure-resolver]
+
+- import_tasks: configure-local-proxy.yml
+  tags: [configure-local-proxy]
+
+- import_tasks: configure-ubuntu-apt-sources.yml
+  tags: [configure-ubuntu-apt-sources]
 
 - import_tasks: configure-chrony.yml
   tags: [configure-chrony]
 
 - import_tasks: configure-sshd.yml
+  tags: [configure-sshd]
+
+- import_tasks: configure-root-user-ssh.yml
+  tags: [configure-root-user-ssh]

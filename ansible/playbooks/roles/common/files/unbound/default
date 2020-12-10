@@ -2,12 +2,4 @@
 # managed by ansible
 ###############################################################################
 
-[Resolve]
-DNS={{ cloud_ip }}
-FallbackDNS={{ dns['servers'] | join (' ') }}
-Cache=no
-#Domains=
-#LLMNR=no
-#MulticastDNS=no
-#DNSSEC=no
-#DNSStubListener=yes
+ROOT_TRUST_ANCHOR_UPDATE=false

@@ -1,0 +1,9 @@
+server:
+<% @local_zones.each do |zone, ns| %>
+  local-zone: <%= zone %> transparent
+<% end %>
+<% @local_zones.each do |zone, ns| %>
+  forward-zone:
+    name: <%= zone %>
+    forward-addr: <%= ns %>
+<% end %>
