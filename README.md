@@ -15,9 +15,6 @@ work node runs the relevant services (nova-compute, Ceph OSDs, etc.).
 The following instructions will get chef-bcpc up and running on your local
 machine for development and testing purposes.
 
-See the [Hardware Deployment][Hardware Deployment] section for notes on how to
-deploy the chef-bcpc on hardware.
-
 
 ### Prerequisites
 

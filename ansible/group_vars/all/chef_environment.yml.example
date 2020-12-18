@@ -1,0 +1,46 @@
+###############################################################################
+# About this file
+###############################################################################
+
+# This file overrides various defaults defined in both
+# ansible/playbooks/roles/common/defaults/main/chef.yml and in the chef
+# attribute files found in chef/cookbooks/bcpc/attributes.
+#
+# Below is a sample file for your convenience.
+
+chef_environment:
+  name: cluster_name
+  description: cluster_name_description
+  json_class: Chef::Environment
+  chef_type: environment
+  override_attributes:
+    bcpc:
+      apache2:
+        status:
+          enabled: true
+      calico:
+        repo:
+          url: http://some_calico_repo
+          key: http://some_calico_repo_key
+      cinder:
+        backend_native_threads_pool_size: 20
+        ceph:
+          pool:
+            size: 2
+      cloud:
+        domain: "{{ cloud_domain }}"
+        fqdn: "{{ cloud_fqdn }}"
+        vip: "{{ cloud_ip }}"
+      dns: "{{ dns }}"
+      haproxy:
+        qos:
+          enabled: true
+          exemptions:
+            - 8.8.8.8/31
+          slo_url: https://my_slo
+      glance:
+        ceph:
+          pool:
+            size: 2
+      heat:
+        enabled: true
