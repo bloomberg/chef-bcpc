@@ -15,11 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Headnodes have etcd-member and don't need etcd-proxy.
-return if headnode?
-
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
+
+# Headnodes have etcd-member and don't need etcd-proxy.
+return if headnode?
 
 service 'etcd'
 
