@@ -205,6 +205,9 @@ end
 # configure keystone service starts
 template '/etc/keystone/keystone.conf' do
   source 'keystone/keystone.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'keystone'
 
   variables(
     db: database,

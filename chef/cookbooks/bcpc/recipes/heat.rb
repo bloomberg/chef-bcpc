@@ -310,6 +310,10 @@ end
 
 template '/etc/heat/heat.conf' do
   source 'heat/heat.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'heat'
+
   variables(
     db: database,
     os: openstack,

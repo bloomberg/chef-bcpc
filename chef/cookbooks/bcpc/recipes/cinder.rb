@@ -248,6 +248,10 @@ cinder_processes = if !node['bcpc']['cinder']['workers'].nil?
 
 template '/etc/apache2/sites-available/cinder-api.conf' do
   source 'cinder/cinder-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'cinder'
+
   variables(
     processes: cinder_processes
   )
@@ -262,8 +266,8 @@ end
 
 template '/etc/cinder/cinder.conf' do
   source 'cinder/cinder.conf.erb'
-  mode '600'
-  owner 'cinder'
+  mode '0640'
+  owner 'root'
   group 'cinder'
 
   variables(

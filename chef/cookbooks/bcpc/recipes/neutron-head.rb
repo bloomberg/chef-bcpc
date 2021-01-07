@@ -195,6 +195,10 @@ end
 #
 template '/etc/neutron/neutron.conf' do
   source 'neutron/neutron.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'neutron'
+
   variables(
     db: database,
     os: openstack,

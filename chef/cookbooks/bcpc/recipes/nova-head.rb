@@ -341,6 +341,9 @@ end
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
 
   variables(
     db: database,
@@ -381,6 +384,10 @@ placement_processes = if !node['bcpc']['placement']['workers'].nil?
 
 template '/etc/apache2/sites-available/nova-placement-api.conf' do
   source 'nova/nova-placement-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
+
   variables(
     processes: placement_processes
   )
