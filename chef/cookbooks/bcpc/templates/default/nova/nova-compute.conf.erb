@@ -18,10 +18,12 @@ live_migration_uri = qemu+ssh://nova@%s/system
 <% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
 cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
 <% end -%>
+<% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? or node['bcpc']['nova']['cpu_config']['cpu_mode'] =~ %r"^host-" %>
 <% unless node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
 cpu_model = <%= node['bcpc']['nova']['cpu_config']['cpu_model'] %>
 <% end -%>
 <% unless node['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'].empty? %>
 cpu_model_extra_flags = <%= node['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'].join(',') %>
+<% end -%>
 <% end -%>
 live_migration_permit_auto_converge = true
