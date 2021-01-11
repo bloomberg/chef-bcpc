@@ -30,4 +30,3 @@ default['bcpc']['powerdns']['soa-ttl']['refresh'] = 600
 default['bcpc']['powerdns']['soa-ttl']['retry'] = 300
 default['bcpc']['powerdns']['soa-ttl']['expiry'] = 86400
 default['bcpc']['powerdns']['soa-ttl']['nx'] = 120
-
