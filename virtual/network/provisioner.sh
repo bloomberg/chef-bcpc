@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2020, Bloomberg Finance L.P.
+# Copyright 2021, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ set -eux
 on_edge_flag=0
 
 DHCP_CONF='      dhcp4: true'
+# shellcheck disable=SC1004
 STATIC_CONF='      addresses:\n        - 10.0.2.15/24\n      nameservers:\
         addresses:\n          - 10.0.2.3'
 
@@ -55,7 +56,7 @@ base_config() {
     else
         sudo dhclient -x
         sed "s|${DHCP_CONF}|${STATIC_CONF}|" \
-          "/vagrant/netplan/${1}.yaml" | sudo tee /etc/netplan/01-netcfg.yaml
+            "/vagrant/netplan/${1}.yaml" | sudo tee /etc/netplan/01-netcfg.yaml
     fi
     sudo netplan apply
     sudo systemctl restart lldpd
