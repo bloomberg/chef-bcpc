@@ -106,6 +106,13 @@ def all_nodes
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
+def node_roles
+  matches = search(:node, "hostname:#{node['hostname']}")
+  raise "the node '#{node['hostname']}' does not exist or has "\
+    'multiple matches' if matches.length != 1
+  matches[0]['roles']
+end
+
 def generate_service_catalog_uri(svcprops, access_level)
   fqdn = node['bcpc']['cloud']['fqdn']
   port = svcprops['ports'][access_level]
