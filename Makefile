@@ -24,7 +24,8 @@ all : \
 	add-cloud-images \
 	register-compute-nodes \
 	enable-compute-service \
-	configure-host-aggregates
+	configure-host-aggregates \
+	print-success-banner
 
 create: create-virtual-network create-virtual-hosts
 
@@ -200,6 +201,31 @@ configure-host-aggregates :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/headnodes.yml \
 		-t configure-host-aggregates --limit headnodes
+
+define SUCCESS_BANNER
+                _
+              (`  ).                   _
+             (     ).              .:(`  )`.
+)           _(       '`.          :(   .    )
+        .=(`(      .   )     .--  `.  (    ) )
+       ((    (..__.:'-'   .+(   )   ` _`  ) )
+`.     `(       ) )       (   .  )     (   )  ._
+  )      ` __.:'   )     (   (   ))     `-'.-(`  )
+)  )  ( )       --'       `- __.'         :(      ))
+.-'  (_.'          .')                    `(    )  ))
+                  (_  )                     ` __.:'
+
+--..,___.--,--'`,---..-.--+--.,,-,,..._.--..-._.-a:f--.
+  ^^^^^^^^^^^^^^^^^^^^^
+  It's getting cloudy
+endef
+
+export SUCCESS_BANNER
+
+print-success-banner :
+
+	@echo "$$SUCCESS_BANNER"
+
 
 ###############################################################################
 # helper targets
