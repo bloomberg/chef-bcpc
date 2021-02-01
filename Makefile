@@ -28,9 +28,18 @@ all : \
 	configure-host-aggregates \
 	print-success-banner
 
+
 create: create-virtual-network create-virtual-hosts
 
 destroy: destroy-virtual-hosts destroy-virtual-network
+
+create-packer-box :
+
+	virtual/packer/bin/create-packer-box.sh
+
+destroy-packer-box :
+
+	virtual/packer/bin/destroy-packer-box.sh
 
 create-virtual-hosts :
 

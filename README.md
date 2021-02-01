@@ -24,6 +24,7 @@ machine for development and testing purposes.
 * 128 GB of free disk space
 * Vagrant 2.1+
 * VirtualBox 5.2+
+* Packer 1.4+
 * git, curl, rsync, ssh, jq, make, ansible
 
 **NOTE**: It is likely possible to build an environment with 16GB of RAM or less
@@ -42,6 +43,32 @@ choose from existing configurations in `virtual/topology`, or build your own.
 [topology.yml](virtual/topology/topology.yml) are used by default. To view a
 list of tested topologies and hardware configurations please see
 [virtual/README](virtual/README.md).
+* Set the variables in `virtual/vagrantbox.json`. The variable `vagrant_box` specifies the
+Vagrant box we use to build the virtual environment, and `vagrant_box_version` specifies
+the version of the Vagrant box.
+* If one would like to build a pre-provisioned custom Packer box and use it as the base box
+to create the virtual environment, the steps below should be followed:
+  * Create `virtual/packer/variables.json` and set the variables. Depends on the
+virtual machine provider, an example can be found at
+[variables.json.virtualbox.example](virtual/packer/variables.json.virtualbox.example)
+or [variables.json.libvirt.example](virtual/packer/variables.json.libvirt.example).
+This step is essential for building a Packer box that's used as a base box image for building
+the virtual environment. The variables `bcc_apt_key_url` and `bcc_apt_url` are optional,
+while others must be set. The variable `kernel_version` specifies the linux kernel version we'd
+like to have for the Packer box. While `base_box`, `base_box_version`, and `base_box_provider`
+specify an official Vagrant box we'd like to use as a baseline for the Packer box, upon which
+we make further modifications. Last but not least, the variable `output_packer_box_name` specifies
+the name we'd like to use when adding the output Packer box to Vagrant.
+  * Run make target `make create-packer-box`. This will create a Packer box and add it to Vagrant
+with the name specified by `output_packer_box_name`.
+  * Set the variables in `virtual/vagrantbox.json` accordingly. When a local custom box built by Packer
+is used, the variable `vagrant_box` needs to be set to the name of the Packer box (aka, the same as
+`output_packer_box_name` in `virtual/packer/variables.json`), and `vagrant_box_version` should be set to 0.
+  * After these steps, `make create all` would always use the Packer box, unless `virtual/vagrantbox.json`
+is specified otherwise.
+  * If the Packer box needs to be updated, we recommend first clean up the old Packer box. To clean up a
+Packer box, one must first make sure there's no VM using the Packer box by running `make destroy`, and then
+run `make destroy-packer-box` to clean up the Packer box.  
 * To make changes to the virtual topology without dirtying the tree, copy the
 [hardware.yml](virtual/topology/hardware.yml) and
 [topology.yml](virtual/topology/topology.yml) to files named
@@ -50,6 +77,15 @@ changes to them instead.
 * If a proxy server is required for internet access, set the variables TBD
 * If additional CA certificates are required (e.g. for a proxy), set the variables TBD
 * From the root of the chef-bcpc git repository run the following command:
+
+Download and install the latest version of Packer
+
+```shell
+wget https://releases.hashicorp.com/packer/1.6.6/packer_1.6.6_linux_amd64.zip -O ~/packer_1.6.6_linux.zip
+sudo apt install unzip
+sudo unzip ~/packer_1.6.6_linux.zip -d /usr/local/bin
+```
+
 
 Create a Python virtual environment (virtualenv) and activate it
 
@@ -64,20 +100,29 @@ To create a virtualbox build (the default):
 
 ```shell
 make generate-chef-databags
+make create-packer-box
 make create all
 ```
 
 To create a libvirt build:
 
 ```shell
-sudo apt-get install build-essential libvirt-dev qemu-utils
+sudo apt-get install build-essential libvirt-dev qemu-utils libguestfs-tools
 vagrant plugin install vagrant-libvirt vagrant-mutate
 vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualbox
 vagrant mutate bento/ubuntu-18.04 libvirt
 export VAGRANT_DEFAULT_PROVIDER=libvirt VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
 make generate-chef-databags
+make create-packer-box
 make create all
 ```
+
+To clean up the build:
+```shell
+make destroy
+make destroy-packer-box
+```
+
 
 You may also want to change cpu model from `qemu64` to `kvm64` in
 `ansible/playbooks/roles/common/defaults/main/chef.yml`
@@ -143,6 +188,7 @@ chef-bcpc is built with the following open source software:
  - [HAProxy](http://haproxy.1wt.eu/)
  - [Memcached](http://memcached.org)
  - [OpenStack](http://www.openstack.org/)
+ - [Packer](https://www.packer.io/)
  - [Percona XtraDB Cluster](http://www.percona.com/software/percona-xtradb-cluster)
  - [PowerDNS](https://www.powerdns.com/)
  - [RabbitMQ](http://www.rabbitmq.com/)

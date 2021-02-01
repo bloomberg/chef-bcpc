@@ -13,5 +13,7 @@ chef/roles/bootstrap.json
 chef/environments/
 chef/databags/
 virtual/files/ssh/id_*
+virtual/packer/output-vagrant/*
+virtual/packer/variables.json
 hardware.overrides.yml
 topology.overrides.yml
