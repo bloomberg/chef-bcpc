@@ -22,8 +22,10 @@ defaults
   retries 3
 <% if node['bcpc']['haproxy']['qos']['enabled'] %>
   timeout http-request <%= node['bcpc']['haproxy']['qos']['http_request_timeout'] %>
+  timeout http-keep-alive <%= node['bcpc']['haproxy']['qos']['http_keep_alive_timeout'] %>
 <% else %>
   timeout http-request 10s
+  timeout http-keep-alive 10s
 <% end %>
   timeout queue 1m
   timeout connect 5s
