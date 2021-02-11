@@ -81,6 +81,7 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ImagePropertiesFilter
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
+  AntiAffinityAvailabilityZoneFilter
 )
 
 # per-project override quota settings

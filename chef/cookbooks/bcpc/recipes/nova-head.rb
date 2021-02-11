@@ -352,6 +352,7 @@ template '/etc/nova/nova.conf' do
     vip: node['bcpc']['cloud']['vip']
   )
 
+  notifies :create, 'cookbook_file[/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py]', :immediately
   notifies :run, 'execute[update cell1]', :immediately
   notifies :restart, 'service[nova-api]', :immediately
   notifies :restart, 'service[nova-consoleauth]', :immediately
@@ -399,6 +400,19 @@ cookbook_file '/etc/nova/api-paste.ini' do
   mode '0640'
   notifies :restart, 'service[nova-api]', :immediately
   notifies :restart, 'service[placement-api]', :immediately
+end
+
+# add availibity zone anti affinity scheduler filter
+cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+  source 'nova/anti_affinity_availability_zone_filter.py'
+  mode '0644'
+  notifies :run, 'execute[compile az anti-affinity filter]', :immediately
+  #notifies :restart, 'service[nova-scheduler]', :immediately
+end
+
+execute 'compile az anti-affinity filter' do
+  action :nothing
+  command 'su python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
 end
 
 execute 'wait for nova to come online' do
