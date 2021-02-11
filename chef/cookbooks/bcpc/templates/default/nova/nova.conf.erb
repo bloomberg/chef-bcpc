@@ -142,7 +142,12 @@ workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 
 [filter_scheduler]
 available_filters = nova.scheduler.filters.all_filters
+<% if node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['enabled'] -%>
+available_filters = <%= node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['filterPath'] %>
+enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].push(nodede['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['name']).join(',') %>
+<% else %>
 enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].join(',') %>
+<% end %>
 
 <% if @is_headnode -%>
 [vnc]

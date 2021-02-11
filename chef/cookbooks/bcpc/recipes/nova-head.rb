@@ -338,6 +338,20 @@ end
 #
 # create/manage nova databases ends
 
+# add availibity zone anti affinity scheduler filter
+if node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['name'] 
+  cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+    source 'nova/anti_affinity_availability_zone_filter.py'
+    mode '0644'
+  end
+
+  execute 'compile az anti-affinity filter' do
+    action :nothing
+    command 'python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+    notifies :restart, 'service[nova-scheduler]', :immediately
+  end
+end
+
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
