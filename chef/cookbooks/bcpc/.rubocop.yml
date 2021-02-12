@@ -1,9 +1,3 @@
-ChefModernize/ExecuteSysctl:
-  Enabled: false
-
-ChefModernize/FoodcriticComments:
-  Enabled: false
-
 Style/RedundantBegin:
   Enabled: false
 

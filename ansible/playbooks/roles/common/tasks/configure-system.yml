@@ -194,6 +194,7 @@
   command: grep -q AuthenticAMD /proc/cpuinfo
   ignore_errors: true
   register: is_amd
+  changed_when: false
 
 - name: Install amd64-microcode package
   apt:
@@ -214,6 +215,7 @@
   command: grep -q GenuineIntel /proc/cpuinfo
   ignore_errors: true
   register: is_intel
+  changed_when: false
 
 - name: Install intel-microcode package
   apt:

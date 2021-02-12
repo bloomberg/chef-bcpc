@@ -35,4 +35,3 @@ default['bcpc']['mysql']['slow_query_log'] = true
 default['bcpc']['mysql']['slow_query_log_file'] = '/var/log/mysql/slow.log'
 default['bcpc']['mysql']['long_query_time'] = 10
 default['bcpc']['mysql']['log_queries_not_using_indexes'] = false
-

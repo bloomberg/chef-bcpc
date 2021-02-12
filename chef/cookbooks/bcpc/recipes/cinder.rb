@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: cinder
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -360,7 +360,7 @@ cinder_config.backends.each do |backend|
   end
 end
 
-execute 'make sure cinder-volume comes up' do # ~FC004
+execute 'make sure cinder-volume comes up' do
   action :nothing
   retries 30
   command 'systemctl start cinder-volume'
