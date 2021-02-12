@@ -29,6 +29,28 @@ package %w(
 
 service 'apache2'
 
+# log rotation configuration
+template '/etc/cron.d/logrotate-apache2' do
+  source 'apache2/cron-logrotate.erb'
+  variables(
+    headnodes: headnodes(all: true)
+  )
+end
+
+remote_file '/etc/apache2/logrotate.conf' do
+  only_if { ::File.exist?('/etc/logrotate.d/apache2') }
+  source 'file:///etc/logrotate.d/apache2'
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :create
+end
+
+file '/etc/logrotate.d/apache2' do
+  action :delete
+  backup false
+end
+
 # server configuration
 template '/etc/apache2/conf-available/keepalive.conf' do
   source 'apache2/keepalive.conf.erb'
