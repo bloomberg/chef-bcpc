@@ -2,6 +2,20 @@
 # apache2
 ###############################################################################
 
+# apache2 WSGI daemons will be bounced when the logs reload, so for production
+# clusters, it is a good idea to stagger these bounces across the headnodes.
+# Similarly, it may not be desirable to bounce apache2 alongside the rest of
+# the cron.daily tasks.
+#
+# These attributes serve to control both aspects of reloads/log rotations.
+#   * start_hour and start_minute defines the hour and minute, respectfully,
+#     at which to start bounces/log rotations for apache2.
+#   * ...during which process, each headnode's reload will be separated by
+#     splay_minutes.
+default['bcpc']['apache2']['logrotation']['start_hour'] = 22
+default['bcpc']['apache2']['logrotation']['start_minute'] = 0
+default['bcpc']['apache2']['logrotation']['splay_minutes'] = 1
+
 # Explicitly disable HTTP keep-alive for now.  As part of log rotation (or
 # when a "systemctl reload apache2" is run), a graceful restart is triggered
 # on Ubuntu.  Normally, this is not a problem... however, mod_wsgi in
