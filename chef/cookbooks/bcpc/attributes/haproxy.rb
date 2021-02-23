@@ -12,7 +12,7 @@ default['bcpc']['haproxy']['apt']['url'] = 'http://ppa.launchpad.net/vbernat/hap
 default['bcpc']['haproxy']['qos']['enabled'] = false
 
 # The amount of time to wait for HTTP headers to be sent
-default['bcpc']['haproxy']['qos']['http_request_timeout'] = '5s'
+default['bcpc']['haproxy']['qos']['http_request_timeout'] = '10s'
 
 # The maximum number of entries in the stick table
 default['bcpc']['haproxy']['qos']['max_entries'] = '1m'

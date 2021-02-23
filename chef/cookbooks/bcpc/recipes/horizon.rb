@@ -46,6 +46,10 @@ end
 
 template '/etc/openstack-dashboard/local_settings.py' do
   source 'horizon/local_settings.py.erb'
+  mode '0640'
+  owner 'root'
+  group 'horizon'
+
   variables(
     config: config,
     headnodes: headnodes(all: true),

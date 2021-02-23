@@ -83,7 +83,7 @@ execute 'install rally in virtualenv' do
   command <<-EOH
     virtualenv --no-download #{venv_dir} -p /usr/bin/python3
     . #{venv_dir}/bin/activate
-    pip install --upgrade pbr
+    pip install --upgrade 'pip>=19.1.1'
     pip install --upgrade rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
   not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
