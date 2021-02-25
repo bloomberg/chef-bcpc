@@ -81,7 +81,6 @@ default['bcpc']['nova']['scheduler_default_filters'] = %w(
   ImagePropertiesFilter
   ServerGroupAntiAffinityFilter
   ServerGroupAffinityFilter
-  AntiAffinityAvailabilityZoneFilter
 )
 
 # per-project override quota settings
@@ -110,3 +109,8 @@ default['bcpc']['nova']['db-archive']['cron_day'] = '*'
 default['bcpc']['nova']['db-archive']['cron_weekday'] = '6'
 default['bcpc']['nova']['db-archive']['cron_hour'] = '4'
 default['bcpc']['nova']['db-archive']['cron_minute'] = '0'
+
+# Anti-affinity availability zone scheduler filter
+default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['name'] = 'AntiAffinityAvailabilityZoneFilter'
+default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['enabled'] = false
+default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['filterPath'] = 'nova.scheduler.filters.anti_affinity_availability_zone_filter.AntiAffinityAvailabilityZoneFilter'
