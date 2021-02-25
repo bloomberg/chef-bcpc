@@ -89,6 +89,21 @@ chef_environment:
            cpu_model: kvm64
 ```
 
+To revert to the default virtualbox provider, as far as the build is
+concerned, you can just remove the mutated libvirt box and then unset
+VAGRANT_DEFAULT_PROVIDER and VAGRANT_VAGRANTFILE environment
+variables. However since you must also make sure that the different
+hypervisors don't both try to control the CPU virtualisation
+facilities, it is best to remove the mutated box and then simply
+reboot your development host (assuming no scripts reset the VAGRANT
+variables).
+
+This would look something like this:
+
+```shell
+$ rm -rf ~/.vagrant.d/boxes/bento-VAGRANTSLASH-ubuntu-18.04/202005.21.0/libvirt/
+$ sudo reboot
+```
 
 ## Hardware Deployment
 
