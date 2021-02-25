@@ -145,7 +145,6 @@ workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% @available_filters.each do |available_filter| %>
 available_filters = <%= available_filter %>
 <% end %>
-enabled_filters =  <%= @enabled_filters.join(',') %>
 
 [vnc]
 enabled = true
