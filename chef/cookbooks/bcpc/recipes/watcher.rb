@@ -128,6 +128,10 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do
   source 'watcher/watcher-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'watcher'
+
   variables(
     processes: watcher_processes
   )
@@ -174,6 +178,10 @@ end
 
 template '/etc/watcher/watcher.conf' do
   source 'watcher/watcher.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'watcher'
+
   variables(
     db: database,
     os: openstack,

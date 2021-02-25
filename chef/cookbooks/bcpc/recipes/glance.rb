@@ -220,6 +220,10 @@ end
 #
 template '/etc/glance/glance-api.conf' do
   source 'glance/glance-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'glance'
+
   variables(
     db: database,
     os: openstack,
