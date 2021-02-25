@@ -338,11 +338,35 @@ end
 #
 # create/manage nova databases ends
 
+# add availibity zone anti affinity scheduler filter
+available_filters = ['nova.scheduler.filters.all_filters']
+enabled_filters = node['bcpc']['nova']['scheduler_default_filters']
+anti_affinity = node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
+
+if anti_affinity['enabled']
+  available_filters.push(anti_affinity['filterPath'])
+  enabled_filters.push(anti_affinity['name'])
+
+  cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+    source 'nova/anti_affinity_availability_zone_filter.py'
+    mode '0644'
+    notifies :run, 'execute[compile az anti-affinity filter]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :immediately
+  end
+
+  execute 'compile az anti-affinity filter' do
+    action :nothing
+    command 'python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+  end
+end
+
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
 
   variables(
+    available_filters: available_filters,
+    enables_filters: enabled_fitler,
     db: database,
     os: openstack,
     config: config,

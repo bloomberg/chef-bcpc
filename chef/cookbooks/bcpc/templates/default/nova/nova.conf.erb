@@ -140,11 +140,13 @@ driver = filter_scheduler
 workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end%>
 
-[filter_scheduler]
-available_filters = nova.scheduler.filters.all_filters
-enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].join(',') %>
-
 <% if @is_headnode -%>
+[filter_scheduler]
+<% @available_filters.each do |available_filter| %>
+available_filters = <%= available_filter %>
+<% end %>
+enabled_filters =  <%= @enabled_filters.join(',') %>
+
 [vnc]
 enabled = true
 server_listen = <%= node['service_ip'] %>
