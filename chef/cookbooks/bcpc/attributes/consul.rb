@@ -22,12 +22,17 @@ default['bcpc']['consul']['config']['addresses']['dns'] = node['bcpc']['cloud'][
 default['bcpc']['consul']['config']['ports']['dns'] = 8600
 default['bcpc']['consul']['config']['recursors'] = [node['bcpc']['cloud']['vip']]
 
+# Load the mysql attribute file in order to populate mysql:port. Chef attribute
+# files are loaded alphabetically, and unless mysql:port is specified in the
+# environment it will be null when read below. Thus the explicit load.
+node.from_file(run_context.resolve_attribute('bcpc', 'mysql'))
+
 # Service definitions reference:
 # https://www.consul.io/docs/agent/services.html
 default['bcpc']['consul']['services'] = [
   {
     'name' => 'mysql',
-    'port' => 3306,
+    'port' => node['bcpc']['mysql']['port'],
     'enable_tag_override' => true,
     'tags' => ['mysql'],
     'check' => {

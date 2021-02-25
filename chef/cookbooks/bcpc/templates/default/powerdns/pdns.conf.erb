@@ -48,8 +48,8 @@ disable-axfr = yes
 launch = gmysql
 
 # gmysql parameters
-gmysql-host = <%= node['service_ip'] %>
-gmysql-port = 3306
+gmysql-host = <%= @db['host'] %>
+gmysql-port = <%= @db['port'] %>
 gmysql-dbname = <%= @db['dbname'] %>
 gmysql-user = <%= @db['username'] %>
 gmysql-password = <%= @db['password'] %>

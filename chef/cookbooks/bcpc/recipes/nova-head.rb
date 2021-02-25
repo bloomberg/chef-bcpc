@@ -26,6 +26,7 @@ mysqladmin = mysqladmin()
 #
 database = {
   'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
   'password' => config['nova']['creds']['db']['password'],

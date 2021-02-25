@@ -19,8 +19,12 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 mysqladmin = mysqladmin()
 
+# hash used for database creation and access
+#
 database = {
-  'dbname' => node['bcpc']['keystone']['db'],
+  'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
+  'dbname' => node['bcpc']['keystone']['db']['dbname'],
   'username' => config['keystone']['db']['username'],
   'password' => config['keystone']['db']['password'],
 }

@@ -2,7 +2,10 @@
 # keystone
 ###############################################################################
 
-default['bcpc']['keystone']['db'] = 'keystone'
+# specify database and configure SQLAlchemy overflow/QueuePool sizes
+default['bcpc']['keystone']['db']['dbname'] = 'keystone'
+default['bcpc']['keystone']['db']['max_overflow'] = 128
+default['bcpc']['keystone']['db']['max_pool_size'] = 64
 
 # caching
 default['bcpc']['keystone']['enable_caching'] = true
@@ -16,9 +19,6 @@ default['bcpc']['keystone']['debug'] = false
 # Set the number of Keystone WSGI processes
 default['bcpc']['keystone']['workers'] = nil
 
-# configure SQLAlchemy overflow/QueuePool sizes
-default['bcpc']['keystone']['database']['max_overflow'] = 128
-default['bcpc']['keystone']['database']['max_pool_size'] = 64
 # The driver section below allows either 'sql' or 'ldap' (or 'templated' for catalog)
 # Note that not all drivers may support SQL/LDAP, only tinker if you know what you're getting into
 default['bcpc']['keystone']['drivers']['assignment'] = 'sql'
