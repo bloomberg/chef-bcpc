@@ -412,7 +412,7 @@ end
 
 execute 'compile az anti-affinity filter' do
   action :nothing
-  command 'su python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+  command 'python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
 end
 
 execute 'wait for nova to come online' do
