@@ -2,7 +2,10 @@
 # cinder
 ###############################################################################
 
+# specify database and configure SQLAlchemy overflow/QueuePool sizes
 default['bcpc']['cinder']['db']['dbname'] = 'cinder'
+default['bcpc']['cinder']['db']['max_overflow'] = 128
+default['bcpc']['cinder']['db']['max_pool_size'] = 64
 
 default['bcpc']['cinder']['debug'] = false
 default['bcpc']['cinder']['workers'] = nil
@@ -10,8 +13,6 @@ default['bcpc']['cinder']['allow_az_fallback'] = true
 default['bcpc']['cinder']['backend_native_threads_pool_size'] = nil
 default['bcpc']['cinder']['rbd_flatten_volume_from_snapshot'] = true
 default['bcpc']['cinder']['rbd_max_clone_depth'] = 5
-default['bcpc']['cinder']['database']['max_overflow'] = 128
-default['bcpc']['cinder']['database']['max_pool_size'] = 64
 default['bcpc']['cinder']['quota'] = {
   'volumes' => -1,
   'snapshots' => 10,

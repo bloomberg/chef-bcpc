@@ -29,6 +29,7 @@ mysqladmin = mysqladmin()
 #
 database = {
   'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
   'dbname' => node['bcpc']['neutron']['db']['dbname'],
   'username' => config['neutron']['creds']['db']['username'],
   'password' => config['neutron']['creds']['db']['password'],

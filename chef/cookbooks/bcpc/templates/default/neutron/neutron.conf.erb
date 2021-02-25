@@ -27,7 +27,7 @@ etcd_cert_file = <%= node['bcpc']['etcd']['client-rw']['crt']['filepath'] %>
 etcd_key_file = <%= node['bcpc']['etcd']['client-rw']['key']['filepath'] %>
 
 [database]
-connection = mysql+pymysql://<%= "#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/#{@db['dbname']}" %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
 max_pool_size = <%= node['bcpc']['neutron']['db']['max_pool_size'] %>
 max_overflow = <%= node['bcpc']['neutron']['db']['max_overflow'] %>
 

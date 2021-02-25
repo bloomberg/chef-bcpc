@@ -25,9 +25,9 @@ cache_time = 3600
 driver = <%= node['bcpc']['keystone']['drivers']['credential'] %>
 
 [database]
-connection = mysql+pymysql://<%= @db['username'] %>:<%= @db['password'] %>@<%= @node["bcpc"]["mysql"]["service_hostname"] %>/<%= @db['dbname'] %>
-max_overflow = <%= node['bcpc']['keystone']['database']['max_overflow'] %>
-max_pool_size = <%= node['bcpc']['keystone']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
+max_overflow = <%= node['bcpc']['keystone']['db']['max_overflow'] %>
+max_pool_size = <%= node['bcpc']['keystone']['db']['max_pool_size'] %>
 
 [domain_config]
 driver = <%= node['bcpc']['keystone']['drivers']['domain_config'] %>
