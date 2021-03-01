@@ -155,8 +155,8 @@ SECURITY_GROUP_RULES = {
   'mysql': {
     'name': 'MYSQL',
     'ip_protocol': 'tcp',
-    'from_port': '<%= node['bcpc']['mysql']['port'] %>',
-    'to_port': '<%= node['bcpc']['mysql']['port'] %>',
+    'from_port': '3306',
+    'to_port': '3306',
   },
   'rdp': {
     'name': 'RDP',
