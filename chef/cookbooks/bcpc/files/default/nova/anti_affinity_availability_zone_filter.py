@@ -31,6 +31,8 @@ class _AntiAffinityAvailabilityZoneFilter(filters.BaseHostFilter):
     If the host is from a different zone than zones in the server group
     it returns true, otherwise returns false."""
 
+    # a varibale which is checked for all scheduler filters during a rebuild
+    # for each filter.
     RUN_ON_REBUILD = False
 
     def host_passes(self, host_state, spec_obj):

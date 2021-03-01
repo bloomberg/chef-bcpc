@@ -26,6 +26,7 @@ mysqladmin = mysqladmin()
 #
 database = {
   'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
   'password' => config['nova']['creds']['db']['password'],
@@ -356,17 +357,20 @@ if anti_affinity['enabled']
 
   execute 'compile az anti-affinity filter' do
     action :nothing
-    command 'python -m compileall /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+    command 'pycompile /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
   end
 end
 
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
 
   variables(
     available_filters: available_filters,
-    enables_filters: enabled_fitler,
+    enabled_filters: enabled_filters,
     db: database,
     os: openstack,
     config: config,
@@ -405,6 +409,10 @@ placement_processes = if !node['bcpc']['placement']['workers'].nil?
 
 template '/etc/apache2/sites-available/nova-placement-api.conf' do
   source 'nova/nova-placement-api.conf.erb'
+  mode '0640'
+  owner 'root'
+  group 'nova'
+
   variables(
     processes: placement_processes
   )

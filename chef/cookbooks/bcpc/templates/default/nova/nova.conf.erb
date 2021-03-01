@@ -70,14 +70,14 @@ username = <%= @config['nova']['creds']['os']['username'] %>
 password = <%= @config['nova']['creds']['os']['password'] %>
 
 [api_database]
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/nova_api" %>
-max_overflow=<%= node['bcpc']['nova']['database']['max_overflow'] %>
-max_pool_size=<%= node['bcpc']['nova']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}_api" %>
+max_overflow=<%= node['bcpc']['nova']['db']['max_overflow'] %>
+max_pool_size=<%= node['bcpc']['nova']['db']['max_pool_size'] %>
 
 [database]
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/nova" %>
-max_overflow = <%= node['bcpc']['nova']['database']['max_overflow'] %>
-max_pool_size = <%= node['bcpc']['nova']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
+max_overflow = <%= node['bcpc']['nova']['db']['max_overflow'] %>
+max_pool_size = <%= node['bcpc']['nova']['db']['max_pool_size'] %>
 
 [placement]
 os_region_name = <%= node['bcpc']['cloud']['region'] %>

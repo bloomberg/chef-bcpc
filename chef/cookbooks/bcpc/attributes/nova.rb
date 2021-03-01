@@ -2,8 +2,10 @@
 # nova
 ###############################################################################
 
-# database
+# specify database and configure SQLAlchemy overflow/QueuePool sizes
 default['bcpc']['nova']['db']['dbname'] = 'nova'
+default['bcpc']['nova']['db']['max_overflow'] = 128
+default['bcpc']['nova']['db']['max_pool_size'] = 64
 
 # Nova debug toggle
 default['bcpc']['nova']['debug'] = false
@@ -44,10 +46,6 @@ default['bcpc']['nova']['max_concurrent_builds'] = 4
 # available by default. This provides an override.
 default['bcpc']['nova']['workers'] = nil
 default['bcpc']['placement']['workers'] = nil
-
-# configure SQLAlchemy overflow/QueuePool sizes
-default['bcpc']['nova']['database']['max_overflow'] = 128
-default['bcpc']['nova']['database']['max_pool_size'] = 64
 
 # set soft/hard ulimits in upstart unit file for nova-compute
 # as number of OSDs in cluster increases, soft limit needs to increase to avoid
