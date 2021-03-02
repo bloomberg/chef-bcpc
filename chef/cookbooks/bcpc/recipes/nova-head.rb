@@ -21,12 +21,14 @@ zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 nova_config = zone_config.nova_config
 
 mysqladmin = mysqladmin()
+psqladmin = psqladmin()
+db_conn = db_conn()
 
 # used for database creation and access
 #
 database = {
-  'host' => node['bcpc']['mysql']['host'],
-  'port' => node['bcpc']['mysql']['port'],
+  'host' => db_conn['host'],
+  'port' => db_conn['port'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
   'password' => config['nova']['creds']['db']['password'],
@@ -272,6 +274,22 @@ nova_config.ceph_pools.each do |pool|
   end
 end
 # create ceph rbd pools ends
+
+# Ensure the database user is present on ProxySQL
+#
+bcpc_proxysql_user "create #{database['username']} proxysql user" do
+  user database
+  psqladmin psqladmin
+  only_if { node['bcpc']['proxysql']['enabled'] }
+  notifies :run, 'bcpc_proxysql_reload[reload proxysql '\
+    "#{database['username']}]", :immediately
+end
+
+bcpc_proxysql_reload "reload proxysql #{database['username']}" do
+  psqladmin psqladmin
+  action :nothing
+end
+# end ProxySQL user creation
 
 # create/manage nova databases starts
 #

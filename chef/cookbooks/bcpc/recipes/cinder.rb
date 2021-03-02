@@ -21,12 +21,14 @@ zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 cinder_config = zone_config.cinder_config
 
 mysqladmin = mysqladmin()
+psqladmin = psqladmin()
+db_conn = db_conn()
 
 # hash used for database creation and access
 #
 database = {
-  'host' => node['bcpc']['mysql']['host'],
-  'port' => node['bcpc']['mysql']['port'],
+  'host' => db_conn['host'],
+  'port' => db_conn['port'],
   'dbname' => node['bcpc']['cinder']['db']['dbname'],
   'username' => config['cinder']['creds']['db']['username'],
   'password' => config['cinder']['creds']['db']['password'],
@@ -191,6 +193,22 @@ cinder_config.ceph_clients.each do |client|
     command "ceph auth import -i /etc/ceph/ceph.client.#{client['client']}.keyring"
   end
 end
+
+# Ensure the database user is present on ProxySQL
+#
+bcpc_proxysql_user "create #{database['username']} proxysql user" do
+  user database
+  psqladmin psqladmin
+  only_if { node['bcpc']['proxysql']['enabled'] }
+  notifies :run, 'bcpc_proxysql_reload[reload proxysql '\
+    "#{database['username']}]", :immediately
+end
+
+bcpc_proxysql_reload "reload proxysql #{database['username']}" do
+  psqladmin psqladmin
+  action :nothing
+end
+# end ProxySQL user creation
 
 # create/manage cinder database starts
 file '/tmp/cinder-db.sql' do

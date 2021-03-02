@@ -75,6 +75,7 @@ chef_roles:
       - recipe[bcpc::ceph-mon]
       - recipe[bcpc::ceph-mgr]
       - recipe[bcpc::mysql]
+      - recipe[bcpc::proxysql]
       - recipe[bcpc::powerdns]
       - recipe[bcpc::apache2]
       - recipe[bcpc::keystone]

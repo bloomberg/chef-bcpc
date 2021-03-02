@@ -20,9 +20,13 @@ config = data_bag_item(region, 'config')
 zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 nova_compute_config = zone_config.nova_compute_config
 
+db_conn = db_conn()
+
+# hash used for database creation and access
+#
 database = {
-  'host' => node['bcpc']['mysql']['host'],
-  'port' => node['bcpc']['mysql']['port'],
+  'host' => db_conn['host'],
+  'port' => db_conn['port'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
   'password' => config['nova']['creds']['db']['password'],

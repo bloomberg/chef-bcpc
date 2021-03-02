@@ -129,6 +129,29 @@ def mysqladmin
   }
 end
 
+def psqladmin
+  region = node['bcpc']['cloud']['region']
+  config = data_bag_item(region, 'config')
+  {
+    'username' => config['proxysql']['creds']['admin']['username'],
+    'password' => config['proxysql']['creds']['admin']['password'],
+  }
+end
+
+def db_conn
+  if node['bcpc']['proxysql']['enabled']
+    {
+      'host' => node['bcpc']['proxysql']['host'],
+      'port' => node['bcpc']['proxysql']['port'],
+    }
+  else
+    {
+      'host' => node['bcpc']['mysql']['host'],
+      'port' => node['bcpc']['mysql']['port'],
+    }
+  end
+end
+
 def os_adminrc
   region = node['bcpc']['cloud']['region']
   config = data_bag_item(region, 'config')

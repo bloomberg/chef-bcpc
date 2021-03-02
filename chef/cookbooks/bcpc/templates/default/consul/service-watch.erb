@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2018, Bloomberg Finance L.P.
+# Copyright 2021, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-status="`cat`"
+SERVICE="$1"
+
+status="$(cat)"
 self="<%= node['hostname'] %>"
-echo "$status" > /tmp/mysql-handler.log
-echo "$status" | jq ".[] | select((.Node==\"$self\") and (.CheckID==\"service:mysql\")) | .Status" | grep -q passing
+echo "$status" > "/tmp/${SERVICE}-handler.log"
+echo "$status" | jq ".[] | select((.Node==\"$self\") and (.CheckID==\"service:${SERVICE}\")) | .Status" | grep -q passing
 if [ $? -eq 0 ]; then
-  curl -X PUT "http://<%= node['bcpc']['consul']['config']['client_addr'] %>:8500/v1/agent/service/maintenance/mysql?enable=false"
+  curl -X PUT "http://<%= node['bcpc']['consul']['config']['client_addr'] %>:8500/v1/agent/service/maintenance/${SERVICE}?enable=false"
 else
-  curl -X PUT "http://<%= node['bcpc']['consul']['config']['client_addr'] %>:8500/v1/agent/service/maintenance/mysql?enable=true&reason=failed+check"
+  curl -X PUT "http://<%= node['bcpc']['consul']['config']['client_addr'] %>:8500/v1/agent/service/maintenance/${SERVICE}?enable=true&reason=failed+check"
 fi
