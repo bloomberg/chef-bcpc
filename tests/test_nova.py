@@ -25,7 +25,25 @@ import pytest
     pytest.param("nova-compute", marks=pytest.mark.worknodes),
     pytest.param("nova-api-metadata", marks=pytest.mark.worknodes),
 ])
-def test_services_head(host, name):
+def test_services(host, name):
     s = host.service(name)
     assert s.is_running
     assert s.is_enabled
+
+@pytest.mark.bootstraps
+@pytest.mark.rmqnodes
+@pytest.mark.storagenodes
+@pytest.mark.stubnodes
+@pytest.mark.parametrize("name", [
+    ("nova-api"),
+    ("nova-scheduler"),
+    ("nova-consoleauth"),
+    ("nova-conductor"),
+    ("nova-novncproxy"),
+    ("nova-scheduler"),
+    ("nova-compute"),
+    ("nova-api-metadata"),
+])
+def test_services_not_installed(host, name):
+    s = host.package(name)
+    assert not s.is_installed
