@@ -1,17 +1,20 @@
 # IPMI module configuration and loading
-- name: Load ipmi_devintf kernel module
-  modprobe:
-    name: ipmi_devintf
+- name: Configure the kernel's IPMI module
+  block:
+    - name: Load ipmi_devintf kernel module
+      modprobe:
+        name: ipmi_devintf
 
-- name: Ensure ipmi_devintf is loaded at boot
-  template:
-    src: system/modules-load.conf.j2
-    dest: /etc/modules-load.d/ipmi_devintf.conf
-    owner: root
-    group: root
-    mode: '0644'
-  vars:
-    kernel_module_name: ipmi_devintf
+    - name: Ensure ipmi_devintf is loaded at boot
+      template:
+        src: system/modules-load.conf.j2
+        dest: /etc/modules-load.d/ipmi_devintf.conf
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        kernel_module_name: ipmi_devintf
+  when: ansible_virtualization_role == "NA"
 
 # ip_conntrack module configuration and loading
 - name: Configure ip_conntrack kernel module when loaded
@@ -190,48 +193,51 @@
     name: kexec-tools
 
 # Control processor microcode application
-- name: Check if AMD processor
-  command: grep -q AuthenticAMD /proc/cpuinfo
-  ignore_errors: true
-  register: is_amd
-  changed_when: false
+- name: Control processor microcode application
+  block:
+    - name: Check if AMD processor
+      command: grep -q AuthenticAMD /proc/cpuinfo
+      ignore_errors: true
+      register: is_amd
+      changed_when: false
 
-- name: Install amd64-microcode package
-  apt:
-    name: amd64-microcode
-  when: is_amd is successful
+    - name: Install amd64-microcode package
+      apt:
+        name: amd64-microcode
+      when: is_amd is successful
 
-- name: Configure amd64-microcode package
-  template:
-    src: amd64-microcode/default.j2
-    dest: /etc/default/amd64-microcode
-    owner: root
-    group: root
-    mode: '0644'
-  register: amd_microcode
-  when: is_amd is successful
+    - name: Configure amd64-microcode package
+      template:
+        src: amd64-microcode/default.j2
+        dest: /etc/default/amd64-microcode
+        owner: root
+        group: root
+        mode: '0644'
+      register: amd_microcode
+      when: is_amd is successful
 
-- name: Check if Intel processor
-  command: grep -q GenuineIntel /proc/cpuinfo
-  ignore_errors: true
-  register: is_intel
-  changed_when: false
+    - name: Check if Intel processor
+      command: grep -q GenuineIntel /proc/cpuinfo
+      ignore_errors: true
+      register: is_intel
+      changed_when: false
 
-- name: Install intel-microcode package
-  apt:
-    name: intel-microcode
-  when: is_intel is successful
+    - name: Install intel-microcode package
+      apt:
+        name: intel-microcode
+      when: is_intel is successful
 
-- name: Configure intel-microcode package
-  template:
-    src: intel-microcode/default.j2
-    dest: /etc/default/intel-microcode
-    owner: root
-    group: root
-    mode: '0644'
-  register: intel_microcode
-  when: is_intel is successful
+    - name: Configure intel-microcode package
+      template:
+        src: intel-microcode/default.j2
+        dest: /etc/default/intel-microcode
+        owner: root
+        group: root
+        mode: '0644'
+      register: intel_microcode
+      when: is_intel is successful
 
-- name: Update initramfs for all kernels
-  command: update-initramfs -uk all
-  when: amd_microcode.changed or intel_microcode.changed
+    - name: Update initramfs for all kernels
+      command: update-initramfs -uk all
+      when: amd_microcode.changed or intel_microcode.changed
+  when: ansible_virtualization_role == "NA"
