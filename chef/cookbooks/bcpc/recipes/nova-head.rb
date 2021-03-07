@@ -79,6 +79,27 @@ end
 #
 # create nova user ends
 
+ruby_block "collect openstack service and endpoints list" do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    groups = endpoint_list.group_by{|e| e['Service Type']}
+    endpoints = groups.map{|k,v| [k, v.map{|e| e['Interface']}]}.to_h
+
+    node.run_state['os_services'] = service_list.map{|s| s['Type']}
+    node.run_state['os_endpoints'] = endpoints
+  end
+  action :create
+end
+
 # create compute service and endpoints starts
 #
 begin
@@ -95,7 +116,7 @@ begin
       openstack service create --name "#{name}" --description "#{desc}" #{type}
     DOC
 
-    not_if "openstack service list | grep #{type}"
+    not_if { node.run_state['os_services'].include? type }
   end
 
   %w(admin internal public).each do |uri|
@@ -108,14 +129,13 @@ begin
         openstack endpoint create --region #{region} #{type} #{uri} '#{url}'
       DOC
 
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+      not_if { node.run_state['os_endpoints'][type].include? uri rescue false }
     end
   end
 end
 #
 # create compute service and endpoints ends
 #
-# nova openstack access ends
 
 # install haproxy fragment
 template '/etc/haproxy/haproxy.d/nova.cfg' do
