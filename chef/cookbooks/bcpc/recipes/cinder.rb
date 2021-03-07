@@ -74,6 +74,27 @@ execute 'add openstack admin role to cinder user' do
 end
 # create cinder openstack user ends
 
+ruby_block "collect openstack service and endpoints list" do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    groups = endpoint_list.group_by{|e| e['Service Type']}
+    endpoints = groups.map{|k,v| [k, v.map{|e| e['Interface']}]}.to_h
+
+    node.run_state['os_services'] = service_list.map{|s| s['Type']}
+    node.run_state['os_endpoints'] = endpoints
+  end
+  action :create
+end
+
 # create cinder volume services and endpoints starts
 begin
   %w(volumev2 volumev3).each do |type|
@@ -90,7 +111,7 @@ begin
           --name "#{name}" --description "#{desc}" #{type}
       DOC
 
-      not_if "openstack service list | grep #{type}"
+      not_if { node.run_state['os_services'].include? type }
     end
 
     %w(admin internal public).each do |uri|
@@ -104,7 +125,7 @@ begin
             --region #{region} #{type} #{uri} '#{url}'
         DOC
 
-        not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+        not_if { node.run_state['os_endpoints'][type].include? uri rescue false }
       end
     end
   end
@@ -330,6 +351,17 @@ execute 'wait for cinder to come online' do
   command 'openstack volume service list'
 end
 
+ruby_block "collect openstack volume type list" do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack volume type list --long --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    vt_list = JSON.parse(os_command_out.stdout)
+    node.run_state['os_vol_type_props'] = vt_list.map{|t| [t['Name'], t['Properties']]}.to_h
+  end
+  action :create
+end
+
 cinder_config.backends.each do |backend|
   backend_name = backend['name']
   create_args = []
@@ -347,7 +379,7 @@ cinder_config.backends.each do |backend|
     command <<-EOH
       openstack volume type create #{create_args.join(' ')}
     EOH
-    not_if "openstack volume type show #{backend_name}"
+    not_if { node.run_state['os_vol_type_props'].key? backend_name }
   end
 
   execute "set cinder backend properties for: #{backend_name}" do
@@ -357,7 +389,7 @@ cinder_config.backends.each do |backend|
       openstack volume type set #{backend_name} \
         --property volume_backend_name=#{backend_name}
     DOC
-    not_if "openstack volume type show #{backend_name} -c properties -f value | grep #{backend_name}"
+    not_if { node.run_state['os_vol_type_props'][backend_name].include? backend_name rescue false }
   end
 end
 
