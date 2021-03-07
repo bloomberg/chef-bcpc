@@ -19,7 +19,9 @@
 package %w(
   git
   etckeeper
-)
+) do
+  options '--no-install-recommends'
+end
 
 cookbook_file '/etc/etckeeper/etckeeper.conf' do
   source 'etckeeper/etckeeper.conf'

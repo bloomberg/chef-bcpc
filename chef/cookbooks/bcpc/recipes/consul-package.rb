@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'unzip'
+package 'unzip' do
+  options '--no-install-recommends'
+end
 
 consul_fn = node['bcpc']['consul']['remote_file']['file']
 consul_fp = "#{Chef::Config[:file_cache_path]}/#{consul_fn}"

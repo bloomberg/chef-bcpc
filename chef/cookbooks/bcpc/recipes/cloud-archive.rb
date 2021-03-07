@@ -17,7 +17,9 @@
 
 return unless node['bcpc']['openstack']['repo']['enabled']
 
-package 'ubuntu-cloud-keyring'
+package 'ubuntu-cloud-keyring' do
+  options '--no-install-recommends'
+end
 
 repo = node['bcpc']['openstack']['repo']
 branch = repo['branch']

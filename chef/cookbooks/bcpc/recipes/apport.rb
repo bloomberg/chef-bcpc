@@ -15,7 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'apport'
+package 'apport' do
+  options '--no-install-recommends'
+end
+
 service 'apport'
 
 template '/etc/default/apport' do

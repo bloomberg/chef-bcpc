@@ -102,7 +102,9 @@ end
 
 # watcher packages installation and service definitions
 watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python-watcherclient)
-package watcher_packages
+package watcher_packages do
+  options '--no-install-recommends'
+end
 
 service 'watcher-decision-engine'
 

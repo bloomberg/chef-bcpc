@@ -33,7 +33,9 @@ end
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-package 'rabbitmq-server'
+package 'rabbitmq-server' do
+  options '--no-install-recommends'
+end
 
 service 'rabbitmq-server'
 service 'xinetd'

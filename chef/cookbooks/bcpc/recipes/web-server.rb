@@ -15,7 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'nginx'
+package 'nginx' do
+  options '--no-install-recommends'
+end
+
 service 'nginx'
 
 template '/etc/nginx/sites-available/default' do

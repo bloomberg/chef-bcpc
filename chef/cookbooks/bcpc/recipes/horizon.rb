@@ -18,7 +18,9 @@
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-package 'openstack-dashboard'
+package 'openstack-dashboard' do
+  options '--no-install-recommends'
+end
 
 service 'horizon' do
   service_name 'apache2'

@@ -25,7 +25,10 @@ end
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-package 'haproxy'
+package 'haproxy' do
+  options '--no-install-recommends'
+end
+
 service 'haproxy'
 
 directory '/etc/haproxy/haproxy.d' do

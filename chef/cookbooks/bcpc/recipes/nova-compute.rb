@@ -35,7 +35,9 @@ package %w(
   ovmf
   pm-utils
   sysfsutils
-)
+) do
+  options '--no-install-recommends'
+end
 
 service 'nova-compute'
 service 'nova-api-metadata'

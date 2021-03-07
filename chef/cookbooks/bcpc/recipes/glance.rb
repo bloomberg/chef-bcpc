@@ -125,7 +125,10 @@ end
 package %w(
   glance
   qemu-utils
-)
+) do
+  options '--no-install-recommends'
+end
+
 service 'glance-api'
 service 'haproxy-glance' do
   service_name 'haproxy'

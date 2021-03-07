@@ -189,6 +189,15 @@
   apt:
     name: kexec-tools
 
+ # Configure kexec-tools
+- name: configure kexec-tools
+  template:
+    src: kexec/default.j2
+    dest: /etc/default/kexec
+    owner: root
+    group: root
+    mode: '0644'
+
 # Control processor microcode application
 - name: Check if AMD processor
   command: grep -q AuthenticAMD /proc/cpuinfo

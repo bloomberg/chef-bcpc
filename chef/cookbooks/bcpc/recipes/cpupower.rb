@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package 'cpufrequtils'
+package 'cpufrequtils' do
+  options '--no-install-recommends'
+end
 
 if node['bcpc']['hardware']['powersave']['enabled']
   service 'ondemand' do

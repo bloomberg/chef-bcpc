@@ -20,6 +20,7 @@ include_recipe 'bcpc::calico-apt'
 
 package 'calico-compute' do
   action :remove
+  options '--no-install-recommends'
 end
 
 package %w(
@@ -29,6 +30,7 @@ package %w(
   neutron-dhcp-agent
 ) do
   action :upgrade
+  options '--no-install-recommends'
 end
 
 execute 'reload sysctl' do

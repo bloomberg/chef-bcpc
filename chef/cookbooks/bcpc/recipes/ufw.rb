@@ -16,7 +16,10 @@
 # limitations under the License.
 #
 
-package 'ufw'
+package 'ufw' do
+  options '--no-install-recommends'
+end
+
 service 'ufw'
 
 template '/etc/default/ufw' do

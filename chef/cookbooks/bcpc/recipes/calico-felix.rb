@@ -19,6 +19,7 @@ include_recipe 'bcpc::calico-apt'
 
 package 'calico-felix' do
   action :upgrade
+  options '--no-install-recommends'
 end
 service 'calico-felix'
 

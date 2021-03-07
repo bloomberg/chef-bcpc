@@ -204,7 +204,9 @@ end
 
 # heat packages installation and service definitions
 heat_packages = %w(heat-api heat-api-cfn heat-engine python-heat-dashboard)
-package heat_packages
+package heat_packages do
+  options '--no-install-recommends'
+end
 
 service 'heat-engine'
 

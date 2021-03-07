@@ -25,4 +25,6 @@ end
 package %w(
   ceph
   ceph-deploy
-)
+) do
+  options '--no-install-recommends'
+end

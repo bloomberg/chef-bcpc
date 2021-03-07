@@ -17,7 +17,10 @@
 
 return unless node['bcpc']['hwrng']['enabled']
 
-package 'rng-tools'
+package 'rng-tools' do
+  options '--no-install-recommends'
+end
+
 service 'rng-tools'
 
 execute 'load rng kernel module' do

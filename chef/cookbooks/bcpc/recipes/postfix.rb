@@ -20,12 +20,16 @@ return unless node['bcpc']['postfix']['enabled']
 
 package 'exim4' do
   action :remove
+  options '--no-install-recommends'
 end
 
 package %w(
   bsd-mailx
   postfix
-)
+) do
+  options '--no-install-recommends'
+end
+
 service 'postfix'
 
 template '/etc/postfix/main.cf' do

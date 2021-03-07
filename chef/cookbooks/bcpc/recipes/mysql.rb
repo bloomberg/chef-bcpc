@@ -29,7 +29,9 @@ end
 package %w(
   debconf-utils
   percona-xtradb-cluster-57
-)
+) do
+  options '--no-install-recommends'
+end
 
 service 'mysql'
 service 'xinetd'

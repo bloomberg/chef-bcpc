@@ -124,6 +124,7 @@ end
 # cinder package installation and service definition
 package ['cinder-scheduler', 'cinder-volume'] do
   action :upgrade
+  options '--no-install-recommends'
 end
 
 service 'cinder-api' do
