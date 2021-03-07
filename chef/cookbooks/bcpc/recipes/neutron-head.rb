@@ -82,6 +82,27 @@ end
 #
 # create neutron user ends
 
+ruby_block "collect openstack service and endpoints list" do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    groups = endpoint_list.group_by{|e| e['Service Type']}
+    endpoints = groups.map{|k,v| [k, v.map{|e| e['Interface']}]}.to_h
+
+    node.run_state['os_services'] = service_list.map{|s| s['Type']}
+    node.run_state['os_endpoints'] = endpoints
+  end
+  action :create
+end
+
 # create network service and endpoints starts
 #
 begin
@@ -100,7 +121,7 @@ begin
         --name "#{name}" --description "#{desc}" #{type}
     DOC
 
-    not_if "openstack service list | grep #{type}"
+    not_if { node.run_state['os_services'].include? type }
   end
 
   %w(admin internal public).each do |uri|
@@ -114,9 +135,7 @@ begin
           --region #{region} #{type} #{uri} '#{url}'
       DOC
 
-      not_if "openstack endpoint list \
-        | grep #{type} | grep #{uri}
-      "
+      not_if { node.run_state['os_endpoints'][type].include? uri rescue false }
     end
   end
 end
@@ -250,6 +269,28 @@ execute 'wait for neutron to come online' do
   command 'openstack network list'
 end
 
+ruby_block "collect openstack network, subnet, and router list" do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack network list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    networks_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack subnet list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    subnets_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack router list --format json'
+    os_command_out = shell_out(os_command, :env => os_adminrc)
+    routers_list = JSON.parse(os_command_out.stdout)
+
+    node.run_state['os_networks'] = networks_list.map{|n| n['Name']}
+    node.run_state['os_subnets'] = subnets_list.map{|s| s['Subnet']}
+    node.run_state['os_routers'] = routers_list.map{|r| r['Name']}
+  end
+  action :create
+end
+
 # create networks starts
 node['bcpc']['neutron']['networks'].each do |network|
   fixed_network = network['name']
@@ -278,7 +319,7 @@ node['bcpc']['neutron']['networks'].each do |network|
         #{network_create_opts.join(' ')}
     DOC
 
-    not_if "openstack network show #{fixed_network}"
+    not_if { node.run_state['os_networks'].include? fixed_network }
   end
 
   # create fixed subnets
@@ -304,9 +345,7 @@ node['bcpc']['neutron']['networks'].each do |network|
           --subnet-range #{cidr}
       DOC
 
-      not_if <<-DOC
-        openstack subnet list -c Subnet -f value | grep -w #{cidr}
-      DOC
+      not_if { node.run_state['os_subnets'].include? cidr }
     end
   end
 
@@ -322,7 +361,7 @@ node['bcpc']['neutron']['networks'].each do |network|
       openstack network create #{float_network} --external
     DOC
 
-    not_if "openstack network show #{float_network}"
+    not_if { node.run_state['os_networks'].include? float_network }
   end
 
   # create float subnets
@@ -339,9 +378,7 @@ node['bcpc']['neutron']['networks'].each do |network|
           --network #{float_network} --subnet-range #{cidr}
       DOC
 
-      not_if <<-DOC
-        openstack subnet list -c Subnet -f value | grep -w #{cidr}
-      DOC
+      not_if { node.run_state['os_subnets'].include? cidr }
     end
   end
 
@@ -355,7 +392,7 @@ node['bcpc']['neutron']['networks'].each do |network|
       openstack router create #{router_name}
     DOC
 
-    not_if "openstack router show #{router_name}"
+    not_if { node.run_state['os_routers'].include? router_name }
   end
 
   # add subnets to router
