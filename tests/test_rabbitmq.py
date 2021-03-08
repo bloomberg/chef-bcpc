@@ -15,10 +15,30 @@
 import pytest
 
 
+@pytest.mark.headnodes
+@pytest.mark.rmqnodes
 @pytest.mark.parametrize("name", [
-    pytest.param("rabbitmq-server", marks=pytest.mark.headnodes),
+    ("rabbitmq-server"),
 ])
-def test_services_head(host, name):
+def test_services(host, name):
+    # Since rabbitmq can be on headnodes if rmqnodes are not specified,
+    # check whether the chef role is specified
+    if 'role[rmqnode]' not in host.ansible.get_variables()['run_list']:
+        pytest.skip("Host is a head node not expected to run rabbitmq")
     s = host.service(name)
     assert s.is_running
     assert s.is_enabled
+
+@pytest.mark.bootstraps
+@pytest.mark.headnodes
+@pytest.mark.worknodes
+@pytest.mark.storagenodes
+@pytest.mark.stubnodes
+@pytest.mark.parametrize("name", [
+    ("rabbitmq-server"),
+])
+def test_services_not_installed(host, name):
+    if 'role[rmqnode]' in host.ansible.get_variables()['run_list']:
+        pytest.skip("Host is a headnode expected to run rabbitmq")
+    s = host.package(name)
+    assert not s.is_installed

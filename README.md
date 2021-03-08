@@ -36,9 +36,12 @@ to provide the best out-of-the-box experience.
 
 ### Local Build
 
-* Review `virtual/topology/topology.yml` for the topology you will build and
-make changes as required, e.g. assign more or less RAM based on your topology
-and your build environment. Other topologies exist in the same directory.
+* Choose the topology and hardware configuration of your cluster. You can
+choose from existing configurations in `virtual/topology`, or build your own.
+[hardware.yml](virtual/topology/hardware.yml) and
+[topology.yml](virtual/topology/topology.yml) are used by default. To view a
+list of tested topologies and hardware configurations please see
+[virtual/README](virtual/README.md).
 * To make changes to the virtual topology without dirtying the tree, copy the
 [hardware.yml](virtual/topology/hardware.yml) and
 [topology.yml](virtual/topology/topology.yml) to files named
