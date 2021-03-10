@@ -67,5 +67,9 @@ fi
     --topology-config "${topology_file}" > "${ansible_dir}/inventory.yml"
 
 # reboot vms to load new kernel
-ansible -i "${ansible_dir}/inventory.yml" cloud -b -B 1 -P 0 -m shell -a "sleep 5 && reboot"
-ansible -i "${ansible_dir}/inventory.yml" cloud -m wait_for_connection -a "delay=15"
+if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
+    ansible -i "${ansible_dir}/inventory.yml" cloud -b -B 1 -P 0 -m shell -a "sleep 5 && reboot"
+    ansible -i "${ansible_dir}/inventory.yml" cloud -m wait_for_connection -a "delay=15"
+else
+    vagrant reload
+fi
