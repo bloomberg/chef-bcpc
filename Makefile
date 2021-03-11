@@ -11,6 +11,7 @@ storagenodes = \
         $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
 stubnodes = $$(ansible stubnodes -i ${inventory} --list | tail -n +2 | wc -l)
 
+.NOTPARALLEL:
 all : \
 	sync-assets \
 	configure-operator \
@@ -28,25 +29,10 @@ all : \
 	configure-host-aggregates \
 	print-success-banner
 
-create: create-virtual-network create-virtual-hosts
+.PHONY: create destroy vtunnel vssh
+create destroy vtunnel vssh:
 
-destroy: destroy-virtual-hosts destroy-virtual-network
-
-create-virtual-hosts :
-
-	virtual/bin/create-virtual-environment.sh
-
-create-virtual-network :
-
-	virtual/bin/create-virtual-network.sh
-
-destroy-virtual-hosts :
-
-	virtual/bin/destroy-virtual-environment.sh
-
-destroy-virtual-network :
-
-	virtual/bin/destroy-virtual-network.sh
+	+$(MAKE) -C virtual $(filter $@,${MAKECMDGOALS})
 
 generate-chef-databags :
 
@@ -260,21 +246,3 @@ ceph-destroy-osds:
 		-t ceph-destroy-osds \
 		-e "destroy_osds=$(destroy_osds)" \
 		--limit storagenodes
-
-###############################################################################
-# virtual environment helper targets
-###############################################################################
-
-vtunnel:
-
-	cd virtual ;\
-	ssh_tunnel_conf=/tmp/ssh-config.$$$$ ;\
-	vagrant ssh-config r1n0 > $${ssh_tunnel_conf} ;\
-	ssh -f -N -F $${ssh_tunnel_conf} -L *:8443:10.65.0.254:443 -L *:6080:10.65.0.254:6080 r1n0 ;\
-	rm $${ssh_tunnel_conf} ;\
-	echo "\nOpenStack Dashboard available at: https://127.0.0.1:8443/horizon/\n"
-
-host ?= r1n1
-vssh:
-
-	cd virtual; vagrant ssh $(host) -c 'sudo -i'
