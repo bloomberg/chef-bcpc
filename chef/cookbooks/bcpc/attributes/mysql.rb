@@ -8,7 +8,9 @@ default['bcpc']['mysql']['repo']['key'] = 'mysql/release.key'
 
 # fqdn of mysql server
 default['bcpc']['mysql']['host'] = 'primary.mysql.service.consul'
-default['bcpc']['mysql']['service_hostname'] = 'primary.mysql.service.consul'
+
+# port on which to accept incoming client connections
+default['bcpc']['mysql']['port'] = 3306
 
 default['bcpc']['mysql']['innodb_buffer_pool_instances'] = 16
 default['bcpc']['mysql']['innodb_buffer_pool_size'] = '128M'

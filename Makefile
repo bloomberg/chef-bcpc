@@ -9,6 +9,7 @@ headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
 rmqnodes = $$(ansible rmqnodes -i ${inventory} --list | tail -n +2 | wc -l)
 storagenodes = \
         $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
+stubnodes = $$(ansible stubnodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
 	sync-assets \
@@ -98,7 +99,8 @@ run-chef-client : \
 	run-chef-client-rmqnodes \
 	run-chef-client-headnodes \
 	run-chef-client-worknodes \
-	run-chef-client-storagenodes
+	run-chef-client-storagenodes \
+	run-chef-client-stubnodes
 
 run-chef-client-bootstraps :
 
@@ -148,6 +150,14 @@ run-chef-client-storagenodes :
 		ansible-playbook -v \
 			-i ${inventory} ${playbooks}/site.yml \
 			-t chef-client --limit storagenodes; \
+	fi
+
+run-chef-client-stubnodes :
+
+	@if [ "${stubnodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t chef-client --limit stubnodes; \
 	fi
 
 reweight-ceph-osds:

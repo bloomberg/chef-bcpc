@@ -24,6 +24,7 @@ mysqladmin = mysqladmin()
 
 database = {
   'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
   'dbname' => node['bcpc']['watcher']['db']['dbname'],
   'username' => config['watcher']['creds']['db']['username'],
   'password' => config['watcher']['creds']['db']['password'],

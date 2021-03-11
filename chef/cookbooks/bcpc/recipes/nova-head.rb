@@ -26,6 +26,7 @@ mysqladmin = mysqladmin()
 #
 database = {
   'host' => node['bcpc']['mysql']['host'],
+  'port' => node['bcpc']['mysql']['port'],
   'dbname' => node['bcpc']['nova']['db']['dbname'],
   'username' => config['nova']['creds']['db']['username'],
   'password' => config['nova']['creds']['db']['password'],
@@ -338,6 +339,28 @@ end
 #
 # create/manage nova databases ends
 
+# add availibity zone anti affinity scheduler filter
+available_filters = ['nova.scheduler.filters.all_filters']
+enabled_filters = node.default['bcpc']['nova']['scheduler_default_filters']
+anti_affinity = node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
+
+if anti_affinity['enabled']
+  available_filters.push(anti_affinity['filterPath'])
+  enabled_filters.push(anti_affinity['name'])
+
+  cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+    source 'nova/anti_affinity_availability_zone_filter.py'
+    mode '0644'
+    notifies :run, 'execute[compile az anti-affinity filter]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :immediately
+  end
+
+  execute 'compile az anti-affinity filter' do
+    action :nothing
+    command 'pycompile /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+  end
+end
+
 # configure nova starts
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
@@ -346,6 +369,8 @@ template '/etc/nova/nova.conf' do
   group 'nova'
 
   variables(
+    available_filters: available_filters,
+    enabled_filters: enabled_filters,
     db: database,
     os: openstack,
     config: config,

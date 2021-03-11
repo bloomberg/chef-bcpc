@@ -77,7 +77,7 @@ query_cache_type=0
 # it will have (most likely) disastrous consequences on donor node
 bind-address=<%= node['service_ip'] %>
 max_connections=<%= node['bcpc']['mysql']['max_connections'] %>
-port=3306
+port=<%= node['bcpc']['mysql']['port'] %>
 
 # Defaults that most openstack bits are happy with
 collation-server = utf8_general_ci
@@ -126,7 +126,7 @@ wsrep_cluster_name="<%= node['bcpc']['cloud']['region'] %>"
 wsrep_node_address="<%= node['service_ip'] %>:4567"
 
 # Address for incoming client connections. Autodetect by default.
-wsrep_node_incoming_address="<%= node['service_ip'] %>:4567"
+wsrep_node_incoming_address="<%= node['service_ip'] %>:<%= node['bcpc']['mysql']['port'] %>"
 
 # How many threads will process writesets from other nodes
 wsrep_slave_threads=<%= node['bcpc']['mysql']['wsrep_slave_threads'] %>

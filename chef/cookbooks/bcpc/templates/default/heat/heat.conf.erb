@@ -39,18 +39,18 @@ auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 # Deprecated group/name - [DEFAULT]/sql_connection
 # Deprecated group/name - [DATABASE]/sql_connection
 # Deprecated group/name - [sql]/connection
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/heat" %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
 
 # Maximum number of SQL connections to keep open in a pool. Setting a value of
 # 0 indicates no limit. (integer value)
 # Deprecated group/name - [DEFAULT]/sql_max_pool_size
 # Deprecated group/name - [DATABASE]/sql_max_pool_size
-max_pool_size = <%= node['bcpc']['heat']['database']['max_pool_size'] %>
+max_pool_size = <%= node['bcpc']['heat']['db']['max_pool_size'] %>
 
 # If set, use this value for max_overflow with SQLAlchemy. (integer value)
 # Deprecated group/name - [DEFAULT]/sql_max_overflow
 # Deprecated group/name - [DATABASE]/sqlalchemy_max_overflow
-max_overflow = <%= node['bcpc']['heat']['database']['max_overflow'] %>
+max_overflow = <%= node['bcpc']['heat']['db']['max_overflow'] %>
 
 
 [heat_api]

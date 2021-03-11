@@ -28,9 +28,9 @@ backend_native_threads_pool_size = <%= node['bcpc']['cinder']['backend_native_th
 
 <% end %>
 [database]
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}/#{@db['dbname']}" %>
-max_overflow = <%= node['bcpc']['cinder']['database']['max_overflow'] %>
-max_pool_size = <%= node['bcpc']['cinder']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
+max_overflow = <%= node['bcpc']['cinder']['db']['max_overflow'] %>
+max_pool_size = <%= node['bcpc']['cinder']['db']['max_pool_size'] %>
 idle_timeout = 3600
 
 [oslo_concurrency]

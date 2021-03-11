@@ -114,3 +114,8 @@ template '/etc/xinetd.d/mysqlchk' do
   )
   notifies :restart, 'service[xinetd]', :immediately
 end
+
+execute 'wait for consul to elect the primary mysql host' do
+  retries 30
+  command 'getent hosts primary.mysql.service.consul'
+end

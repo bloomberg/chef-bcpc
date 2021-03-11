@@ -70,14 +70,14 @@ username = <%= @config['nova']['creds']['os']['username'] %>
 password = <%= @config['nova']['creds']['os']['password'] %>
 
 [api_database]
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/nova_api" %>
-max_overflow=<%= node['bcpc']['nova']['database']['max_overflow'] %>
-max_pool_size=<%= node['bcpc']['nova']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}_api" %>
+max_overflow=<%= node['bcpc']['nova']['db']['max_overflow'] %>
+max_pool_size=<%= node['bcpc']['nova']['db']['max_pool_size'] %>
 
 [database]
-connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{node['bcpc']['mysql']['host']}/nova" %>
-max_overflow = <%= node['bcpc']['nova']['database']['max_overflow'] %>
-max_pool_size = <%= node['bcpc']['nova']['database']['max_pool_size'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
+max_overflow = <%= node['bcpc']['nova']['db']['max_overflow'] %>
+max_pool_size = <%= node['bcpc']['nova']['db']['max_pool_size'] %>
 
 [placement]
 os_region_name = <%= node['bcpc']['cloud']['region'] %>
@@ -140,11 +140,13 @@ driver = filter_scheduler
 workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end%>
 
-[filter_scheduler]
-available_filters = nova.scheduler.filters.all_filters
-enabled_filters = <%= node['bcpc']['nova']['scheduler_default_filters'].join(',') %>
-
 <% if @is_headnode -%>
+[filter_scheduler]
+<% @available_filters.each do |available_filter| %>
+available_filters = <%= available_filter %>
+<% end %>
+enabled_filters = <%= @enabled_filters.join(',') %>
+
 [vnc]
 enabled = true
 server_listen = <%= node['service_ip'] %>

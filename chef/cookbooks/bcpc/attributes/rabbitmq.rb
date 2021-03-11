@@ -7,7 +7,7 @@ default['bcpc']['rabbitmq']['source']['repo']['enabled'] = false
 default['bcpc']['rabbitmq']['source']['repo']['url'] = 'http://dl.bintray.com/rabbitmq/debian'
 
 # source rabbitmq from a different distribution
-default['bcpc']['rabbitmq']['source']['distribution']['enabled'] = false
+default['bcpc']['rabbitmq']['source']['distribution']['enabled'] = true
 default['bcpc']['rabbitmq']['source']['distribution']['name'] = 'bionic-backports'
 
 # if changing this setting, you will need to reset Mnesia

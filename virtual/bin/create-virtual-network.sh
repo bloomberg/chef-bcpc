@@ -28,5 +28,5 @@ fi
 # bring up network nodes
 (
     cd "${network_dir}"
-    vagrant up
+    vagrant up --parallel
 )

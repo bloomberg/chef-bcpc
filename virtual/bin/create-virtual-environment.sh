@@ -55,10 +55,7 @@ fi
 # bring up vagrant/virtualbox nodes
 (
     cd "${virtual_dir}"
-    vagrant up
-
-    # reload vms to load new kernel
-    vagrant reload
+    vagrant up --parallel
 
     # export ssh config file for ansible inventory parsing
     vagrant ssh-config > "${ssh_config_file}"
@@ -68,3 +65,11 @@ fi
 "${virtual_dir}/bin/generate-ansible-inventory.py" \
     --ssh-config "${ssh_config_file}" \
     --topology-config "${topology_file}" > "${ansible_dir}/inventory.yml"
+
+# reboot vms to load new kernel
+if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
+    ansible -i "${ansible_dir}/inventory.yml" cloud -b -B 1 -P 0 -m shell -a "sleep 5 && reboot"
+    ansible -i "${ansible_dir}/inventory.yml" cloud -m wait_for_connection -a "delay=15"
+else
+    ( cd "${virtual_dir}"; vagrant reload )
+fi

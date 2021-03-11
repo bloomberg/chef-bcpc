@@ -23,3 +23,15 @@ def test_services_head(host, name):
     s = host.service(name)
     assert s.is_running
     assert s.is_enabled
+
+@pytest.mark.bootstraps
+@pytest.mark.rmqnodes
+@pytest.mark.worknodes
+@pytest.mark.storagenodes
+@pytest.mark.stubnodes
+@pytest.mark.parametrize("name", [
+    ("glance-api"),
+])
+def test_services_not_installed(host, name):
+    s = host.package(name)
+    assert not s.is_installed

@@ -24,7 +24,7 @@ transport_url = rabbit://<%= @rmqnodes.map{|x| "#{@config['rabbit']['username']}
 image_member_quota = -1
 
 [database]
-connection = mysql+pymysql://<%= @db['username'] %>:<%= @db['password'] %>@<%= @db['host'] %>/<%= @db['dbname'] %>
+connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
 max_pool_size=<%= node['bcpc']['glance']['db']['max_pool_size'] %>
 max_overflow=<%= node['bcpc']['glance']['db']['max_overflow'] %>
 
