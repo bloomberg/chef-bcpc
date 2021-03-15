@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: neutron-head
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -133,12 +133,13 @@ end
 
 # neutron package installation and service definition starts
 #
-package 'calico-control' do
-  action :upgrade
-end
-
 package 'neutron-server'
 service 'neutron-server'
+
+package 'calico-control' do
+  action :upgrade
+  notifies :restart, 'service[neutron-server]', :immediately
+end
 
 service 'haproxy-neutron' do
   service_name 'haproxy'
@@ -181,7 +182,8 @@ execute 'create neutron database' do
 
   notifies :delete, 'file[/tmp/neutron-db.sql]', :immediately
   notifies :create, 'template[/etc/neutron/neutron.conf]', :immediately
-  notifies :create, 'template[/etc/neutron/plugins/ml2/ml2_conf.ini]', :immediately
+  notifies :create, 'cookbook_file[/etc/neutron/plugins/ml2/ml2_conf.ini]',
+           :immediately
   notifies :run, 'execute[neutron-db-manage upgrade heads]', :immediately
 end
 
@@ -210,7 +212,7 @@ template '/etc/neutron/neutron.conf' do
   notifies :restart, 'service[neutron-server]', :immediately
 end
 
-template '/etc/neutron/plugins/ml2/ml2_conf.ini' do
+cookbook_file '/etc/neutron/plugins/ml2/ml2_conf.ini' do
   source 'neutron/neutron.ml2_conf.ini.erb'
   notifies :restart, 'service[neutron-server]', :immediately
 end
@@ -408,6 +410,24 @@ bash 'update admin default security group' do
 
           openstack security group rule create ${sec_id} \
             --protocol tcp \
+            --dst-port ${port_range} \
+            --remote-ip ${remote_ip} \
+            --ethertype ${ethertype}
+        fi
+      done
+
+      # allow UDP port range used by traceroute(1)
+      for port_range in 33434:33464; do
+        if ! openstack security group rule list ${sec_id} \
+              --protocol udp --long \
+              -c "Port Range" -c "Ethertype" \
+              -f value | grep "${port_range}" | grep "${ethertype}"; then
+
+          [[ ${ethertype} = 'IPv4' ]] && \
+            remote_ip='0.0.0.0/0' || remote_ip='::/0'
+
+          openstack security group rule create ${sec_id} \
+            --protocol udp \
             --dst-port ${port_range} \
             --remote-ip ${remote_ip} \
             --ethertype ${ethertype}

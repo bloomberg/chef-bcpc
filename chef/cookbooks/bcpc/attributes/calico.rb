@@ -12,4 +12,4 @@ default['bcpc']['calico']['calicoctl']['remote']['file'] = 'calicoctl'
 default['bcpc']['calico']['calicoctl']['remote']['source'] =
  "#{default['bcpc']['web_server']['url']}/calicoctl"
 default['bcpc']['calico']['calicoctl']['remote']['checksum'] =
- 'ab63a161ad9882b50531cd3835ed7cd090deda8ed18e9b5c3eb6fafebda09574'
+ 'c2cbfaee6b56461453f0ef9bbf758ff792a1490f7e49ae18e4469653c9afc0f4'
