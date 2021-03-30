@@ -279,7 +279,7 @@ hardware_cpu_load_microcode: true
 # If pin_version is false, track linux-{{ variant }} upstream
 # For example, linux-{{ generic-hwe-18.04 }}
 kernel_pin_version: false
-kernel_variant: generic
+kernel_variant: generic-hwe-18.04-edge
 kernel_version: ''
 
 # Use this to *add* more reserved ports; i.e. modify value of
