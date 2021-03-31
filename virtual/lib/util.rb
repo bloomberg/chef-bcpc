@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+require 'json'
+
 module Util
   # returns 'virtual_' (the vagrant-libvirt default) or a prefix based on
   # whether or not the environment var 'BCC_ENABLE_LIBVIRT_PREFIX is set
@@ -40,14 +42,22 @@ module Util
     name + '_' + hash
   end
 
-  def self.mount_apt_cache(config)
-    if ENV.key?('BCC_DISABLE_APT_CACHE')
-      return
+  def self.get_vagrant_box
+    virtual_dir = File.dirname(File.dirname(__FILE__))
+    config_variable_file = File.read(virtual_dir + '/vagrantbox.json')
+    config_variables = JSON.parse(config_variable_file)
+    vagrant_box = config_variables['vagrant_box']
+    vagrant_box_version = config_variables['vagrant_box_version']
+    if vagrant_box.nil? ||
+       vagrant_box.empty? ||
+       vagrant_box_version.nil? ||
+       vagrant_box_version.empty?
+      raise "Variable 'vagrant_box' or 'vagrant_box_version' is not specified in vagrantbox.json."
     end
-    user_data_path = Vagrant.user_data_path.to_s
-    cache_dir = File.join(user_data_path, 'cache', 'apt', config.vm.box)
-    apt_cache_dir = '/var/cache/apt/archives'
-    config.vm.synced_folder cache_dir, apt_cache_dir,
-        create: true, owner: '_apt'
+    boxes = `vagrant box list --machine-readable`
+    unless boxes.match(/#{vagrant_box}.*#{vagrant_box_version}/)
+      raise "Vagrant box #{vagrant_box} not found."
+    end
+    [vagrant_box, vagrant_box_version]
   end
 end

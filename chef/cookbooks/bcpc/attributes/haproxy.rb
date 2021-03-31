@@ -11,7 +11,16 @@ default['bcpc']['haproxy']['apt']['url'] = 'http://ppa.launchpad.net/vbernat/hap
 # Whether QoS is enabled or not.
 default['bcpc']['haproxy']['qos']['enabled'] = false
 
-# The amount of time to wait for HTTP headers to be sent
+# The amount of time to wait for HTTP headers to be sent (timeout http-request)
+# and the amount of time to wait for a new HTTP request to appear (timeout
+# http-keep-alive).
+# NOTE: If `http-keep-alive` is exceeded client TCP connections are closed
+# silently.
+# NOTE: It is **highly** recommended that `http-keep-alive` not be set to 5s.
+# If set to 5s there is the possibility of a race condition when the --wait
+# option of the Openstack client is used, which periodically executes API
+# requests every 5 seconds, that results in client TCP connections being closed
+# unexpectedly.
 default['bcpc']['haproxy']['qos']['http_request_timeout'] = '10s'
 
 # The maximum number of entries in the stick table

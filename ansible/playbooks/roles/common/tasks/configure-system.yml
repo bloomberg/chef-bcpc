@@ -1,3 +1,8 @@
+# Define Ansible virtualization facts
+- name: Define Ansible virtualization facts
+  setup:
+    gather_subset: "!all,!min,virtual"
+
 # IPMI module configuration and loading
 - name: Configure the kernel's IPMI module
   block:
