@@ -114,88 +114,8 @@ begin
 end
 #
 # create compute service and endpoints ends
-
-# nova openstack access
 #
-placement = {
-  'role' => node['bcpc']['keystone']['roles']['admin'],
-  'project' => node['bcpc']['keystone']['service_project']['name'],
-  'domain' => node['bcpc']['keystone']['service_project']['domain'],
-  'username' => config['placement']['creds']['os']['username'],
-  'password' => config['placement']['creds']['os']['password'],
-}
-
-# create placement user starts
-#
-execute 'create openstack placement user' do
-  environment os_adminrc
-
-  command <<-DOC
-    openstack user create #{placement['username']} \
-      --domain #{placement['domain']} \
-      --password #{placement['password']}
-  DOC
-
-  not_if "openstack user show #{placement['username']} --domain default"
-end
-
-execute 'add admin role to placement user' do
-  environment os_adminrc
-
-  command <<-DOC
-    openstack role add #{placement['role']} \
-      --project #{placement['project']} \
-      --user #{placement['username']}
-  DOC
-
-  not_if <<-DOC
-    openstack role assignment list \
-      --names \
-      --role #{placement['role']} \
-      --project #{placement['project']} \
-      --user #{placement['username']} | grep #{placement['username']}
-  DOC
-end
-#
-# create placement user ends
-
-# create placement service and endpoints starts
-#
-begin
-  type = 'placement'
-  service = node['bcpc']['catalog'][type]
-  name = service['name']
-
-  execute "create the #{name} #{type} service" do
-    environment os_adminrc
-
-    desc = service['description']
-
-    command <<-DOC
-      openstack service create \
-        --name "#{name}" --description "#{desc}" #{type}
-    DOC
-
-    not_if "openstack service list | grep #{type}"
-  end
-
-  %w(admin internal public).each do |uri|
-    url = generate_service_catalog_uri(service, uri)
-
-    execute "create the #{name} #{type} #{uri} endpoint" do
-      environment os_adminrc
-
-      command <<-DOC
-        openstack endpoint create \
-          --region #{region} #{type} #{uri} '#{url}'
-      DOC
-
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
-    end
-  end
-end
-#
-# create placement service and endpoints ends
+# nova openstack access ends
 
 # install haproxy fragment
 template '/etc/haproxy/haproxy.d/nova.cfg' do
@@ -226,8 +146,7 @@ service 'nova-api'
 service 'nova-consoleauth'
 service 'nova-scheduler'
 service 'nova-conductor'
-service 'nova-novncproxy'
-service 'placement-api' do
+service 'nova-novncproxy' do
   service_name 'apache2'
 end
 service 'haproxy-nova' do
@@ -399,37 +318,10 @@ end
 #
 # configure nova ends
 
-# configure placement-api starts
-placement_processes = if !node['bcpc']['placement']['workers'].nil?
-                        node['bcpc']['placement']['workers']
-                      else
-                        node['bcpc']['openstack']['services']['workers']
-                      end
-
-template '/etc/apache2/sites-available/nova-placement-api.conf' do
-  source 'nova/nova-placement-api.conf.erb'
-  mode '0640'
-  owner 'root'
-  group 'nova'
-
-  variables(
-    processes: placement_processes
-  )
-  notifies :run, 'execute[enable placement-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
-end
-# configure placement-api ends
-
-execute 'enable placement-api' do
-  command 'a2ensite nova-placement-api'
-  not_if 'a2query -s nova-placement-api'
-end
-
 cookbook_file '/etc/nova/api-paste.ini' do
   source 'nova/api-paste.ini'
   mode '0640'
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
 end
 
 execute 'wait for nova to come online' do
