@@ -34,7 +34,7 @@ class AccessFilter(filters.BaseBackendFilter):
         so just return True with the assumption that the other mechanisms in
         place will determine if this is possible or not
         """
-        if volume_type is not None:
+        if volume_type.get('name') != "__DEFAULT__":
             return True
 
         # get the request context object

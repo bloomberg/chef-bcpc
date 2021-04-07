@@ -388,8 +388,11 @@ node['bcpc']['neutron']['networks'].each do |network|
   execute "create the #{fixed_network} network router (#{router_name})" do
     environment os_adminrc
 
+    # TODO: @tstachecki: Train will create routers, but throws an exception while doing so.
+    # Introduce a big fat kludge and remove it once we upgrade to Ussuri.
     command <<-DOC
-      openstack router create #{router_name}
+      openstack router create #{router_name} || /bin/true
+      openstack router list --format json | jq -re '.[] | select(.Name == "#{router_name}").ID'
     DOC
 
     not_if { node.run_state['os_routers'].include? router_name }
