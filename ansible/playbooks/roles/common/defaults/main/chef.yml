@@ -79,6 +79,7 @@ chef_roles:
       - recipe[bcpc::keystone]
       - recipe[bcpc::glance]
       - recipe[bcpc::neutron-head]
+      - recipe[bcpc::placement]
       - recipe[bcpc::nova-head]
       - recipe[bcpc::cinder]
       - recipe[bcpc::horizon]
