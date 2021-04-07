@@ -256,8 +256,8 @@ template '/etc/haproxy/haproxy.d/watcher.cfg' do
   notifies :reload, 'service[haproxy-watcher]', :immediately
 end
 
-#execute 'wait for watcher api to become available' do
-  #environment os_adminrc
-  #retries 15
-  #command 'openstack optimize strategy list'
-#end
+execute 'wait for watcher api to become available' do
+  environment os_adminrc
+  retries 15
+  command 'openstack optimize strategy list'
+end
