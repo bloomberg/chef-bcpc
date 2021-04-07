@@ -153,9 +153,7 @@ package %w(
   python-novnc
   nova-api
   nova-conductor
-  nova-consoleauth
   nova-novncproxy
-  nova-placement-api
   nova-scheduler
   novnc
 ) do
@@ -163,7 +161,6 @@ package %w(
 end
 
 service 'nova-api'
-service 'nova-consoleauth'
 service 'nova-scheduler'
 service 'nova-conductor'
 service 'nova-novncproxy' do
@@ -246,7 +243,6 @@ execute 'create nova databases' do
   notifies :run, 'execute[nova-manage db sync]', :immediately
   notifies :run, 'execute[update cell1]', :immediately
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
   notifies :restart, 'service[nova-scheduler]', :immediately
   notifies :restart, 'service[nova-conductor]', :immediately
   notifies :restart, 'service[nova-novncproxy]', :immediately
@@ -320,7 +316,6 @@ template '/etc/nova/nova.conf' do
 
   notifies :run, 'execute[update cell1]', :immediately
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
   notifies :restart, 'service[nova-scheduler]', :immediately
   notifies :restart, 'service[nova-conductor]', :immediately
   notifies :restart, 'service[nova-novncproxy]', :immediately
