@@ -1,0 +1,19 @@
+Listen <%= "#{node['service_ip']}:8778" %>
+
+<VirtualHost <%= "#{node['service_ip']}:8778" %>>
+  WSGIScriptAlias / /usr/bin/placement-api
+  WSGIScriptAlias /placement /usr/bin/placement-api
+
+  WSGIDaemonProcess placement processes=<%= @processes %> threads=1 user=placement group=placement display-name=%{GROUP}
+  WSGIProcessGroup placement
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  LimitRequestBody 114688
+  ErrorLogFormat "%{cu}t %M"
+  ErrorLog /var/log/apache2/placement_error.log
+  CustomLog /var/log/apache2/placement_access.log combined
+
+  <Directory /usr/bin>
+    Require all granted
+  </Directory>
+</VirtualHost>
