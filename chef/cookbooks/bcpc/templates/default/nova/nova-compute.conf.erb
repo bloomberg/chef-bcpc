@@ -18,7 +18,8 @@ live_migration_uri = qemu+ssh://nova@%s/system
 <% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
 cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
 <% end -%>
-<% unless node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
+<% if node['bcpc']['nova']['cpu_config']['cpu_mode'] == "custom" %>
+  <% raise "cpu_model must be specified for cpu_mode='custom'" if node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
 cpu_model = <%= node['bcpc']['nova']['cpu_config']['cpu_model'] %>
 <% end -%>
 <% unless node['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'].empty? %>
