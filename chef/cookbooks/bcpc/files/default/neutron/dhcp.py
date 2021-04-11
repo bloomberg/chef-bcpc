@@ -15,6 +15,8 @@
 
 import abc
 import collections
+import copy
+import itertools
 import os
 import re
 import shutil
@@ -38,7 +40,6 @@ from neutron.agent.linux import external_process
 from neutron.agent.linux import ip_lib
 from neutron.agent.linux import iptables_manager
 from neutron.cmd import runtime_checks as checks
-from neutron.common import ipv6_utils
 from neutron.common import utils as common_utils
 from neutron.ipam import utils as ipam_utils
 
@@ -65,12 +66,31 @@ HOST_DHCPV6_TAG = 'tag:dhcpv6,'
 DHCP_OPT_CLIENT_ID_NUM = 61
 
 
-class DictModel(dict):
+def port_requires_dhcp_configuration(port):
+    if not getattr(port, 'device_owner', None):
+        # We can't check if port needs dhcp entry, so it will be better
+        # to create one
+        return True
+    # TODO(slaweq): define this list as a constant in neutron_lib.constants
+    # NOTE(slaweq): Not all port types which belongs e.g. to the routers can be
+    # excluded from that list. For some of them, like router interfaces used to
+    # plug subnet to the router should be configured in dnsmasq to provide DNS
+    # naming resolution. Otherwise it may slowdown e.g. traceroutes from the VM
+    return port.device_owner not in [
+        constants.DEVICE_OWNER_ROUTER_HA_INTF,
+        constants.DEVICE_OWNER_FLOATINGIP,
+        constants.DEVICE_OWNER_DHCP]
+
+
+class DictModel(collections.abc.MutableMapping):
     """Convert dict into an object that provides attribute access to values."""
+
+    __slots__ = ['_dictmodel_internal_storage']
 
     def __init__(self, *args, **kwargs):
         """Convert dict values to DictModel values."""
-        super(DictModel, self).__init__(*args, **kwargs)
+        temp_dict = dict(*args)
+        self._dictmodel_internal_storage = {}
 
         def needs_upgrade(item):
             """Check if `item` is a dict and needs to be changed to DictModel.
@@ -84,37 +104,71 @@ class DictModel(dict):
             else:
                 return item
 
-        for key, value in self.items():
+        for key, value in itertools.chain(temp_dict.items(), kwargs.items()):
             if isinstance(value, (list, tuple)):
                 # Keep the same type but convert dicts to DictModels
-                self[key] = type(value)(
+                self._dictmodel_internal_storage[key] = type(value)(
                     (upgrade(item) for item in value)
                 )
             elif needs_upgrade(value):
                 # Change dict instance values to DictModel instance values
-                self[key] = DictModel(value)
+                self._dictmodel_internal_storage[key] = DictModel(value)
+            else:
+                self._dictmodel_internal_storage[key] = value
 
     def __getattr__(self, name):
         try:
-            return self[name]
+            if name == '_dictmodel_internal_storage':
+                return super(DictModel, self).__getattr__(name)
+            return self.__getitem__(name)
         except KeyError as e:
             raise AttributeError(e)
 
     def __setattr__(self, name, value):
-        self[name] = value
+        if name == '_dictmodel_internal_storage':
+            super(DictModel, self).__setattr__(name, value)
+        else:
+            self._dictmodel_internal_storage[name] = value
 
     def __delattr__(self, name):
-        del self[name]
+        del self._dictmodel_internal_storage[name]
 
     def __str__(self):
-        pairs = ['%s=%s' % (k, v) for k, v in self.items()]
+        pairs = ['%s=%s' % (k, v) for k, v in
+                 self._dictmodel_internal_storage.items()]
         return ', '.join(sorted(pairs))
+
+    def __getitem__(self, name):
+        return self._dictmodel_internal_storage[name]
+
+    def __setitem__(self, name, value):
+        self._dictmodel_internal_storage[name] = value
+
+    def __delitem__(self, name):
+        del self._dictmodel_internal_storage[name]
+
+    def __iter__(self):
+        return iter(self._dictmodel_internal_storage)
+
+    def __len__(self):
+        return len(self._dictmodel_internal_storage)
+
+    def __copy__(self):
+        return type(self)(self)
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        result._dictmodel_internal_storage = copy.deepcopy(
+            self._dictmodel_internal_storage)
+        return result
 
 
 class NetModel(DictModel):
 
-    def __init__(self, d):
-        super(NetModel, self).__init__(d)
+    def __init__(self, *args, **kwargs):
+        super(NetModel, self).__init__(*args, **kwargs)
 
         self._ns_name = "%s%s" % (NS_PREFIX, self.id)
 
@@ -224,8 +278,9 @@ class DhcpLocalProcess(DhcpBase):
     def _enable(self):
         try:
             if self.active:
-                self.restart()
-            elif self._enable_dhcp():
+                self.disable(retain_port=True, block=True)
+
+            if self._enable_dhcp():
                 fileutils.ensure_tree(self.network_conf_dir, mode=0o755)
                 interface_name = self.device_manager.setup(self.network)
                 self.interface_name = interface_name
@@ -681,6 +736,9 @@ class Dnsmasq(DhcpLocalProcess):
                        if subnet.ip_version == 6)
 
         for port in self.network.ports:
+            if not port_requires_dhcp_configuration(port):
+                continue
+
             fixed_ips = self._sort_fixed_ips_for_dnsmasq(port.fixed_ips,
                                                          v6_nets)
             # TODO(hjensas): Drop this conditional and option once distros
@@ -949,7 +1007,7 @@ class Dnsmasq(DhcpLocalProcess):
             if netaddr.IPAddress(k).version == constants.IP_VERSION_4:
                 # treat '*' as None, see note in _read_leases_file_leases()
                 client_id = v['client_id']
-                if client_id is '*':
+                if client_id == '*':
                     client_id = None
                 v4_leases.add((k, v['iaid'], client_id))
 
@@ -1634,7 +1692,7 @@ class DeviceManager(object):
             ip_lib.IPWrapper().ensure_namespace(network.namespace)
             ip_lib.set_ip_nonlocal_bind_for_namespace(network.namespace, 1,
                                                       root_namespace=True)
-        if ipv6_utils.is_enabled_and_bind_by_default():
+        if netutils.is_ipv6_enabled():
             self.driver.configure_ipv6_ra(network.namespace, 'default',
                                           constants.ACCEPT_RA_DISABLED)
 
