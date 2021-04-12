@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-compute
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -196,6 +196,11 @@ template '/etc/nova/nova.conf' do
   notifies :restart, 'service[nova-api-metadata]', :immediately
 end
 
+flags = node['cpu']['0']['flags'] & %w(svm vmx)
+virt_type = flags.empty? ? 'qemu' : 'kvm'
+vendor_id = node['cpu']['0']['vendor_id']
+cpu_config = node['bcpc']['nova']['cpu_config'][vendor_id]
+
 template '/etc/nova/nova-compute.conf' do
   source 'nova/nova-compute.conf.erb'
   mode '0640'
@@ -203,7 +208,10 @@ template '/etc/nova/nova-compute.conf' do
   group 'nova'
 
   variables(
-    virt_type: node['cpu']['0']['flags'].include?('vmx') ? 'kvm' : 'qemu',
+    virt_type: virt_type,
+    cpu_mode: cpu_config['cpu_mode'],
+    cpu_model: cpu_config['cpu_model'],
+    cpu_model_extra_flag: cpu_config['cpu_model_extra_flags'],
     images_rbd_pool: nova_compute_config.ceph_pool,
     rbd_user: nova_compute_config.ceph_user,
     rbd_secret_uuid: nova_compute_config.libvirt_secret

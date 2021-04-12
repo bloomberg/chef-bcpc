@@ -31,9 +31,12 @@ default['bcpc']['nova']['notifications']['driver'] = 'messagingv2'
 default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_and_task_state'
 
 # CPU passthrough/masking configurations
-default['bcpc']['nova']['cpu_config']['cpu_mode'] = 'custom'
-default['bcpc']['nova']['cpu_config']['cpu_model'] = 'kvm64'
-default['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'] = []
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_mode'] = 'custom'
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_model'] = 'qemu64'
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_model_extra_flags'] = []
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_mode'] = 'custom'
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model'] = 'qemu64'
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model_extra_flags'] = []
 
 # select from between this many equally optimal hosts when launching an instance
 default['bcpc']['nova']['scheduler_host_subset_size'] = 3
