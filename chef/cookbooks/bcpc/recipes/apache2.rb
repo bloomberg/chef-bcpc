@@ -42,7 +42,7 @@ remote_file '/etc/apache2/logrotate.conf' do
   source 'file:///etc/logrotate.d/apache2'
   owner 'root'
   group 'root'
-  mode 0644
+  mode '0644'
   action :create
 end
 

@@ -29,6 +29,7 @@ def test_services(host, name):
     assert s.is_running
     assert s.is_enabled
 
+
 @pytest.mark.bootstraps
 @pytest.mark.headnodes
 @pytest.mark.worknodes
