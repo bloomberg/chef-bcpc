@@ -34,4 +34,6 @@ bash 'install etcd3gw' do
     tar -xzf #{target}
     pip install $(basename #{target} .tar.gz)/
   EOH
+  retries 5
+  retry_delay 2
 end
