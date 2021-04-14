@@ -1,6 +1,6 @@
 [global]
 fsid = <%= @config['ceph']['fsid'] %>
-public network = <%= @public_network %>
+public network = <%= @public_network.join(',') %>
 auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx

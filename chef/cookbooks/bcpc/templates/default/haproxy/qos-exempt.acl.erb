@@ -1,6 +1,8 @@
 localhost
 <%= node['bcpc']['cloud']['vip'] %>
-<%= node['bcpc']['networking']['networks']['primary']['aggregate-cidr'] %>
+<% @aggregate_cidr.each do |cidr| %>
+<%= cidr %>
+<% end %>
 <% node['bcpc']['haproxy']['qos']['exemptions'].each do |exemption| %>
 <%= exemption %>
 <% end %>
