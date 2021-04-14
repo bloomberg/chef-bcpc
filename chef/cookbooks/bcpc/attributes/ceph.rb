@@ -66,3 +66,8 @@ default['bcpc']['ceph']['bluestore_cache_size_ssd'] = 10737418240
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent
 # instances from being able to access their root file system after a crash.
 default['bcpc']['ceph']['rbd_default_features'] = 33
+
+# ceph mgr,mon,osd service installation flags
+default['bcpc']['ceph']['mgr']['enabled'] = true
+default['bcpc']['ceph']['mon']['enabled'] = true
+default['bcpc']['ceph']['osd']['enabled'] = true
