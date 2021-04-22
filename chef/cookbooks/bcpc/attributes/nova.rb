@@ -66,7 +66,8 @@ default['bcpc']['nova']['resume_guests_state_on_host_boot'] = false
 default['bcpc']['nova']['default_log_levels'] = nil
 
 # The loopback address matches what Calico's Felix defaults to for metadata
-default['bcpc']['nova']['metadata_listen'] = '127.0.0.1'
+default['bcpc']['nova']['metadata']['listen'] = '127.0.0.1'
+default['bcpc']['nova']['metadata']['cache_expiration'] = 60
 
 # Nova scheduler default filters
 default['bcpc']['nova']['scheduler_default_filters'] = %w(
