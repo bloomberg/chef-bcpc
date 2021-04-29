@@ -64,22 +64,6 @@ Vagrant.configure('2') do |config|
       # finish provisioner
       finish_args = []
 
-      if ENV.key?('BCC_APT_URL')
-        finish_args.append("--apt-url #{ENV['BCC_APT_URL']}")
-      end
-
-      if ENV.key?('BCC_APT_KEY_URL')
-        finish_args.append("--apt-key-url #{ENV['BCC_APT_KEY_URL']}")
-      end
-
-      if ENV.key?('http_proxy')
-        finish_args.append("--http-proxy #{ENV['http_proxy']}")
-      end
-
-      if ENV.key?('https_proxy')
-        finish_args.append("--https-proxy #{ENV['https_proxy']}")
-      end
-
       if hw_profile.key?('swap_gb')
         finish_args.append("--swap-size-gb #{hw_profile['swap_gb']}")
       end
