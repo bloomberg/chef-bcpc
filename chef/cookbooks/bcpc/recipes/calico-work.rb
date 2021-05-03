@@ -50,6 +50,13 @@ end
   end
 end
 
+# install patched dhcp.py for calico-dhcp-agent
+# https://bugs.launchpad.net/neutron/+bug/1915480
+cookbook_file '/usr/lib/python2.7/dist-packages/neutron/agent/linux/dhcp.py' do
+  source 'neutron/dhcp.py'
+  notifies :restart, 'service[calico-dhcp-agent]', :immediately
+end
+
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
   mode '644'
