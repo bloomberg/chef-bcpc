@@ -23,6 +23,7 @@ packer_dir=$(dirname "$(dirname "$0")")
 config_variables="${packer_dir}/variables.json"
 BASE_BOX=$(jq -r '.base_box' "$config_variables")
 BASE_BOX_VERSION=$(jq -r '.base_box_version' "$config_variables")
+BASE_BOX_PROVIDER=$(jq -r '.base_box_provider' "$config_variables")
 OUTPUT_PACKER_BOX_NAME=$(jq -r '.output_packer_box_name' "$config_variables")
 if [ "$BASE_BOX" == "null" ] \
    || [ "$BASE_BOX_VERSION" == "null" ] \
@@ -31,13 +32,26 @@ if [ "$BASE_BOX" == "null" ] \
     exit 1
 fi
 base_box_exists=$(vagrant box list --machine-readable \
-                | grep -i "${BASE_BOX}.*${BASE_BOX_VERSION}" \
+                | grep -i "${BASE_BOX}.*${BASE_BOX_PROVIDER}.*${BASE_BOX_VERSION}" \
                 || true)
 if [ -z "$base_box_exists" ]; then
     vagrant box add \
+        --force \
         --insecure "$BASE_BOX" \
         --box-version "$BASE_BOX_VERSION" \
         --provider virtualbox;
+    if [ "$BASE_BOX_PROVIDER" == "libvirt" ]; then
+        printf "Checking for vagrant mutate"
+        mutate=`vagrant plugin list | grep mutate`
+       if [ -z "$mutate" ]; then
+           printf "Vagrant mutate not found. Please install vagrant mutate to allow base conversion\n"
+           exit 1
+       else
+           printf "Vagrant mutate found, mutating vbox version...\n" \
+                  ${BASE_BOX}
+           vagrant mutate ${BASE_BOX} --input-provider virtualbox libvirt
+       fi
+    fi
 fi
 
 
