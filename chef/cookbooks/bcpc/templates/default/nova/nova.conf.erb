@@ -3,6 +3,7 @@
 #
 [DEFAULT]
 debug = false
+allow_resize_to_same_host = <%= node['bcpc']['nova']['allow_resize_to_same_host'] %>
 compute_monitors = cpu.virt_driver
 vif_plugging_is_fatal = false
 vif_plugging_timeout = 0
