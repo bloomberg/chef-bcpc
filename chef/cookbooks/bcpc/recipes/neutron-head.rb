@@ -24,12 +24,14 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
 mysqladmin = mysqladmin()
+psqladmin = psqladmin()
+db_conn = db_conn()
 
 # hash used for database creation and access
 #
 database = {
-  'host' => node['bcpc']['mysql']['host'],
-  'port' => node['bcpc']['mysql']['port'],
+  'host' => db_conn['host'],
+  'port' => db_conn['port'],
   'dbname' => node['bcpc']['neutron']['db']['dbname'],
   'username' => config['neutron']['creds']['db']['username'],
   'password' => config['neutron']['creds']['db']['password'],
@@ -153,6 +155,22 @@ group 'etcd' do
   members 'neutron'
   append true
 end
+
+# Ensure the database user is present on ProxySQL
+#
+bcpc_proxysql_user "create #{database['username']} proxysql user" do
+  user database
+  psqladmin psqladmin
+  only_if { node['bcpc']['proxysql']['enabled'] }
+  notifies :run, 'bcpc_proxysql_reload[reload proxysql '\
+    "#{database['username']}]", :immediately
+end
+
+bcpc_proxysql_reload "reload proxysql #{database['username']}" do
+  psqladmin psqladmin
+  action :nothing
+end
+# end ProxySQL user creation
 
 # create/manage neutron database starts
 #

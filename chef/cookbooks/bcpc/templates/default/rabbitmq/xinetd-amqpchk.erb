@@ -16,7 +16,7 @@ service amqpchk
   user            = rabbitmq
   server          = /usr/local/bin/rabbitmqcheck
   log_on_failure  += USERID
-  only_from       = <%= @only_from %>
+  only_from       = <%= @only_from.join(' ') %>
   # recommended to put the IPs that need
   # to connect exclusively (security purposes)
   per_source      = UNLIMITED

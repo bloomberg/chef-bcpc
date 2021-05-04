@@ -17,14 +17,28 @@
 
 include_recipe 'bcpc::consul-package'
 
+region = node['bcpc']['cloud']['region']
+config = data_bag_item(region, 'config')
+
 service 'consul'
 
 directory '/usr/local/bcpc/bin' do
   recursive true
 end
 
-%w(if_primary_mysql.sh if_not_primary_mysql.sh if_leader).each do |script|
+%w(
+  if_leader
+  if_primary_mysql.sh
+  if_not_primary_mysql.sh
+  if_primary_proxysql.sh
+  if_not_primary_proxysql.sh
+  if_leader
+  proxysql-check-helper
+).each do |script|
   template "/usr/local/bcpc/bin/#{script}" do
+    variables(
+      config: config
+    )
     source "consul/#{script}.erb"
     mode '755'
   end
@@ -76,6 +90,21 @@ begin
   file "#{node['bcpc']['consul']['conf_dir']}/config.json" do
     content JSON.pretty_generate(config)
     notifies :restart, 'service[consul]', :immediately
+  end
+end
+
+# Delete old consul scripts, if present
+# NOTE: This code only needs to execute once in a cluster's lifetime and should
+# be removed once no longer needed or a better cleanup method is devised (e.g.
+# ansible playbooks).
+%w(
+  haproxy-watch
+  mysql-elect-watch
+  mysql-watch
+  dns-watch
+).each do |script|
+  file "/usr/local/bcpc/bin/#{script}" do
+    action :delete
   end
 end
 

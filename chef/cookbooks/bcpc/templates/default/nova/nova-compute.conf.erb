@@ -1,5 +1,5 @@
-# for an overview of all the available configuration options for nova@pike
-# go to: https://docs.openstack.org/nova/pike/configuration/config.html
+# for an overview of all the available configuration options for nova@rocky
+# go to: https://docs.openstack.org/nova/rocky/configuration/config.html
 #
 [DEFAULT]
 compute_driver = libvirt.LibvirtDriver
@@ -15,13 +15,13 @@ rbd_secret_uuid = <%= @rbd_secret_uuid %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
 live_migration_uri = qemu+ssh://nova@%s/system
-<% unless node['bcpc']['nova']['cpu_config']['cpu_mode'].nil? %>
-cpu_mode = <%= node['bcpc']['nova']['cpu_config']['cpu_mode'] %>
+<% unless @cpu_mode.nil? %>
+cpu_mode = <%= @cpu_mode %>
 <% end -%>
-<% unless node['bcpc']['nova']['cpu_config']['cpu_model'].nil? %>
-cpu_model = <%= node['bcpc']['nova']['cpu_config']['cpu_model'] %>
+<% unless @cpu_model.nil? %>
+cpu_model = <%= @cpu_model %>
 <% end -%>
-<% unless node['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'].empty? %>
-cpu_model_extra_flags = <%= node['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'].join(',') %>
+<% unless @cpu_model_extra_flag.empty? %>
+cpu_model_extra_flags = <%= @cpu_model_extra_flag.join(',') %>
 <% end -%>
 live_migration_permit_auto_converge = true

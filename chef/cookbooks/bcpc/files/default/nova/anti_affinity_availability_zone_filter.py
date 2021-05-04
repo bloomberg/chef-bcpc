@@ -20,7 +20,6 @@ from nova import availability_zones
 from nova import context
 from nova.scheduler import filters
 from oslo_log import log as logging
-from oslo_utils import strutils
 
 LOG = logging.getLogger(__name__)
 

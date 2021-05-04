@@ -22,10 +22,15 @@ default['bcpc']['consul']['config']['addresses']['dns'] = node['bcpc']['cloud'][
 default['bcpc']['consul']['config']['ports']['dns'] = 8600
 default['bcpc']['consul']['config']['recursors'] = [node['bcpc']['cloud']['vip']]
 
-# Load the mysql attribute file in order to populate mysql:port. Chef attribute
-# files are loaded alphabetically, and unless mysql:port is specified in the
-# environment it will be null when read below. Thus the explicit load.
+# Load the mysql and proxysql attribute files in order to populate both
+# service's port attributes. Chef attribute files are loaded alphabetically,
+# thus the need for an explicit load.
+# NOTE: In order to more easily switch between a ProxySQL-enabled installation
+# and one where mysql is used directly, the ProxySQL service is defined in
+# consul regardless of whether or not it is enabled. The ProxySQL consul service
+# will only be available when ProxySQL is enabled.
 node.from_file(run_context.resolve_attribute('bcpc', 'mysql'))
+node.from_file(run_context.resolve_attribute('bcpc', 'proxysql'))
 
 # Service definitions reference:
 # https://www.consul.io/docs/agent/services.html
@@ -38,6 +43,18 @@ default['bcpc']['consul']['services'] = [
     'check' => {
       'name' => 'mysql',
       'args' => ['/usr/local/bcpc/bin/mysql-check'],
+      'interval' => '10s',
+      'timeout' => '2s',
+    },
+  },
+  {
+    'name' => 'proxysql',
+    'port' => node['bcpc']['proxysql']['port'],
+    'enable_tag_override' => true,
+    'tags' => ['proxysql'],
+    'check' => {
+      'name' => 'proxysql',
+      'args' => ['/usr/local/bcpc/bin/proxysql-check'],
       'interval' => '10s',
       'timeout' => '2s',
     },
@@ -68,21 +85,31 @@ default['bcpc']['consul']['watches'] = [
   {
     'service' => 'haproxy',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/haproxy-watch'],
+    'args' => ['/usr/local/bcpc/bin/cloud-ip-watch', 'haproxy'],
   },
   {
     'service' => 'mysql',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-elect-watch'],
+    'args' => ['/usr/local/bcpc/bin/service-elect-watch', 'mysql'],
   },
   {
     'service' => 'mysql',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/mysql-watch'],
+    'args' => ['/usr/local/bcpc/bin/service-watch', 'mysql'],
+  },
+  {
+    'service' => 'proxysql',
+    'type' => 'checks',
+    'args' => ['/usr/local/bcpc/bin/service-elect-watch', 'proxysql'],
+  },
+  {
+    'service' => 'proxysql',
+    'type' => 'checks',
+    'args' => ['/usr/local/bcpc/bin/service-watch', 'proxysql'],
   },
   {
     'service' => 'dns',
     'type' => 'checks',
-    'args' => ['/usr/local/bcpc/bin/dns-watch'],
+    'args' => ['/usr/local/bcpc/bin/cloud-ip-watch', 'dns'],
   },
 ]

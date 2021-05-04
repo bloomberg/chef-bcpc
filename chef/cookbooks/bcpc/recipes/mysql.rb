@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: mysql
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,16 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-repo = node['bcpc']['mysql']['repo']
-codename = node['lsb']['codename']
-
-apt_repository 'percona' do
-  uri repo['url']
-  distribution codename
-  components ['main']
-  key repo['key']
-  only_if { repo['enabled'] }
-end
+# Add the appropriate Percona repo
+include_recipe 'bcpc::percona-apt'
 
 package %w(
   debconf-utils

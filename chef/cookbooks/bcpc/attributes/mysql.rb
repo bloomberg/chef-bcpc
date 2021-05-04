@@ -2,10 +2,6 @@
 # mysql
 ###############################################################################
 
-default['bcpc']['mysql']['repo']['enabled'] = true
-default['bcpc']['mysql']['repo']['url'] = 'http://repo.percona.com/apt'
-default['bcpc']['mysql']['repo']['key'] = 'mysql/release.key'
-
 # fqdn of mysql server
 default['bcpc']['mysql']['host'] = 'primary.mysql.service.consul'
 

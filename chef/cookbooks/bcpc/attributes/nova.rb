@@ -31,9 +31,12 @@ default['bcpc']['nova']['notifications']['driver'] = 'messagingv2'
 default['bcpc']['nova']['notifications']['notify_on_state_change'] = 'vm_and_task_state'
 
 # CPU passthrough/masking configurations
-default['bcpc']['nova']['cpu_config']['cpu_mode'] = 'custom'
-default['bcpc']['nova']['cpu_config']['cpu_model'] = 'kvm64'
-default['bcpc']['nova']['cpu_config']['cpu_model_extra_flags'] = []
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_mode'] = 'custom'
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_model'] = 'qemu64'
+default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_model_extra_flags'] = []
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_mode'] = 'custom'
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model'] = 'qemu64'
+default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model_extra_flags'] = []
 
 # select from between this many equally optimal hosts when launching an instance
 default['bcpc']['nova']['scheduler_host_subset_size'] = 3
@@ -63,7 +66,8 @@ default['bcpc']['nova']['resume_guests_state_on_host_boot'] = false
 default['bcpc']['nova']['default_log_levels'] = nil
 
 # The loopback address matches what Calico's Felix defaults to for metadata
-default['bcpc']['nova']['metadata_listen'] = '127.0.0.1'
+default['bcpc']['nova']['metadata']['listen'] = '127.0.0.1'
+default['bcpc']['nova']['metadata']['cache_expiration'] = 60
 
 # Nova scheduler default filters
 default['bcpc']['nova']['scheduler_default_filters'] = %w(

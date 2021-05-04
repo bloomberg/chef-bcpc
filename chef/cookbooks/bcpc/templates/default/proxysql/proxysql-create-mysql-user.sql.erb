@@ -1,0 +1,28 @@
+DELETE FROM mysql_users WHERE username='<%= @username %>';
+
+INSERT INTO mysql_users (\
+    username, \
+    password, \
+    active, \
+    use_ssl, \
+    default_hostgroup, \
+    schema_locked, \
+    transaction_persistent, \
+    fast_forward, \
+    backend, \
+    frontend, \
+    max_connections, \
+    comment) \
+VALUES (\
+    '<%= @username %>', \
+    '<%= @password %>', \
+    1, \
+    <%= node['bcpc']['proxysql']['mysql_users']['use_ssl'] %>, \
+    1, \
+    0, \
+    <%= node['bcpc']['proxysql']['mysql_users']['transaction_persistent'] %>, \
+    <%= node['bcpc']['proxysql']['mysql_users']['fast_forward'] %>, \
+    1, \
+    1, \
+    <%= node['bcpc']['proxysql']['mysql_users']['max_connections'] %>, \
+    '')

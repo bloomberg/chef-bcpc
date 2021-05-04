@@ -17,13 +17,16 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+
 mysqladmin = mysqladmin()
+psqladmin = psqladmin()
+db_conn = db_conn()
 
 # hash used for database creation and access
 #
 database = {
-  'host' => node['bcpc']['mysql']['host'],
-  'port' => node['bcpc']['mysql']['port'],
+  'host' => db_conn['host'],
+  'port' => db_conn['port'],
   'dbname' => node['bcpc']['keystone']['db']['dbname'],
   'username' => config['keystone']['db']['username'],
   'password' => config['keystone']['db']['password'],
@@ -122,6 +125,22 @@ execute 'enable keystone-api' do
   command 'a2ensite keystone-api'
   not_if 'a2query -s keystone-api'
 end
+
+# Ensure the database user is present on ProxySQL
+#
+bcpc_proxysql_user "create #{database['username']} proxysql user" do
+  user database
+  psqladmin psqladmin
+  only_if { node['bcpc']['proxysql']['enabled'] }
+  notifies :run, 'bcpc_proxysql_reload[reload proxysql '\
+    "#{database['username']}]", :immediately
+end
+
+bcpc_proxysql_reload "reload proxysql #{database['username']}" do
+  psqladmin psqladmin
+  action :nothing
+end
+# end ProxySQL user creation
 
 # create/bootstrap keystone
 file '/tmp/keystone-create-db.sql' do

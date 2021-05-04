@@ -1,5 +1,5 @@
-# for an overview of all the available configuration options for nova@pike
-# go to: https://docs.openstack.org/nova/pike/configuration/config.html
+# for an overview of all the available configuration options for nova@rocky
+# go to: https://docs.openstack.org/nova/rocky/configuration/config.html
 #
 [DEFAULT]
 debug = false
@@ -37,7 +37,8 @@ osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 <% else %>
 enabled_apis = metadata
-metadata_listen = <%= node['bcpc']['nova']['metadata_listen'] %>
+metadata_cache_expiration = <%= node['bcpc']['nova']['metadata']['cache_expiration'] %>
+metadata_listen = <%= node['bcpc']['nova']['metadata']['listen'] %>
 <% if node['bcpc']['nova']['workers'] %>
 metadata_workers = <%= node['bcpc']['nova']['workers'] %>
 <% else %>

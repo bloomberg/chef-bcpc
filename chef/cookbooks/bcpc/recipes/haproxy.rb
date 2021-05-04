@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: haproxy
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -82,5 +82,8 @@ end
 
 template '/etc/haproxy/acls/qos-exempt.acl' do
   source 'haproxy/qos-exempt.acl.erb'
+  variables(
+    aggregate_cidr: node['bcpc']['networking']['networks']['primary']['aggregate-cidr']
+  )
   notifies :reload, 'service[haproxy]', :immediately
 end

@@ -1,0 +1,10 @@
+INSERT INTO proxysql_servers (\
+    hostname, \
+    port, \
+    weight, \
+    comment) \
+VALUES (\
+    '<%= @peer_ip %>', \
+    <%= @peer_port %>, \
+    0, \
+    '<%= @comment %>')

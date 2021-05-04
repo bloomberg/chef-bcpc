@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2020, Bloomberg Finance L.P.
+# Copyright 2021, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+SERVICE="$1"
 
 remove_cloud_ip() {
     /sbin/ip address delete \
@@ -31,11 +33,11 @@ if [ "${self_ip}" != "${leader%:8300}" ]; then
     exit 0
 fi
 
-status="`cat`"
+status="$(cat)"
 self="<%= node['hostname'] %>"
-echo "$status" > /tmp/dns-handler.log
+echo "$status" > "/tmp/${SERVICE}-handler.log"
 echo "$status" | jq ".[] |
-  select((.Node==\"$self\") and (.CheckID==\"service:dns\")) | .Status" |
+select((.Node==\"$self\") and (.CheckID==\"service:${SERVICE}\")) | .Status" |
   grep -q passing
 if [ $? -eq 0 ]; then
     add_cloud_ip

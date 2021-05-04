@@ -23,13 +23,14 @@ chef_environment:
           - biosdevname=0
       nova:
         cpu_config:
-          cpu_mode: custom
-          cpu_model: qemu64
-          cpu_model_extra_flags:
-            - abm
-            - lahf_lm
-            - popcnt
-            - sse4a
+          AuthenticAMD:
+            cpu_mode: custom
+            cpu_model: qemu64
+            cpu_model_extra_flags: []
+          GenuineIntel:
+            cpu_mode: custom
+            cpu_model: qemu64
+            cpu_model_extra_flags: []
       ntp: "{{ ntp }}"
       openstack:
         flavors:
@@ -74,6 +75,7 @@ chef_roles:
       - recipe[bcpc::ceph-mon]
       - recipe[bcpc::ceph-mgr]
       - recipe[bcpc::mysql]
+      - recipe[bcpc::proxysql]
       - recipe[bcpc::powerdns]
       - recipe[bcpc::apache2]
       - recipe[bcpc::keystone]

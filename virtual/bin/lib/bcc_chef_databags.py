@@ -374,6 +374,22 @@ class BCCChefDatabags:
                     'api': {'key': self.generate_string()},
                 }
             },
+            'proxysql': {
+                'creds': {
+                    'db': {
+                        'username': 'psql_monitor',
+                        'password': self.generate_string(),
+                    },
+                    'admin': {
+                        'username': 'psql_admin',
+                        'password': self.generate_string(),
+                    },
+                    'stats': {
+                        'username': 'psql_stats',
+                        'password': self.generate_string(),
+                    },
+                },
+            },
             'keystone': {
                 'db': {
                     'username': 'keystone',
