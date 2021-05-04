@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: calico-felix
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,9 @@ end
 template '/etc/calico/felix.cfg' do
   source 'calico/felix.cfg.erb'
   variables(
-    cert_type: cert_type
+    cert_type: cert_type,
+    failsafe_inbound: node['bcpc']['calico']['felix']['failsafe']['inbound'],
+    failsafe_outbound: node['bcpc']['calico']['felix']['failsafe']['outbound']
   )
   notifies :restart, 'service[calico-felix]', :immediately
 end
