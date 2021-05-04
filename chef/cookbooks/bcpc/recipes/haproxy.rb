@@ -15,17 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+repo = node['bcpc']['haproxy']['repo']
+codename = node['lsb']['codename']
+
 apt_repository 'haproxy' do
-  uri node['bcpc']['haproxy']['apt']['url']
+  uri repo['url']
+  distribution codename
   components ['main']
-  key 'haproxy/haproxy.key'
-  only_if { node['bcpc']['haproxy']['apt']['enabled'] }
+  key repo['key']
+  only_if { repo['enabled'] }
 end
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
-package 'haproxy'
+package 'haproxy' do
+  action :upgrade
+end
 service 'haproxy'
 
 directory '/etc/haproxy/haproxy.d' do
