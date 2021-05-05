@@ -69,15 +69,6 @@ default['bcpc']['metadata']['vendordata']['enabled'] = false
 # default['bcpc']['metadata']['vendordata']['driver'] = "nova.api.metadata.bcpc_metadata.BcpcMetadata"
 
 ###############################################################################
-# memcached
-###############################################################################
-
-# Enable memcached double verbose logging.
-default['bcpc']['memcached']['debug'] = false
-# Set number of memcached connections.
-default['bcpc']['memcached']['connections'] = 10240
-
-###############################################################################
 # virtualbox
 ###############################################################################
 
