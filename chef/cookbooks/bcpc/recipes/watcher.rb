@@ -126,6 +126,17 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
                       node['bcpc']['openstack']['services']['workers']
                     end
 
+# install patched nova_helper.py
+# implements these fixes:
+# 1. https://review.opendev.org/c/openstack/watcher/+/610905
+# 2. https://review.opendev.org/c/openstack/watcher/+/615819
+cookbook_file '/usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py' do
+  source 'watcher/nova_helper.py'
+  notifies :restart, 'service[watcher-decision-engine]', "immediately"
+  notifies :restart, 'service[watcher-apis-apache2]', :immediately
+  notifies :restart, 'service[watcher-applier]', "immediately"
+end
+
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do
   source 'watcher/watcher-api.conf.erb'
