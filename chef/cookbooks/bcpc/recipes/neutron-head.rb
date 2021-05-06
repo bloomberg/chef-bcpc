@@ -138,11 +138,6 @@ end
 package 'neutron-server'
 service 'neutron-server'
 
-package 'calico-control' do
-  action :upgrade
-  notifies :restart, 'service[neutron-server]', :immediately
-end
-
 service 'haproxy-neutron' do
   service_name 'haproxy'
 end
@@ -214,6 +209,11 @@ end
 
 # configure neutron starts
 #
+package 'calico-control' do
+  action :upgrade
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
 template '/etc/neutron/neutron.conf' do
   source 'neutron/neutron.conf.erb'
   mode '0640'
