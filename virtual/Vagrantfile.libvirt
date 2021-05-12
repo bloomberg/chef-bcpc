@@ -92,7 +92,9 @@ Vagrant.configure('2') do |config|
       operations_user = 'operations'
       operations_user_ssh_pub_key = File.read('files/ssh/id_ed25519.pub')
       finish_args.append("--operations-user #{operations_user}")
-      finish_args.append("--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\"")
+      finish_args.append(
+        "--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\""
+      )
 
       subconfig.vm.provision 'shell' do |shell|
         shell.path = 'provisioners/finish.sh'
@@ -105,9 +107,11 @@ Vagrant.configure('2') do |config|
 
       transit.each do |t_iface|
         args = {}.tap do |a|
+          a[:auto_config] = false
           a[:ip] = t_iface['ip'].split('/')[0]
           a[:mac] = t_iface['mac'].delete(':')
-          a[:libvirt__network_name] = Util.libvirt_prefix() + '_' + t_iface['neighbor']['name']
+          a[:libvirt__network_name] =
+            Util.libvirt_prefix() + t_iface['neighbor']['name']
           a[:libvirt__dhcp_enabled] = false
           a[:libvirt__forward_mode] = 'veryisolated'
         end

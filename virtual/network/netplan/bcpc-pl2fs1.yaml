@@ -3,6 +3,8 @@ network:
   ethernets:
     eth0:
       dhcp4: true
+      dhcp4-overrides:
+        use-routes: ETH0_USE_ROUTES
     eth1:
       addresses:
         - 172.16.0.73/31

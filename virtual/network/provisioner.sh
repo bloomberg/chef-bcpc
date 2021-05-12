@@ -21,21 +21,16 @@ set -eux
 
 on_edge_flag=0
 
-DHCP_CONF='      dhcp4: true'
-# shellcheck disable=SC1004
-STATIC_CONF='      addresses:\n        - 10.0.2.15/24\n      nameservers:\
-        addresses:\n          - 10.0.2.3'
-
 on_edge() {
     [[ ${on_edge_flag} == 1 ]]
 }
 
 switch_config() {
-    # enable ipv4 forwarding
+    # enable IPv4 forwarding
     sudo sed -i 's/#\(net.ipv4.ip_forward\)/\1/g' /etc/sysctl.d/99-sysctl.conf
     sudo sysctl -q -p /etc/sysctl.d/99-sysctl.conf
 
-    if on_edge "${1}" ; then
+    if on_edge "${1}"; then
         # add masquerading source NAT rule on spines or super spines
         sudo iptables -A POSTROUTING -j MASQUERADE -o eth0 -t nat
         sudo iptables-save | sudo tee /etc/iptables/rules.v4
@@ -47,19 +42,29 @@ switch_config() {
 }
 
 base_config() {
-    for s in rpcbind lxcfs snapd lxd iscsid ; do
+    for s in rpcbind lxcfs snapd lxd iscsid; do
         sudo systemctl stop ${s}
         sudo systemctl disable ${s}
     done
-    if on_edge "${1}" ; then
-        sudo cp "/vagrant/netplan/${1}.yaml" /etc/netplan/01-netcfg.yaml
+    if on_edge "${1}"; then
+        ETH0_USE_ROUTES=true
     else
-        sudo dhclient -x
-        sed "s|${DHCP_CONF}|${STATIC_CONF}|" \
-            "/vagrant/netplan/${1}.yaml" | sudo tee /etc/netplan/01-netcfg.yaml
+        ETH0_USE_ROUTES=false
     fi
+    sed "s/ETH0_USE_ROUTES/${ETH0_USE_ROUTES}/" \
+        "/vagrant/netplan/${1}.yaml" | sudo tee /etc/netplan/01-netcfg.yaml
     sudo netplan apply
     sudo systemctl restart lldpd
+}
+
+systemd_configuration() {
+    systemctl disable systemd-resolved
+    systemctl stop systemd-resolved
+    rm -f /etc/resolv.conf
+    nameservers=$(netplan ip leases eth0 | grep ^DNS= | sed 's/^DNS=//')
+    for nameserver in ${nameservers}; do
+        echo "nameserver ${nameserver}"
+    done | sudo tee /etc/resolv.conf
 }
 
 apt_configuration() {
@@ -95,4 +100,5 @@ apt_configuration
 package_installation
 base_config "${1}"
 switch_config "${1}"
+systemd_configuration
 exit 0
