@@ -23,7 +23,7 @@ machine for development and testing purposes.
 * 32 GB of memory
 * 128 GB of free disk space
 * Vagrant 2.1+
-* VirtualBox 5.2+
+* VirtualBox 5.2+ *or* KVM + libvirtd
 * Packer 1.4+
 * git, curl, rsync, ssh, jq, make, ansible
 
