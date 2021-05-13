@@ -84,11 +84,15 @@ execute 'install rally in virtualenv' do
   # - 'pip' is pinned to avoid issues when installing `cryptography>3.4` as
   #     part of `pycryptodome` etc.
   # - 'decorator' is pinned due to https://bugs.launchpad.net/rally/+bug/1922707
+  # - 'jinja2' is pinned due to a change in how 3.0.0+ handles variables set in
+  #     templates containing macros. This change breaks rally tasks used
+  #     internally by Bloomberg, which likely need to be fixed.
   command <<-EOH
     virtualenv --no-download #{venv_dir} -p /usr/bin/python3
     . #{venv_dir}/bin/activate
     pip install 'pip>=19.1.1'
     pip install 'decorator<=4.4.2'
+    pip install 'jinja2<3.0.0'
     pip install rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
   not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
