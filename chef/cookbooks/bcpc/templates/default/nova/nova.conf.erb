@@ -163,5 +163,5 @@ novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_aut
 <% end %>
 
 [notifications]
-notification_format = unversioned
+notification_format = <%= node['bcpc']['nova']['notifications']['format'] %>
 notify_on_state_change = <%= node['bcpc']['nova']['notifications']['notify_on_state_change'] %>
