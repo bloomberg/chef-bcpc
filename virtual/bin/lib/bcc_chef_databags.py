@@ -499,6 +499,18 @@ class BCCChefDatabags:
                 'key': self.api_ssl.key(),
                 'crt': self.api_ssl.crt(),
                 'intermediate': None
+            },
+            'watcher': {
+                'creds': {
+                    'db': {
+                        'username': 'watcher',
+                        'password': self.generate_string()
+                    },
+                    'os': {
+                        'username': 'watcher',
+                        'password': self.generate_string()
+                    }
+                }
             }
         }
 
