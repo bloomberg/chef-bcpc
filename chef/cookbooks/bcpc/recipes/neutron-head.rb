@@ -211,7 +211,7 @@ end
 #
 package 'calico-control' do
   action :upgrade
-  notifies :restart, 'service[neutron-server]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
 end
 
 template '/etc/neutron/neutron.conf' do
