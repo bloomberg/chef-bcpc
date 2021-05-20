@@ -127,8 +127,12 @@ template '/etc/libvirt/libvirtd.conf' do
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
-cookbook_file '/etc/libvirt/qemu.conf' do
-  source 'libvirt/qemu.conf'
+template '/etc/libvirt/qemu.conf' do
+  source 'libvirt/qemu.conf.erb'
+  variables(
+    max_files: node['bcpc']['qemu']['max_files'],
+    max_processes: node['bcpc']['qemu']['max_processes']
+  )
   notifies :restart, 'service[libvirtd]', :immediately
 end
 
