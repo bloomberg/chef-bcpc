@@ -5,6 +5,7 @@
       "environment_vars": [
         "BCC_APT_KEY_URL={{user `bcc_apt_key_url`}}",
         "BCC_APT_URL={{user `bcc_apt_url`}}",
+        "BCC_BASE_BOX_PROVIDER={{user `base_box_provider`}}",
         "BCC_KERNEL_VERSION={{user `kernel_version`}}"
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",

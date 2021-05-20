@@ -51,7 +51,7 @@ EOF
     fi
 
     echo 'APT::Install-Recommends "false";' \
-	 >> /etc/apt/apt.conf.d/99no-install-recommends
+         >> /etc/apt/apt.conf.d/99no-install-recommends
     apt-get update
 }
 
@@ -79,8 +79,9 @@ function configure_linux_kernel {
 
 function cleanup_image {
     # autoremoving packages and cleaning apt data
-    apt-get -y --purge autoremove;
-    apt-get -y clean;
+    apt-get -y --purge autoremove
+    apt-get -y clean
+    apt-get -y purge libfakeroot
 
     # remove /var/cache
     find /var/cache -type f -exec rm -rf {} \;
@@ -101,6 +102,14 @@ function cleanup_image {
     # clear the history so our install isn't there
     rm -f /root/.wget-hsts
     export HISTSIZE=0
+
+    # remove VirtualBox Guest Additions when libvirt is in use
+    if [ "${BCC_BASE_BOX_PROVIDER}" == "libvirt" ]; then
+        systemctl disable vboxadd
+        systemctl disable vboxadd-service
+        systemctl reset-failed
+        rm -rf /opt/VBoxGuestAdditions-*
+    fi
 }
 
 function download_debs {
