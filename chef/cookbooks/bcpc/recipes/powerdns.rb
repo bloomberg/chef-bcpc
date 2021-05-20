@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: powerdns
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -177,6 +177,11 @@ begin
     end
   end
 end
+
+package %w(
+  python-dnspython
+  python-jinja2
+)
 
 # install catalog-zone-manage
 cookbook_file '/usr/local/sbin/catalog-zone-manage' do

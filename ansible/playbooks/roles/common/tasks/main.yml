@@ -7,9 +7,19 @@
   become: true
   tags: [never,chef-client]
 
+- import_tasks: adjust-ceph-pool-pgs.yml
+  become: true
+  run_once: true
+  tags: [never,adjust-ceph-pool-pgs]
+
 - import_tasks: ceph-destroy-osds.yml
   become: true
   tags: [never,ceph-destroy-osds]
+
+- import_tasks: reweight-ceph-osds.yml
+  become: true
+  run_once: true
+  tags: [never,reweight-ceph-osds]
 
 - import_tasks: configure-node.yml
   become: true

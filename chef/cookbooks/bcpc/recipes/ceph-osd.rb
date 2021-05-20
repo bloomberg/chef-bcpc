@@ -23,6 +23,7 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 nova_compute_config = zone_config.nova_compute_config
+
 rbd_users = []
 
 # if this node is a storagenode and worknode then this ceph.conf will take
@@ -35,7 +36,7 @@ template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
   variables(
     config: config,
-    headnodes: headnodes,
+    storageheadnodes: storageheadnodes,
     public_network: primary_network_aggregate_cidr,
     rbd_users: rbd_users
   )

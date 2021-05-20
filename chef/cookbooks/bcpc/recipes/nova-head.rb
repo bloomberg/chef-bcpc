@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-head
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
-zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
-nova_config = zone_config.nova_config
 
 mysqladmin = mysqladmin()
 psqladmin = psqladmin()
@@ -211,12 +209,13 @@ end
 
 # nova package installation and service definition
 package %w(
+  ceph-common
   nova-api
   nova-conductor
   nova-consoleauth
   nova-novncproxy
-  nova-scheduler
   nova-placement-api
+  nova-scheduler
 )
 
 service 'nova-api'
@@ -251,29 +250,6 @@ file '/etc/nova/ssl-bcpc.key' do
 end
 #
 # ssl certs ends
-
-# create ceph rbd pools
-nova_config.ceph_pools.each do |pool|
-  pool_name = pool['pool']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
-
-  bash "create the #{pool_name} ceph pool" do
-    code <<-DOC
-      ceph osd pool create #{pool_name} #{pg_num} #{pgp_num}
-      ceph osd pool application enable #{pool_name} rbd
-    DOC
-
-    not_if "ceph osd pool ls | grep -w ^#{pool_name}$"
-  end
-
-  execute 'set ceph pool size' do
-    size = node['bcpc']['nova']['ceph']['pool']['size']
-    command "ceph osd pool set #{pool_name} size #{size}"
-    not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
-  end
-end
-# create ceph rbd pools ends
 
 # Ensure the database user is present on ProxySQL
 #
@@ -357,10 +333,11 @@ end
 #
 # create/manage nova databases ends
 
-# add availibity zone anti affinity scheduler filter
+# add availability zone anti-affinity scheduler filter
 available_filters = ['nova.scheduler.filters.all_filters']
 enabled_filters = node.default['bcpc']['nova']['scheduler_default_filters']
-anti_affinity = node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
+anti_affinity =
+ node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
 
 if anti_affinity['enabled']
   available_filters.push(anti_affinity['filterPath'])
@@ -370,7 +347,7 @@ if anti_affinity['enabled']
     source 'nova/anti_affinity_availability_zone_filter.py'
     mode '0644'
     notifies :run, 'execute[compile az anti-affinity filter]', :immediately
-    notifies :restart, 'service[nova-scheduler]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :delayed
   end
 
   execute 'compile az anti-affinity filter' do

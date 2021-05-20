@@ -1,4 +1,4 @@
-# Copyright 2019, Bloomberg Finance L.P.
+# Copyright 2021, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ def test_services(host, name):
 
 @pytest.mark.bootstraps
 @pytest.mark.rmqnodes
+@pytest.mark.storageheadnodes
 @pytest.mark.storagenodes
 @pytest.mark.stubnodes
 @pytest.mark.parametrize("name", [

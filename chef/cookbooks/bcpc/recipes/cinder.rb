@@ -151,29 +151,11 @@ directory '/etc/cinder/policy.d' do
   action :create
 end
 
-# create ceph rbd pools
-cinder_config.ceph_pools.each do |pool|
-  pool_name = pool['pool']
-  bash "create the #{pool_name} ceph pool" do
-    pg_num = node['bcpc']['ceph']['pg_num']
-    pgp_num = node['bcpc']['ceph']['pgp_num']
-
-    code <<-DOC
-      ceph osd pool create #{pool_name} #{pg_num} #{pgp_num}
-      ceph osd pool application enable #{pool_name} rbd
-    DOC
-
-    not_if "ceph osd pool ls | grep -w ^#{pool_name}$"
-  end
-
-  execute 'set ceph pool size' do
-    size = node['bcpc']['cinder']['ceph']['pool']['size']
-    command "ceph osd pool set #{pool_name} size #{size}"
-    not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
-  end
+directory '/etc/ceph' do
+  action :create
 end
 
-# create cinder ceph clients
+# create client.*cinder Ceph users and keyrings
 cinder_config.ceph_clients.each do |client|
   template "/etc/ceph/ceph.client.#{client['client']}.keyring" do
     source 'cinder/ceph.client.cinder.keyring.erb'
@@ -189,8 +171,12 @@ cinder_config.ceph_clients.each do |client|
     )
   end
 
+  # If this node is an OpenStack headnode and a storage headnode, then this
+  # recipe is responsible for importing the client.*cinder Ceph keyrings.
   execute 'import cinder ceph client key' do
-    command "ceph auth import -i /etc/ceph/ceph.client.#{client['client']}.keyring"
+    command \
+      "ceph auth import -i /etc/ceph/ceph.client.#{client['client']}.keyring"
+    only_if { storageheadnode? }
   end
 end
 

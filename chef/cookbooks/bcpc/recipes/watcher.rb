@@ -137,8 +137,8 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
 cookbook_file '/usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py' do
   source 'watcher/nova_helper.py'
   notifies :run, 'execute[pycompile-nova-helper]', :immediately
-  notifies :restart, 'service[watcher-decision-engine]', :immediately
-  notifies :restart, 'service[watcher-applier]', :immediately
+  notifies :restart, 'service[watcher-decision-engine]', :delayed
+  notifies :restart, 'service[watcher-applier]', :delayed
 end
 
 execute 'pycompile-nova-helper' do

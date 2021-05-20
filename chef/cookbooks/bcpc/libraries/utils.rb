@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Library:: utils
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,12 @@ def init_rmq?
   nodes.empty?
 end
 
+def init_storage?
+  nodes = search(:node, 'roles:storageheadnode')
+  nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
+  nodes.empty?
+end
+
 def bootstrap?
   search(:node, "role:bootstrap AND hostname:#{node['hostname']}").any?
 end
@@ -46,6 +52,10 @@ end
 
 def storagenode?
   search(:node, "role:storagenode AND hostname:#{node['hostname']}").any?
+end
+
+def storageheadnode?
+  search(:node, "role:storageheadnode AND hostname:#{node['hostname']}").any?
 end
 
 def stubnode?
@@ -87,6 +97,16 @@ def rmqnodes(exclude: nil, all: false)
   else
     nodes = search(:node, 'roles:rmqnode')
   end
+
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
+def storageheadnodes(all: false)
+  nodes = if all
+            search(:node, 'role:storageheadnode')
+          else
+            search(:node, 'roles:storageheadnode')
+          end
 
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
