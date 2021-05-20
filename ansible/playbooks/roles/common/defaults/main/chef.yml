@@ -72,8 +72,6 @@ chef_roles:
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
       - recipe[bcpc::consul]
-      - recipe[bcpc::ceph-mon]
-      - recipe[bcpc::ceph-mgr]
       - recipe[bcpc::mysql]
       - recipe[bcpc::proxysql]
       - recipe[bcpc::powerdns]
@@ -123,6 +121,16 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::ceph-osd]
+
+  - name: storageheadnode
+    description: storage infrastructure services
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::ceph-mon]
+      - recipe[bcpc::ceph-mgr]
+      - recipe[bcpc::ceph-pools-openstack]
 
   - name: worknode
     description: cloud compute services

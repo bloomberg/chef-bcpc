@@ -48,6 +48,7 @@ nodes:
               name: management4
       run_list:
         - role[rmqnode]
+        - role[storageheadnode]
         - role[headnode]
 
   - host: r1n2

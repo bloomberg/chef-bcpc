@@ -91,21 +91,38 @@ template '/etc/ceph/ceph.mon.keyring' do
   )
 end
 
+rbd_users = []
+
+# If this node is an OpenStack headnode and a storage headnode, then this
+# recipe is responsible for rendering the Ceph configuration file and
+# appending the Glance Ceph user to the list of rbd_users.
+if headnode?
+  rbd_users.append('glance')
+end
+
 template '/etc/ceph/ceph.conf' do
   source 'ceph/ceph.conf.erb'
 
   variables(
     config: config,
-    headnodes: init_cloud? ? [node] : headnodes,
+    storageheadnodes: init_storage? ? [node] : storageheadnodes,
     public_network: primary_network_aggregate_cidr,
-    rbd_users: ['glance']
+    rbd_users: rbd_users
   )
-
   notifies :restart, "service[ceph-mon@#{node['hostname']}]", :immediately
 end
 
+directory '/usr/local/bcpc/bin' do
+  recursive true
+end
+
+template '/usr/local/bcpc/bin/if_ceph_leader' do
+  source 'ceph/if_ceph_leader.erb'
+  mode '0755'
+end
+
 begin
-  if init_cloud?
+  if init_storage?
 
     execute 'create ceph cluster' do
       cwd '/etc/ceph'

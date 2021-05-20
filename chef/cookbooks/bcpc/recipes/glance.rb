@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: glance
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -133,29 +133,11 @@ service 'haproxy-glance' do
   service_name 'haproxy'
 end
 
-# create ceph rbd pool
-bash 'create ceph pool' do
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-  pg_num = node['bcpc']['ceph']['pg_num']
-  pgp_num = node['bcpc']['ceph']['pgp_num']
-
-  code <<-DOC
-    ceph osd pool create #{pool} #{pg_num} #{pgp_num}
-    ceph osd pool application enable #{pool} rbd
-  DOC
-
-  not_if "ceph osd pool ls | grep -w #{pool}"
+directory '/etc/ceph' do
+  action :create
 end
 
-execute 'set ceph pool size' do
-  size = node['bcpc']['glance']['ceph']['pool']['size']
-  pool = node['bcpc']['glance']['ceph']['pool']['name']
-
-  command "ceph osd pool set #{pool} size #{size}"
-  not_if "ceph osd pool get #{pool} size | grep -w 'size: #{size}'"
-end
-
-# create client.glance ceph user and keyring
+# create client.glance Ceph user and keyring
 template '/etc/ceph/ceph.client.glance.keyring' do
   source 'glance/ceph.client.glance.keyring.erb'
 
@@ -169,9 +151,33 @@ template '/etc/ceph/ceph.client.glance.keyring' do
   notifies :run, 'execute[import glance ceph client key]', :immediately
 end
 
+# If this node is an OpenStack headnode and a storage headnode, then this
+# recipe is responsible for importing the client.glance Ceph keyring.
 execute 'import glance ceph client key' do
   action :nothing
   command 'ceph auth import -i /etc/ceph/ceph.client.glance.keyring'
+  only_if { storageheadnode? }
+end
+
+# If this node is an OpenStack headnode and a storage headnode, then the
+# storage headnode's Ceph recipe is responsible for rendering the Ceph
+# configuration file and appending the Glance Ceph user to the list of
+# rbd_users.
+unless storageheadnode?
+  rbd_users = []
+  rbd_users.append('glance')
+
+  template '/etc/ceph/ceph.conf' do
+    source 'ceph/ceph.conf.erb'
+
+    variables(
+      config: config,
+      storageheadnodes: storageheadnodes,
+      public_network: primary_network_aggregate_cidr,
+      rbd_users: rbd_users
+    )
+    notifies :restart, 'service[glance-api]', :delayed
+  end
 end
 
 # Ensure the database user is present on ProxySQL
