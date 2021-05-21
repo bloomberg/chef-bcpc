@@ -31,9 +31,11 @@ if [ "$BASE_BOX" == "null" ] \
     printf "One or more variables in %s are undefined.\n" "$config_variables"
     exit 1
 fi
-base_box_exists=$(vagrant box list --machine-readable \
-                | grep -i "${BASE_BOX}.*${BASE_BOX_PROVIDER}.*${BASE_BOX_VERSION}" \
-                || true)
+base_box_exists=$(
+    vagrant box list --machine-readable |
+    grep -i "${BASE_BOX}.*${BASE_BOX_PROVIDER}.*${BASE_BOX_VERSION}" \
+    || true
+)
 if [ -z "$base_box_exists" ]; then
     vagrant box add \
         --force \
@@ -42,15 +44,15 @@ if [ -z "$base_box_exists" ]; then
         --provider virtualbox;
     if [ "$BASE_BOX_PROVIDER" == "libvirt" ]; then
         printf "Checking for vagrant mutate"
-        mutate=`vagrant plugin list | grep mutate`
-       if [ -z "$mutate" ]; then
-           printf "Vagrant mutate not found. Please install vagrant mutate to allow base conversion\n"
-           exit 1
-       else
-           printf "Vagrant mutate found, mutating vbox version...\n" \
-                  ${BASE_BOX}
-           vagrant mutate ${BASE_BOX} --input-provider virtualbox libvirt
-       fi
+        mutate=$(vagrant plugin list | grep mutate)
+        if [ -z "$mutate" ]; then
+            printf "Vagrant mutate not found. "
+            printf "Please install vagrant mutate to allow base conversion\n"
+            exit 1
+        else
+            printf "Vagrant mutate found, mutating VirtualBox version...\n"
+            vagrant mutate "${BASE_BOX}" --input-provider virtualbox libvirt
+        fi
     fi
 fi
 
