@@ -210,7 +210,8 @@ template '/etc/proxysql.cnf' do
     headnodes: headnodes(all: true),
     creds: config['proxysql']['creds'],
     backend: mysqlbackend,
-    mysql_users: config['mysql']['users']
+    mysql_users: config['mysql']['users'],
+    query_rules: node['bcpc']['proxysql']['query_rules']
   )
   notifies :start, 'service[proxysql conditional start]', :immediately
   notifies :run, 'bcpc_proxysql_reload[reload config]', :immediately
