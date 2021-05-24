@@ -38,6 +38,7 @@ default['bcpc']['proxysql']['max_connections'] = 32768
 default['bcpc']['proxysql']['have_ssl'] = false
 default['bcpc']['proxysql']['use_tcp_keepalive'] = false
 default['bcpc']['proxysql']['wait_timeout'] = 28800000
+default['bcpc']['proxysql']['server_capabilities'] = 569899
 default['bcpc']['proxysql']['multiplexing'] = true
 default['bcpc']['proxysql']['free_connections_pct'] = 10
 default['bcpc']['proxysql']['long_query_time'] = 10000
@@ -108,3 +109,9 @@ default['bcpc']['proxysql']['mysql_users']['fast_forward'] = 1
 
 # The maximum number of allowable frontend connections for a specific user
 default['bcpc']['proxysql']['mysql_users']['max_connections'] = 32768
+
+# Query Rules
+
+# An array of rules, each containing a key=value pair, defining the query rules
+# ProxySQL will be configured with.
+default['bcpc']['proxysql']['query_rules'] = nil

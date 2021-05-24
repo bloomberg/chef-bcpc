@@ -175,6 +175,10 @@ mysql_variables=
 
     ############################ Backend Related ##############################
 
+    # The bitmask of MySQL capabilities (encoded as bits) with which the proxy
+    # will respond to clients connecting to it.
+    server_capabilities=<%= node['bcpc']['proxysql']['server_capabilities'] %>
+
     # Whether or not to allow multiple frontend connections to re-use the same
     # database backend connection.
     multiplexing=<%= node['bcpc']['proxysql']['multiplexing'] %>
@@ -402,4 +406,24 @@ proxysql_servers =
         weight=0
         comment="<%= node['hostname'] %>"
     },
+)
+
+###
+### Query Rules
+###
+
+# See https://proxysql.com/documentation/main-runtime/#mysql_query_rules for
+# more information.
+
+mysql_query_rules =
+(
+<% if !@query_rules.nil? %>
+  <% @query_rules.each do |r| %>
+    {
+    <% r[1].each do |p| %>
+        <%= p[0] %>=<%= p[1] %>
+    <% end %>
+    },
+  <% end %>
+<% end %>
 )
