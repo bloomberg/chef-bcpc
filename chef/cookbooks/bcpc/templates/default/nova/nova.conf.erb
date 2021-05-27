@@ -165,3 +165,11 @@ novncproxy_base_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:6080/vnc_aut
 [notifications]
 notification_format = <%= node['bcpc']['nova']['notifications']['format'] %>
 notify_on_state_change = <%= node['bcpc']['nova']['notifications']['notify_on_state_change'] %>
+<% if node['bcpc']['nova']['notifications']['format'] != 'unversioned' %>
+# The default value for 'versioned_notifications_topics' is
+# 'versioned_notifications'. However, we are changing it to
+# 'watcher_notifications' as Watcher is the only consumer for these
+# notifications at this time, and Watcher does not clean up the queue after
+# consuming the messages as it uses 'pool' option from oslo_messaging.
+versioned_notifications_topics = watcher_notifications
+<% end %>
