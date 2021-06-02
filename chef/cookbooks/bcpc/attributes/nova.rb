@@ -51,7 +51,8 @@ default['bcpc']['nova']['max_concurrent_builds'] = 4
 
 # "workers" parameters in nova are set to number of CPUs
 # available by default. This provides an override.
-default['bcpc']['nova']['workers'] = nil
+default['bcpc']['nova']['metadata']['workers'] = nil
+default['bcpc']['nova']['osapi_workers'] = nil
 default['bcpc']['placement']['workers'] = nil
 
 # set soft/hard ulimits in upstart unit file for nova-compute
