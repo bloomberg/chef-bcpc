@@ -31,8 +31,8 @@ transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}
 osapi_compute_link_prefix = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:8774" %>
 enabled_apis = osapi_compute
 osapi_compute_listen = <%= node['service_ip'] %>
-<% if node['bcpc']['nova']['workers'] %>
-osapi_compute_workers = <%= node['bcpc']['nova']['workers'] %>
+<% if node['bcpc']['nova']['osapi_workers'] %>
+osapi_compute_workers = <%= node['bcpc']['nova']['osapi_workers'] %>
 <% else %>
 osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
@@ -40,8 +40,8 @@ osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 enabled_apis = metadata
 metadata_cache_expiration = <%= node['bcpc']['nova']['metadata']['cache_expiration'] %>
 metadata_listen = <%= node['bcpc']['nova']['metadata']['listen'] %>
-<% if node['bcpc']['nova']['workers'] %>
-metadata_workers = <%= node['bcpc']['nova']['workers'] %>
+<% if node['bcpc']['nova']['metadata']['workers'] %>
+metadata_workers = <%= node['bcpc']['nova']['metadata']['workers'] %>
 <% else %>
 metadata_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
