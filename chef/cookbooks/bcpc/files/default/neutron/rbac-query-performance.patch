@@ -1,16 +1,3 @@
-diff -ruw neutron/db/db_base_plugin_v2.py neutron/db/db_base_plugin_v2.py
---- neutron/db/db_base_plugin_v2.py	2020-02-28 15:34:31.000000000 +0000
-+++ neutron/db/db_base_plugin_v2.py	2021-06-02 13:09:18.093981474 +0000
-@@ -154,7 +154,8 @@
-             "port",
-             query_hook=None,
-             filter_hook=_port_filter_hook,
--            result_filters=None)
-+            result_filters=None,
-+            rbac_filter_hook=None)
-         return super(NeutronDbPluginV2, cls).__new__(cls, *args, **kwargs)
- 
-     def __init__(self):
 diff -ruw neutron/db/external_net_db.py neutron/db/external_net_db.py
 --- neutron/db/external_net_db.py	2020-02-28 15:34:31.000000000 +0000
 +++ neutron/db/external_net_db.py	2021-06-02 13:11:32.306000069 +0000
@@ -111,14 +98,4 @@ diff -ruw neutron/db/_model_query.py neutron/db/_model_query.py
      if query_filter is not None:
          query = query.filter(query_filter)
      return query
-diff -ruw neutron/db/portbindings_db.py neutron/db/portbindings_db.py
---- neutron/db/portbindings_db.py	2020-02-28 15:34:31.000000000 +0000
-+++ neutron/db/portbindings_db.py	2021-06-02 03:18:52.314533205 +0000
-@@ -50,6 +50,7 @@
-             "portbindings_port",
-             query_hook=_port_model_hook,
-             filter_hook=None,
-+            rbac_filter_hook=None,
-             result_filters=_port_result_filter_hook)
-         return super(PortBindingMixin, cls).__new__(cls, *args, **kwargs)
- 
+
