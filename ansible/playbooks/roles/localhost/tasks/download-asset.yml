@@ -4,11 +4,13 @@
   when: item.environment is defined
 
 - name: "download: {{ item.name }}"
-  retries: 5
-  delay: 10
   get_url:
     url: "{{ item.url }}"
     checksum: "{{ item.checksum }}"
     dest: "{{ assets_download_dir }}/{{ item.filename }}"
     validate_certs: "{{ validate_certs | default(true) }}"
   environment: "{{ local_environment | default({}) }}"
+  retries: 5
+  delay: 10
+  register: result
+  until: result is succeeded
