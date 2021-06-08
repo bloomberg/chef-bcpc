@@ -75,6 +75,7 @@ lower_packer_ver=$(printf '%s\n' "$required_packer_ver" "$current_packer_ver" \
 if [ "$lower_packer_ver" = "$required_packer_ver" ]; then
     VAGRANT_VAGRANTFILE=Vagrantfile packer build \
                         --force \
+                        --on-error=abort \
                         --var-file=variables.json \
                         "config.json"
     cd "output-vagrant"
