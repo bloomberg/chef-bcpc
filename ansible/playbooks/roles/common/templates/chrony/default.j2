@@ -1,0 +1,10 @@
+# This is a configuration file for /etc/init.d/chrony and
+# /lib/systemd/system/chrony.service; it allows you to pass various options to
+# the chrony daemon without editing the init script or service file.
+
+# Options to pass to chrony.
+DAEMON_OPTS="{{ '-4' if not system_enable_ipv6 else '' }}"
+
+# Sync system clock in containers or without CAP_SYS_TIME (likely to fail)
+# See /usr/share/doc/chrony/README.container for details.
+SYNC_IN_CONTAINER="no"
