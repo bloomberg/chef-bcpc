@@ -8,6 +8,12 @@
     dest: /etc/chrony/chrony.conf
   register: chrony
 
+- name: configure chrony defaults
+  template:
+    src: chrony/default.j2
+    dest: /etc/default/chrony
+  register: chrony_defaults
+
 - name: create systemd dependency work-around directory for chrony
   file:
     path: /etc/systemd/system/chrony.service.d
@@ -35,4 +41,4 @@
   systemd:
     name: chrony
     state: restarted
-  when: chrony.changed
+  when: chrony.changed or chrony_defaults.changed
