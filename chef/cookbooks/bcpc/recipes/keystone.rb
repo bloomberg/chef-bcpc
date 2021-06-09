@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: keystone
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ end
 # package installation and service definition starts
 package %w(
   keystone
-  python-ldap
-  python-ldappool
+  python3-ldap
+  python3-ldappool
 )
 
 service 'keystone' do
