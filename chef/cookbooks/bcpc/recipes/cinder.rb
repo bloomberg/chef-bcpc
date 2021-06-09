@@ -291,13 +291,13 @@ end
 # add AccessList filter and update cinder entry_points.txt
 if zone_config.enabled?
 
-  cookbook_file '/usr/lib/python2.7/dist-packages/cinder/scheduler/filters/access_filter.py' do
+  cookbook_file '/usr/lib/python3/dist-packages/cinder/scheduler/filters/access_filter.py' do
     source 'cinder/access_filter.py'
   end
 
   bash 'add AccessList filter to cinder' do
     code <<-EOH
-      entry_points_txt=$(dpkg -L python-cinder | grep entry_points.txt)
+      entry_points_txt=$(dpkg -L python3-cinder | grep entry_points.txt)
 
       if [ -z ${entry_points_txt} ]; then
         echo "entry_points.txt file path could not be found"

@@ -210,13 +210,17 @@ end
 # nova package installation and service definition
 package %w(
   ceph-common
+  python-novnc
   nova-api
   nova-conductor
   nova-consoleauth
   nova-novncproxy
   nova-placement-api
   nova-scheduler
-)
+  novnc
+) do
+  options '--no-install-recommends'
+end
 
 service 'nova-api'
 service 'nova-consoleauth'
@@ -343,7 +347,7 @@ if anti_affinity['enabled']
   available_filters.push(anti_affinity['filterPath'])
   enabled_filters.push(anti_affinity['name'])
 
-  cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+  cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
     source 'nova/anti_affinity_availability_zone_filter.py'
     mode '0644'
     notifies :run, 'execute[compile az anti-affinity filter]', :immediately
@@ -352,7 +356,7 @@ if anti_affinity['enabled']
 
   execute 'compile az anti-affinity filter' do
     action :nothing
-    command 'pycompile /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+    command 'pycompile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
   end
 end
 
