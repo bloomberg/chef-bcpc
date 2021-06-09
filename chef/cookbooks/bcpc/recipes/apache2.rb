@@ -2,7 +2,7 @@
 # Cookbook:: bcpc
 # Recipe:: apache2
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ package %w(
   apache2
   apache2-utils
   libapache2-mod-fcgid
-  libapache2-mod-wsgi
+  libapache2-mod-wsgi-py3
 )
 
 service 'apache2'

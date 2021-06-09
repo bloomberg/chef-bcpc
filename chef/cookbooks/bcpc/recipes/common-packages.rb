@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: common-packages
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,14 +33,13 @@ package %w(
   sysstat
   linux-tools-common
   sosreport
-  python-pip
-  python-memcache
-  python-mysqldb
-  python-six
-  python-ldap
-  python-configparser
+  python3-pip
+  python3-memcache
+  python3-mysqldb
+  python3-six
+  python3-ldap
   xinetd
-  python-openstackclient
+  python3-openstackclient
   jq
   tmux
   crudini
