@@ -28,7 +28,6 @@ from neutron_lib.utils import file as file_utils
 from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import fileutils
-from oslo_utils import netutils
 from oslo_utils import uuidutils
 import six
 
@@ -39,7 +38,6 @@ from neutron.agent.linux import ip_lib
 from neutron.agent.linux import iptables_manager
 from neutron.cmd import runtime_checks as checks
 from neutron.common import constants as n_const
-from neutron.common import exceptions as n_exc
 from neutron.common import ipv6_utils
 from neutron.common import utils as common_utils
 from neutron.ipam import utils as ipam_utils
@@ -232,7 +230,7 @@ class DhcpLocalProcess(DhcpBase):
                 self.interface_name = interface_name
                 self.spawn_process()
             return True
-        except n_exc.ProcessExecutionError as error:
+        except exceptions.ProcessExecutionError as error:
             LOG.debug("Spawning DHCP process for network %s failed; "
                       "Error: %s", self.network.id, error)
             return False
@@ -242,6 +240,7 @@ class DhcpLocalProcess(DhcpBase):
             conf=self.conf,
             uuid=self.network.id,
             namespace=self.network.namespace,
+            service=DNSMASQ_SERVICE_NAME,
             default_cmd_callback=cmd_callback,
             pid_file=self.get_conf_file_name('pid'),
             run_as_root=True)
@@ -263,9 +262,6 @@ class DhcpLocalProcess(DhcpBase):
             LOG.warning('Failed trying to delete interface: %s',
                         self.interface_name)
 
-        if not ip_lib.network_namespace_exists(self.network.namespace):
-            LOG.debug("Namespace already deleted: %s", self.network.namespace)
-            return
         try:
             ip_lib.delete_network_namespace(self.network.namespace)
         except RuntimeError:
@@ -356,6 +352,7 @@ class Dnsmasq(DhcpLocalProcess):
             '--dhcp-optsfile=%s' % self.get_conf_file_name('opts'),
             '--dhcp-leasefile=%s' % self.get_conf_file_name('leases'),
             '--dhcp-match=set:ipxe,175',
+            '--dhcp-userclass=set:ipxe6,iPXE',
             '--local-service',
             '--bind-dynamic',
         ]
@@ -471,7 +468,7 @@ class Dnsmasq(DhcpLocalProcess):
         pm = self._get_process_manager(
             cmd_callback=self._build_cmdline_callback)
 
-        pm.enable(reload_cfg=reload_with_HUP)
+        pm.enable(reload_cfg=reload_with_HUP, ensure_active=True)
 
         self.process_monitor.register(uuid=self.network.id,
                                       service_name=DNSMASQ_SERVICE_NAME,
@@ -730,8 +727,8 @@ class Dnsmasq(DhcpLocalProcess):
                                self._PORT_TAG_PREFIX % port.id))
                 elif client_id and len(port.extra_dhcp_opts) == 1:
                     buf.write('%s,%s%s,%s,%s\n' %
-                          (port.mac_address, self._ID, client_id, name,
-                           ip_address))
+                              (port.mac_address, self._ID, client_id, name,
+                               ip_address))
                 else:
                     buf.write('%s,%s,%s,%s%s\n' %
                               (port.mac_address, name, ip_address,
@@ -773,7 +770,8 @@ class Dnsmasq(DhcpLocalProcess):
         return leases
 
     def _read_leases_file_leases(self, filename, ip_version=None):
-        """
+        """Read dnsmasq dhcp leases file
+
         Read information from leases file, which is needed to pass to
         dhcp_release6 command line utility if some of these leases are not
         needed anymore
@@ -1108,9 +1106,6 @@ class Dnsmasq(DhcpLocalProcess):
         return options
 
     def _make_subnet_interface_ip_map(self):
-        ip_dev = ip_lib.IPDevice(self.interface_name,
-                                 namespace=self.network.namespace)
-
         subnet_lookup = dict(
             (netaddr.IPNetwork(subnet.cidr), subnet.id)
             for subnet in self.network.subnets
@@ -1118,7 +1113,8 @@ class Dnsmasq(DhcpLocalProcess):
 
         retval = {}
 
-        for addr in ip_dev.addr.list():
+        for addr in ip_lib.get_devices_with_ip(self.network.namespace,
+                                               name=self.interface_name):
             ip_net = netaddr.IPNetwork(addr['cidr'])
 
             if ip_net in subnet_lookup:
@@ -1134,11 +1130,15 @@ class Dnsmasq(DhcpLocalProcess):
         extra_tag = matches.groups()[0]
         option = matches.groups()[2]
 
-        if not option.isdigit():
-            if ip_version == 4:
-                option = 'option:%s' % option
-            else:
-                option = 'option6:%s' % option
+        # NOTE(TheJulia): prepending option6 to any DHCPv6 option is
+        # indicated as required in the dnsmasq man page for version 2.79.
+        # Testing reveals that the man page is correct, option is not
+        # honored if not in the format "option6:$NUM".  For IPv4 we
+        # only apply if the option is non-numeric.
+        if ip_version == constants.IP_VERSION_6:
+            option = 'option6:%s' % option
+        elif not option.isdigit():
+            option = 'option:%s' % option
         if extra_tag:
             tags = ('tag:' + tag, extra_tag[:-1], '%s' % option)
         else:
@@ -1591,12 +1591,11 @@ class DeviceManager(object):
     def fill_dhcp_udp_checksums(self, namespace):
         """Ensure DHCP reply packets always have correct UDP checksums."""
         iptables_mgr = iptables_manager.IptablesManager(
-            use_ipv6=netutils.is_ipv6_enabled(), namespace=namespace
-        )
+            use_ipv6=netutils.is_ipv6_enabled(), namespace=namespace)
         ipv4_rule = ('-p udp -m udp --dport %d -j CHECKSUM --checksum-fill'
                      % constants.DHCP_RESPONSE_PORT)
         ipv6_rule = ('-p udp -m udp --dport %d -j CHECKSUM --checksum-fill'
-                     % n_const.DHCPV6_CLIENT_PORT)
+                     % constants.DHCPV6_CLIENT_PORT)
         iptables_mgr.ipv4['mangle'].add_rule('POSTROUTING', ipv4_rule)
         iptables_mgr.ipv6['mangle'].add_rule('POSTROUTING', ipv6_rule)
         iptables_mgr.apply()
