@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: watcher
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ begin
 end
 
 # watcher packages installation and service definitions
-watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python-watcherclient)
+watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python3-watcherclient)
 package watcher_packages
 
 service 'watcher-decision-engine'
@@ -129,22 +129,6 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
                     else
                       node['bcpc']['openstack']['services']['workers']
                     end
-
-# install patched nova_helper.py
-# implements these fixes:
-# 1. https://review.opendev.org/c/openstack/watcher/+/610905
-# 2. https://review.opendev.org/c/openstack/watcher/+/615819
-cookbook_file '/usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py' do
-  source 'watcher/nova_helper.py'
-  notifies :run, 'execute[pycompile-nova-helper]', :immediately
-  notifies :restart, 'service[watcher-decision-engine]', :delayed
-  notifies :restart, 'service[watcher-applier]', :delayed
-end
-
-execute 'pycompile-nova-helper' do
-  action :nothing
-  command 'pycompile /usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py'
-end
 
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do
@@ -251,8 +235,8 @@ template '/etc/haproxy/haproxy.d/watcher.cfg' do
   notifies :reload, 'service[haproxy-watcher]', :immediately
 end
 
-execute 'wait for watcher api to become available' do
-  environment os_adminrc
-  retries 15
-  command 'openstack optimize strategy list'
-end
+#execute 'wait for watcher api to become available' do
+  #environment os_adminrc
+  #retries 15
+  #command 'openstack optimize strategy list'
+#end
