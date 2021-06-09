@@ -16,13 +16,13 @@
 # limitations under the License.
 
 package %w(
-  python-futurist
-  python-pbr
-  python-requests
-  python-setuptools
-  python-six
-  python-urllib3
-  python-wheel
+  python3-futurist
+  python3-pbr
+  python3-requests
+  python3-setuptools
+  python3-six
+  python3-urllib3
+  python3-wheel
 )
 
 target = node['bcpc']['etcd3gw']['remote_file']['file']
@@ -40,7 +40,7 @@ bash 'install etcd3gw' do
   cwd Chef::Config[:file_cache_path]
   code <<-EOH
     tar -xzf #{target}
-    pip install $(basename #{target} .tar.gz)/
+    python3 -m pip install $(basename #{target} .tar.gz)/
   EOH
   retries 5
   retry_delay 2

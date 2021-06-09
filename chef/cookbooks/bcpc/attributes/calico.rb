@@ -4,7 +4,7 @@
 
 # calico apt repository
 default['bcpc']['calico']['repo']['url'] =
- 'http://ppa.launchpad.net/project-calico/calico-3.15-python2/ubuntu'
+ 'http://ppa.launchpad.net/project-calico/calico-3.19/ubuntu'
 default['bcpc']['calico']['repo']['key'] = 'calico/release.key'
 
 # calicoctl

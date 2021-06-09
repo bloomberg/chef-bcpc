@@ -84,6 +84,8 @@ end
 package %w(
   pdns-server
   pdns-backend-mysql
+  python3-dnspython
+  python3-jinja2
 )
 service 'pdns'
 
@@ -177,11 +179,6 @@ begin
     end
   end
 end
-
-package %w(
-  python-dnspython
-  python-jinja2
-)
 
 # install catalog-zone-manage
 cookbook_file '/usr/local/sbin/catalog-zone-manage' do
