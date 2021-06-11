@@ -752,7 +752,8 @@ class LibvirtGenericVIFDriver(object):
         # TODO(ganso): explore whether multiqueue works for other vif models
         # that go through this code path.
         multiqueue = (self._requests_multiqueue(image_meta) and
-                      vif_model == network_model.VIF_MODEL_VIRTIO)
+                      vif_model == network_model.VIF_MODEL_VIRTIO and
+                      instance.get_flavor().vcpus > 1)
         linux_net_utils.create_tap_dev(dev, mac, multiqueue=multiqueue)
         network = vif.get('network')
         mtu = network.get_meta('mtu') if network else None
