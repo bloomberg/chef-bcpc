@@ -36,7 +36,6 @@ function main {
 }
 
 function configure_apt {
-
     if [ -n "$apt_key_url" ]; then
         /usr/bin/wget -qO - "$apt_key_url" | /usr/bin/apt-key add -
     fi
@@ -55,7 +54,7 @@ EOF
     apt-get update
 }
 
-# Taken from Ansible's dist upgrade logic for apt(8)
+# Based on Ansible's dist upgrade logic for apt(8)
 function upgrade_system {
     apt-get -y \
         -o 'Dpkg::Options::=--force-confdef' \
@@ -77,6 +76,7 @@ function configure_linux_kernel {
     update-grub
 }
 
+# Based on Chef Bento's cleanup logic for Ubuntu
 function cleanup_image {
     # autoremoving packages and cleaning apt data
     apt-get -y --purge autoremove
@@ -113,6 +113,7 @@ function cleanup_image {
 }
 
 function download_debs {
+    # Resynchronize package index files after above cleanup
     apt-get update
     apt-get install --download-only -y -t bionic-backports \
         bird2 init-system-helpers
