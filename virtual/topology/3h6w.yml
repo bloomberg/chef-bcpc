@@ -48,6 +48,7 @@ nodes:
               name: management4
       run_list:
         - role[rmqnode]
+        - role[storageheadnode]
         - role[headnode]
 
   - host: r1n2
@@ -130,6 +131,7 @@ nodes:
               name: management5
       run_list:
         - role[rmqnode]
+        - role[storageheadnode]
         - role[headnode]
 
   - host: r2n2
@@ -212,6 +214,7 @@ nodes:
               name: management6
       run_list:
         - role[rmqnode]
+        - role[storageheadnode]
         - role[headnode]
 
   - host: r3n2

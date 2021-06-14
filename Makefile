@@ -8,7 +8,9 @@ export ANSIBLE_CONFIG = ansible/ansible.cfg
 headnodes = $$(ansible headnodes -i ${inventory} --list | tail -n +2 | wc -l)
 rmqnodes = $$(ansible rmqnodes -i ${inventory} --list | tail -n +2 | wc -l)
 storagenodes = \
-        $$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
+	$$(ansible storagenodes -i ${inventory} --list | tail -n +2 | wc -l)
+storageheadnodes = \
+	$$(ansible storageheadnodes -i ${inventory} --list | tail -n +2 | wc -l)
 stubnodes = $$(ansible stubnodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
@@ -27,7 +29,6 @@ all : \
 	enable-compute-service \
 	configure-host-aggregates \
 	print-success-banner
-
 
 create: create-virtual-network create-virtual-hosts
 
@@ -106,6 +107,7 @@ configure-common-node :
 run-chef-client : \
 	run-chef-client-bootstraps \
 	run-chef-client-rmqnodes \
+	run-chef-client-storageheadnodes \
 	run-chef-client-headnodes \
 	run-chef-client-worknodes \
 	run-chef-client-storagenodes \
@@ -129,6 +131,22 @@ run-chef-client-rmqnodes :
 			ansible-playbook -v \
 				-i ${inventory} ${playbooks}/site.yml \
 				-t chef-client --limit rmqnodes \
+				-e "step=1"; \
+		fi \
+	fi
+
+run-chef-client-storageheadnodes :
+
+	@if [ "${storageheadnodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t chef-client --limit storageheadnodes \
+			-e "step=1"; \
+		\
+		if [ "${storageheadnodes}" -gt 1 ]; then \
+			ansible-playbook -v \
+				-i ${inventory} ${playbooks}/site.yml \
+				-t chef-client --limit storageheadnodes \
 				-e "step=1"; \
 		fi \
 	fi
@@ -169,25 +187,31 @@ run-chef-client-stubnodes :
 			-t chef-client --limit stubnodes; \
 	fi
 
-reweight-ceph-osds:
+reweight-ceph-osds :
 
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t reweight-ceph-osds --limit headnodes
+	@if [ "${storageheadnodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t reweight-ceph-osds --limit storageheadnodes; \
+	else \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t reweight-ceph-osds --limit headnodes; \
+	fi
 
-add-cloud-images:
+add-cloud-images :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t add-cloud-images --limit headnodes
 
-enable-compute-service:
+enable-compute-service :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t enable-compute-service --limit headnodes
 
-register-compute-nodes:
+register-compute-nodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
@@ -245,7 +269,6 @@ print-success-banner :
 
 	@echo "$$SUCCESS_BANNER"
 
-
 ###############################################################################
 # helper targets
 ###############################################################################
@@ -256,13 +279,19 @@ generate-chef-environment :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t generate-chef-environment --limit bootstraps
 
-adjust-ceph-pool-pgs:
+adjust-ceph-pool-pgs :
 
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t adjust-ceph-pool-pgs --limit headnodes
+	@if [ "${storageheadnodes}" -gt 0 ]; then \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t adjust-ceph-pool-pgs --limit storageheadnodes; \
+	else \
+		ansible-playbook -v \
+			-i ${inventory} ${playbooks}/site.yml \
+			-t adjust-ceph-pool-pgs --limit headnodes; \
+	fi
 
-ceph-destroy-osds:
+ceph-destroy-osds :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
@@ -274,7 +303,7 @@ ceph-destroy-osds:
 # virtual environment helper targets
 ###############################################################################
 
-vtunnel:
+vtunnel :
 
 	cd virtual ;\
 	ssh_tunnel_conf=/tmp/ssh-config.$$$$ ;\
@@ -284,6 +313,6 @@ vtunnel:
 	echo "\nOpenStack Dashboard available at: https://127.0.0.1:8443/horizon/\n"
 
 host ?= r1n1
-vssh:
+vssh :
 
 	cd virtual; vagrant ssh $(host) -c 'sudo -i'
