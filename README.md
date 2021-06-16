@@ -24,7 +24,7 @@ machine for development and testing purposes.
 * 128 GB of free disk space
 * Vagrant 2.1+
 * VirtualBox 5.2+ *or* KVM + libvirtd
-* Packer 1.4+
+* Packer 1.4+ and libguestfs-tools
 * git, curl, rsync, ssh, jq, make, ansible
 
 **NOTE**: It is likely possible to build an environment with 16GB of RAM or less
