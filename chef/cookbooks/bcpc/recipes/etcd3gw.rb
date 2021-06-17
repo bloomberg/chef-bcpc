@@ -17,7 +17,12 @@
 
 package %w(
   python-futurist
+  python-pbr
+  python-requests
   python-setuptools
+  python-six
+  python-urllib3
+  python-wheel
 )
 
 target = node['bcpc']['etcd3gw']['remote_file']['file']
