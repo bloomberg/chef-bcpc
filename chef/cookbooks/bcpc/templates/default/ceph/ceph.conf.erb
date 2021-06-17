@@ -4,8 +4,8 @@ public network = <%= @public_network.join(',') %>
 auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx
-mon initial members = <%= @headnodes.map{ |n| n['hostname'] }.join(',') %>
-mon host = <%= @headnodes.map{ |n| n['service_ip'] }.join(',') %>
+mon initial members = <%= @storageheadnodes.map{ |n| n['hostname'] }.join(',') %>
+mon host = <%= @storageheadnodes.map{ |n| n['service_ip'] }.join(',') %>
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
@@ -36,7 +36,7 @@ osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
 osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
 osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 
-# bluestore tunning
+# bluestore tuning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
 bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
 

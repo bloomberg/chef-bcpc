@@ -65,7 +65,7 @@ function upgrade_system {
 
 function configure_linux_kernel {
     if [ -n "${kernel_version}" ]; then
-        apt-get install -y "linux-${kernel_version}"
+        apt-get install -y "linux-${kernel_version}" "linux-tools-${kernel_version}"
     fi
 
     # Disable IPv6

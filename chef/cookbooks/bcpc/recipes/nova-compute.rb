@@ -104,18 +104,26 @@ unless storagenode?
     source 'ceph/ceph.conf.erb'
     variables(
       config: config,
-      headnodes: headnodes,
+      storageheadnodes: storageheadnodes,
       public_network: primary_network_aggregate_cidr,
       rbd_users: rbd_users
     )
+    notifies :restart, 'service[nova-compute]', :immediately
   end
 end
 
-# install ceph keys
-file "/etc/ceph/ceph.client.#{nova_compute_config.ceph_user}.keyring" do
-  content "[client.#{nova_compute_config.ceph_user}]\n\tkey = #{nova_compute_config.ceph_key}\n"
+# create hypervisor-specific client.*cinder Ceph keyring
+template "/etc/ceph/ceph.client.#{nova_compute_config.ceph_user}.keyring" do
+  source 'nova/ceph.client.nova.keyring.erb'
+
   mode '0640'
+  owner 'root'
   group 'libvirt'
+
+  variables(
+    client: nova_compute_config.ceph_user,
+    key: nova_compute_config.ceph_key
+  )
 end
 
 # configure libvirt
