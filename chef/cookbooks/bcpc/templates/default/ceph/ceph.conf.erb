@@ -13,6 +13,14 @@ admin socket mode = 0775
 
 [mon]
 mon compact on start = true
+mon_cpu_threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
+
+[mgr]
+mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
+mgr stats period = <%= node['bcpc']['ceph']['mgr_stats_period'] %>
+mgr stats threshold = <%= node['bcpc']['ceph']['mgr_stats_threshold'] %>
+mgr tick period = <%= node['bcpc']['ceph']['mgr_tick_period'] %>
+ms tcp listen backlog = <%= node['bcpc']['ceph']['mgr_ms_tcp_listen_backlog'] %>
 
 [osd]
 osd scrub load threshold = <%= node['bcpc']['ceph']['osd_scrub_load_threshold'] %>
