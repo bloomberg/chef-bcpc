@@ -11,6 +11,32 @@ default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
 default['bcpc']['ceph']['choose_leaf_type'] = 0
 default['bcpc']['ceph']['osd_scrub_load_threshold'] = 0.5
 
+# The number of threads which the mon can scale to for intensive
+# operations (such as compaction).  Larger clusters may benefit from
+# more threads if they are available.
+default['bcpc']['ceph']['mon_cpu_threads'] = 16
+
+# Max time between consecutive beacons before marking a mgr as failed.
+# And how long between mgr beacons to the mons.
+# The defaults are too small for large clusters with lots of PGs; it is
+# necessary to increase both the timeout and period of action.
+#
+# Also see mgr_stats_threshold if stats are observed to be continually
+# missed, but note that it can work against increases in beacon and
+# stats/tick period increases by leaving the mgr tied up compiling stats.
+default['bcpc']['ceph']['mon_mgr_beacon_grace'] = 60
+default['bcpc']['ceph']['mgr_stats_period'] = 10
+default['bcpc']['ceph']['mgr_stats_threshold'] = 5
+default['bcpc']['ceph']['mgr_tick_period'] = 10
+
+# In a similar vein to the above, when the active mgr changes, the
+# default listener backlog size can hit capacity on large clusters.
+# Increase it to avoid clients from getting refused connections when
+# the mgr turns.
+#
+# Note: this tunable must be <= `net.core.somaxconn`.
+default['bcpc']['ceph']['mgr_ms_tcp_listen_backlog'] = 1024
+
 # new osds will be weighted to 0 by default
 default['bcpc']['ceph']['osd_crush_initial_weight'] = 0
 
