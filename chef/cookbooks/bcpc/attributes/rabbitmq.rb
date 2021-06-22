@@ -19,3 +19,7 @@ default['bcpc']['rabbitmq']['ulimit']['nofile'] = 4096
 
 # Heartbeat timeout to detect dead RabbitMQ brokers
 default['bcpc']['rabbitmq']['heartbeat'] = 60
+
+# TTL for messages on the Nova (versioned) notifications queue that is consumed
+# by Watcher
+default['bcpc']['rabbitmq']['message_ttl']['watcher'] = 10 * 60 * 1000 # 10 minutes

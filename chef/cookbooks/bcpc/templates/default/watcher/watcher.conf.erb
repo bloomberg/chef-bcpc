@@ -23,7 +23,7 @@ auth_type = password
 lock_path = /var/lock/watcher
 
 [oslo_messaging_notifications]
-ver = messagingv2
+driver = messagingv2
 
 [watcher_clients_auth]
 auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
@@ -36,3 +36,11 @@ auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
 
+<% if node['bcpc']['nova']['notifications']['format'] != 'unversioned' %>
+[watcher_decision_engine]
+# The default value for 'notifications_topics' is
+# 'nova.versioned_notifications,watcher.watcher_notifications'. However, we are
+# changing it to match the queue name for versioned messages that we have
+# configured in nova config file.
+notification_topics = nova.watcher_notifications,watcher.watcher_notifications
+<% end %>

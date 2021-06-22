@@ -146,13 +146,62 @@ end
 rmqnodes = rmqnodes(all: true)
 ha_exactly = { 'ha-mode' => 'exactly', 'ha-params' => rmqnodes.length / 2 + 1 }
 ha_all = { 'ha-mode': 'all' }
-
 ha_policy = rmqnodes.length >= 3 ? ha_exactly : ha_all
 
 execute 'set rabbitmq ha policy' do
   command <<-DOC
     rabbitmqctl set_policy HA '^(?!(amq\.|[a-f0-9]{32})).*' '#{ha_policy.to_json}'
   DOC
+end
+
+if node['bcpc']['nova']['notifications']['format'] != 'unversioned'
+  # Nova versioned messages are enabled only for Watcher to be able to consume
+  # them. Messages remain in the queue even after Watcher has consumed them.
+  # This is because Watcher subscribes to the queue using the 'pool' option
+  # from the oslo_messaging. In order to prevent the queue from growing
+  # infinitely, we need to set a rabbitmq policy so that messages in the queue
+  # expire after a pre-defined time interval.
+  new_versioned_queue_policy = ha_policy.clone
+  new_versioned_queue_policy['message-ttl'] = node['bcpc']['rabbitmq'][
+    'message_ttl']['watcher']
+
+  # get the current policy settings for versioned notifications
+  begin
+    current_versioned_policy = JSON.parse(
+      shell_out!(
+        'rabbitmqctl list_policies --formatter json | jq -r \
+        \'.[] | select(.pattern == "^watcher_notifications.*")
+        | .definition\''
+      ).stdout.strip
+    )
+  rescue
+    current_versioned_policy = {}
+  end
+
+  # set the rabbitmq policy to define message-ttl
+  execute 'set ha and ttl policy for nova notification queues consumed by Watcher' do
+    command <<-DOC
+      rabbitmqctl set_policy "HA and TTL for queues that Watcher consumes" \
+        '^watcher_notifications.*' \
+        '#{new_versioned_queue_policy.to_json}' \
+        --apply-to queues --priority 1
+    DOC
+    only_if { current_versioned_policy.to_json != new_versioned_queue_policy.to_json }
+  end
+
+  current_versioned_message_ttl = current_versioned_policy['message-ttl']
+
+  # If the earlier policy did not set a message-ttl, purge the queues so that
+  # messages with no ttl defined do not exist in the queue.
+  ['watcher_notifications.info', 'watcher_notifications.error'].each do |queue|
+    execute "purge existing messages from #{queue}" do
+      command <<-DOC
+        rabbitmqctl purge_queue #{queue}
+      DOC
+      returns [0, 69]
+      only_if { current_versioned_message_ttl.nil? }
+    end
+  end
 end
 
 cookbook_file '/usr/local/bin/rabbitmqcheck' do
