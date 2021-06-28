@@ -57,3 +57,6 @@ default['bcpc']['haproxy']['qos']['exemptions'] = []
 
 # SLO link returned in 429 responses
 default['bcpc']['haproxy']['qos']['slo_url'] = nil
+
+# The value of the Retry-After header specified in 429 responses
+default['bcpc']['haproxy']['qos']['retry_after'] = 5
