@@ -5,6 +5,13 @@
 # Service status
 default['bcpc']['proxysql']['enabled'] = false
 
+# Repository
+default['bcpc']['proxysql']['repo']['enabled'] = true
+default['bcpc']['proxysql']['repo']['url'] =
+ 'https://repo.proxysql.com/ProxySQL/proxysql-2.2.x/bionic/ ./'
+default['bcpc']['proxysql']['repo']['key'] = 'proxysql/release.key'
+default['bcpc']['proxysql']['repo']['distribution'] = 'bionic'
+
 # Connection information
 default['bcpc']['proxysql']['host'] = 'primary.proxysql.service.consul'
 default['bcpc']['proxysql']['port'] = 6033
@@ -13,7 +20,8 @@ default['bcpc']['proxysql']['admin_port'] = 6032
 # General Variables
 default['bcpc']['proxysql']['datadir'] = '/var/lib/proxysql'
 default['bcpc']['proxysql']['restart_on_missing_heartbeats'] = 10
-default['bcpc']['proxysql']['execute_on_exit_failure'] = "#{node['bcpc']['proxysql']['datadir']}/files/log-exit-failure.sh"
+default['bcpc']['proxysql']['execute_on_exit_failure'] =
+ "#{node['bcpc']['proxysql']['datadir']}/files/log-crash.sh"
 default['bcpc']['proxysql']['errorlog'] = '/var/lib/proxysql/proxysql.log'
 
 # The datadir specified in ProxySQL's default configuration file
@@ -39,6 +47,8 @@ default['bcpc']['proxysql']['have_ssl'] = false
 default['bcpc']['proxysql']['use_tcp_keepalive'] = false
 default['bcpc']['proxysql']['wait_timeout'] = 28800000
 default['bcpc']['proxysql']['server_capabilities'] = 569899
+default['bcpc']['proxysql']['enable_client_deprecate_eof'] = false
+default['bcpc']['proxysql']['enable_server_deprecate_eof'] = false
 default['bcpc']['proxysql']['multiplexing'] = true
 default['bcpc']['proxysql']['free_connections_pct'] = 10
 default['bcpc']['proxysql']['long_query_time'] = 10000
