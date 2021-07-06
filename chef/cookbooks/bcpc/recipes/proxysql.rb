@@ -15,9 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Remove ProxySQL if it is not enabled
+# Remove old Percona-based ProxySQL if service is not enabled
+# TODO: Remove me once enough time has passed since the default package has been
+# changed to ProxySQL 2.2.
 package 'remove proxysql2' do
   package_name 'proxysql2'
+  action :purge
+  not_if { node['bcpc']['proxysql']['enabled'] }
+end
+
+# Remove ProxySQL if it is not enabled
+package 'remove proxysql' do
+  package_name 'proxysql'
   action :purge
   not_if { node['bcpc']['proxysql']['enabled'] }
 end
@@ -58,25 +67,25 @@ mysqlbackend = {
 # Installation #
 ################
 
-# Add the appropriate Percona repo
-include_recipe 'bcpc::percona-apt'
+# Define the repository to use
+repo = node['bcpc']['proxysql']['repo']
+
+# Add the specified repository
+apt_repository 'proxysql' do
+  uri repo['url']
+  distribution repo['distribution']
+  components ['main']
+  key repo['key']
+  only_if { repo['enabled'] }
+end
 
 # Install ProxySQL
 #
-# NOTE: When ProxySQL is first installed it is automatically started with
-# a default configuration. In order to force ProxySQL to re-read its
-# configuration file we need to either delete its database or start the
-# process using the 'initial' flag.
-#
-# The latter cannot be done via `systemctl` because Percona have not included
-# the proxysql-initial.service systemd target in their package, and attempting
-# to do so via `services` results in failures to stop the service due to
-# differences in how process PIDs are handled (`systemctl` is used to start
-# the service for the first time).
-#
-# Until Percona updates their package we will use the former method.
-package 'proxysql2' do
-  notifies :stop, 'service[proxysql]', :immediately
+# NOTE: When ProxySQL is first installed it is not automatically started.
+# In order to force ProxySQL to re-read its configuration file we need to
+# either delete its database or start the process using the 'initial' flag.
+# The latter can be done via the proxysql-initial.service systemd target.
+package 'proxysql' do
   notifies :run, 'ruby_block[set proxysql fresh install]', :immediately
 end
 
@@ -131,7 +140,7 @@ end
 
 # Create/update the psql_monitor user on the mysql cluster if needed.
 # NOTE: The created user has 'USAGE' permissions to all databases, the same as
-# if we created it using the percona admin script. Password updates are
+# if we created it using the Percona admin script. Password updates are
 # propagated and username changes result in new users. Old users are not
 # deleted. May connect via % and localhost, like all other mysql users.
 execute 'create psql_monitor user' do
@@ -160,6 +169,35 @@ template 'log crash script' do
   path "#{node['bcpc']['proxysql']['datadir']}/files/log-crash.sh"
   mode '755'
   source 'proxysql/log-crash.sh.erb'
+end
+
+###########################
+# Logrotate Configuration #
+###########################
+
+# Create the mysql CLI configuration file containing ProxySQL admin
+# credentials. This file is used by the logrotate script, but can also be used
+# to quickly connect to the local ProxySQL server.
+template 'mysql cnf for proxysql admin' do
+  path '/etc/proxysql-admin.cnf'
+  source 'proxysql/proxysql-admin.cnf.erb'
+  variables(
+    creds: config['proxysql']['creds'],
+    backend: mysqlbackend,
+    mysql_users: config['mysql']['users'],
+    query_rules: node['bcpc']['proxysql']['query_rules']
+  )
+end
+
+# Create the logrotate file that will rotate all ProxySQL log files.
+# NOTE: This will (and must) overwrite the one provided by the package.
+logrotate_app 'proxysql' do
+  path "#{node['bcpc']['proxysql']['datadir']}/*.log"
+  frequency 'daily'
+  options %w(missingok compress notifempty)
+  rotate 15
+  create '0600 proxysql proxysql'
+  postrotate 'mysql --defaults-file=/etc/proxysql-admin.cnf -Nse "PROXYSQL FLUSH LOGS"'
 end
 
 #########################

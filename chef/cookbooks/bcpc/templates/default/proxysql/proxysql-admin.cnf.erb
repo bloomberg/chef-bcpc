@@ -1,0 +1,6 @@
+[client]
+user=<%= @creds['admin']['username'] %>
+password=<%= @creds['admin']['password'] %>
+host=localhost
+port=<%= node['bcpc']['proxysql']['admin_port'] %>
+protocol=TCP

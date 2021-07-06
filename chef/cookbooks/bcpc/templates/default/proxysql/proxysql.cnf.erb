@@ -179,6 +179,17 @@ mysql_variables=
     # will respond to clients connecting to it.
     server_capabilities=<%= node['bcpc']['proxysql']['server_capabilities'] %>
 
+    # Whether or not to display the CLIENT_DEPRECATE_EOF capability to clients.
+    enable_client_deprecate_eof=<%= node['bcpc']['proxysql']['enable_client_deprecate_eof'] %>
+
+    # Whether or not to display the CLIENT_DEPRECATE_EOF capability to backend
+    # servers. If a client does not support CLIENT_DEPRECATE_EOF and this
+    # setting is enabled it will fail to establish a connection via ProxySQL
+    # because it will receive OK_Packets instead of EOF_Packets. Until all
+    # clients support this flag it is best to leave both this and the above
+    # option disabled.
+    enable_server_deprecate_eof=<%= node['bcpc']['proxysql']['enable_server_deprecate_eof'] %>
+
     # Whether or not to allow multiple frontend connections to re-use the same
     # database backend connection.
     multiplexing=<%= node['bcpc']['proxysql']['multiplexing'] %>
