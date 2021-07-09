@@ -242,6 +242,26 @@ cookbook_file '/etc/neutron/api-paste.ini' do
   mode '0640'
   notifies :restart, 'service[neutron-server]', :immediately
 end
+
+# install patch for Neutron RBAC-related query slowness
+# https://bugs.launchpad.net/neutron/+bug/1918145
+directory '/usr/local/bcpc/share' do
+  recursive true
+end
+
+cookbook_file '/usr/local/bcpc/share/rbac-query-performance.patch' do
+  source 'neutron/rbac-query-performance.patch'
+  notifies :run, 'execute[patch-and-pycompile-python-neutron]', :immediately
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
+execute 'patch-and-pycompile-python-neutron' do
+ action :nothing
+  command <<-DOC
+    patch -uNp0 -i /usr/local/bcpc/share/rbac-query-performance.patch -d /usr/lib/python2.7/dist-packages
+    pycompile -p python-neutron
+  DOC
+end
 # configure neutron ends
 
 execute 'wait for neutron to come online' do

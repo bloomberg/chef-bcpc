@@ -1,0 +1,101 @@
+diff -ruw neutron/db/external_net_db.py neutron/db/external_net_db.py
+--- neutron/db/external_net_db.py	2020-02-28 15:34:31.000000000 +0000
++++ neutron/db/external_net_db.py	2021-06-02 13:11:32.306000069 +0000
+@@ -73,8 +73,9 @@
+             models_v2.Network,
+             "external_net",
+             query_hook=None,
+-            filter_hook=_network_filter_hook,
+-            result_filters=_network_result_filter_hook)
++            filter_hook=None,
++            result_filters=_network_result_filter_hook,
++            rbac_filter_hook=_network_filter_hook)
+         return super(External_net_db_mixin, cls).__new__(cls, *args, **kwargs)
+ 
+     def _network_is_external(self, context, net_id):
+diff -ruw neutron/db/_model_query.py neutron/db/_model_query.py
+--- neutron/db/_model_query.py	2020-02-28 15:34:31.000000000 +0000
++++ neutron/db/_model_query.py	2021-06-02 03:18:52.310533206 +0000
+@@ -60,7 +60,7 @@
+ 
+ 
+ def register_hook(model, name, query_hook, filter_hook,
+-                  result_filters=None):
++                  result_filters=None, rbac_filter_hook=None):
+     """Register a hook to be invoked when a query is executed.
+ 
+     :param model: The DB Model that the hook applies to.
+@@ -78,6 +78,10 @@
+     :param result_filters: A Method to be called to filter the query result.
+     :type result_filters: callable or None
+ 
++    :param rbac_filter_hook: A method to be called to augment the RBAC query
++    filter.
++    :type filter_hook: callable or None
++
+     Adds the hook components to the _model_query_hooks dict. Models are the
+     keys of this dict, whereas the value is another dict mapping hook names
+     to callables performing the hook.
+@@ -112,10 +116,13 @@
+         filter_hook = helpers.make_weak_ref(filter_hook)
+     if callable(result_filters):
+         result_filters = helpers.make_weak_ref(result_filters)
++    if callable(rbac_filter_hook):
++        rbac_filter_hook = helpers.make_weak_ref(rbac_filter_hook)
+     _model_query_hooks.setdefault(model, {})[name] = {
+         'query': query_hook,
+         'filter': filter_hook,
+-        'result_filters': result_filters
++        'result_filters': result_filters,
++        'rbac_filter': rbac_filter_hook
+     }
+ 
+ 
+@@ -134,22 +141,21 @@
+ 
+ def query_with_hooks(context, model):
+     query = context.session.query(model)
+-    # define basic filter condition for model query
++    rbac_query = None
++    # define basic filter condition for model and RBAC queries
+     query_filter = None
++    rbac_query_filter = None
+     if db_utils.model_query_scope_is_project(context, model):
++        query_filter = (model.tenant_id == context.tenant_id)
+         if hasattr(model, 'rbac_entries'):
+-            query = query.outerjoin(model.rbac_entries)
+             rbac_model = model.rbac_entries.property.mapper.class_
+-            query_filter = (
+-                (model.tenant_id == context.tenant_id) |
++            rbac_query = context.session.query(rbac_model.object_id)
++            rbac_query_filter = (
+                 ((rbac_model.action == 'access_as_shared') &
+                  ((rbac_model.target_tenant == context.tenant_id) |
+                   (rbac_model.target_tenant == '*'))))
+         elif hasattr(model, 'shared'):
+-            query_filter = ((model.tenant_id == context.tenant_id) |
+-                            (model.shared == sql.true()))
+-        else:
+-            query_filter = (model.tenant_id == context.tenant_id)
++            query_filter |= (model.shared == sql.true())
+     # Execute query hooks registered from mixins and plugins
+     for hook in get_hooks(model):
+         query_hook = helpers.resolve_ref(hook.get('query'))
+@@ -160,8 +166,16 @@
+         if filter_hook:
+             query_filter = filter_hook(context, model, query_filter)
+ 
++        rbac_filter_hook = helpers.resolve_ref(hook.get('rbac_filter'))
++        if rbac_filter_hook:
++            rbac_query_filter = rbac_filter_hook(context, model,
++                                                 rbac_query_filter)
++
+     # NOTE(salvatore-orlando): 'if query_filter' will try to evaluate the
+     # condition, raising an exception
++    if rbac_query_filter is not None:
++        rbac_query = rbac_query.filter(rbac_query_filter)
++        query_filter = model.id.in_(rbac_query) | query_filter
+     if query_filter is not None:
+         query = query.filter(query_filter)
+     return query
+
