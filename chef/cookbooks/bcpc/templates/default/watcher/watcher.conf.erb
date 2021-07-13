@@ -36,6 +36,12 @@ auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
 
+<% if @config_options.has_key? 'nova_helper' %>
+[nova_helper]
+instance_migration_timeout = <%= @config_options['nova_helper']['instance_migration']['timeout'] %>
+instance_migration_poll_interval = <%= @config_options['nova_helper']['instance_migration']['poll_interval'] %>
+<% end %>
+
 <% if node['bcpc']['nova']['notifications']['format'] != 'unversioned' %>
 [watcher_decision_engine]
 # The default value for 'notifications_topics' is
