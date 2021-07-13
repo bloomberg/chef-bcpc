@@ -19,6 +19,7 @@ return unless node['bcpc']['watcher']['enabled']
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
+config_options = node['bcpc']['watcher']
 
 mysqladmin = mysqladmin()
 psqladmin = psqladmin()
@@ -151,6 +152,48 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
                       node['bcpc']['openstack']['services']['workers']
                     end
 
+# install patched conf/nova_helper.py
+# added configuration options for nova instance migration times
+cookbook_file '/usr/lib/python3/dist-packages/watcher/conf/nova_helper.py' do
+  source 'watcher/conf/nova_helper.py'
+  notifies :run, 'execute[pycompile-nova-helper-conf]', :immediately
+  notifies :restart, 'service[watcher-applier]', :delayed
+  notifies :restart, 'service[watcher-decision-engine]', :delayed
+end
+
+execute 'pycompile-nova-helper-conf' do
+  action :nothing
+  command 'pycompile /usr/lib/python3/dist-packages/watcher/conf/nova_helper.py'
+end
+
+# install patched conf/__init__.py
+# implements configuration options for nova instance migration times
+cookbook_file '/usr/lib/python3/dist-packages/watcher/conf/__init__.py' do
+  source 'watcher/conf/__init__.py'
+  notifies :run, 'execute[pycompile-conf-init-file]', :immediately
+  notifies :restart, 'service[watcher-applier]', :delayed
+  notifies :restart, 'service[watcher-decision-engine]', :delayed
+end
+
+execute 'pycompile-conf-init-file' do
+  action :nothing
+  command 'pycompile /usr/lib/python3/dist-packages/watcher/conf/__init__.py'
+end
+
+# install patched nova_helper.py
+# uses configurtion options for nova instance migration times
+cookbook_file '/usr/lib/python3/dist-packages/watcher/common/nova_helper.py' do
+  source 'watcher/nova_helper.py'
+  notifies :run, 'execute[pycompile-nova-helper]', :immediately
+  notifies :restart, 'service[watcher-decision-engine]', :delayed
+  notifies :restart, 'service[watcher-applier]', :delayed
+end
+
+execute 'pycompile-nova-helper' do
+  action :nothing
+  command 'pycompile /usr/lib/python3/dist-packages/watcher/common/nova_helper.py'
+end
+
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do
   source 'watcher/watcher-api.conf.erb'
@@ -230,6 +273,7 @@ template '/etc/watcher/watcher.conf' do
     db: database,
     os: openstack,
     config: config,
+    config_options: config_options,
     is_headnode: headnode?,
     headnodes: headnodes(all: true),
     rmqnodes: rmqnodes(all: true),
