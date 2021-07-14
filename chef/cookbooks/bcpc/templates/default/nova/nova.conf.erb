@@ -127,6 +127,7 @@ topics = <%= node['bcpc']['nova']['notifications']['topics'] %>
 [cache]
 enabled = true
 backend = oslo_cache.memcache_pool
+backend_argument = memcached_expire_time:86400
 memcache_servers = <%= @headnodes.map{|n| "#{n['service_ip']}:11211" }.join(",") %>
 
 [quota]
