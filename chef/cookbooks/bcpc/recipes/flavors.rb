@@ -23,15 +23,15 @@ execute 'wait for flavors' do
   command 'openstack flavor list'
 end
 
-ruby_block "collect openstack flavor list" do
+ruby_block 'collect openstack flavor list' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
     os_command = 'openstack flavor list --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     flavors_list = JSON.parse(os_command_out.stdout)
-    node.run_state['os_flavors'] = flavors_list.map{|f| f['Name']}
+    node.run_state['os_flavors'] = flavors_list.map { |f| f['Name'] }
   end
-  action :create
+  action :run
 end
 
 node['bcpc']['openstack']['flavors'].each do |flavor, spec|

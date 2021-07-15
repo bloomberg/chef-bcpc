@@ -76,25 +76,25 @@ execute 'add openstack admin role to cinder user' do
 end
 # create cinder openstack user ends
 
-ruby_block "collect openstack service and endpoints list" do
+ruby_block 'collect openstack service and endpoints list' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
     os_command = 'openstack service list --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     service_list = JSON.parse(os_command_out.stdout)
 
     os_command = 'openstack endpoint list --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     endpoint_list = JSON.parse(os_command_out.stdout)
 
     # build a hash of service_type => list of uris
-    groups = endpoint_list.group_by{|e| e['Service Type']}
-    endpoints = groups.map{|k,v| [k, v.map{|e| e['Interface']}]}.to_h
+    groups = endpoint_list.group_by { |e| e['Service Type'] }
+    endpoints = groups.map { |k, v| [k, v.map { |e| e['Interface'] }] }.to_h
 
-    node.run_state['os_services'] = service_list.map{|s| s['Type']}
+    node.run_state['os_services'] = service_list.map { |s| s['Type'] }
     node.run_state['os_endpoints'] = endpoints
   end
-  action :create
+  action :run
 end
 
 # create cinder volume services and endpoints starts
@@ -355,15 +355,15 @@ execute 'wait for cinder to come online' do
   command 'openstack volume service list'
 end
 
-ruby_block "collect openstack volume type list" do
+ruby_block 'collect openstack volume type list' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
     os_command = 'openstack volume type list --long --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     vt_list = JSON.parse(os_command_out.stdout)
-    node.run_state['os_vol_type_props'] = vt_list.map{|t| [t['Name'], t['Properties']]}.to_h
+    node.run_state['os_vol_type_props'] = vt_list.map { |t| [t['Name'], t['Properties']] }.to_h
   end
-  action :create
+  action :run
 end
 
 cinder_config.backends.each do |backend|
