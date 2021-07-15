@@ -74,25 +74,25 @@ end
 #
 # create placement user ends
 
-ruby_block "collect openstack service and endpoints list" do
+ruby_block 'collect openstack service and endpoints list' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
     os_command = 'openstack service list --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     service_list = JSON.parse(os_command_out.stdout)
 
     os_command = 'openstack endpoint list --format json'
-    os_command_out = shell_out(os_command, :env => os_adminrc)
+    os_command_out = shell_out(os_command, env: os_adminrc)
     endpoint_list = JSON.parse(os_command_out.stdout)
 
     # build a hash of service_type => list of uris
-    groups = endpoint_list.group_by{|e| e['Service Type']}
-    endpoints = groups.map{|k,v| [k, v.map{|e| e['Interface']}]}.to_h
+    groups = endpoint_list.group_by { |e| e['Service Type'] }
+    endpoints = groups.map { |k, v| [k, v.map { |e| e['Interface'] }] }.to_h
 
-    node.run_state['os_services'] = service_list.map{|s| s['Type']}
+    node.run_state['os_services'] = service_list.map { |s| s['Type'] }
     node.run_state['os_endpoints'] = endpoints
   end
-  action :create
+  action :run
 end
 
 # create placement service and endpoints starts
@@ -227,7 +227,6 @@ execute 'placement-manage db sync' do
 end
 #
 # create/manage placement databases ends
-
 
 # configure placement starts
 #
