@@ -70,6 +70,9 @@ admin_variables=
     # The port on which the enabled REST-API should listen on.
     restapi_port=<%= node['bcpc']['proxysql']['restapi_port'] %>
 
+    # Interval at which memory metrics are going to be collected internally.
+    prometheus_memory_metrics_interval=<%= node['bcpc']['proxysql']['prometheus_memory_metrics_interval'] %>
+
     # Whether or not to enable the built-in web interface
     web_enabled=<%= node['bcpc']['proxysql']['web_enabled'] %>
 
