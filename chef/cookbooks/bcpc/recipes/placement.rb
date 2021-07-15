@@ -249,3 +249,13 @@ template '/etc/placement/placement.conf' do
 
   notifies :restart, 'service[placement-api]', :immediately
 end
+
+# We really want to run something like 'osc resource class list'
+# and poll for placement, but that requires python3-osc-placement,
+# which is not available in Bionic.  Since apache2 is restarting,
+# just query keystone in its place.
+execute 'wait for placement to come online' do
+  environment os_adminrc
+  retries 15
+  command 'openstack catalog list'
+end
