@@ -30,10 +30,11 @@ default['bcpc']['proxysql']['default_datadir'] = '/var/lib/proxysql'
 # Admin Variables
 default['bcpc']['proxysql']['read_only'] = false
 default['bcpc']['proxysql']['refresh_interval'] = 2000
-default['bcpc']['proxysql']['restapi_enabled'] = false
+default['bcpc']['proxysql']['restapi_enabled'] = true
 default['bcpc']['proxysql']['restapi_port'] = 6070
-default['bcpc']['proxysql']['web_enabled'] = false
-default['bcpc']['proxysql']['web_port'] = 6080
+default['bcpc']['proxysql']['prometheus_memory_metrics_interval'] = 120
+default['bcpc']['proxysql']['web_enabled'] = true
+default['bcpc']['proxysql']['web_port'] = 6071
 
 # Admin Cluster Variables
 default['bcpc']['proxysql']['cluster_check_interval_ms'] = 1000
