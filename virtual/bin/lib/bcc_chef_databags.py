@@ -1,4 +1,4 @@
-# Copyright 2020, Bloomberg Finance L.P.
+# Copyright 2021, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -471,8 +471,14 @@ class BCCChefDatabags:
             },
             'placement': {
                 'creds': {
-                    'os': {'username': 'placement',
-                           'password': self.generate_string()},
+                    'db': {
+                        'username': 'placement',
+                        'password': self.generate_string()
+                    },
+                    'os': {
+                        'username': 'placement',
+                        'password': self.generate_string()
+                    },
                 }
             },
             'mysql': {

@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: watcher
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2021 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,6 +77,27 @@ execute "add #{openstack['role']} role to #{openstack['username']} user" do
   DOC
 end
 
+ruby_block 'collect openstack service and endpoints list' do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    groups = endpoint_list.group_by { |e| e['Service Type'] }
+    endpoints = groups.map { |k, v| [k, v.map { |e| e['Interface'] }] }.to_h
+
+    node.run_state['os_services'] = service_list.map { |s| s['Type'] }
+    node.run_state['os_endpoints'] = endpoints
+  end
+  action :run
+end
+
 # create infra-optim service and endpoints
 begin
   type = 'infra-optim'
@@ -89,7 +110,7 @@ begin
     command <<-DOC
       openstack service create --name "#{name}" --description "#{desc}" #{type}
     DOC
-    not_if "openstack service list | grep #{type}"
+    not_if { node.run_state['os_services'].include? type }
   end
 
   %w(admin internal public).each do |uri|
@@ -99,13 +120,14 @@ begin
       command <<-DOC
         openstack endpoint create --region #{region} #{type} #{uri} '#{url}'
       DOC
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+
+      not_if { node.run_state['os_endpoints'].fetch(type, []).include? uri }
     end
   end
 end
 
 # watcher packages installation and service definitions
-watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python-watcherclient)
+watcher_packages = %w(watcher-api watcher-decision-engine watcher-applier python3-watcherclient)
 package watcher_packages
 
 service 'watcher-decision-engine'
@@ -129,22 +151,6 @@ watcher_processes = if !node['bcpc']['watcher']['api_workers'].nil?
                     else
                       node['bcpc']['openstack']['services']['workers']
                     end
-
-# install patched nova_helper.py
-# implements these fixes:
-# 1. https://review.opendev.org/c/openstack/watcher/+/610905
-# 2. https://review.opendev.org/c/openstack/watcher/+/615819
-cookbook_file '/usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py' do
-  source 'watcher/nova_helper.py'
-  notifies :run, 'execute[pycompile-nova-helper]', :immediately
-  notifies :restart, 'service[watcher-decision-engine]', :delayed
-  notifies :restart, 'service[watcher-applier]', :delayed
-end
-
-execute 'pycompile-nova-helper' do
-  action :nothing
-  command 'pycompile /usr/lib/python2.7/dist-packages/watcher/common/nova_helper.py'
-end
 
 # configure watcher-api service
 template '/etc/apache2/sites-available/watcher-api.conf' do

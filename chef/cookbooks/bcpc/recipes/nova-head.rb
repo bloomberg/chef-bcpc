@@ -79,6 +79,27 @@ end
 #
 # create nova user ends
 
+ruby_block 'collect openstack service and endpoints list' do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    groups = endpoint_list.group_by { |e| e['Service Type'] }
+    endpoints = groups.map { |k, v| [k, v.map { |e| e['Interface'] }] }.to_h
+
+    node.run_state['os_services'] = service_list.map { |s| s['Type'] }
+    node.run_state['os_endpoints'] = endpoints
+  end
+  action :run
+end
+
 # create compute service and endpoints starts
 #
 begin
@@ -95,7 +116,7 @@ begin
       openstack service create --name "#{name}" --description "#{desc}" #{type}
     DOC
 
-    not_if "openstack service list | grep #{type}"
+    not_if { node.run_state['os_services'].include? type }
   end
 
   %w(admin internal public).each do |uri|
@@ -108,94 +129,13 @@ begin
         openstack endpoint create --region #{region} #{type} #{uri} '#{url}'
       DOC
 
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
+      not_if { node.run_state['os_endpoints'].fetch(type, []).include? uri }
     end
   end
 end
 #
 # create compute service and endpoints ends
-
-# nova openstack access
 #
-placement = {
-  'role' => node['bcpc']['keystone']['roles']['admin'],
-  'project' => node['bcpc']['keystone']['service_project']['name'],
-  'domain' => node['bcpc']['keystone']['service_project']['domain'],
-  'username' => config['placement']['creds']['os']['username'],
-  'password' => config['placement']['creds']['os']['password'],
-}
-
-# create placement user starts
-#
-execute 'create openstack placement user' do
-  environment os_adminrc
-
-  command <<-DOC
-    openstack user create #{placement['username']} \
-      --domain #{placement['domain']} \
-      --password #{placement['password']}
-  DOC
-
-  not_if "openstack user show #{placement['username']} --domain default"
-end
-
-execute 'add admin role to placement user' do
-  environment os_adminrc
-
-  command <<-DOC
-    openstack role add #{placement['role']} \
-      --project #{placement['project']} \
-      --user #{placement['username']}
-  DOC
-
-  not_if <<-DOC
-    openstack role assignment list \
-      --names \
-      --role #{placement['role']} \
-      --project #{placement['project']} \
-      --user #{placement['username']} | grep #{placement['username']}
-  DOC
-end
-#
-# create placement user ends
-
-# create placement service and endpoints starts
-#
-begin
-  type = 'placement'
-  service = node['bcpc']['catalog'][type]
-  name = service['name']
-
-  execute "create the #{name} #{type} service" do
-    environment os_adminrc
-
-    desc = service['description']
-
-    command <<-DOC
-      openstack service create \
-        --name "#{name}" --description "#{desc}" #{type}
-    DOC
-
-    not_if "openstack service list | grep #{type}"
-  end
-
-  %w(admin internal public).each do |uri|
-    url = generate_service_catalog_uri(service, uri)
-
-    execute "create the #{name} #{type} #{uri} endpoint" do
-      environment os_adminrc
-
-      command <<-DOC
-        openstack endpoint create \
-          --region #{region} #{type} #{uri} '#{url}'
-      DOC
-
-      not_if "openstack endpoint list | grep #{type} | grep #{uri}"
-    end
-  end
-end
-#
-# create placement service and endpoints ends
 
 # install haproxy fragment
 template '/etc/haproxy/haproxy.d/nova.cfg' do
@@ -210,20 +150,20 @@ end
 # nova package installation and service definition
 package %w(
   ceph-common
+  python-novnc
   nova-api
   nova-conductor
-  nova-consoleauth
   nova-novncproxy
-  nova-placement-api
   nova-scheduler
-)
+  novnc
+) do
+  options '--no-install-recommends'
+end
 
 service 'nova-api'
-service 'nova-consoleauth'
 service 'nova-scheduler'
 service 'nova-conductor'
-service 'nova-novncproxy'
-service 'placement-api' do
+service 'nova-novncproxy' do
   service_name 'apache2'
 end
 service 'haproxy-nova' do
@@ -303,7 +243,6 @@ execute 'create nova databases' do
   notifies :run, 'execute[nova-manage db sync]', :immediately
   notifies :run, 'execute[update cell1]', :immediately
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
   notifies :restart, 'service[nova-scheduler]', :immediately
   notifies :restart, 'service[nova-conductor]', :immediately
   notifies :restart, 'service[nova-novncproxy]', :immediately
@@ -343,7 +282,7 @@ if anti_affinity['enabled']
   available_filters.push(anti_affinity['filterPath'])
   enabled_filters.push(anti_affinity['name'])
 
-  cookbook_file '/usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+  cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
     source 'nova/anti_affinity_availability_zone_filter.py'
     mode '0644'
     notifies :run, 'execute[compile az anti-affinity filter]', :immediately
@@ -352,7 +291,7 @@ if anti_affinity['enabled']
 
   execute 'compile az anti-affinity filter' do
     action :nothing
-    command 'pycompile /usr/lib/python2.7/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+    command 'pycompile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
   end
 end
 
@@ -377,7 +316,6 @@ template '/etc/nova/nova.conf' do
 
   notifies :run, 'execute[update cell1]', :immediately
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-consoleauth]', :immediately
   notifies :restart, 'service[nova-scheduler]', :immediately
   notifies :restart, 'service[nova-conductor]', :immediately
   notifies :restart, 'service[nova-novncproxy]', :immediately
@@ -395,37 +333,10 @@ end
 #
 # configure nova ends
 
-# configure placement-api starts
-placement_processes = if !node['bcpc']['placement']['workers'].nil?
-                        node['bcpc']['placement']['workers']
-                      else
-                        node['bcpc']['openstack']['services']['workers']
-                      end
-
-template '/etc/apache2/sites-available/nova-placement-api.conf' do
-  source 'nova/nova-placement-api.conf.erb'
-  mode '0640'
-  owner 'root'
-  group 'nova'
-
-  variables(
-    processes: placement_processes
-  )
-  notifies :run, 'execute[enable placement-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
-end
-# configure placement-api ends
-
-execute 'enable placement-api' do
-  command 'a2ensite nova-placement-api'
-  not_if 'a2query -s nova-placement-api'
-end
-
 cookbook_file '/etc/nova/api-paste.ini' do
   source 'nova/api-paste.ini'
   mode '0640'
   notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[placement-api]', :immediately
 end
 
 execute 'wait for nova to come online' do
