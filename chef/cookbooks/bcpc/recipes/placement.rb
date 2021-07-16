@@ -126,7 +126,7 @@ begin
           --region #{region} #{type} #{uri} '#{url}'
       DOC
 
-      not_if { node.run_state['os_endpoints'][type].include? uri rescue false }
+      not_if { node.run_state['os_endpoints'].fetch(type, []).include? uri }
     end
   end
 end
