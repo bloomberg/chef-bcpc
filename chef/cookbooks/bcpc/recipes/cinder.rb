@@ -127,7 +127,7 @@ begin
             --region #{region} #{type} #{uri} '#{url}'
         DOC
 
-        not_if { node.run_state['os_endpoints'][type].include? uri rescue false }
+        not_if { node.run_state['os_endpoints'].fetch(type, []).include? uri }
       end
     end
   end
@@ -393,7 +393,8 @@ cinder_config.backends.each do |backend|
       openstack volume type set #{backend_name} \
         --property volume_backend_name=#{backend_name}
     DOC
-    not_if { node.run_state['os_vol_type_props'][backend_name]['volume_backend_name'] == backend_name rescue false }
+
+    not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
   end
 end
 
