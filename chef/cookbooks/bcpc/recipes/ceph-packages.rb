@@ -26,8 +26,8 @@ package %w(
   ceph
 )
 
+# 'workaround broken ceph-base packaging in the Ussuri UCA'
 # https://bugs.launchpad.net/ubuntu/+source/ceph/+bug/1892448
-execute 'workaround broken ceph-base packaging in the Ussuri UCA' do
-  command 'apt-get -o Dpkg::Options::="--force-overwrite" install -y ceph-deploy'
-  not_if 'dpkg -l | grep "^ii  ceph-deploy"'
+package 'ceph-deploy' do
+  options '-o Dpkg::Options::="--force-overwrite"'
 end
