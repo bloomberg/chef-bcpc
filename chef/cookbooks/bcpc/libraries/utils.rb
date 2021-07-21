@@ -354,3 +354,28 @@ def cidr_to_reverse_zones(cidr)
 
   zones
 end
+
+def openstack_endpoints
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack endpoint list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    endpoint_list = JSON.parse(os_command_out.stdout)
+
+    # build a host of service_type => list of interfaces present
+    groups = endpoint_list.group_by { |e| e['Service Type'] }
+    endpoints = groups.map { |k, v| [k, v.map { |e| e['Interface'] }] }.to_h
+
+    endpoints
+end
+
+def openstack_services
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = 'openstack service list --format json'
+    os_command_out = shell_out(os_command, env: os_adminrc)
+    service_list = JSON.parse(os_command_out.stdout)
+
+    # build a hash of service_type => list of uris
+    services = service_list.map { |s| s['Type'] }
+
+    services
+end
