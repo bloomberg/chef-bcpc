@@ -2,18 +2,12 @@
 # go to: https://docs.openstack.org/placement/stein/configuration/config.html
 #
 [DEFAULT]
-debug = false
-ssl_only = false
-# TODO: @tstachecki: only for uWSGI?
-#key = /etc/placement/ssl-bcpc.key
-#cert = /etc/placement/ssl-bcpc.pem
+debug = <%= node['bcpc']['placement']['debug'] %>
 state_path = /var/lib/placement
 
-transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
-
-osapi_compute_link_prefix = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:8778" %>
-osapi_compute_listen = <%= node['service_ip'] %>
-osapi_compute_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
+<% if not node['bcpc']['nova']['default_log_levels'].nil? %>
+default_log_levels = "<%= node['bcpc']['nova']['default_log_levels'] %>"
+<% end %>
 
 [api]
 auth_strategy = keystone
@@ -39,13 +33,3 @@ policy_dirs = policy.d
 
 [oslo_concurrency]
 lock_path = /var/lib/placement/tmp
-
-[oslo_messaging_notifications]
-# TODO: @tstachecki: placement?
-driver = <%= node['bcpc']['nova']['notifications']['driver'] %>
-topics = <%= node['bcpc']['nova']['notifications']['topics'] %>
-
-[cache]
-enabled = true
-backend = oslo_cache.memcache_pool
-memcache_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
