@@ -12,6 +12,7 @@ osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] 
 admin socket mode = 0775
 
 [mon]
+auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
 mon_cpu_threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
 

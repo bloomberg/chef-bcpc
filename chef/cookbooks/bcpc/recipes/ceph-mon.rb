@@ -184,3 +184,8 @@ ceph_racks.each do |rack|
     not_if "ceph osd tree | grep #{rack}"
   end
 end
+
+# clusters do not respect ceph.conf changes at this time
+execute 'set auth_allow_insecure_global_id_reclaim for cluster' do
+  command "ceph config set mon auth_allow_insecure_global_id_reclaim #{node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim']}"
+end
