@@ -148,6 +148,19 @@ package 'calico-control' do
   notifies :restart, 'service[neutron-server]', :delayed
 end
 
+# install patched etcdv3.py for networking-calico
+# https://github.com/projectcalico/networking-calico/pull/58
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
+  source 'calico/etcdv3.py'
+  notifies :run, 'execute[pycompile-networking-calico]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
+end
+
+execute 'pycompile-networking-calico' do
+  action :nothing
+  command 'pycompile -p networking-calico'
+end
+
 service 'neutron-server'
 
 service 'haproxy-neutron' do
