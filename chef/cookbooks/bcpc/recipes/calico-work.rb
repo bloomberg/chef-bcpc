@@ -57,6 +57,13 @@ cookbook_file '/usr/lib/python3/dist-packages/neutron/agent/linux/dhcp.py' do
   notifies :restart, 'service[calico-dhcp-agent]', :immediately
 end
 
+# install patched etcdv3.py for networking-calico
+# https://github.com/projectcalico/networking-calico/pull/58
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
+  source 'calico/etcdv3.py'
+  notifies :restart, 'service[calico-dhcp-agent]', :immediately
+end
+
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
   mode '644'
