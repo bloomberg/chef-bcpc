@@ -148,6 +148,31 @@ package 'calico-control' do
   notifies :restart, 'service[neutron-server]', :delayed
 end
 
+# install patched db_base_plugin_v2.py for neutron-lib
+# https://bugs.launchpad.net/neutron/+bug/1918145
+ruby_block 'get admin project uuid' do
+  block do
+    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+    os_command = "openstack project show -f value -c id #{node['bcpc']['openstack']['admin']['project']}"
+    node.run_state['admin_tenant_uuid'] = shell_out(os_command, env: os_adminrc).stdout.rstrip()
+  end
+  action :run
+end
+
+template '/usr/lib/python3/dist-packages/neutron/db/db_base_plugin_v2.py' do
+  source 'neutron/db_base_plugin_v2.py.erb'
+  variables(
+    admin_tenant_uuid: lazy { node.run_state['admin_tenant_uuid'] }
+  )
+  notifies :run, 'execute[pycompile-neutron]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
+end
+
+execute 'pycompile-neutron' do
+  action :nothing
+  command 'pycompile -p python3-neutron'
+end
+
 # install patched etcdv3.py for networking-calico
 # https://github.com/projectcalico/networking-calico/pull/58
 cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
