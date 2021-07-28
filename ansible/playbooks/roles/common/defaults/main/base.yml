@@ -167,8 +167,8 @@ assets_files:
     filename: etcd-v3.3.10-linux-amd64.tar.gz
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calicoctl/releases/download/v3.15.5/calicoctl-linux-amd64
-    checksum: sha256:f49e9e8d25108f7f22d5a51c756b2fe40cbe36347ad297e31a767376172f2845
+    url: https://github.com/projectcalico/calicoctl/releases/download/v3.19.1/calicoctl-linux-amd64
+    checksum: sha256:e50980e9ceb6e3d37751cba2d871d76264c702c205824ae53584c97e2ad726fc
     filename: calicoctl
 
   - name: consul
