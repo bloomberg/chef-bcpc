@@ -55,6 +55,7 @@ dhcp_domain = <%= node['bcpc']['cloud']['domain'] %>
 [api]
 auth_strategy = keystone
 
+local_metadata_per_cell = true
 <% if not node['bcpc']['nova']['vendordata']['name'].nil? %>
 vendordata_dynamic_targets = <%= node['bcpc']['nova']['vendordata']['name'] %>@https://<%= @node['bcpc']['cloud']['fqdn'] %>:<%= node['bcpc']['nova']['vendordata']['port'] %>
 vendordata_providers = DynamicJSON,StaticJSON
