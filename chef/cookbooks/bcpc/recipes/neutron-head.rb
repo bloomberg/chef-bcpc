@@ -164,26 +164,26 @@ template '/usr/lib/python3/dist-packages/neutron/db/db_base_plugin_v2.py' do
   variables(
     admin_tenant_uuid: lazy { node.run_state['admin_tenant_uuid'] }
   )
-  notifies :run, 'execute[pycompile-neutron]', :immediately
+  notifies :run, 'execute[py3compile-neutron]', :immediately
   notifies :restart, 'service[neutron-server]', :delayed
 end
 
-execute 'pycompile-neutron' do
+execute 'py3compile-neutron' do
   action :nothing
-  command 'pycompile -p python3-neutron'
+  command 'py3compile -p python3-neutron'
 end
 
 # install patched etcdv3.py for networking-calico
 # https://github.com/projectcalico/networking-calico/pull/58
 cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
   source 'calico/etcdv3.py'
-  notifies :run, 'execute[pycompile-networking-calico]', :immediately
+  notifies :run, 'execute[py3compile-networking-calico]', :immediately
   notifies :restart, 'service[neutron-server]', :delayed
 end
 
-execute 'pycompile-networking-calico' do
+execute 'py3compile-networking-calico' do
   action :nothing
-  command 'pycompile -p networking-calico'
+  command 'py3compile -p networking-calico'
 end
 
 service 'neutron-server'

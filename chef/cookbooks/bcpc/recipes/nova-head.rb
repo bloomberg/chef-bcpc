@@ -278,7 +278,7 @@ if anti_affinity['enabled']
 
   execute 'compile az anti-affinity filter' do
     action :nothing
-    command 'pycompile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
   end
 end
 
