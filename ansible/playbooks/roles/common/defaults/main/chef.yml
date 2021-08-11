@@ -138,6 +138,7 @@ chef_roles:
     chef_type: role
     run_list:
       - role[node]
+      - recipe[bcpc::memcached]
       - recipe[bcpc::calico-work]
       - recipe[bcpc::nova-compute]
 
