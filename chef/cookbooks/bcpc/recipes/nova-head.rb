@@ -137,12 +137,10 @@ end
 # nova package installation and service definition
 package %w(
   ceph-common
-  python-novnc
   nova-api
   nova-conductor
   nova-novncproxy
   nova-scheduler
-  novnc
 ) do
   options '--no-install-recommends'
 end

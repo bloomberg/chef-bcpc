@@ -35,7 +35,6 @@ database = {
 package %w(
   ceph
   nova-compute
-  nova-compute-kvm
   cpu-checker
   libvirt-daemon-driver-storage-rbd
   nova-api-metadata
