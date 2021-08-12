@@ -13,7 +13,6 @@ default['bcpc']['placement']['debug'] = false
 # "workers" parameters in nova are set to number of CPUs
 # available by default. This provides an override.
 default['bcpc']['placement']['workers'] = nil
-default['bcpc']['placement']['workers'] = nil
 
 # Placement default log levels
 default['bcpc']['placement']['default_log_levels'] = nil

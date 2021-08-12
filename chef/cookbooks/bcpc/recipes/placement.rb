@@ -134,8 +134,9 @@ template '/etc/haproxy/haproxy.d/placement.cfg' do
   notifies :reload, 'service[haproxy-placement]', :immediately
 end
 
-# placement package installation and service defintiion
+# placement package installation and service definition
 package 'placement-api'
+
 service 'placement-api' do
   service_name 'apache2'
 end
@@ -149,7 +150,6 @@ directory '/etc/placement/policy.d' do
   action :create
 end
 
-# TODO: @tstachecki: differs from /etc/placement/placement.conf?
 placement_processes = if !node['bcpc']['placement']['workers'].nil?
                         node['bcpc']['placement']['workers']
                       else
