@@ -11,6 +11,10 @@ rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
 admin socket mode = 0775
 
+# settings to throttle OSD scrubbing visible to both mgrs and OSDs
+osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
+osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
+
 [mon]
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
@@ -42,8 +46,6 @@ osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
-osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
-osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 
 # bluestore tuning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
