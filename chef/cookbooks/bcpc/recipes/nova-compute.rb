@@ -242,7 +242,7 @@ template '/etc/nova/nova-compute.conf' do
 end
 
 # install patched vif.py for libvirt
-# https://bugs.launchpad.net/nova/+bug/1893263
+# https://bugs.launchpad.net/nova/+bug/1939604
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/vif.py' do
   source 'nova/vif.py'
   notifies :restart, 'service[nova-compute]', :immediately
