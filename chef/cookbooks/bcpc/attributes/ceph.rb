@@ -92,6 +92,11 @@ default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
 
 default['bcpc']['ceph']['bluestore_cache_size_ssd'] = 10737418240
 
+# https://tracker.ceph.com/issues/50017
+# Some issues noted with multiple fsck/quick fix threads; we'll wait
+# around a bit longer if it improves odds that fsck doesn't shred OSDs.
+default['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] = 1
+
 # Set RBD default feature set to only include layering and
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent
 # instances from being able to access their root file system after a crash.

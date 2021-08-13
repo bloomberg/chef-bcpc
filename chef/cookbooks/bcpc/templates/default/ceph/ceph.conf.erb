@@ -50,6 +50,7 @@ osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
 # bluestore tuning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
 bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
+bluestore fsck quick fix threads = <%= node['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] %>
 
 <% @rbd_users.each do |user| %>
 <%= "[client.#{user}]" %>
