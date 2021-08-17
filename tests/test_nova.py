@@ -17,8 +17,6 @@ import pytest
 
 @pytest.mark.parametrize("name", [
     pytest.param("nova-api", marks=pytest.mark.headnodes),
-    pytest.param("nova-scheduler", marks=pytest.mark.headnodes),
-    pytest.param("nova-consoleauth", marks=pytest.mark.headnodes),
     pytest.param("nova-conductor", marks=pytest.mark.headnodes),
     pytest.param("nova-novncproxy", marks=pytest.mark.headnodes),
     pytest.param("nova-scheduler", marks=pytest.mark.headnodes),
@@ -38,8 +36,6 @@ def test_services(host, name):
 @pytest.mark.stubnodes
 @pytest.mark.parametrize("name", [
     ("nova-api"),
-    ("nova-scheduler"),
-    ("nova-consoleauth"),
     ("nova-conductor"),
     ("nova-novncproxy"),
     ("nova-scheduler"),
