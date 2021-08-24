@@ -2,7 +2,7 @@
 # mysql
 ###############################################################################
 
-# fqdn of mysql server
+# fqdn of MySQL server
 default['bcpc']['mysql']['host'] = 'primary.mysql.service.consul'
 
 # port on which to accept incoming client connections

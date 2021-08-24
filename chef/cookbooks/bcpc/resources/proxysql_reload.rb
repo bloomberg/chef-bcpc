@@ -51,7 +51,7 @@ action :run do
           -h #{new_resource.host} \
           -P #{new_resource.admin_port} < /tmp/proxysql-reload-config.sql"
     # Need to retry since sometimes this resource is executed immediately after
-    # proxysql is restarted but not yet available to receive connections
+    # ProxySQL is restarted but not yet available to receive connections
     retries 8
     notifies :create, 'template[/tmp/proxysql-reload-config.sql]', :before
     notifies :delete, 'file[/tmp/proxysql-reload-config.sql]', :immediately
