@@ -36,3 +36,12 @@ execute 'create ceph mgr daemon' do
   command "ceph-deploy mgr create #{node['hostname']}"
   creates "/var/lib/ceph/mgr/ceph-#{node['hostname']}/done"
 end
+
+execute 'configure progress module' do
+  command "ceph progress #{node['bcpc']['ceph']['module']['progress']['enabled'] ? 'on' : 'off'}"
+  not_if "ceph config get mgr mgr/progress/enabled | grep -w #{node['bcpc']['ceph']['module']['progress']['enabled']}"
+
+  # Guard to avoid racing for module configuration prior before mgrs are fully up
+  retries 6
+  retry_delay 10
+end

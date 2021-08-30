@@ -106,3 +106,9 @@ default['bcpc']['ceph']['rbd_default_features'] = 33
 default['bcpc']['ceph']['mgr']['enabled'] = true
 default['bcpc']['ceph']['mon']['enabled'] = true
 default['bcpc']['ceph']['osd']['enabled'] = true
+
+# ceph mgr module configuration
+
+# https://tracker.ceph.com/issues/50778
+# Mons may become unstable when the progress module is enabled.
+default['bcpc']['ceph']['module']['progress']['enabled'] = false
