@@ -106,6 +106,3 @@ default['bcpc']['ceph']['rbd_default_features'] = 33
 default['bcpc']['ceph']['mgr']['enabled'] = true
 default['bcpc']['ceph']['mon']['enabled'] = true
 default['bcpc']['ceph']['osd']['enabled'] = true
-
-# ceph mgr module configuration
-default['bcpc']['ceph']['module']['progress']['enabled'] = false
