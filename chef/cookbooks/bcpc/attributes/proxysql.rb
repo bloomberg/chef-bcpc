@@ -127,3 +127,13 @@ default['bcpc']['proxysql']['mysql_users']['max_connections'] = 32768
 # An array of rules, each containing a key=value pair, defining the query rules
 # ProxySQL will be configured with.
 default['bcpc']['proxysql']['query_rules'] = nil
+
+# Scheduler
+
+# Whether or not the query digest check is active (0 = false, 1 = true)
+default['bcpc']['proxysql']['scheduler']['query_digest_check']['active'] = 1
+# How often the query digest check should be run (milliseconds)
+default['bcpc']['proxysql']['scheduler']['query_digest_check']['interval'] = 3600000
+# The percentage of server memory allowed to be used by the query digest table
+# before it is reset
+default['bcpc']['proxysql']['scheduler']['query_digest_check']['threshold'] = 10

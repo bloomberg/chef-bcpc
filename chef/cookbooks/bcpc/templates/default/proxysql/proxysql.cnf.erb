@@ -445,3 +445,21 @@ mysql_query_rules =
   <% end %>
 <% end %>
 )
+
+###
+### Scheduler
+###
+
+# See https://proxysql.com/documentation/scheduler/ for more information
+
+scheduler =
+(
+  {
+    id=1
+    active=<%= node['bcpc']['proxysql']['scheduler']['query_digest_check']['active'] %>
+    interval_ms=<%= node['bcpc']['proxysql']['scheduler']['query_digest_check']['interval'] %>
+    filename="<%= node['bcpc']['proxysql']['datadir'] %>/files/check-query-digest.sh"
+    arg1="<%= node['bcpc']['proxysql']['scheduler']['query_digest_check']['threshold'] %>"
+    comment="Periodically check the size of the query digest table and reset it if it has grown too large"
+  }
+)

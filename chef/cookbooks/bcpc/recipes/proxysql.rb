@@ -113,6 +113,11 @@ end
 # Declare the service resource
 service 'proxysql'
 
+# Install misc. packages used by helper scripts (free, awk, bc, date)
+package 'misc' do
+  package_name %w(procps bc coreutils gawk)
+end
+
 #########################
 # psql_monitor creation #
 #########################
@@ -176,6 +181,13 @@ template 'log crash script' do
   path "#{node['bcpc']['proxysql']['datadir']}/files/log-crash.sh"
   mode '755'
   source 'proxysql/log-crash.sh.erb'
+end
+
+# Install the check query digest script
+cookbook_file 'check-query-digest' do
+  path "#{node['bcpc']['proxysql']['datadir']}/files/check-query-digest.sh"
+  mode '755'
+  source 'proxysql/check-query-digest.sh'
 end
 
 ###########################
