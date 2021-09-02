@@ -148,22 +148,10 @@ package 'calico-control' do
   notifies :restart, 'service[neutron-server]', :delayed
 end
 
-# install patched db_base_plugin_v2.py for neutron-lib
+# install patches for both neutron and neutron-lib
 # https://bugs.launchpad.net/neutron/+bug/1918145
-ruby_block 'get admin project uuid' do
-  block do
-    Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
-    os_command = "openstack project show -f value -c id #{node['bcpc']['openstack']['admin']['project']}"
-    node.run_state['admin_tenant_uuid'] = shell_out(os_command, env: os_adminrc).stdout.rstrip()
-  end
-  action :run
-end
-
-template '/usr/lib/python3/dist-packages/neutron/db/db_base_plugin_v2.py' do
-  source 'neutron/db_base_plugin_v2.py.erb'
-  variables(
-    admin_tenant_uuid: lazy { node.run_state['admin_tenant_uuid'] }
-  )
+cookbook_file '/usr/lib/python3/dist-packages/neutron/db/external_net_db.py' do
+  source 'neutron/external_net_db.py'
   notifies :run, 'execute[py3compile-neutron]', :immediately
   notifies :restart, 'service[neutron-server]', :delayed
 end
@@ -171,6 +159,17 @@ end
 execute 'py3compile-neutron' do
   action :nothing
   command 'py3compile -p python3-neutron'
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/neutron_lib/db/model_query.py' do
+  source 'neutron/model_query.py'
+  notifies :run, 'execute[py3compile-neutron-lib]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
+end
+
+execute 'py3compile-neutron-lib' do
+  action :nothing
+  command 'py3compile -p python3-neutron-lib'
 end
 
 # patch an outstanding python3 issue in etcd3gw
