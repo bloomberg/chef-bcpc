@@ -47,6 +47,7 @@ default['bcpc']['proxysql']['max_connections'] = 32768
 default['bcpc']['proxysql']['have_ssl'] = false
 default['bcpc']['proxysql']['use_tcp_keepalive'] = false
 default['bcpc']['proxysql']['wait_timeout'] = 28800000
+default['bcpc']['proxysql']['server_version'] = '5.7.26'
 default['bcpc']['proxysql']['server_capabilities'] = 569899
 default['bcpc']['proxysql']['enable_client_deprecate_eof'] = false
 default['bcpc']['proxysql']['enable_server_deprecate_eof'] = false
@@ -75,16 +76,16 @@ default['bcpc']['proxysql']['galera']['max_transactions_behind'] = 100
 
 # Backend server configuration
 
-# The weight of the mysql backend running on the same physical server as
+# The weight of the MySQL backend running on the same physical server as
 # ProxySQL. The higher the value, the more likely ProxySQL will choose it for
 # incoming queries. In order to avoid additional network latency we want to
 # choose the local backend.
 default['bcpc']['proxysql']['mysql_servers']['local_weight'] = 1024
 
-# The weight of mysql backends running on remote servers. See above.
+# The weight of MySQL backends running on remote servers. See above.
 default['bcpc']['proxysql']['mysql_servers']['remote_weight'] = 1
 
-# Whether to enable or disable compression on ProxySQL-mysql connections
+# Whether to enable or disable compression on ProxySQL-MySQL connections
 default['bcpc']['proxysql']['mysql_servers']['compression'] = 0
 
 # The maximum number of connections ProxySQL will establish to each backend
@@ -94,7 +95,7 @@ default['bcpc']['proxysql']['mysql_servers']['max_connections'] = node['bcpc']['
 # threshold it will be shunned until it catches up.
 default['bcpc']['proxysql']['mysql_servers']['max_replication_lag'] = 0
 
-# Whether or not to enable SSL on ProxySQL-mysql connections
+# Whether or not to enable SSL on ProxySQL-MySQL connections
 default['bcpc']['proxysql']['mysql_servers']['use_ssl'] = 0
 
 # The maximum ping time of a backend before it is excluded from the connection
@@ -106,7 +107,7 @@ default['bcpc']['proxysql']['mysql_servers']['max_latency_ms'] = 0
 # The following configuration options are used for all users added to
 # mysql_users.
 
-# Whether or not the client is required to use SSL when connecting to proxysql
+# Whether or not the client is required to use SSL when connecting to ProxySQL
 # as the given user
 default['bcpc']['proxysql']['mysql_users']['use_ssl'] = 0
 

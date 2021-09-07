@@ -176,7 +176,9 @@ mysql_variables=
     # the session.
     wait_timeout=<%= node['bcpc']['proxysql']['wait_timeout'] %>
 
-    ############################ Backend Related ##############################
+    # The server version with which the proxy will respond to clients. Note
+    # that this is returned regardless of the versions of the backend servers.
+    server_version="<%= node['bcpc']['proxysql']['server_version'] %>"
 
     # The bitmask of MySQL capabilities (encoded as bits) with which the proxy
     # will respond to clients connecting to it.
@@ -192,6 +194,8 @@ mysql_variables=
     # clients support this flag it is best to leave both this and the above
     # option disabled.
     enable_server_deprecate_eof=<%= node['bcpc']['proxysql']['enable_server_deprecate_eof'] %>
+
+    ############################ Backend Related ##############################
 
     # Whether or not to allow multiple frontend connections to re-use the same
     # database backend connection.

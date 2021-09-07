@@ -22,11 +22,11 @@ default['bcpc']['consul']['config']['addresses']['dns'] = node['bcpc']['cloud'][
 default['bcpc']['consul']['config']['ports']['dns'] = 8600
 default['bcpc']['consul']['config']['recursors'] = [node['bcpc']['cloud']['vip']]
 
-# Load the mysql and proxysql attribute files in order to populate both
+# Load the MySQL and ProxySQL attribute files in order to populate both
 # service's port attributes. Chef attribute files are loaded alphabetically,
 # thus the need for an explicit load.
 # NOTE: In order to more easily switch between a ProxySQL-enabled installation
-# and one where mysql is used directly, the ProxySQL service is defined in
+# and one where MySQL is used directly, the ProxySQL service is defined in
 # consul regardless of whether or not it is enabled. The ProxySQL consul service
 # will only be available when ProxySQL is enabled.
 node.from_file(run_context.resolve_attribute('bcpc', 'mysql'))

@@ -6,7 +6,7 @@ root_dir: "{{ inventory_dir | dirname }}"
 virtual_dir: "{{ root_dir }}/virtual"
 virtual_ssh_dir: "{{ virtual_dir }}/files/ssh"
 ansible_ssh_private_key_file: "{{ virtual_ssh_dir }}/id_ed25519"
-ansible_ssh_user: operations
+ansible_user: operations
 operator_authorized_key: >
   {{ lookup('file', ansible_ssh_private_key_file + '.pub') }}
 ansible_ssh_common_args: >

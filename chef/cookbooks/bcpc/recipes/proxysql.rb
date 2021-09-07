@@ -15,6 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Remove old vars-user files
+# TODO: Remove me once enough time has passed since this file has been removed.
+file 'vars-user' do
+  path "#{node['bcpc']['proxysql']['datadir']}/files/vars-user"
+  action :delete
+end
+
 # Remove old Percona-based ProxySQL if service is not enabled
 # TODO: Remove me once enough time has passed since the default package has been
 # changed to ProxySQL 2.2.
@@ -43,7 +50,7 @@ config = data_bag_item(region, 'config')
 mysqladmin = mysqladmin()
 psqladmin = psqladmin()
 
-# hash defining the mysql monitor user used by ProxySQL
+# hash defining the MySQL monitor user used by ProxySQL
 #
 proxysqlmonitor = {
   'username' => config['proxysql']['creds']['db']['username'],
@@ -138,11 +145,11 @@ template '/tmp/proxysql-create-monitor-user.sql' do
   notifies :run, 'execute[create psql_monitor user]', :immediately
 end
 
-# Create/update the psql_monitor user on the mysql cluster if needed.
+# Create/update the psql_monitor user on the MySQL cluster if needed.
 # NOTE: The created user has 'USAGE' permissions to all databases, the same as
 # if we created it using the Percona admin script. Password updates are
 # propagated and username changes result in new users. Old users are not
-# deleted. May connect via % and localhost, like all other mysql users.
+# deleted. May connect via % and localhost, like all other MySQL users.
 execute 'create psql_monitor user' do
   action :nothing
   environment('MYSQL_PWD' => mysqladmin['password'])
@@ -175,7 +182,7 @@ end
 # Logrotate Configuration #
 ###########################
 
-# Create the mysql CLI configuration file containing ProxySQL admin
+# Create the MySQL CLI configuration file containing ProxySQL admin
 # credentials. This file is used by the logrotate script, but can also be used
 # to quickly connect to the local ProxySQL server.
 template 'mysql cnf for proxysql admin' do
@@ -212,30 +219,12 @@ template 'variables requiring restart' do
   notifies :run, 'ruby_block[set restart after config flag]', :immediately
 end
 
-# Create a template containing the values of variables that, when changed,
-# require users not defined in ProxySQL's configuration file to be updated.
-template 'user variables' do
-  path "#{node['bcpc']['proxysql']['datadir']}/files/vars-user"
-  source 'proxysql/vars-user.erb'
-  notifies :run, 'ruby_block[set user update flag]', :immediately
-end
-
-# Set a flag indicating proxysql needs to be restarted after the configuration
+# Set a flag indicating ProxySQL needs to be restarted after the configuration
 # is written to the database.
 ruby_block 'set restart after config flag' do
   action :nothing
   block do
     node.run_state['proxysql_restart_after_config'] = true
-  end
-end
-
-# Set a flag indicating ProxySQL users not defined in the ProxySQL config need
-# to be updated.
-node.run_state['proxysql_update_users'] = false
-ruby_block 'set user update flag' do
-  action :nothing
-  block do
-    node.run_state['proxysql_update_users'] = true
   end
 end
 

@@ -1,3 +1,6 @@
+-- ProxySQL does not support ON DUPLICATE KEY UPDATE, thus we delete and insert
+-- the specified user, just as Percona's admin script does.
+
 DELETE FROM mysql_users WHERE username='<%= @username %>';
 
 INSERT INTO mysql_users (\
