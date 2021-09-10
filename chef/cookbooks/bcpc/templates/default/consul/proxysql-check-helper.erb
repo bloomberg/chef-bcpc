@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
+# Check connectivity to ProxySQL's admin interface
 mysqladmin status \
     --connect-timeout 10 \
     -u <%= @config['proxysql']['creds']['stats']['username'] %> \
@@ -21,3 +24,31 @@ mysqladmin status \
     -h localhost \
     --protocol=TCP \
     -P <%= node['bcpc']['proxysql']['admin_port'] %> 2> /dev/null
+
+set +e
+
+# Check connectivity via ProxySQL to a backend. Ideally this check will only
+# fail when all MySQL backends have encountered an issue, and thus switching
+# the primary will serve no purpose. However, as described in
+# https://github.com/sysown/proxysql/issues/3618, ProxySQL has at least one
+# bug that would require such a move.
+#
+# This check is forgiving because in a vast majority of cases ProxySQL will
+# handle backend failures just fine. It is designed to catch scenarios like
+# the one described in the bug report linked to above.
+MAX_ATTEMPTS=3
+ATTEMPTS=0
+while ! mysql -nNE \
+      --connect-timeout 10 \
+      -u root \
+      -p<%= @config['mysql']['users']['root']['password'] %> \
+      -h localhost \
+      --protocol=TCP \
+      -P <%= node['bcpc']['proxysql']['port'] %> \
+      -e "SELECT VERSION();" 2> /dev/null ; do
+    ((ATTEMPTS=ATTEMPTS+1))
+    if [ ${ATTEMPTS} -ge ${MAX_ATTEMPTS} ]; then
+        exit 1
+    fi
+    sleep 1
+done

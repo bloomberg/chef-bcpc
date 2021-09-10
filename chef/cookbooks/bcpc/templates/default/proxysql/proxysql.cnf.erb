@@ -203,21 +203,32 @@ mysql_variables=
 
     # The delay (in milliseconds) before trying to reconnect after a failed
     # attempt to a backend MySQL server.
-    #connect_retries_delay=1
+    # NOTE: When changing, keep in mind values of other connect_* variables, as
+    # well as the values of shun_*.
+    connect_retries_delay=<%= node['bcpc']['proxysql']['connect_retries_delay'] %>
 
     # The number of times for which a reconnect should be attempted in case of
     # an error, timeout, or any other event that led to an unsuccessful
     # connection to a backend MySQL server.
-    #connect_retries_on_failure=10
+    connect_retries_on_failure=<%= node['bcpc']['proxysql']['connect_retries_on_failure'] %>
 
     # The timeout (in milliseconds) for a single attempt at connecting to a
     # backend server from the proxy.
-    #connect_timeout_server=1000
+    connect_timeout_server=<%= node['bcpc']['proxysql']['connect_timeout_server'] %>
 
     # The timeout for connecting to a backend server from the proxy. When this
     # timeout is reached, an error is returned to the client with code 9001 and
     # the message “Max connect timeout reached while reaching hostgroup…”.
-    #connect_timeout_server_max=10000
+    connect_timeout_server_max=<%= node['bcpc']['proxysql']['connect_timeout_server_max'] %>
+
+    # The maximum number of connection errors per second to a backend before
+    # it is temporarily SHUNNED.
+    shun_on_failures=<%= node['bcpc']['proxysql']['shun_on_failures'] %>
+
+    # The minimum amount of time ProxySQL will wait before attempting to place
+    # online a backend that was automatically SHUNNED.
+    # NOTE: Must be less than or equal to connect_timeout_server_max/1000.
+    shun_recovery_time_sec=<%= node['bcpc']['proxysql']['shun_recovery_time_sec'] %>
 
     # Percentage of open idle connections allowed from the total maximum number
     # of connections for a specific server in a hostgroup.
@@ -312,7 +323,7 @@ mysql_variables=
 
     # The duration for which the events for the checks made by the Monitor
     # module are kept (milliseconds).
-    #monitor_history=600000
+    monitor_history=<%= node['bcpc']['proxysql']['monitor_history'] %>
 
     ########################### Query Cache Related ###########################
 

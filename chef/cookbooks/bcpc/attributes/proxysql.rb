@@ -52,11 +52,18 @@ default['bcpc']['proxysql']['server_capabilities'] = 569899
 default['bcpc']['proxysql']['enable_client_deprecate_eof'] = false
 default['bcpc']['proxysql']['enable_server_deprecate_eof'] = false
 default['bcpc']['proxysql']['multiplexing'] = true
+default['bcpc']['proxysql']['connect_timeout_server'] = 1000
+default['bcpc']['proxysql']['connect_timeout_server_max'] = 10000
+default['bcpc']['proxysql']['connect_retries_on_failure'] = 10
+default['bcpc']['proxysql']['connect_retries_delay'] = 10
+default['bcpc']['proxysql']['shun_on_failures'] = 5
+default['bcpc']['proxysql']['shun_recovery_time_sec'] = 10
 default['bcpc']['proxysql']['free_connections_pct'] = 10
 default['bcpc']['proxysql']['long_query_time'] = 10000
 default['bcpc']['proxysql']['default_query_timeout'] = 86400000
 default['bcpc']['proxysql']['max_transaction_time'] = 14400000
 default['bcpc']['proxysql']['query_retries_on_failure'] = 1
+default['bcpc']['proxysql']['monitor_history'] = 3600000
 
 # Galera Hostgroup Variables
 
@@ -91,8 +98,9 @@ default['bcpc']['proxysql']['mysql_servers']['compression'] = 0
 # The maximum number of connections ProxySQL will establish to each backend
 default['bcpc']['proxysql']['mysql_servers']['max_connections'] = node['bcpc']['mysql']['max_connections']
 
-# If greater than 0 and a backend's replication lag surpasses the given
-# threshold it will be shunned until it catches up.
+# If greater than 0, and a backend's replication lag surpasses the given
+# threshold, it will be shunned until it catches up. This is set to 0
+# (disabled) in favor of max_transactions_behind.
 default['bcpc']['proxysql']['mysql_servers']['max_replication_lag'] = 0
 
 # Whether or not to enable SSL on ProxySQL-MySQL connections
@@ -117,7 +125,7 @@ default['bcpc']['proxysql']['mysql_users']['transaction_persistent'] = 0
 
 # If set queries bypass the query processing layer and are sent directly to the
 # backend server
-default['bcpc']['proxysql']['mysql_users']['fast_forward'] = 1
+default['bcpc']['proxysql']['mysql_users']['fast_forward'] = 0
 
 # The maximum number of allowable frontend connections for a specific user
 default['bcpc']['proxysql']['mysql_users']['max_connections'] = 32768

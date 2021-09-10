@@ -32,10 +32,30 @@ package 'remove proxysql2' do
 end
 
 # Remove ProxySQL if it is not enabled
+# NOTE: As of 2.2.2 uninstalling ProxySQL does not actually stop the ProxySQL
+# service, hence the delayed call to 'kill proxysql'.
+# NOTE: /etc/proxysql-admin.cnf is deleted manually but the data dir is kept
+# in order to ease recovery, for future log analysis, etc.
 package 'remove proxysql' do
   package_name 'proxysql'
   action :purge
   not_if { node['bcpc']['proxysql']['enabled'] }
+  notifies :run, 'execute[kill proxysql]', :delayed
+  notifies :delete, 'file[proxysql-admin]', :delayed
+end
+
+# Kill ProxySQL iff ProxySQL was uninstalled. Its execution is delayed to the
+# end of the chef run, after all relevant services have been switched over to
+# MySQL.
+execute 'kill proxysql' do
+  command 'killall proxysql || true'
+  action :nothing
+end
+
+# Remove the ProxySQL admin file on package purge
+file 'proxysql-admin' do
+  path '/etc/proxysql-admin.cnf'
+  action :nothing
 end
 
 return unless node['bcpc']['proxysql']['enabled']
@@ -88,12 +108,32 @@ end
 
 # Install ProxySQL
 #
-# NOTE: When ProxySQL is first installed it is not automatically started.
-# In order to force ProxySQL to re-read its configuration file we need to
-# either delete its database or start the process using the 'initial' flag.
-# The latter can be done via the proxysql-initial.service systemd target.
-package 'proxysql' do
-  notifies :run, 'ruby_block[set proxysql fresh install]', :immediately
+# NOTE: When ProxySQL is first installed it is not automatically started. We
+# configure it, start it, after which ProxySQL writes its configuration
+# database.
+# NOTE: If ProxySQL is running and you want to force it to re-read its
+# configuration file, you need to either delete its database or start the
+# process using the 'initial' flag. The latter can be done via the
+# proxysql-initial.service systemd target.
+package 'install proxysql' do
+  package_name 'proxysql'
+  action :install
+  notifies :run, 'ruby_block[set proxysql fresh install]', :before
+  notifies :run, 'execute[backup existing proxysql data directory]', :before
+end
+
+# Upgrade ProxySQL.
+#
+# NOTE: We perform installation and upgrades separately in order to be able to
+# differentiate between fresh installs and upgrades.
+# NOTE: ProxySQL needs to be restarted in order for the new binary to be used.
+# NOTE: It is recommended to use a snapshot of a repository, otherwise ProxySQL
+# may unintentionally be upgraded.
+package 'upgrade proxysql' do
+  package_name 'proxysql'
+  action :upgrade
+  notifies :run, 'ruby_block[set restart after config flag]', :immediately
+  notifies :restart, 'service[proxysql conditional restart]', :immediately
 end
 
 # Set a flag indicating ProxySQL was freshly installed
@@ -104,14 +144,15 @@ ruby_block 'set proxysql fresh install' do
   end
 end
 
-# Delete the ProxySQL configuration DB
-execute 'delete default proxysql config db' do
-  command "rm -f #{node['bcpc']['proxysql']['default_datadir']}/proxysql.db"
-  only_if { node.run_state['proxysql_fresh_install'] }
+# Before ProxySQL is installed, move (and thus back up) the existing ProxySQL
+# data directory, if any.
+execute 'backup existing proxysql data directory' do
+  command "if [ -d \"#{node['bcpc']['proxysql']['default_datadir']}\" ] ; then \
+      mv #{node['bcpc']['proxysql']['default_datadir']}/ \
+        #{File.dirname(node['bcpc']['proxysql']['default_datadir'])}/proxysql-$(date +%s); \
+    fi"
+  action :nothing
 end
-
-# Declare the service resource
-service 'proxysql'
 
 # Install misc. packages used by helper scripts (free, awk, bc, date)
 package 'misc' do
