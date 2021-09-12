@@ -38,7 +38,7 @@ jobs:
       - name: installing linting tools
         run: |
           sudo apt-get install -y shellcheck
-          sudo pip install bashate flake8 ansible-lint
+          sudo pip install bashate flake8 ansible ansible-lint
           sudo gem install foodcritic cookstyle
           
       - name: run linters
