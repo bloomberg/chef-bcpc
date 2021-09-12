@@ -131,6 +131,11 @@ template "/etc/ceph/ceph.client.#{nova_compute_config.ceph_user}.keyring" do
 end
 
 # configure libvirt
+cookbook_file '/etc/default/libvirtd' do
+  source 'libvirt/libvirtd.default'
+  notifies :restart, 'service[libvirtd]', :delayed
+end
+
 template '/etc/libvirt/libvirtd.conf' do
   source 'libvirt/libvirtd.conf.erb'
   variables(
