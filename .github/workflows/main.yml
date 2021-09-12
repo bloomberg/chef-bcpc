@@ -39,7 +39,7 @@ jobs:
         run: |
           sudo apt-get install -y shellcheck
           sudo pip install bashate flake8 ansible-lint
-          gem install foodcritic cookstyle
+          sudo gem install foodcritic cookstyle
           
       - name: run linters
         run: |
