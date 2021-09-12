@@ -38,4 +38,14 @@ jobs:
       - name: installing linting tools
         run: |
           sudo apt-get install -y shellcheck
-          ls -la
+          sudo pip install bashate flake8 ansible-lint
+          gem install foodcritic cookstyle
+          
+      - name: run linters
+        run: |
+            find . -name "*.sh" -exec shellcheck {} \;
+            find . -name "*.sh" -exec bashate -e E006 {} \;
+            find . -name "*.py" -exec flake8 {} \;
+            find ansible -name "*.yml" -exec ansible-lint -x 503 {} \;
+            foodcritic chef/cookbooks --tags -FC004
+            cookstyle .
