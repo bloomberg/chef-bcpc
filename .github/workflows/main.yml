@@ -38,3 +38,4 @@ jobs:
       - name: installing linting tools
         run: |
           sudo apt-get install -y shellcheck
+          ls -la
