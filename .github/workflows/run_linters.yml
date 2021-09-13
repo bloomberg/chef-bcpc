@@ -1,0 +1,9 @@
+name: run_linters
+on: [push]
+jobs:
+  run-linters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: .github/scripts/install_linters.sh
+      - run: .github/scripts/run_linters.sh
