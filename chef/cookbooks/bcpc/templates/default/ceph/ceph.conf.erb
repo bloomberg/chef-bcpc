@@ -10,6 +10,7 @@ max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
 admin socket mode = 0775
+mon osd down out interval = <%= node['bcpc']['ceph']['mon_osd_down_out_interval'] %>
 
 # settings to throttle OSD scrubbing visible to both mgrs and OSDs
 osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
@@ -18,7 +19,7 @@ osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 [mon]
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
-mon_cpu_threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
+mon cpu threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
 
 [mgr]
 mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
