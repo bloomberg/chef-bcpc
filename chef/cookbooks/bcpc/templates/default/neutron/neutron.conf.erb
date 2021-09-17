@@ -68,6 +68,16 @@ password = <%= @config['nova']['creds']['os']['password'] %>
 [oslo_concurrency]
 lock_path = $state_path/lock
 
+<% if node['bcpc']['neutron']['notifications']['enabled'] %>
+[oslo_messaging_notifications]
+driver = messagingv2
+<% node['bcpc']['neutron']['notifications']['topics'].each do |t|  %>
+topics = <%= t %>
+<% end %>
+#retry = -1
+#transport_url = <DEFAULT's transport_url>
+<% end %>
+
 [quotas]
 <% node['bcpc']['neutron']['quota'].fetch('default',{}).each do |resource, limit| %>
 <%= "#{resource} = #{limit}" %>

@@ -45,3 +45,7 @@ default['bcpc']['neutron']['calico']['num_port_status_threads'] = nil
 default['bcpc']['neutron']['calico']['etcd_compaction_period_mins'] = nil
 default['bcpc']['neutron']['calico']['etcd_compaction_min_revisions'] = nil
 default['bcpc']['neutron']['calico']['project_name_cache_max'] = nil
+
+# notifications
+default['bcpc']['neutron']['notifications']['enabled'] = false
+default['bcpc']['neutron']['notifications']['topics'] = []
