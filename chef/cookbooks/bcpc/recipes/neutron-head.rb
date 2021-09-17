@@ -173,19 +173,6 @@ execute 'py3compile-neutron' do
   command 'py3compile -p python3-neutron'
 end
 
-# install patched etcdv3.py for networking-calico
-# https://github.com/projectcalico/networking-calico/pull/58
-cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
-  source 'calico/etcdv3.py'
-  notifies :run, 'execute[py3compile-networking-calico]', :immediately
-  notifies :restart, 'service[neutron-server]', :delayed
-end
-
-execute 'py3compile-networking-calico' do
-  action :nothing
-  command 'py3compile -p networking-calico'
-end
-
 # patch an outstanding python3 issue in etcd3gw
 # we do this here and not in bcpc::etcd3gw so we can notify neutron-server
 cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do

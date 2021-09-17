@@ -57,13 +57,6 @@ cookbook_file '/usr/lib/python3/dist-packages/neutron/agent/linux/dhcp.py' do
   notifies :restart, 'service[calico-dhcp-agent]', :delayed
 end
 
-# install patched etcdv3.py for networking-calico
-# https://github.com/projectcalico/networking-calico/pull/58
-cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/etcdv3.py' do
-  source 'calico/etcdv3.py'
-  notifies :restart, 'service[calico-dhcp-agent]', :delayed
-end
-
 # patch an outstanding python3 issue in etcd3gw
 # we do this here and not in bcpc::etcd3gw so we can notify calico-dhcp-agent
 cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do
