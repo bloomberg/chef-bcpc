@@ -53,6 +53,19 @@ bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options
 bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
 bluestore fsck quick fix threads = <%= node['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] %>
 
+# As of Octopus 15.2.12, the AVL block allocator can degrade performance
+# when OSDs have fragmentated blocks, especially so when high IOP flash media
+# backs bluestore.  Use bitmap allocators at the expense of memory consumption
+# to avoid degrading I/O performance in such cases.
+bluefs_allocator = bitmap
+bluestore_allocator = bitmap
+
+# Although 'bluefs buffered io' is default on (again) in Octopus 15.2.13,
+# it has a history of being flipped on/off.  It provides a large performance
+# advantage so long as the host has enough memory/does not swap; make sure
+# it stays on regardless of what upstream does.
+bluefs buffered io = true
+
 <% @rbd_users.each do |user| %>
 <%= "[client.#{user}]" %>
 rbd cache = true
