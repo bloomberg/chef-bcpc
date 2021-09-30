@@ -4,8 +4,13 @@
     prefix: ansible-consul.
   register: temp_directory
 
+- name: Install unzip
+  ansible.builtin.package:
+    name: unzip
+    state: present
+
 - name: unarchive consul
-  unarchive:
+  copy:
     src: "{{ assets_download_dir }}/{{ consul_filename }}"
     dest: "{{ temp_directory.path }}/"
     creates: "{{ temp_directory.path }}/consul"
