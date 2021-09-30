@@ -7,5 +7,5 @@
 - name: unarchive consul
   unarchive:
     src: "{{ assets_download_dir }}/{{ consul_filename }}"
-    dest: "{{ itemp_directory.path }}/"
+    dest: "{{ temp_directory.path }}/"
     creates: "{{ temp_directory.path }}/consul"
