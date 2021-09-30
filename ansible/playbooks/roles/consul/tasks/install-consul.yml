@@ -1,0 +1,11 @@
+- name: create temp directory
+  tempfile:
+    state: directory
+    prefix: ansible-consul.
+  register: temp_directory
+
+- name: unarchive consul
+  unarchive:
+    src: "{{ assets_download_dir }}/{{ consul_filename }}"
+    dest: "{{ itemp_directory.path }}/"
+    creates: "{{ temp_directory.path }}/consul"

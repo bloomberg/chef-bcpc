@@ -6,3 +6,5 @@
 - import_playbook: storageheadnodes.yml
 - import_playbook: worknodes.yml
 - import_playbook: storagenodes.yml
+- import_playbook: storagenodes.yml
+- import_playbook: consulnodes.yml

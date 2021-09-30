@@ -1,0 +1,3 @@
+- import_tasks: install-consul.yml
+  become: true
+  tags: [never,configure-consul]

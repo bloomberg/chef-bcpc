@@ -1,0 +1,8 @@
+###############################################################################
+# consul files
+###############################################################################
+
+consul_filename: consul_1.7.2_linux_amd64.zip
+consul_checksum: sha256:5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a756773e698
+
+executable: /usr/local/sbin/consul
