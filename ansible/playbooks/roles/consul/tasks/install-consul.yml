@@ -12,7 +12,7 @@
 
 - name: install consul
   copy:
-    src: "{{ itemp_directory.path }}/consul"
+    src: "{{ temp_directory.path }}/consul"
     dest: "{{ executable }}"
     mode: 0755
   notify:
