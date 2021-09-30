@@ -9,3 +9,11 @@
     src: "{{ assets_download_dir }}/{{ consul_filename }}"
     dest: "{{ temp_directory.path }}/"
     creates: "{{ temp_directory.path }}/consul"
+
+- name: install consul
+  copy:
+    src: "{{ install_temp.path }}/consul"
+    dest: "{{ executable }}"
+    mode: 0755
+  notify:
+    - restart consul

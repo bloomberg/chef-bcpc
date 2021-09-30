@@ -1,0 +1,5 @@
+- name: restart consul
+  import_tasks: restart_consul.yml
+
+- name: start consul
+  import_tasks: start_consul.yml
