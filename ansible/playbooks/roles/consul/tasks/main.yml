@@ -1,3 +1,7 @@
+- import_tasks: install-required-packages.yml
+  become: true
+  tags: [never,configure-consul]
+
 - import_tasks: install-consul.yml
   become: true
   tags: [never,configure-consul]
