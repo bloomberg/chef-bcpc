@@ -10,7 +10,7 @@
     state: present
 
 - name: unarchive consul
-  copy:
+  unarchive:
     src: "{{ assets_download_dir }}/{{ consul_filename }}"
     dest: "{{ temp_directory.path }}/"
     creates: "{{ temp_directory.path }}/consul"
