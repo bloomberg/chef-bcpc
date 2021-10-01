@@ -1,5 +1,5 @@
 - name: start consul
-  service:
+  ansible.builtin.service:
     name: consul
     state: started
   listen: 'start consul'

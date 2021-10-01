@@ -9,11 +9,22 @@
     src: "{{ assets_download_dir }}/{{ consul_filename }}"
     dest: "{{ temp_directory.path }}/"
     creates: "{{ temp_directory.path }}/consul"
+    mode: 0755
 
 - name: install consul
   copy:
     src: "{{ temp_directory.path }}/consul"
     dest: "{{ executable }}"
+    remote_src: yes
     mode: 0755
-  notify:
-    - restart consul
+  notify: restart consul
+
+- name: Daemon reload systemd in case the binaries upgraded
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Cleanup
+  file:
+    path: "{{ temp_directory.path }}"
+    state: "absent"
