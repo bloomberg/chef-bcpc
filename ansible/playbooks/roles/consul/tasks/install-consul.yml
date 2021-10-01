@@ -19,12 +19,23 @@
     mode: 0755
   notify: restart consul
 
-- name: Daemon reload systemd in case the binaries upgraded
+- name: create config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - {{ config_directory }}
+    - {{ config_data_directory }}
+
+- name: reload systemd
   systemd:
     daemon_reload: yes
   become: true
 
-- name: Cleanup
+- name: cleanup
   file:
     path: "{{ temp_directory.path }}"
     state: "absent"
