@@ -2,6 +2,7 @@
   tempfile:
     state: directory
     prefix: ansible-consul.
+    mode:
   register: temp_directory
 
 - name: unarchive consul
