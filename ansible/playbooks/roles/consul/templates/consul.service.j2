@@ -1,0 +1,17 @@
+[Unit]
+Description=consul agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart="{{ executable }}" agent $OPTIONS -config-dir="{{ config_directory }}"
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=consul
+
+[Install]
+WantedBy=multi-user.target

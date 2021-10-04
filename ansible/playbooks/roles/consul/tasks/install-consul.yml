@@ -27,13 +27,23 @@
     group: root
     mode: 0775
   loop:
-    - {{ config_directory }}
-    - {{ config_data_directory }}
+    - "{{ config_directory }}"
+    - "{{ config_data_directory }}"
+
+- name: create consul service file systemd
+  template:
+    src: consul.service.j2
+    dest: /etc/systemd/system/consul.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart consul
 
 - name: reload systemd
   systemd:
-    daemon_reload: yes
-  become: true
+    service: consul.service
+    enabled: true
+  notify: restart consul
 
 - name: cleanup
   file:
