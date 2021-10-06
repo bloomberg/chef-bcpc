@@ -29,6 +29,8 @@
   loop:
     - "{{ config_directory }}"
     - "{{ config_data_directory }}"
+    - "{{ bcpc_scripts_directory }}"
+    - "{{ bcpc_scripts_directory }}/bin"
 
 - name: create consul service file systemd
   template:
@@ -36,13 +38,14 @@
     dest: /etc/systemd/system/consul.service
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart consul
 
 - name: reload systemd
   systemd:
     service: consul.service
     enabled: true
+    daemon_reload: yes
   notify: restart consul
 
 - name: cleanup
