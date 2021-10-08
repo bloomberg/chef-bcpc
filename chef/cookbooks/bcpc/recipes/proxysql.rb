@@ -119,7 +119,7 @@ package 'install proxysql' do
   package_name 'proxysql'
   action :install
   notifies :run, 'ruby_block[set proxysql fresh install]', :before
-  notifies :run, 'execute[backup existing proxysql data directory]', :before
+  notifies :run, 'execute[move existing proxysql data directory]', :before
 end
 
 # Upgrade ProxySQL.
@@ -132,6 +132,7 @@ end
 package 'upgrade proxysql' do
   package_name 'proxysql'
   action :upgrade
+  notifies :run, 'execute[copy existing proxysql data directory]', :before
   notifies :run, 'ruby_block[set restart after config flag]', :immediately
   notifies :restart, 'service[proxysql conditional restart]', :immediately
 end
@@ -145,10 +146,22 @@ ruby_block 'set proxysql fresh install' do
 end
 
 # Before ProxySQL is installed, move (and thus back up) the existing ProxySQL
-# data directory, if any.
-execute 'backup existing proxysql data directory' do
+# data directory, if any. Note that the directory is moved to ensure a fresh
+# install takes place.
+execute 'move existing proxysql data directory' do
   command "if [ -d \"#{node['bcpc']['proxysql']['default_datadir']}\" ] ; then \
       mv #{node['bcpc']['proxysql']['default_datadir']}/ \
+        #{File.dirname(node['bcpc']['proxysql']['default_datadir'])}/proxysql-$(date +%s); \
+    fi"
+  action :nothing
+end
+
+# Before ProxySQL is upgraded, copy (and thus back up) the existing ProxySQL
+# data directory, if any. There may be incompatabilities between versions and
+# this allows for an easier rollback.
+execute 'copy existing proxysql data directory' do
+  command "if [ -d \"#{node['bcpc']['proxysql']['default_datadir']}\" ] ; then \
+      cp -rp #{node['bcpc']['proxysql']['default_datadir']}/ \
         #{File.dirname(node['bcpc']['proxysql']['default_datadir'])}/proxysql-$(date +%s); \
     fi"
   action :nothing
@@ -329,7 +342,7 @@ end
 # Cluster #
 ###########
 
-# If ProxySQL was just installed an not the primary server we want to first
+# If ProxySQL was just installed and not the primary server we want to first
 # sync its configuration with the existing ProxySQL cluster (of which the
 # primary is a part), and then add ourselves to the cluster. Otherwise we run
 # the risk of nodes already in the cluster updating themselves with the

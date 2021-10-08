@@ -35,6 +35,7 @@ default['bcpc']['proxysql']['restapi_port'] = 6070
 default['bcpc']['proxysql']['prometheus_memory_metrics_interval'] = 120
 default['bcpc']['proxysql']['web_enabled'] = true
 default['bcpc']['proxysql']['web_port'] = 6071
+default['bcpc']['proxysql']['web_verbosity'] = 0
 
 # Admin Cluster Variables
 default['bcpc']['proxysql']['cluster_check_interval_ms'] = 1000
@@ -59,7 +60,13 @@ default['bcpc']['proxysql']['connect_retries_delay'] = 10
 default['bcpc']['proxysql']['shun_on_failures'] = 5
 default['bcpc']['proxysql']['shun_recovery_time_sec'] = 10
 default['bcpc']['proxysql']['free_connections_pct'] = 10
+default['bcpc']['proxysql']['hostgroup_manager_verbose'] = 1
+default['bcpc']['proxysql']['verbose_query_error'] = false
+default['bcpc']['proxysql']['log_unhealthy_connections'] = true
+default['bcpc']['proxysql']['log_mysql_warnings_enabled'] = false
 default['bcpc']['proxysql']['long_query_time'] = 10000
+default['bcpc']['proxysql']['stats_time_backend_query'] = false
+default['bcpc']['proxysql']['stats_time_query_processor'] = false
 default['bcpc']['proxysql']['default_query_timeout'] = 86400000
 default['bcpc']['proxysql']['max_transaction_time'] = 14400000
 default['bcpc']['proxysql']['query_retries_on_failure'] = 1
