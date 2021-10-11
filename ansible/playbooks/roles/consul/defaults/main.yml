@@ -11,7 +11,7 @@ config_data_directory: /var/lib/consul
 bcpc_scripts_directory: /usr/local/bcpc/bin
 service_ip: "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}"
 
-scripts_name:
+script_names:
     - if_leader.j2
     - if_primary_mysql.sh.j2
     - if_not_primary_mysql.sh.j2
