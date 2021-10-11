@@ -44,6 +44,21 @@
   set_fact:
     chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '/chef/databags/config.json') }}"
 
+- name: copy consul leader, mysql and proxysql check scripts
+  template:
+    src: "{{ item.j2 }}"
+    dest: "{{ bcpc_scripts_directory }}"
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - if_leader
+    - if_primary_mysql.sh
+    - if_not_primary_mysql.sh
+    - if_primary_proxysql.sh
+    - if_not_primary_proxysql.sh
+    - proxysql-check-helper
+
 - name: reload systemd
   systemd:
     service: consul.service
