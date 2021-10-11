@@ -44,10 +44,6 @@
   set_fact:
     chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '/chef/databags/config.json') }}"
 
-- name: "print chef data bags"
-  debug:
-    msg: "chef data bags are {{ chef_databags }}"
-
 - name: reload systemd
   systemd:
     service: consul.service

@@ -1,0 +1,40 @@
+set -e
+
+# Check connectivity to ProxySQL's admin interface
+mysqladmin status \
+    --connect-timeout 10 \
+    -u "{{ chef_databags['proxysql']['creds']['stats']['username'] }}" \
+    -p "{{ chef_databags['proxysql']['creds']['stats']['password'] }}" \
+    -h localhost \
+    --protocol=TCP \
+    -P "{{ proxysql_admin_port }}" 2> /dev/null
+
+set +e
+
+# Check connectivity via ProxySQL to a backend. Ideally this check will only
+# fail when all MySQL backends have encountered an issue, and thus switching
+# the primary will serve no purpose. However, as described in
+# https://github.com/sysown/proxysql/issues/3618, ProxySQL has at least one
+# bug that would require such a move.
+#
+# This check is forgiving because in a vast majority of cases ProxySQL will
+# handle backend failures just fine. It is designed to catch scenarios like
+# the one described in the bug report linked to above.
+MAX_ATTEMPTS=3
+ATTEMPTS=0
+while ! mysql -nNE \
+      --connect-timeout 10 \
+      -u root \
+      -p "{{ chef_databags['mysql']['users']['root']['password'] }}" \
+      -h localhost \
+      --protocol=TCP \
+      -P "{{ proxysql_port }}" \
+      -e "SELECT VERSION();" 2> /dev/null ; do
+    ((ATTEMPTS=ATTEMPTS+1))
+    if [ ${ATTEMPTS} -ge ${MAX_ATTEMPTS} ]; then
+        exit 1
+    fi
+    sleep 1
+done
+© 2021 GitHub, Inc.
+Terms
