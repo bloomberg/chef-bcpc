@@ -30,7 +30,6 @@
     - "{{ config_directory }}"
     - "{{ config_data_directory }}"
     - "{{ bcpc_scripts_directory }}"
-    - "{{ bcpc_scripts_directory }}/bin"
 
 - name: create consul service file systemd
   template:
@@ -40,6 +39,14 @@
     group: root
     mode: 0644
   notify: restart consul
+
+- name: read the Chef databags
+  set_fact:
+    chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '/chef/databags/config.json') }}"
+
+- name: "print chef data bags"
+  debug:
+    msg: "chef data bags are {{ chef_databags }}"
 
 - name: reload systemd
   systemd:

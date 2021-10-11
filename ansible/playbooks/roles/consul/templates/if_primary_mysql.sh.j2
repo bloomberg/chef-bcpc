@@ -1,0 +1,3 @@
+if host primary.mysql.service.consul | awk '{print $NF}' | grep -e "{{ service_ip }}" > /dev/null; then
+    $*
+fi

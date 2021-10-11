@@ -8,4 +8,5 @@ consul_checksum: sha256:5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a75
 executable: /usr/local/sbin/consul
 config_directory: /etc/consul/conf.d
 config_data_directory: /var/lib/consul
-bcpc_scripts_directory: /usr/local/bcpc
+bcpc_scripts_directory: /usr/local/bcpc/bin
+service_ip: "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}"

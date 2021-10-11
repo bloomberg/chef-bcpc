@@ -1,0 +1,7 @@
+set -e
+
+self_ip="{{ service_ip }}"
+leader=$(curl -qs http://localhost:8500/v1/status/leader | jq -r '.')
+if [ "${self_ip}" == "${leader%:8300}" ]; then
+    $*
+fi

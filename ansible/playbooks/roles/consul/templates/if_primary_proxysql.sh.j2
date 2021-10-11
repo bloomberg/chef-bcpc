@@ -1,0 +1,3 @@
+if host primary.proxysql.service.consul | awk '{print $NF}' | grep -e "{{ service_ip }}" > /dev/null; then
+    $*
+fi
