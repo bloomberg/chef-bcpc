@@ -49,8 +49,6 @@
     src: "{{ item }}"
     dest: "{{ bcpc_scripts_directory }}"
     mode: 0644
-  vars_files:
-    - proxysql.yml
   loop: "{{ script_names }}"
 
 - name: reload systemd

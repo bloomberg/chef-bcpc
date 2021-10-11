@@ -18,3 +18,6 @@ script_names:
     - if_primary_proxysql.sh.j2
     - if_not_primary_proxysql.sh.j2
     - proxysql-check-helper.j2
+
+proxysql_admin_port: 6032
+proxysql_port: 6033
