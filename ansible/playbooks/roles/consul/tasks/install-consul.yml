@@ -46,18 +46,11 @@
 
 - name: copy consul scripts
   template:
-    src: "{{ item.j2 }}"
+    src: "{{ item }}"
     dest: "{{ bcpc_scripts_directory }}"
-    owner: root
-    group: root
-    mode: 0775
+    mode: 0644
   loop:
-    - if_leader
-    - if_primary_mysql.sh
-    - if_not_primary_mysql.sh
-    - if_primary_proxysql.sh
-    - if_not_primary_proxysql.sh
-    - proxysql-check-helper
+    - "{{ scripts_name }}"
 
 - name: reload systemd
   systemd:

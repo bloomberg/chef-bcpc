@@ -10,3 +10,11 @@ config_directory: /etc/consul/conf.d
 config_data_directory: /var/lib/consul
 bcpc_scripts_directory: /usr/local/bcpc/bin
 service_ip: "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}"
+
+scripts_name:
+    - if_leader.j2
+    - if_primary_mysql.sh.j2
+    - if_not_primary_mysql.sh.j2
+    - if_primary_proxysql.sh.j2
+    - if_not_primary_proxysql.sh.j2
+    - proxysql-check-helper.j2
