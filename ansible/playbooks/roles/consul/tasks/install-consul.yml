@@ -59,7 +59,7 @@
     dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: 0755
+    mode: 0644
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
     - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
