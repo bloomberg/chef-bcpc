@@ -53,13 +53,16 @@
     mode: 0755
   loop: "{{ script_names }}"
 
-- name: copy consul services config
+- name: copy consul services and watches config
   template:
-    src: services.json.j2
-    dest: "{{ config_directory }}/services.json"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: 0755
+  loop:
+    - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
+    - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
 
 - name: reload systemd
   systemd:
