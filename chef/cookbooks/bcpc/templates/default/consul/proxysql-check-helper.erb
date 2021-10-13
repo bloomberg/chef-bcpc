@@ -16,6 +16,11 @@
 
 set -e
 
+# Check whether the maintenance flag is set; if so fail the health check
+if [ -f "<%= node['bcpc']['proxysql']['datadir'] %>/files/maintenance" ]; then
+    exit 1
+fi
+
 # Check connectivity to ProxySQL's admin interface
 mysqladmin status \
     --connect-timeout 10 \

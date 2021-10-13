@@ -15,7 +15,7 @@ trap 'log_exit ${?}' EXIT
 # If the script exits with an error, log it to stderr (picked up by ProxySQL)
 log_exit() {
     if [ "${1}" != "0" ]; then
-        >&2 echo "check-query-digest.sh failed with status code ${1}"
+        >&2 echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] check-query-digest.sh failed with status code ${1}"
     fi
     exit "${1}"
 }

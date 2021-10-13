@@ -79,6 +79,9 @@ admin_variables=
     # The port on which the web interface may be accessed
     web_port=<%= node['bcpc']['proxysql']['web_port'] %>
 
+    # How verbose logs from ProxySQL's web server are
+    web_verbosity=<%= node['bcpc']['proxysql']['web_verbosity'] %>
+
     # A list of semi-colon separated user:password pairs that define the
     # read-only credentials for connecting to the admin interface. These are
     # not allowed updates to internal data structures such as the list of MySQL
@@ -112,8 +115,12 @@ admin_variables=
     # NOTE: Do not sync servers in order to preserve custom weights
     checksum_mysql_servers=false
     #checksum_mysql_users=true
+    #checksum_admin_variables=true
+    #checksum_mysql_variables=true
 
     # Whether or not to save sync-ed value to disk
+    #cluster_mysql_admin_variables_save_to_disk=true
+    #cluster_mysql_variables_save_to_disk=true
     #cluster_mysql_query_rules_save_to_disk=true
     #cluster_mysql_servers_save_to_disk=true
     #cluster_mysql_users_save_to_disk=true
@@ -236,10 +243,20 @@ mysql_variables=
 
     ######################## Logging and Stats Related ########################
 
+    # How verbose logging from the hostgroup manager component is
+    hostgroup_manager_verbose=<%= node['bcpc']['proxysql']['hostgroup_manager_verbose'] %>
+
+    # Enable / disable printing of verbose messages on query errors
+    verbose_query_error=<%= node['bcpc']['proxysql']['verbose_query_error'] %>
+
     # If a client disconnects in a not graceful way and if is enabled
     # (default), ProxySQL will log a warning Closing unhealthy client
     # connection IP:port.
-    #log_unhealthy_connections=true
+    log_unhealthy_connections=<%= node['bcpc']['proxysql']['log_unhealthy_connections'] %>
+
+    # Whether or not MySQL warnings encountered while processing user queries
+    # are logged
+    log_mysql_warnings_enabled=<%= node['bcpc']['proxysql']['log_mysql_warnings_enabled'] %>
 
     # Threshold for counting queries passing through the proxy as ‘slow’.
     long_query_time=<%= node['bcpc']['proxysql']['long_query_time'] %>
@@ -269,11 +286,14 @@ mysql_variables=
 
     #eventslog_format=1
 
-    # Enables / disables collection of backend query CPU time statistics.
-    stats_time_backend_query=true
+    # Enables / disables collection of how much CPU time ProxySQL spends on
+    # sending a query to the the backend and processing the response.
+    # Disabled by default for performance reasons.
+    stats_time_backend_query=<%= node['bcpc']['proxysql']['stats_time_backend_query'] %>
 
     # Enables / disables collection of query processor CPU time statistics.
-    stats_time_query_processor=false
+    # Disabled by default for performance reasons.
+    stats_time_query_processor=<%= node['bcpc']['proxysql']['stats_time_query_processor'] %>
 
     ############################## Query Related ##############################
 
