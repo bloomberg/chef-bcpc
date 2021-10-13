@@ -1,0 +1,58 @@
+{
+  "services": [
+    {
+      "name": "mysql",
+      "port": {{ myysql_port }},
+      "enable_tag_override": true,
+      "tags": [
+        "mysql"
+      ],
+      "check": {
+        "name": "mysql",
+        "args": [
+          "{{ bcpc_scripts_directory }}/mysql-check"
+        ],
+        "interval": "{{ services_interval }}",
+        "timeout": "{{ services_timeout }}"
+      }
+    },
+    {
+      "name": "proxysql",
+      "port": {{ proxysql_port }},
+      "enable_tag_override": true,
+      "tags": [
+        "proxysql"
+      ],
+      "check": {
+        "name": "proxysql",
+        "args": [
+          "{{ bcpc_scripts_directory }}/proxysql-check"
+        ],
+        "interval": "{{ services_interval }}",
+        "timeout": "{{ services_timeout }}"
+      }
+    },
+    {
+      "name": "haproxy",
+      "check": {
+        "name": "haproxy",
+        "args": [
+          "{{ bcpc_scripts_directory }}/haproxy-check"
+        ],
+        "interval": "{{ services_interval }}",
+        "timeout": "{{ services_timeout }}"
+      }
+    },
+    {
+      "name": "dns",
+      "check": {
+        "name": "dns",
+        "args": [
+          "{{ bcpc_scripts_directory }}/dns-check"
+        ],
+        "interval": "{{ services_interval }}",
+        "timeout": "{{ services_timeout }}"
+      }
+    }
+  ]
+}

@@ -47,9 +47,19 @@
 - name: copy consul scripts
   template:
     src: "{{ item }}"
-    dest: "{{ bcpc_scripts_directory }}"
-    mode: 0644
+    dest: "{{ bcpc_scripts_directory }}/{{ item.split('.j2')[0] }}"
+    owner: root
+    group: root
+    mode: 0755
   loop: "{{ script_names }}"
+
+- name: copy consul services config
+  template:
+    src: services.json.j2
+    dest: "{{ config_directory }}/services.json"
+    owner: root
+    group: root
+    mode: 0755
 
 - name: reload systemd
   systemd:

@@ -19,5 +19,9 @@ script_names:
     - if_not_primary_proxysql.sh.j2
     - proxysql-check-helper.j2
 
+services_interval: 10s
+services_timeout: 2s
+
 proxysql_admin_port: 6032
 proxysql_port: 6033
+myysql_port: 3306

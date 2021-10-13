@@ -3,11 +3,11 @@ set -e
 # Check connectivity to ProxySQL's admin interface
 mysqladmin status \
     --connect-timeout 10 \
-    -u "{{ chef_databags['proxysql']['creds']['stats']['username'] }}" \
-    -p "{{ chef_databags['proxysql']['creds']['stats']['password'] }}" \
+    -u {{ chef_databags['proxysql']['creds']['stats']['username'] }} \
+    -p{{ chef_databags['proxysql']['creds']['stats']['password'] }} \
     -h localhost \
     --protocol=TCP \
-    -P "{{ proxysql_admin_port }}" 2> /dev/null
+    -P {{ proxysql_admin_port }} 2> /dev/null
 
 set +e
 
@@ -25,10 +25,10 @@ ATTEMPTS=0
 while ! mysql -nNE \
       --connect-timeout 10 \
       -u root \
-      -p "{{ chef_databags['mysql']['users']['root']['password'] }}" \
+      -p{{ chef_databags['mysql']['users']['root']['password'] }} \
       -h localhost \
       --protocol=TCP \
-      -P "{{ proxysql_port }}" \
+      -P {{ proxysql_port }} \
       -e "SELECT VERSION();" 2> /dev/null ; do
     ((ATTEMPTS=ATTEMPTS+1))
     if [ ${ATTEMPTS} -ge ${MAX_ATTEMPTS} ]; then
