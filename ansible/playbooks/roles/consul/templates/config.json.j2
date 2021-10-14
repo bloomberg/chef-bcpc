@@ -1,0 +1,26 @@
+{
+  "datacenter": "{{ cloud_region }}",
+  "client_addr": "127.0.0.1",
+  "advertise_addr": "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}",
+  "data_dir": "{{ config_data_directory }}",
+  "disable_update_check": true,
+  "enable_script_checks": true,
+  "server": false,
+  "log_level": "INFO",
+  "node_name": "{{ inventory_hostname }}",
+  "addresses": {
+    "dns": "{{ cloud_ip }}"
+  },
+  "ports": {
+    "dns": 8600
+  },
+  "recursors": [
+    "{{ cloud_ip }}"
+  ],
+  "bootstrap": false,
+  "retry_join": [
+  {% for host in groups['headnodes']|difference([inventory_hostname]) %}
+  "{{ hostvars[host]['interfaces']['service']['ip'] }}"{{ "," if not loop.last }}
+  {% endfor %}
+  ]
+}
