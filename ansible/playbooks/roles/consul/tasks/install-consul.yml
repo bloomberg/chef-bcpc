@@ -1,4 +1,4 @@
-- name: create temp directory
+- name: create temp download directory
   tempfile:
     state: directory
     prefix: ansible-consul.
@@ -19,7 +19,7 @@
     mode: 0755
   notify: restart consul
 
-- name: create config directories
+- name: create consul config directories
   file:
     path: "{{ item }}"
     state: directory
@@ -40,9 +40,9 @@
     mode: 0644
   notify: restart consul
 
-- name: read the Chef databags
+- name: read chef databags
   set_fact:
-    chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '/chef/databags/config.json') }}"
+    chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '{{ chef_databags_config_directory }}') }}"
 
 - name: copy consul scripts
   template:
@@ -53,7 +53,7 @@
     mode: 0755
   loop: "{{ script_names }}"
 
-- name: configure consul services and watches
+- name: configure consul config-services-watches
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -72,7 +72,7 @@
     daemon_reload: yes
   notify: restart consul
 
-- name: cleanup
+- name: cleanup temp download directory
   file:
     path: "{{ temp_directory.path }}"
     state: "absent"

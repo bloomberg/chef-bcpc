@@ -9,7 +9,12 @@ executable: /usr/local/sbin/consul
 config_directory: /etc/consul/conf.d
 config_data_directory: /var/lib/consul
 bcpc_scripts_directory: /usr/local/bcpc/bin
+chef_databags_config_directory: /chef/databags/config.json
+
 service_ip: "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}"
+
+client_address: 127.0.0.1
+consul_dns_port: 8600
 
 script_names:
     - if_leader.j2

@@ -1,6 +1,6 @@
 {
   "datacenter": "{{ cloud_region }}",
-  "client_addr": "127.0.0.1",
+  "client_addr": "{{ client_address }}",
   "advertise_addr": "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}",
   "data_dir": "{{ config_data_directory }}",
   "disable_update_check": true,
@@ -12,7 +12,7 @@
     "dns": "{{ cloud_ip }}"
   },
   "ports": {
-    "dns": 8600
+    "dns": {{ consul_dns_port }}
   },
   "recursors": [
     "{{ cloud_ip }}"
