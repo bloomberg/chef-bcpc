@@ -61,7 +61,7 @@
     owner: root
     group: root
     mode: 0755
-  loop: {{ service-checks }}
+  loop: "{{ service-checks }}"
   
 
 - name: configure consul config-services-watches
