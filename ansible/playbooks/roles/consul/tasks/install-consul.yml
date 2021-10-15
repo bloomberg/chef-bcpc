@@ -64,7 +64,7 @@
   loop: "{{ service_checks }}"
 
 - name: copy consul services watches
-  copy:
+  template:
     src: "{{ item }}"
     dest: "{{ bcpc_directory }}"
     owner: root
