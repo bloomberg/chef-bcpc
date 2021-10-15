@@ -17,7 +17,7 @@
   "recursors": [
     "{{ cloud_ip }}"
   ],
-  "bootstrap": false,
+  "bootstrap": {{ bootstrap }},
   "retry_join": [
   {% for host in groups['headnodes']|difference([inventory_hostname]) %}
   "{{ hostvars[host]['interfaces']['service']['ip'] }}"{{ "," if not loop.last }}
