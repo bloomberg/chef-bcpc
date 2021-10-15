@@ -10,7 +10,7 @@
       "check": {
         "name": "mysql",
         "args": [
-          "{{ bcpc_scripts_directory }}/mysql-check"
+          "{{ bcpc_directory }}/mysql-check"
         ],
         "interval": "{{ services_interval }}",
         "timeout": "{{ services_timeout }}"
@@ -26,7 +26,7 @@
       "check": {
         "name": "proxysql",
         "args": [
-          "{{ bcpc_scripts_directory }}/proxysql-check"
+          "{{ bcpc_directory }}/proxysql-check"
         ],
         "interval": "{{ services_interval }}",
         "timeout": "{{ services_timeout }}"
@@ -37,7 +37,7 @@
       "check": {
         "name": "haproxy",
         "args": [
-          "{{ bcpc_scripts_directory }}/haproxy-check"
+          "{{ bcpc_directory }}/haproxy-check"
         ],
         "interval": "{{ services_interval }}",
         "timeout": "{{ services_timeout }}"
@@ -48,7 +48,7 @@
       "check": {
         "name": "dns",
         "args": [
-          "{{ bcpc_scripts_directory }}/dns-check"
+          "{{ bcpc_directory }}/dns-check"
         ],
         "interval": "{{ services_interval }}",
         "timeout": "{{ services_timeout }}"

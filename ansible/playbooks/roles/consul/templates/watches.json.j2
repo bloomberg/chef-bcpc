@@ -4,7 +4,7 @@
       "service": "haproxy",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/cloud-ip-watch",
+        "{{ bcpc_directory }}/cloud-ip-watch",
         "haproxy"
       ]
     },
@@ -12,7 +12,7 @@
       "service": "mysql",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/service-elect-watch",
+        "{{ bcpc_directory }}/service-elect-watch",
         "mysql"
       ]
     },
@@ -20,7 +20,7 @@
       "service": "mysql",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/service-watch",
+        "{{ bcpc_directory }}/service-watch",
         "mysql"
       ]
     },
@@ -28,7 +28,7 @@
       "service": "proxysql",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/service-elect-watch",
+        "{{ bcpc_directory }}/service-elect-watch",
         "proxysql"
       ]
     },
@@ -36,7 +36,7 @@
       "service": "proxysql",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/service-watch",
+        "{{ bcpc_directory }}/service-watch",
         "proxysql"
       ]
     },
@@ -44,7 +44,7 @@
       "service": "dns",
       "type": "checks",
       "args": [
-        "{{ bcpc_scripts_directory }}/cloud-ip-watch",
+        "{{ bcpc_directory }}/cloud-ip-watch",
         "dns"
       ]
     }
