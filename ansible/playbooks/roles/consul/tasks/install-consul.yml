@@ -72,7 +72,7 @@
     mode: 0755
   loop: "{{ service_watches }}"
 
-- name: configure consul bootstrap config-services-watches
+- name: configure consul bootstrap config
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -87,7 +87,7 @@
     - {src: 'config.json.j2', dest: '{{ config_directory }}/config.json'}
   notify: restart consul
 
-- name: configure consul servers config-services-watches
+- name: configure consul servers config
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
