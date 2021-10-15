@@ -73,14 +73,14 @@
   loop: "{{ service_watches }}"
 
 - name: configure consul bootstrap config
+  set_fact:
+    bootstrap: 'true'
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: 0644
-  set_fact:
-    bootstrap: true
   run_once: yes
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
@@ -89,14 +89,14 @@
   notify: restart consul
 
 - name: configure consul servers config
+  set_fact:
+    bootstrap: 'false'
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: 0644
-  set_fact:
-    bootstrap: false
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
     - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
