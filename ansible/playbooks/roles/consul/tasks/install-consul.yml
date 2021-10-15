@@ -51,7 +51,7 @@
     owner: root
     group: root
     mode: 0755
-  loop: "{{ script_names }}"
+  loop: "{{ scripts }}"
   notify: restart consul
 
 - name: copy consul services checks
