@@ -29,7 +29,7 @@
   loop:
     - "{{ config_directory }}"
     - "{{ config_data_directory }}"
-    - "{{ bcpc_scripts_directory }}"
+    - "{{ bcpc_directory }}"
 
 - name: create consul service file systemd
   template:
@@ -47,11 +47,22 @@
 - name: copy consul scripts
   template:
     src: "{{ item }}"
-    dest: "{{ bcpc_scripts_directory }}/{{ item.split('.j2')[0] }}"
+    dest: "{{ bcpc_directory }}/{{ item.split('.j2')[0] }}"
     owner: root
     group: root
     mode: 0755
   loop: "{{ script_names }}"
+  notify: restart consul
+
+- name: copy consul services checks
+  copy:
+    src: "{{ item }}"
+    dest: "{{ bcpc_directory }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop: {{ service-checks }}
+  
 
 - name: configure consul config-services-watches
   template:
@@ -64,6 +75,7 @@
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
     - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
     - {src: 'config.json.j2', dest: '{{ config_directory }}/config.json'}
+  notify: restart consul
 
 - name: reload systemd
   systemd:
