@@ -79,12 +79,12 @@
     owner: root
     group: root
     mode: 0644
+  run_once: yes
+  consul_bootstrap: inventory_hostname
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
     - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
     - {src: 'config.json.j2', dest: '{{ config_directory }}/config.json'}
-  run_once: yes
-  consul_bootstrap: inventory_hostname
   notify: restart consul
 
 - name: configure consul servers config-services-watches
