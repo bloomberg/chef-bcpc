@@ -74,7 +74,7 @@
 
 - name: configure consul bootstrap config
   set_fact:
-    bootstrap: 'true'
+    bootstrap_val: 'true'
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -90,7 +90,7 @@
 
 - name: configure consul servers config
   set_fact:
-    bootstrap: 'false'
+    bootstrap_val: 'false'
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
