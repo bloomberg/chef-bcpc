@@ -62,7 +62,15 @@
     group: root
     mode: 0755
   loop: "{{ service_checks }}"
-  
+
+- name: copy consul services watches
+  copy:
+    src: "{{ item }}"
+    dest: "{{ bcpc_directory }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop: "{{ service_watches }}"
 
 - name: configure consul config-services-watches
   template:

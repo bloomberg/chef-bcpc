@@ -34,9 +34,6 @@ service_watches:
   - cloud-ip-watch
   - service-elect-watch
   - service-watch
-  - service-elect-watch
-  - service-watch
-  - cloud-ip-watch
 
 services_interval: 10s
 services_timeout: 2s
