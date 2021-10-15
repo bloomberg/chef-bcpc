@@ -79,7 +79,8 @@
     owner: root
     group: root
     mode: 0644
-  bootstrap: true
+  set_fact:
+    bootstrap: true
   run_once: yes
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
@@ -94,7 +95,8 @@
     owner: root
     group: root
     mode: 0644
-  bootstrap: false
+  set_fact:
+    bootstrap: false
   loop:
     - {src: 'services.json.j2', dest: '{{ config_directory }}/services.json'}
     - {src: 'watches.json.j2', dest: '{{ config_directory }}/watches.json'}
