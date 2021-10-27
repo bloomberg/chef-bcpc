@@ -17,7 +17,7 @@
   "recursors": [
     "{{ cloud_ip }}"
   ],
-  "bootstrap": false,
+  "bootstrap_expect": {{ ansible_play_hosts | length }},
   "retry_join": [
   {% for host in groups['headnodes']|difference([inventory_hostname]) %}
   "{{ hostvars[host]['interfaces']['service']['ip'] }}"{{ "," if not loop.last }}
