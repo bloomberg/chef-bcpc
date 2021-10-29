@@ -1,5 +1,3 @@
 - name: restart consul
-  ansible.builtin.service:
-    name: consul
-    state: restarted
+  command: sudo systemctl restart consul.service
   listen: 'restart consul'
