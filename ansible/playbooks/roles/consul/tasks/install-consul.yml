@@ -40,10 +40,6 @@
     mode: 0644
   notify: restart consul
 
-- name: read chef databags
-  set_fact:
-    chef_databags: "{{ lookup('file', (inventory_dir | dirname) + '{{ chef_databags_config_directory }}') }}"
-
 - name: copy consul scripts
   template:
     src: "{{ item }}"
