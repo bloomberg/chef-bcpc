@@ -5,13 +5,13 @@
 consul_filename: "\
   {% for asset in assets_files %}\
     {% if asset.name == 'consul' %}\
-      asset.filename\
+      {{ asset.filename }}\
     {% endif %}\
   {% endfor %}"
 consul_checksum: "\
   {% for asset in assets_files %}\
     {% if asset.name == 'consul' %}\
-      asset.checksum\
+      {{ asset.checksum }}\
     {% endif %}\
   {% endfor %}"
 
