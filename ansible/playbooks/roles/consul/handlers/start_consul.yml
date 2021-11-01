@@ -1,0 +1,6 @@
+- name: start consul
+  service:
+    name: consul
+    state: started
+  become: yes
+  listen: 'start consul'

@@ -1,0 +1,11 @@
+- name: wait for consul leader
+  uri:
+    url: http://localhost:8500/v1/status/leader
+    return_content: true
+    validate_certs: true
+  retries: 10
+  delay: 10
+  register: consul_leader
+  until:
+    - consul_leader.json is defined
+    - consul_leader.json is search(":8300")

@@ -1,12 +1,12 @@
 [Unit]
-Description=Consul daemon
+Description=consul agent
 Requires=network-online.target
+After=network-online.target
 
 [Service]
 Type=simple
-EnvironmentFile=~/etc/default/consul
-User=<%= @username %>
-ExecStart=<%= @executable %> agent $OPTIONS -config-dir=<%= @conf_dir %>
+Restart=on-failure
+ExecStart={{ consul_executable }} agent $OPTIONS -config-dir={{ consul_config_directory }}
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 StandardOutput=journal

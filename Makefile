@@ -22,6 +22,7 @@ all : \
 	configure-chef-nodes \
 	configure-web-server \
 	configure-common-node \
+	configure-consul-cluster \
 	run-chef-client \
 	reweight-ceph-osds \
 	add-cloud-images \
@@ -103,6 +104,12 @@ configure-common-node :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/configure-common-node.yml \
 		--limit cloud
+
+configure-consul-cluster :
+
+	ansible-playbook -v \
+		-i ${inventory} ${playbooks}/site.yml \
+		-t configure-consul --limit headnodes
 
 run-chef-client : \
 	run-chef-client-bootstraps \

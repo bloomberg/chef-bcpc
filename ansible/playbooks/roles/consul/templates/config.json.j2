@@ -1,0 +1,24 @@
+{
+  "datacenter": "{{ cloud_region }}",
+  "client_addr": "{{ client_address }}",
+  "advertise_addr": "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}",
+  "data_dir": "{{ consul_config_data_directory }}",
+  "disable_update_check": true,
+  "enable_script_checks": true,
+  "server": true,
+  "log_level": "INFO",
+  "node_name": "{{ inventory_hostname }}",
+  "addresses": {
+    "dns": "{{ cloud_ip }}"
+  },
+  "ports": {
+    "dns": {{ consul_dns_port }}
+  },
+  "recursors": [
+    "{{ cloud_ip }}"
+  ],
+  "bootstrap_expect": {{ ansible_play_hosts | length }},
+  "retry_join": [
+    {{ groups['headnodes'] | difference([inventory_hostname]) | map('extract', hostvars, 'interfaces') | map(attribute='service') | map(attribute='ip') | map("to_json") | join(',\n    ') }}
+  ]
+}
