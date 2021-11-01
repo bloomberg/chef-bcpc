@@ -2,8 +2,18 @@
 # consul files
 ###############################################################################
 
-consul_filename: consul_1.7.2_linux_amd64.zip
-consul_checksum: sha256:5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a756773e698
+consul_filename: "\
+  {% for asset in assets_files %}\
+    {% if asset.name == 'consul' %}\
+      asset.filename\
+    {% endif %}\
+  {% endfor %}"
+consul_checksum: "\
+  {% for asset in assets_files %}\
+    {% if asset.name == 'consul' %}\
+      asset.checksum\
+    {% endif %}\
+  {% endfor %}"
 
 executable: /usr/local/sbin/consul
 config_directory: /etc/consul/conf.d
