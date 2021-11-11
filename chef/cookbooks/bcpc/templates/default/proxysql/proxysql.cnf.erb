@@ -274,17 +274,18 @@ mysql_variables=
 
     # If this variable is set, ProxySQL will log all traffic to the specified
     # filename.
-    #eventslog_filename=(empty string, not set)
+    eventslog_filename="<%= node['bcpc']['proxysql']['eventslog_filename'] %>"
 
     # Max event log filesize (bytes) before it is rotated.
-    #eventslog_filesize=104857600
+    eventslog_filesize=<%= node['bcpc']['proxysql']['eventslog_filesize'] %>
 
     # ProxySQL is able to log queries that pass through. If there is no
     # definition for Log in a matching rule in mysql_query_rules,
     # mysql-eventslog_default_log applies.
-    #eventslog_default_log=false
+    eventslog_default_log=<%= node['bcpc']['proxysql']['eventslog_default_log'] %>
 
-    #eventslog_format=1
+    # The format of the eventslog (1=binary, 2=json)
+    eventslog_format=<%= node['bcpc']['proxysql']['eventslog_format'] %>
 
     # Enables / disables collection of how much CPU time ProxySQL spends on
     # sending a query to the the backend and processing the response.
