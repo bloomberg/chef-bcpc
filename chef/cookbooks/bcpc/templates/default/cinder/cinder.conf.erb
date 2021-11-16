@@ -1,5 +1,6 @@
 [DEFAULT]
-host = bcpc
+host = <%= node['hostname'] %>
+cluster = <%= node['bcpc']['cloud']['region'] %>
 allow_availability_zone_fallback = true
 rootwrap_config = /etc/cinder/rootwrap.conf
 api_paste_confg = /etc/cinder/api-paste.ini
@@ -21,6 +22,9 @@ enable_v3_api = true
 <% if @scheduler_default_filters.any? %>
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% end %>
+
+[backend]
+backend_name = <%= node['hostname'] %>
 
 <% if !node['bcpc']['cinder']['backend_native_threads_pool_size'].nil? %>
 [backend_defaults]
