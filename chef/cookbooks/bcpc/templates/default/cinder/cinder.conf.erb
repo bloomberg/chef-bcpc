@@ -25,6 +25,7 @@ scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% if !node['bcpc']['cinder']['backend_native_threads_pool_size'].nil? %>
 [backend_defaults]
 backend_native_threads_pool_size = <%= node['bcpc']['cinder']['backend_native_threads_pool_size'] %>
+rbd_exclusive_cinder_pool = <%= node['bcpc']['cinder']['rbd_exclusive_cinder_pool'] %>
 
 <% end %>
 [database]
