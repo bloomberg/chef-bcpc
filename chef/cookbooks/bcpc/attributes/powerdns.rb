@@ -1,6 +1,8 @@
 ###############################################################################
 # powerdns
 ###############################################################################
+default['bcpc']['powerdns']['enabled'] = true
+
 default['bcpc']['powerdns']['db']['dbname'] = 'pdns'
 
 default['bcpc']['powerdns']['local_address'] = node['bcpc']['cloud']['vip']
