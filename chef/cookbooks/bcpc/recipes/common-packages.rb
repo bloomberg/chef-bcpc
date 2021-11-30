@@ -47,6 +47,7 @@ package %w(
   vim
   ksh
   bash-completion
+  cpu-checker
 )
 
 cookbook_file '/etc/screenrc' do
