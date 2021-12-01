@@ -26,9 +26,11 @@ server:
     forward-zone:
       name: consul
       forward-addr: {{ cloud_ip }}@8600
+{% if unbound_powerdns_enabled %}
     forward-zone:
       name: {{ cloud_domain }}
       forward-addr: {{ cloud_ip }}@5300
+{% endif %}
     forward-zone:
       name: .
 {% for ns in dns['servers'] %}

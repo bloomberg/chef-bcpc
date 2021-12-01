@@ -295,3 +295,8 @@ system_parameters_net.nf_conntrack_max: 262144  # noqa var-naming
 
 # Read-ahead value for all block devices, in kb
 system_readahead_kb: 512
+
+###############################################################################
+# unbound
+###############################################################################
+unbound_powerdns_enabled: true
