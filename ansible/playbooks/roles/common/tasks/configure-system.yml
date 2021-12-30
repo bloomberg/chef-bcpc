@@ -108,10 +108,20 @@
   command: sysctl -p /etc/sysctl.d/70-bcpc.conf
   when: sysctl_bcpc.changed  # noqa no-handler
 
+# Configure I/O scheduler algorithm
+- name: Configure disk scheduler algorithm
+  template:
+    src: udev/98-io-scheduler.rules.j2
+    dest: /etc/udev/rules.d/98-io-scheduler.rules
+    owner: root
+    group: root
+    mode: '0644'
+  register: udev_io_scheduler
+
 # Configure block device readahead
 - name: Configure block device readahead
   template:
-    src: udev/99-readahead.rules
+    src: udev/99-readahead.rules.j2
     dest: /etc/udev/rules.d/99-readahead.rules
     owner: root
     group: root
@@ -120,11 +130,11 @@
 
 - name: Reload udevadm rules
   command: udevadm control --reload-rules
-  when: udev_readahead.changed  # noqa no-handler
+  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
 
 - name: Replay udev events
   command: udevadm trigger
-  when: udev_readahead.changed  # noqa no-handler
+  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
 
 # Configure /etc/updatedb.conf
 - name: Configure /etc/updatedb.conf
