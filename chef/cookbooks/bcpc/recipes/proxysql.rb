@@ -101,7 +101,7 @@ repo = node['bcpc']['proxysql']['repo']
 apt_repository 'proxysql' do
   uri repo['url']
   distribution repo['distribution']
-  components ['main']
+  components repo['components']
   key repo['key']
   only_if { repo['enabled'] }
 end
