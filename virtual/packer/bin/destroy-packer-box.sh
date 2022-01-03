@@ -34,9 +34,16 @@ if [ -n "$output_box_exists" ]; then
     if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
         virsh vol-delete \
             --pool default \
-            "${OUTPUT_PACKER_BOX_NAME}_vagrant_box_image_0.img"
+            "${OUTPUT_PACKER_BOX_NAME}_vagrant_box_image_0_box.img" || true
         virsh pool-refresh default
     fi
+fi
+
+# cleanup any scrapnel vagrant-libvirt may have left lying around
+if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
+    virsh destroy output-vagrant_source || true
+    virsh undefine output-vagrant_source || true
+    virsh vol-delete --pool default output-vagrant_source.img || true
 fi
 
 # Remove the output directory from packer build 

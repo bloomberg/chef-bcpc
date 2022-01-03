@@ -56,6 +56,12 @@ if [ -z "$base_box_exists" ]; then
     fi
 fi
 
+# prevent vagrant-libvirt from failing if there's scrapnel lying around
+if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
+    virsh destroy output-vagrant_source || true
+    virsh undefine output-vagrant_source || true
+    virsh vol-delete --pool default output-vagrant_source.img || true
+fi
 
 # create the packer box
 # Use the script path to find the packer directory
