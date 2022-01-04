@@ -13,7 +13,7 @@ default['bcpc']['nova']['debug'] = false
 # ceph (rbd)
 default['bcpc']['nova']['ceph']['user'] = 'nova'
 default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
-default['bcpc']['nova']['ceph']['pool']['size'] = 1
+default['bcpc']['nova']['ceph']['pool']['size'] = 3
 
 # Allow destination machine to match source for resize
 default['bcpc']['nova']['allow_resize_to_same_host'] = true

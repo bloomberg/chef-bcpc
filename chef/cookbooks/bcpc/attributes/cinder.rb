@@ -23,4 +23,4 @@ default['bcpc']['cinder']['quota'] = {
 # ceph (rbd)
 default['bcpc']['cinder']['ceph']['user'] = 'cinder'
 default['bcpc']['cinder']['ceph']['pool']['name'] = 'volumes'
-default['bcpc']['cinder']['ceph']['pool']['size'] = 1
+default['bcpc']['cinder']['ceph']['pool']['size'] = 3
