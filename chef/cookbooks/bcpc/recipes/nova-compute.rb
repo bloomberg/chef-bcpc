@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-compute
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2022 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -245,11 +245,23 @@ template '/etc/nova/nova-compute.conf' do
   notifies :restart, 'service[nova-compute]', :immediately
 end
 
-# install patched vif.py for libvirt
-# https://bugs.launchpad.net/nova/+bug/1939604
+# Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
+# https://review.opendev.org/c/openstack/nova/+/792356
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
+  source 'nova/hardware.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/vif.py' do
   source 'nova/vif.py'
-  notifies :restart, 'service[nova-compute]', :immediately
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+execute 'py3compile-nova' do
+  action :nothing
+  command 'py3compile -p python3-nova'
 end
 
 execute 'wait for compute host' do
