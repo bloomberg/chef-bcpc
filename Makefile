@@ -34,6 +34,14 @@ create: create-virtual-network create-virtual-hosts
 
 destroy: destroy-virtual-hosts destroy-virtual-network
 
+upload-packer-box :
+
+	virtual/packer/bin/upload-packer-box.sh
+
+download-packer-box :
+
+	virtual/packer/bin/download-packer-box.sh
+
 create-packer-box :
 
 	virtual/packer/bin/create-packer-box.sh

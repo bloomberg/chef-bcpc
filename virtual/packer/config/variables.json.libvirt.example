@@ -1,0 +1,9 @@
+{
+  "bcc_apt_key_url": "",
+  "bcc_apt_url": "",
+  "kernel_version": "generic-hwe-18.04-edge",
+  "base_box": "bento/ubuntu-18.04",
+  "base_box_version": "202005.21.0",
+  "base_box_provider": "libvirt",
+  "output_packer_box_name": "bcc-ubuntu-18.04"
+}

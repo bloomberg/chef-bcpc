@@ -19,7 +19,7 @@ set -xe
 packer_dir=$(dirname "$(dirname "$0")")
 
 # Remove packer-box from vagrant box list if the packer-box exists
-config_variables="${packer_dir}/variables.json"
+config_variables="${packer_dir}/config/variables.json"
 OUTPUT_PACKER_BOX_NAME=$(jq -r '.output_packer_box_name' "$config_variables")
 if [ "$OUTPUT_PACKER_BOX_NAME" == "null" ]; then
     printf "Variable \"output_packer_box_name\" in %s is undefined.\n" \
