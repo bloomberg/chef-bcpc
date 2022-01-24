@@ -278,7 +278,6 @@ class LibvirtGenericVIFDriver(object):
 
         return (driver, vhost_queues)
 
-
     def _get_max_tap_queues(self):
         # Note(sean-k-mooney): some linux distros have backported
         # changes for newer kernels which make the kernel version
