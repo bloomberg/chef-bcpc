@@ -21,7 +21,7 @@ function main {
     find . -name "*.sh" -exec bashate -e E006 {} \;
     find . -name "*.py" \
          ! -path "./chef/cookbooks/bcpc/files/default/*" -exec flake8 {} \;
-    ansible-lint -x var-naming ansible/
+    ansible-lint -x var-naming -x meta-no-info -x meta-no-tags ansible/
     cookstyle --version && cookstyle .
 }
 

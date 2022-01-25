@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-head
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2022 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -280,7 +280,33 @@ if anti_affinity['enabled']
   end
 end
 
+# Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
+# https://review.opendev.org/c/openstack/nova/+/792356
+cookbook_file '/usr/lib/python3/dist-packages/nova/api/validation/extra_specs/hw.py' do
+  source 'nova/hw.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/compute/api.py' do
+  source 'nova/api.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
+  source 'nova/hardware.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+execute 'py3compile-nova' do
+  action :nothing
+  command 'py3compile -p python3-nova'
+end
+
 # configure nova starts
+#
 template '/etc/nova/nova.conf' do
   source 'nova/nova.conf.erb'
   mode '0640'
