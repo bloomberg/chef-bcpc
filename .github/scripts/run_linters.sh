@@ -18,6 +18,8 @@ set -ev
 
 function main {
     cd linter_venv && . bin/activate
+    echo ${PWD}
+    exit 0
     find . -name "*.sh" -exec shellcheck {} \;
     find . -name "*.sh" -exec bashate -e E006 {} \;
     find . -name "*.py" \
