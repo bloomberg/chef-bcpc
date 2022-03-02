@@ -14,7 +14,7 @@ function main {
 
 function install_linters_linux {
     python3 -m venv /tmp/linter_venv
-    cd /tmp/linter_venv && . bin/activate
+    cd /tmp/linter_venv && source bin/activate
 
     sudo apt-get install -y shellcheck
     pip install --force bashate flake8 ansible-lint ansible
