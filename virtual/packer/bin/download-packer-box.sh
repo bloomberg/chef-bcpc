@@ -37,14 +37,18 @@ fi
 
 #download base box from s3 storage
 if [ "$S3_CONFIG_FILE" == "null" ]; then
-    s3cmd get --force "${DOWNLOAD_BUCKET}/${DOWNLOAD_PACKER_BOX}" "${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"
+    s3cmd get \
+          --force "${DOWNLOAD_BUCKET}/${DOWNLOAD_PACKER_BOX}" \
+          "${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"
 else
-    s3cmd -c "${S3_CONFIG_FILE}" get --force "${DOWNLOAD_BUCKET}/${DOWNLOAD_PACKER_BOX}" "${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"
+    s3cmd -c "${S3_CONFIG_FILE}" get \
+          --force "${DOWNLOAD_BUCKET}/${DOWNLOAD_PACKER_BOX}" \
+          "${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"
 fi
 
 # add the downloaded box as the output box in vagrant
 VAGRANT_VAGRANTFILE=Vagrantfile vagrant box add \
-                   --force \
-                   --clean \
-                   --name "$OUTPUT_PACKER_BOX_NAME" \
-                   file://"${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"
+                        --force \
+                        --clean \
+                        --name "$OUTPUT_PACKER_BOX_NAME" \
+                        file://"${packer_dir}/download/${DOWNLOAD_PACKER_BOX}"

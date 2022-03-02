@@ -36,7 +36,10 @@ fi
 
 #upload base box from s3 storage
 if [ "$S3_CONFIG_FILE" == "null" ]; then
-    s3cmd put --force "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
+    s3cmd put --force "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" \
+          "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
 else
-    s3cmd -c "${S3_CONFIG_FILE}" put --force "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
+    s3cmd -c "${S3_CONFIG_FILE}" put \
+          --force "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" \
+          "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
 fi
