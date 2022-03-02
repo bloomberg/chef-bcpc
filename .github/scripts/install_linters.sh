@@ -14,6 +14,7 @@ function main {
 
 function install_linters_linux {
     python3 -m venv /tmp/linter_venv
+    # shellcheck disable=SC1091
     cd /tmp/linter_venv && source bin/activate
 
     sudo apt-get install -y shellcheck

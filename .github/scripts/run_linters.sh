@@ -17,6 +17,7 @@
 set -ev
 
 function main {
+    # shellcheck disable=SC1091
     cd /tmp/linter_venv && source bin/activate
 
     find "${GITHUB_WORKSPACE}" -name "*.sh" -exec shellcheck {} \;
