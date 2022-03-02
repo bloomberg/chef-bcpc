@@ -13,15 +13,11 @@ function main {
 #
 
 function install_linters_linux {
-    echo "${PWD}"
-    env
-    python3 -m venv linter_venv
-    cd linter_venv && . bin/activate
+    python3 -m venv /tmp/linter_venv
+    cd /tmp/linter_venv && . bin/activate
 
     sudo apt-get install -y shellcheck
-    for pkg in bashate flake8 ansible-lint ansible; do
-        pip install --force "${pkg}"
-    done
+    pip install --force bashate flake8 ansible-lint ansible
 
     sudo gem install cookstyle
 }

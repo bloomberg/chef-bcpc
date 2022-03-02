@@ -17,15 +17,14 @@
 set -ev
 
 function main {
-    cd linter_venv && . bin/activate
-    echo ${PWD}
-    exit 0
-    find . -name "*.sh" -exec shellcheck {} \;
-    find . -name "*.sh" -exec bashate -e E006 {} \;
-    find . -name "*.py" \
+    cd /tmp/linter_venv && . bin/activate
+
+    find "${GITHUB_WORKSPACE}" -name "*.sh" -exec shellcheck {} \;
+    find "${GITHUB_WORKSPACE}" -name "*.sh" -exec bashate -e E006 {} \;
+    find "${GITHUB_WORKSPACE}" -name "*.py" \
          ! -path "./chef/cookbooks/bcpc/files/default/*" -exec flake8 {} \;
-    ansible-lint -x var-naming -x meta-no-info -x meta-no-tags ansible/
-    cookstyle --version && cookstyle .
+    ansible-lint -x var-naming -x meta-no-info -x meta-no-tags "${GITHUB_WORKSPACE}/ansible/"
+    cookstyle --version && cookstyle "${GITHUB_WORKSPACE}"
 }
 
 main
