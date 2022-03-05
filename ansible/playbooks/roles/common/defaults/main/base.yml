@@ -157,9 +157,9 @@ assets_download_dir: "{{ root_dir }}/assets"
 
 assets_files:
   - name: cirros
-    url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
-    checksum: sha256:a8dd75ecffd4cdd96072d60c2237b448e0c8b2bc94d57f10fdbc8c481d9005b8
-    filename: cirros-0.4.0-x86_64-disk.img
+    url: https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img
+    checksum: sha256:932fcae93574e242dc3d772d5235061747dfe537668443a1f0567d893614b464
+    filename: cirros-0.5.2-x86_64-disk.img
 
   - name: etcd
     url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
