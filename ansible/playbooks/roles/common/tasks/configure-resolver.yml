@@ -22,7 +22,7 @@
     state: absent
   with_items:
     - /etc/unbound/unbound.conf.d/root-auto-trust-anchor-file.conf
-  register: unbound_defualt_conf
+  register: unbound_default_conf
 
 - name: install unbound default config
   copy:

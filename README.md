@@ -54,7 +54,7 @@ virtual machine provider, an example can be found at
 or [variables.json.libvirt.example](virtual/packer/config/variables.json.libvirt.example).
 This step is essential for building a Packer box that's used as a base box image for building
 the virtual environment. The variables `bcc_apt_key_url` and `bcc_apt_url` are optional,
-while others must be set. The variable `kernel_version` specifies the linux kernel version we'd
+while others must be set. The variable `kernel_version` specifies the Linux kernel version we'd
 like to have for the Packer box. While `base_box`, `base_box_version`, and `base_box_provider`
 specify an official Vagrant box we'd like to use as a baseline for the Packer box, upon which
 we make further modifications. Last but not least, the variable `output_packer_box_name` specifies

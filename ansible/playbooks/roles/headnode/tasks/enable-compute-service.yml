@@ -3,7 +3,7 @@
   shell: |
     set -o pipefail
     set -xe
-    # get the status of all nova-compute servies in json format
+    # get the status of all nova-compute services in JSON format
     services=$(openstack compute service list \
       --service nova-compute -c Host -c Status -f json)
 

@@ -25,7 +25,7 @@ default['bcpc']['unbound']['server']['unblock-lan-zones'] = 'no'
 default['bcpc']['unbound']['server']['use-syslog'] = 'yes'
 default['bcpc']['unbound']['server']['verbosity'] = 1
 
-# TLD quieries to forward to other name servers
+# TLD queries to forward to other name servers
 #
 default['bcpc']['unbound']['forward-zone']['consul'] = [vip + '@8600']
 default['bcpc']['unbound']['forward-zone'][cloud_domain] = ["#{powerdns_address}@#{powerdns_port}"]

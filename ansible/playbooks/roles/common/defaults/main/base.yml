@@ -289,7 +289,7 @@ system_additional_reserved_ports: []
 # Select IPv6 support.
 system_enable_ipv6: false
 
-# Any other sysctl parameters that are to be overidden
+# Any other sysctl parameters that are to be overridden
 system_parameters_kernel.pid_max: 4194303  # noqa var-naming
 system_parameters_net.nf_conntrack_max: 262144  # noqa var-naming
 

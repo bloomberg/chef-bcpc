@@ -46,7 +46,7 @@ if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
     virsh vol-delete --pool default output-vagrant_source.img || true
 fi
 
-# Remove the output directory from packer build 
+# Remove the output directory from packer build
 cd "$packer_dir"
 if [ -d "output-vagrant" ]; then
     rm -drf output-vagrant
