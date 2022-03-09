@@ -1,3 +1,0 @@
-{
-	"cloud_admin": "role:admin and (is_admin_project:True or domain_id:default)"
-}

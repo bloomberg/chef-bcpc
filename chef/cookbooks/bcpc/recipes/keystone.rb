@@ -216,8 +216,14 @@ directory '/etc/keystone/policy.d' do
 end
 
 # install override for cloud_admin definition
-cookbook_file '/etc/keystone/policy.d/cloud_admin.json' do
-  source 'keystone/cloud_admin.json'
+cookbook_file '/etc/keystone/policy.d/cloud_admin.yml' do
+  source 'keystone/cloud_admin.yml'
+end
+
+# Remove old json file
+# TODO: Remove me once enough time has passed since this file has been removed.
+file '/etc/keystone/policy.d/cloud_admin.json' do
+  action :delete
 end
 
 # configure keystone service starts
