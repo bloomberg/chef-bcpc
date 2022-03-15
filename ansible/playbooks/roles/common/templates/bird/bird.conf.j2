@@ -1,9 +1,8 @@
 router id {{ interfaces['service']['ip'] }};
 
-log "/var/log/bird/bird.log" { info, remote, warning, error, auth, fatal, bug, trace, debug };
+log "/var/log/bird/bird.log" { info, warning, error, auth, fatal, bug, remote, debug };
 
-debug protocols all;
-watchdog warning 2 s;
+watchdog warning 3 s;
 
 filter to_tor {
   if net != 127.0.0.0/8 then accept;
@@ -32,31 +31,31 @@ protocol kernel {
     import filter from_kernel;
   };
 }
-{% set interfaces = ['"lo"','"service*"'] %}
-{% for transit in transit_interfaces -%}
-  {% set interfaces = interfaces.append('"' + transit['name'] + '"') %}
-{%- endfor %}
 
 protocol direct {
   ipv4;
-  interface {{ interfaces | join(', ') }};
+  interface "lo", "service0";
 }
 
 protocol device {
   scan time 2;
 }
 
-{% for transit in transit_interfaces %}
-protocol bgp '{{ transit['neighbor']['name'] }}:{{ transit['name'] }}' {
-  multihop;
+template bgp PEER {
   graceful restart;
-  local {{ transit['ip'] | ipaddr('address') }} as {{ bgp['asn'] }};
-  neighbor {{ transit['neighbor']['ip'] }} as {{ transit['neighbor']['asn'] }};
+  hold time 9;
+  keepalive time 3;
+  error wait time 9,300;
   ipv4 {
-    next hop self;
     import all;
     export filter to_tor;
   };
+}
+
+{% for transit in transit_interfaces %}
+protocol bgp '{{ transit['neighbor']['name'] }}:{{ transit['name'] }}' from PEER {
+  local {{ transit['ip'] | ipaddr('address') }} as {{ bgp['asn'] }};
+  neighbor {{ transit['neighbor']['ip'] }} as {{ transit['neighbor']['asn'] }};
 }
 
 {% endfor %}
