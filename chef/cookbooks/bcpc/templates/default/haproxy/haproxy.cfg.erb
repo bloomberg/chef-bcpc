@@ -44,7 +44,7 @@ frontend https
   stats hide-version
   stats realm Haproxy\ Statistics
   stats auth <%= @user['username'] %>:<%= @user['password'] %>
-  reqadd X-Forwarded-Proto:\ https
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }
   acl url_horizon path_beg /horizon
   use_backend horizon-backend if url_horizon
   acl url_horizon_static path_beg /static
@@ -74,7 +74,7 @@ backend rabbitmq-web-backend
   balance source
   option httpchk GET /
   http-check expect status 200
-  reqrep ^([^\ :]*)\ /rabbitmq/(.*) \1\ /\2
+  http-request set-uri %[url,regsub(^/rabbitmq/?,/,)] if { path_beg /rabbitmq }
 <% @rmqnodes.each do |n| -%>
   server <%= n['hostname'] %> <%= n['service_ip'] %>:55672 check inter 5s rise 1 fall 1
 <% end -%>
