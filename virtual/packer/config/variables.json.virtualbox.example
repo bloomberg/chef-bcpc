@@ -1,6 +1,8 @@
 {
   "bcc_apt_key_url": "",
   "bcc_apt_url": "",
+  "bcc_http_proxy_url": "",
+  "bcc_https_proxy_url": "",
   "kernel_version": "generic-hwe-18.04-edge",
   "base_box": "bento/ubuntu-18.04",
   "base_box_version": "202005.21.0",

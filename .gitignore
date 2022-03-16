@@ -8,6 +8,7 @@ assets/
 ansible/inventory.yml
 ansible/group_vars/all/overrides.yml
 ansible/group_vars/all/chef_databags.yml
+ansible/group_vars/all/chef_environment.yml
 chef/roles/*node.json
 chef/roles/bootstrap.json
 chef/environments/

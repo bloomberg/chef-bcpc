@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2021, Bloomberg Finance L.P.
+# Copyright 2022, Bloomberg Finance L.P.
 #
 # Chef Bento
 # Copyright 2012-2019, Chef Software, Inc.
@@ -24,6 +24,8 @@ export DEBIAN_FRONTEND='noninteractive' DEBIAN_PRIORITY='critical'
 
 apt_key_url="${BCC_APT_KEY_URL}"
 apt_url="${BCC_APT_URL}"
+http_proxy_url="${BCC_HTTP_PROXY_URL}"
+https_proxy_url="${BCC_HTTPS_PROXY_URL}"
 kernel_version="${BCC_KERNEL_VERSION}"
 
 function main {
@@ -36,11 +38,23 @@ function main {
 }
 
 function configure_apt {
-    if [ -n "$apt_key_url" ]; then
-        /usr/bin/wget -qO - "$apt_key_url" | /usr/bin/apt-key add -
+    if [ -n "${apt_key_url}" ]; then
+        /usr/bin/wget -qO - "${apt_key_url}" | /usr/bin/apt-key add -
     fi
 
-    if [ -n "$apt_url" ]; then
+    if [ -n "${http_proxy_url}" ]; then
+        echo 'Acquire::http::Proxy "'"${http_proxy_url}"'";' \
+            > /etc/apt/apt.conf.d/proxy
+    fi
+    if [ -n "${https_proxy_url}" ]; then
+        echo 'Acquire::http::Proxy "'"${http_proxy_url}"'";' \
+            >> /etc/apt/apt.conf.d/proxy
+    fi
+
+    echo 'APT::Install-Recommends "false";' \
+        > /etc/apt/apt.conf.d/99no-install-recommends
+
+    if [ -n "${apt_url}" ]; then
 cat << EOF > /etc/apt/sources.list
 deb ${apt_url} bionic main restricted universe multiverse
 deb ${apt_url} bionic-backports main restricted universe multiverse
@@ -49,8 +63,6 @@ deb ${apt_url} bionic-updates main restricted universe multiverse
 EOF
     fi
 
-    echo 'APT::Install-Recommends "false";' \
-         >> /etc/apt/apt.conf.d/99no-install-recommends
     apt-get update
 }
 
@@ -64,8 +76,8 @@ function upgrade_system {
 
 function configure_linux_kernel {
     if [ -n "${kernel_version}" ]; then
-        apt-get install -y "linux-${kernel_version}" \
-                "linux-tools-${kernel_version}"
+        apt-get install -y \
+            "linux-${kernel_version}" "linux-tools-${kernel_version}"
     fi
 
     # Disable IPv6

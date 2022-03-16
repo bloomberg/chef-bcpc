@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2022 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,14 +17,6 @@
 require '../lib/util'
 
 vagrant_box, vagrant_box_version = Util.get_vagrant_box()
-
-def setup_proxy(node)
-  http_proxy  = ENV['http_proxy']  || ''
-  https_proxy = ENV['https_proxy'] || ''
-  return unless http_proxy != ''
-  node.vm.provision 'shell', path: 'proxyconfig.sh',
-                             args: [http_proxy, https_proxy]
-end
 
 FABRIC_ID = 'bcpc-'.freeze
 
@@ -72,7 +64,6 @@ Vagrant.configure(2) do |config|
       node.vm.network('private_network',
         virtualbox__intnet: Util.vbox_name('management3'),
         auto_config: false)
-      setup_proxy(node)
       node.vm.provision 'shell', path: 'provisioner.sh', args: '-E network'
     end
 
@@ -104,7 +95,6 @@ Vagrant.configure(2) do |config|
           node.vm.network('private_network',
             virtualbox__intnet: Util.vbox_name("management#{management}"),
             auto_config: false)
-          setup_proxy(node)
           node.vm.provision 'shell', path: 'provisioner.sh', args: "#{tor}"
         end
       end
@@ -139,7 +129,6 @@ Vagrant.configure(2) do |config|
           else
             on_edge = '-E'
           end
-          setup_proxy(node)
           node.vm.provision 'shell', path: 'provisioner.sh',
                                      args: "#{on_edge} #{spine}"
         end
@@ -167,7 +156,6 @@ Vagrant.configure(2) do |config|
                 virtualbox__intnet: Util.vbox_name(sspine + ':' + spine),
                 auto_config: false)
             end
-            setup_proxy(node)
             node.vm.provision 'shell', path: 'provisioner.sh',
                                        args: "-E #{sspine}"
           end
