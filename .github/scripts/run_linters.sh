@@ -26,7 +26,10 @@ function main {
          -exec flake8 {} \;
     ansible-lint -x var-naming \
                  -x meta-no-info \
-                 -x meta-no-tags ansible/
+                 -x meta-no-tags ansible/ \
+                 -x yaml \
+                 -x fqcn-builtins \
+                 -x experimental
     cookstyle --version && cookstyle .
 }
 
