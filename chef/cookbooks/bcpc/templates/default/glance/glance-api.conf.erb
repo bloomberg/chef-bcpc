@@ -38,8 +38,8 @@ rbd_store_ceph_conf = /etc/ceph/ceph.conf
 
 
 [image_format]
-container_formats = ami,ari,aki,bare,ovf,ova,docker
-disk_formats = ami,ari,aki,vhd,vhdx,vmdk,raw,qcow2,vdi,iso,ploop.root-tar
+container_formats = <%= node['bcpc']['glance']['image_format']['container_formats'].join(',') %>
+disk_formats = <%= node['bcpc']['glance']['image_format']['disk_formats'].join(',') %>
 
 
 [keystone_authtoken]

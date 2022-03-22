@@ -18,3 +18,7 @@ default['bcpc']['glance']['os']['username'] = 'glance'
 default['bcpc']['glance']['ceph']['user'] = 'glance'
 default['bcpc']['glance']['ceph']['pool']['name'] = 'images'
 default['bcpc']['glance']['ceph']['pool']['size'] = 1
+
+# image format
+default['bcpc']['glance']['image_format']['container_formats'] = ['bare']
+default['bcpc']['glance']['image_format']['disk_formats'] = ['raw']
