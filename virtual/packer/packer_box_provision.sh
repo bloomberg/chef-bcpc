@@ -47,7 +47,7 @@ function configure_apt {
             > /etc/apt/apt.conf.d/proxy
     fi
     if [ -n "${https_proxy_url}" ]; then
-        echo 'Acquire::http::Proxy "'"${http_proxy_url}"'";' \
+        echo 'Acquire::https::Proxy "'"${https_proxy_url}"'";' \
             >> /etc/apt/apt.conf.d/proxy
     fi
 
