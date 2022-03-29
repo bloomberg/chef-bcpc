@@ -46,12 +46,13 @@ end
 begin
 
   certs = []
-  certs.push(Base64.decode64(config['ssl']['key']))
   certs.push(Base64.decode64(config['ssl']['crt']))
 
   if config['ssl']['intermediate']
     certs.push(Base64.decode64(config['ssl']['intermediate']))
   end
+
+  certs.push(Base64.decode64(config['ssl']['key']))
 
   template '/etc/haproxy/haproxy.pem' do
     source 'haproxy/haproxy.pem.erb'

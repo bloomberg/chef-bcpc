@@ -48,22 +48,27 @@ Vagrant box we use to build the virtual environment, and `vagrant_box_version` s
 the version of the Vagrant box.
 * If one would like to build a pre-provisioned custom Packer box and use it as the base box
 to create the virtual environment, the steps below should be followed:
-  * Create `virtual/packer/variables.json` and set the variables. Depends on the
+  * Create `virtual/packer/config/variables.json` and set the variables. Depends on the
 virtual machine provider, an example can be found at
-[variables.json.virtualbox.example](virtual/packer/variables.json.virtualbox.example)
-or [variables.json.libvirt.example](virtual/packer/variables.json.libvirt.example).
+[variables.json.virtualbox.example](virtual/packer/config/variables.json.virtualbox.example)
+or [variables.json.libvirt.example](virtual/packer/config/variables.json.libvirt.example).
 This step is essential for building a Packer box that's used as a base box image for building
 the virtual environment. The variables `bcc_apt_key_url` and `bcc_apt_url` are optional,
-while others must be set. The variable `kernel_version` specifies the linux kernel version we'd
+while others must be set. The variable `kernel_version` specifies the Linux kernel version we'd
 like to have for the Packer box. While `base_box`, `base_box_version`, and `base_box_provider`
 specify an official Vagrant box we'd like to use as a baseline for the Packer box, upon which
 we make further modifications. Last but not least, the variable `output_packer_box_name` specifies
 the name we'd like to use when adding the output Packer box to Vagrant.
+  * Alternatively, if one has S3 set up and would like to download/upload a packer box, `virtual/packer/config/s3.json`
+can be set up to leverage a pre-built packer box. An example can be found at
+[s3.json.virtualbox.example](virtual/packer/config/s3.json.virtualbox.example)
+or [s3.json.libvirt.example](virtual/packer/config/s3.json.libvirt.example). Run make target `make download-packer-box`
+and `make upload-packer-box` to download/upload a packer box. 
   * Run make target `make create-packer-box`. This will create a Packer box and add it to Vagrant
 with the name specified by `output_packer_box_name`.
   * Set the variables in `virtual/vagrantbox.json` accordingly. When a local custom box built by Packer
 is used, the variable `vagrant_box` needs to be set to the name of the Packer box (aka, the same as
-`output_packer_box_name` in `virtual/packer/variables.json`), and `vagrant_box_version` should be set to 0.
+`output_packer_box_name` in `virtual/packer/config/variables.json`), and `vagrant_box_version` should be set to 0.
   * After these steps, `make create all` would always use the Packer box, unless `virtual/vagrantbox.json`
 is specified otherwise.
   * If the Packer box needs to be updated, we recommend first clean up the old Packer box. To clean up a
@@ -107,7 +112,7 @@ make create all
 To create a libvirt build:
 
 ```shell
-sudo apt-get install build-essential libvirt-dev qemu-utils libguestfs-tools
+sudo apt-get install build-essential dnsmasq libguestfs-tools libvirt-dev pkg-config qemu-utils
 vagrant plugin install vagrant-libvirt vagrant-mutate
 vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualbox
 vagrant mutate bento/ubuntu-18.04 libvirt

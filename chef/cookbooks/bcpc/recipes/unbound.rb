@@ -15,11 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+pdns_attr = node['bcpc']['powerdns']
+local_zones_conf = '/etc/unbound/unbound.conf.d/local-zones.conf'
 service 'unbound'
 
+# if pdns is not enabled, then we should remove the local_zones_conf file
+# that was installed from previous installations
+unless pdns_attr['enabled']
+  file local_zones_conf do
+    action :delete
+    notifies :restart, 'service[unbound]', :immediately
+  end
+end
+
+return unless pdns_attr['enabled']
+
 begin
-  powerdns_address = node['bcpc']['powerdns']['local_address']
-  powerdns_port = node['bcpc']['powerdns']['local_port']
+  powerdns_address = pdns_attr['local_address']
+  powerdns_port = pdns_attr['local_port']
   powerdns_ns = "#{powerdns_address}@#{powerdns_port}"
   local_zones = {}
   networks = node['bcpc']['neutron']['networks'].dup
@@ -36,7 +49,7 @@ begin
     end
   end
 
-  template '/etc/unbound/unbound.conf.d/local-zones.conf' do
+  template local_zones_conf do
     source 'unbound/local-zones.conf.erb'
     variables(
       local_zones: local_zones

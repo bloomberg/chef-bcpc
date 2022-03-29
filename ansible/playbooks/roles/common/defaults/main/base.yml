@@ -157,9 +157,9 @@ assets_download_dir: "{{ root_dir }}/assets"
 
 assets_files:
   - name: cirros
-    url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
-    checksum: sha256:a8dd75ecffd4cdd96072d60c2237b448e0c8b2bc94d57f10fdbc8c481d9005b8
-    filename: cirros-0.4.0-x86_64-disk.img
+    url: https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img
+    checksum: sha256:932fcae93574e242dc3d772d5235061747dfe537668443a1f0567d893614b464
+    filename: cirros-0.5.2-x86_64-disk.img
 
   - name: etcd
     url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
@@ -167,8 +167,8 @@ assets_files:
     filename: etcd-v3.3.10-linux-amd64.tar.gz
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calicoctl/releases/download/v3.19.3/calicoctl-linux-amd64
-    checksum: sha256:e9d91036764ec24f32025c3176efb2c2673b9936270e6165fb6583cce97bc43f
+    url: https://github.com/projectcalico/calico/releases/download/v3.22.1/calicoctl-linux-amd64
+    checksum: sha256:b42be4f7c053f209127a9b9a6945ce11ab3bc0725f2741f92380400b008c6111
     filename: calicoctl
 
   - name: consul
@@ -289,9 +289,14 @@ system_additional_reserved_ports: []
 # Select IPv6 support.
 system_enable_ipv6: false
 
-# Any other sysctl parameters that are to be overidden
+# Any other sysctl parameters that are to be overridden
 system_parameters_kernel.pid_max: 4194303  # noqa var-naming
 system_parameters_net.nf_conntrack_max: 262144  # noqa var-naming
 
 # Read-ahead value for all block devices, in kb
 system_readahead_kb: 512
+
+###############################################################################
+# unbound
+###############################################################################
+unbound_powerdns_enabled: true

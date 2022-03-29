@@ -19,7 +19,7 @@ set -xe
 packer_dir=$(dirname "$(dirname "$0")")
 
 # Remove packer-box from vagrant box list if the packer-box exists
-config_variables="${packer_dir}/variables.json"
+config_variables="${packer_dir}/config/variables.json"
 OUTPUT_PACKER_BOX_NAME=$(jq -r '.output_packer_box_name' "$config_variables")
 if [ "$OUTPUT_PACKER_BOX_NAME" == "null" ]; then
     printf "Variable \"output_packer_box_name\" in %s is undefined.\n" \
@@ -34,12 +34,19 @@ if [ -n "$output_box_exists" ]; then
     if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
         virsh vol-delete \
             --pool default \
-            "${OUTPUT_PACKER_BOX_NAME}_vagrant_box_image_0.img"
+            "${OUTPUT_PACKER_BOX_NAME}_vagrant_box_image_0_box.img" || true
         virsh pool-refresh default
     fi
 fi
 
-# Remove the output directory from packer build 
+# cleanup any scrapnel vagrant-libvirt may have left lying around
+if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
+    virsh destroy output-vagrant_source || true
+    virsh undefine output-vagrant_source || true
+    virsh vol-delete --pool default output-vagrant_source.img || true
+fi
+
+# Remove the output directory from packer build
 cd "$packer_dir"
 if [ -d "output-vagrant" ]; then
     rm -drf output-vagrant

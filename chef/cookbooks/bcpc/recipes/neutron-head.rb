@@ -382,7 +382,27 @@ node['bcpc']['neutron']['networks'].each do |network|
     environment os_adminrc
 
     command <<-DOC
-      openstack network create #{float_network} --external
+      # create the floating network and capture the output in shell format
+      # so we can easily get the network id from the prefixed 'fn_' shell
+      # variables
+      new_fn_output=$(openstack network create #{float_network} \
+                        --external \
+                        --format shell \
+                        --prefix 'fn_')
+
+      # evaluate the shell output so we can access the values
+      eval ${new_fn_output}
+
+      # get the rbac id for the newly created floating network
+      fn_rbac_id=$(openstack network rbac list \
+                     --type network \
+                     --action access_as_external \
+                     --format value \
+                   | grep ${fn_id} | awk '{print $1}')
+
+      # use the fn_rbac_id to set the rbac target-project to the admin
+      # project so that only admins can see these networks
+      openstack network rbac set ${fn_rbac_id} --target-project admin
     DOC
 
     not_if { node.run_state['os_networks'].include? float_network }

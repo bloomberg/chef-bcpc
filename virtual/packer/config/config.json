@@ -6,9 +6,12 @@
         "BCC_APT_KEY_URL={{user `bcc_apt_key_url`}}",
         "BCC_APT_URL={{user `bcc_apt_url`}}",
         "BCC_BASE_BOX_PROVIDER={{user `base_box_provider`}}",
+        "BCC_HTTP_PROXY_URL={{user `bcc_http_proxy_url`}}",
+        "BCC_HTTPS_PROXY_URL={{user `bcc_https_proxy_url`}}",
         "BCC_KERNEL_VERSION={{user `kernel_version`}}"
       ],
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "execute_command":
+        "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "script": "./packer_box_provision.sh"
     }
   ],

@@ -157,7 +157,7 @@ execute 'move existing proxysql data directory' do
 end
 
 # Before ProxySQL is upgraded, copy (and thus back up) the existing ProxySQL
-# data directory, if any. There may be incompatabilities between versions and
+# data directory, if any. There may be incompatibilities between versions and
 # this allows for an easier rollback.
 execute 'copy existing proxysql data directory' do
   command "if [ -d \"#{node['bcpc']['proxysql']['default_datadir']}\" ] ; then \

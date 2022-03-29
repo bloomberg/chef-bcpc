@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: etcd3gw
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2022 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ package %w(
 )
 
 target = node['bcpc']['etcd3gw']['remote_file']['file']
+etcd3gw = File.basename("#{target}", '.tar.gz')
 save_path = "#{Chef::Config[:file_cache_path]}/#{target}"
 web_server_url = node['bcpc']['web_server']['url']
 
@@ -40,7 +41,9 @@ bash 'install etcd3gw' do
   cwd Chef::Config[:file_cache_path]
   code <<-EOH
     tar -xzf #{target}
-    python3 -m pip install $(basename #{target} .tar.gz)/
+    # Bionic version (2.18.4) of python3-requests has addressed CVE-2018-18074
+    sed -i.orig '/^requests>=/s/2\.20\.0/2.18.4/' #{etcd3gw}/requirements.txt
+    python3 -m pip install ./#{etcd3gw}
   EOH
   retries 5
   retry_delay 2

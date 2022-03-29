@@ -20,9 +20,10 @@ osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
 mon cpu threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
+mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
+mgr tick period = <%= node['bcpc']['ceph']['mgr_tick_period'] %>
 
 [mgr]
-mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
 mgr stats period = <%= node['bcpc']['ceph']['mgr_stats_period'] %>
 mgr stats threshold = <%= node['bcpc']['ceph']['mgr_stats_threshold'] %>
 mgr tick period = <%= node['bcpc']['ceph']['mgr_tick_period'] %>

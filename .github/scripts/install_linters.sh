@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+set -e
+
 function main {
     install_linters_linux
 }
@@ -13,11 +15,17 @@ function main {
 #
 
 function install_linters_linux {
+    python3 -m venv /tmp/linter_venv
+    source /tmp/linter_venv/bin/activate
+
     sudo apt-get install -y shellcheck
-    for pkg in bashate flake8 ansible-lint==5.2.1; do
-        pipx install --force "${pkg}"
-    done
-    pipx inject ansible-lint ansible-core==2.11.6
+    pip install -U setuptools wheel pip
+    pip install -I --force \
+        bashate==2.1.0 \
+        flake8==4.0.1 \
+        ansible-lint==5.4.0 \
+        ansible==5.4.0
+
     sudo gem install cookstyle
 }
 

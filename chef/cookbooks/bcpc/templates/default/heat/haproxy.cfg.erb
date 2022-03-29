@@ -14,7 +14,7 @@ listen heat-api
 <% end -%>
 
 <%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
-  reqadd X-Forwarded-Proto:\ https
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }
 
 listen heat-api-cfn
   bind <%= @vip %>:8000 ssl crt /etc/haproxy/haproxy.pem
@@ -28,4 +28,4 @@ listen heat-api-cfn
 <% end -%>
 
 <%= render 'haproxy/haproxy.cfg.qos.erb', :option => {} %>
-  reqadd X-Forwarded-Proto:\ https
+  http-request add-header X-Forwarded-Proto https if { ssl_fc }

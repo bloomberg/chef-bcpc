@@ -43,7 +43,8 @@ node['bcpc']['openstack']['flavors'].each do |flavor, spec|
       openstack flavor create "#{flavor}" \
         --vcpus #{spec['vcpus']} \
         --ram #{spec['ram']} \
-        --disk #{spec['disk']}
+        --disk #{spec['disk']} \
+        --property hw:vif_multiqueue_enabled=true
     DOC
     not_if { node.run_state['os_flavors'].include? flavor }
   end

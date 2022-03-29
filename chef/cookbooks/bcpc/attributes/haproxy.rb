@@ -4,7 +4,7 @@
 
 # Installation-related configuration options
 default['bcpc']['haproxy']['repo']['enabled'] = false
-default['bcpc']['haproxy']['repo']['url'] = 'http://ppa.launchpad.net/vbernat/haproxy-1.8/ubuntu'
+default['bcpc']['haproxy']['repo']['url'] = 'http://ppa.launchpad.net/vbernat/haproxy-2.4/ubuntu'
 default['bcpc']['haproxy']['repo']['key'] = 'haproxy/haproxy.key'
 
 # QoS protection-related configuration options
