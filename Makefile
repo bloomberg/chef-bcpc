@@ -237,10 +237,6 @@ upload-all :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t upload-extra-cookbooks --limit bootstraps
 
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t upload-bcpc --limit bootstraps
-
 configure-web-server :
 
 	ansible-playbook -v \
