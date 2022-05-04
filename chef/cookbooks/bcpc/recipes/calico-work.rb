@@ -50,13 +50,6 @@ end
   end
 end
 
-# install patched dhcp.py for calico-dhcp-agent
-# https://bugs.launchpad.net/neutron/+bug/1915480
-cookbook_file '/usr/lib/python3/dist-packages/neutron/agent/linux/dhcp.py' do
-  source 'neutron/dhcp.py'
-  notifies :restart, 'service[calico-dhcp-agent]', :delayed
-end
-
 # patch an outstanding python3 issue in etcd3gw
 # we do this here and not in bcpc::etcd3gw so we can notify calico-dhcp-agent
 cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do
