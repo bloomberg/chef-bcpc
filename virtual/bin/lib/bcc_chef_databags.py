@@ -23,7 +23,9 @@ import time
 import uuid
 import yaml
 from builtins import FileExistsError
-from Crypto.PublicKey import RSA
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.serialization.ssh import \
+    serialize_ssh_private_key, serialize_ssh_public_key
 from OpenSSL import crypto
 
 
@@ -209,18 +211,25 @@ class EtcdSSL:
 
 class SSH:
     def __init__(self):
-        self.__key = RSA.generate(1024)
+        # Note: pyopenssl 22.0.0 does not support Ed25519PrivateKey keys,
+        # but support is present on master. Until then, we will use the raw
+        # cryptography functions instead.
+        # self.__key = crypto.PKey.from_cryptography_key(
+        #         Ed25519PrivateKey.generate())
+        self.__key = Ed25519PrivateKey.generate()
 
     @property
     def key(self):
         return self.__key
 
     def public(self):
-        key = self.key.publickey().exportKey('OpenSSH')
+        # key = self.key.publickey().exportKey('OpenSSH')
+        key = serialize_ssh_public_key(self.key.public_key())
         return base64.b64encode(key).decode()
 
     def private(self):
-        key = self.key.exportKey('PEM')
+        # key = self.key.exportKey('PEM')
+        key = serialize_ssh_private_key(self.key)
         return base64.b64encode(key).decode()
 
 
