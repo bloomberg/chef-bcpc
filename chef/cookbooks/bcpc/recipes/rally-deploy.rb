@@ -25,6 +25,7 @@ config = data_bag_item(region, 'config')
 service = node['bcpc']['catalog']['identity']
 auth_url = generate_service_catalog_uri(service, 'public')
 home_dir = node['bcpc']['rally']['home_dir']
+tempest_version = node['bcpc']['rally']['tempest']['version']
 
 env = {
   'HOME' => home_dir,
@@ -79,7 +80,8 @@ execute 'create tempest verifier' do
   command <<-EOH
     rally verify create-verifier \
       --type tempest \
-      --name tempest
+      --name tempest \
+      --version #{tempest_version}
   EOH
   not_if 'rally verify show-verifier tempest'
 end
