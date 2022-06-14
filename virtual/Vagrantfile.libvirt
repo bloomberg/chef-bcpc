@@ -114,6 +114,7 @@ Vagrant.configure('2') do |config|
             Util.libvirt_prefix() + t_iface['neighbor']['name']
           a[:libvirt__dhcp_enabled] = false
           a[:libvirt__forward_mode] = 'veryisolated'
+          a[:libvirt__mtu] = 9000
         end
         subconfig.vm.network('private_network', args)
       end

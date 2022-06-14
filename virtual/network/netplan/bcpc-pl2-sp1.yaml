@@ -8,15 +8,20 @@ network:
     eth1:
       addresses:
         - 172.16.0.3/31
+      mtu: 9000
     eth2:
       addresses:
         - 172.16.0.7/31
+      mtu: 9000
     eth3:
       addresses:
         - 172.16.0.11/31
+      mtu: 9000
     eth4:
       addresses:
         - 172.16.0.72/31
+      mtu: 9000
     eth5:
       addresses:
         - 172.16.0.74/31
+      mtu: 9000

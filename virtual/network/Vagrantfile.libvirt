@@ -62,7 +62,8 @@ def add_private_network(config, name, ipaddr)
                       libvirt__network: netmask,
                       libvirt__network_name: Util.libvirt_prefix() + name,
                       libvirt__dhcp_enabled: false,
-                      libvirt__forward_mode: 'veryisolated')
+                      libvirt__forward_mode: 'veryisolated',
+                      libvirt__mtu: 9000)
 end
 
 def configure_router_vm(config, name)
