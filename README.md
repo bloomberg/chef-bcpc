@@ -98,7 +98,7 @@ Create a Python virtual environment (virtualenv) and activate it
 python3 -mvenv venv
 source venv/bin/activate
 pip install 'pip>=19.1.1' wheel
-pip install PyYaml ansible netaddr pyOpenSSL pycryptodome
+pip install PyYaml ansible netaddr pyOpenSSL cryptography>=3.0
 ```
 
 To create a virtualbox build (the default):
