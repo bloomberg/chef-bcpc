@@ -21,6 +21,8 @@ chef_environment:
         cmdline_linux:
           - net.ifnames=0
           - biosdevname=0
+      networking:
+        mtu: "{{ networking['mtu'] }}"
       nova:
         cpu_config:
           AuthenticAMD:

@@ -15,6 +15,7 @@ rpc_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 rpc_state_report_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 dns_domain = <%= node['bcpc']['cloud']['domain'] %>
+global_physnet_mtu = <%= node['bcpc']['neutron']['network']['global_physnet_mtu'] %>
 
 [agent]
 root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf

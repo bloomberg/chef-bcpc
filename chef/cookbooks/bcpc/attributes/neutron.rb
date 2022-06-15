@@ -4,6 +4,10 @@
 default['bcpc']['neutron']['debug'] = false
 default['bcpc']['neutron']['db']['dbname'] = 'neutron'
 
+# underlying network configuration
+default['bcpc']['neutron']['network']['default_network_mtu'] = 1500
+default['bcpc']['neutron']['network']['global_physnet_mtu'] = node['bcpc']['networking']['mtu']
+
 # neutron network nameservers
 # this list is used during the neutron subnet creation process to set the
 # dns-namserver for the instances

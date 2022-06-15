@@ -318,12 +318,14 @@ end
 # create networks starts
 node['bcpc']['neutron']['networks'].each do |network|
   fixed_network = network['name']
+  default_network_mtu = node['bcpc']['neutron']['network']['default_network_mtu']
 
   raise "#{fixed_network}: no subnets defined" unless network.key?('fixed')
 
   # build the create network command line options
   network_create_opts = [
     '--provider-network-type local',
+    "--mtu #{default_network_mtu}",
   ]
 
   # networks are shared by default unless explicitly set to false in the config
@@ -388,6 +390,7 @@ node['bcpc']['neutron']['networks'].each do |network|
       new_fn_output=$(openstack network create #{float_network} \
                         --external \
                         --format shell \
+			--mtu #{default_network_mtu} \
                         --prefix 'fn_')
 
       # evaluate the shell output so we can access the values
