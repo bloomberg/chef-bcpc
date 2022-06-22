@@ -32,6 +32,7 @@ function main {
     configure_apt
     upgrade_system
     configure_linux_kernel
+    configure_vbox_guest_additions
     cleanup_image
     download_debs
     sync
@@ -89,6 +90,30 @@ function configure_linux_kernel {
     update-grub
 }
 
+function configure_vbox_guest_additions {
+    # virtualbox: Install mated version of VirtualBox Guest Additions
+    if [ -z "${BCC_BASE_BOX_PROVIDER}" ] || [ "${BCC_BASE_BOX_PROVIDER}" == "virtualbox" ]; then
+        mkdir /mnt/VBoxGuestAdditions
+        mount -o loop,ro /tmp/VBoxGuestAdditions.iso /mnt/VBoxGuestAdditions
+        # Fails because we do not necessarily have headers for the running
+        # kernel. We are building for another kernel though, so its fine.
+        /mnt/VBoxGuestAdditions/VBoxLinuxAdditions.run || /bin/true
+        umount /mnt/VBoxGuestAdditions
+        rmdir /mnt/VBoxGuestAdditions
+
+        apt-get install -y build-essential
+        kernel_release=`ls /lib/modules | sort -V | tail -n1`
+        /sbin/rcvboxadd quicksetup "${kernel_release}"
+        apt-get purge -y build-essential
+    # libvirt: remove VirtualBox Guest Additions services/agents
+    elif [ "${BCC_BASE_BOX_PROVIDER}" == "libvirt" ]; then
+        systemctl disable vboxadd
+        systemctl disable vboxadd-service
+        systemctl reset-failed
+        rm -rf /opt/VBoxGuestAdditions-*
+    fi
+}
+
 # Based on Chef Bento's cleanup logic for Ubuntu
 function cleanup_image {
     # autoremoving packages and cleaning apt data
@@ -115,14 +140,6 @@ function cleanup_image {
     # clear the history so our install isn't there
     rm -f /root/.wget-hsts
     export HISTSIZE=0
-
-    # remove VirtualBox Guest Additions when libvirt is in use
-    if [ "${BCC_BASE_BOX_PROVIDER}" == "libvirt" ]; then
-        systemctl disable vboxadd
-        systemctl disable vboxadd-service
-        systemctl reset-failed
-        rm -rf /opt/VBoxGuestAdditions-*
-    fi
 }
 
 function download_debs {

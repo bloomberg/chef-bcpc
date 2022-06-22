@@ -53,6 +53,10 @@ Vagrant.configure('2') do |config|
   config.vm.box_version = vagrant_box_version
   config.vm.box_download_insecure = true
 
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
+
   topology['nodes'].each do |node|
     vm_name = node['host']
 

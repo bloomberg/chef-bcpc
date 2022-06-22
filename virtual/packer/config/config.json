@@ -1,6 +1,11 @@
 {
   "provisioners": [
     {
+      "type": "file",
+      "source": "/usr/share/virtualbox/VBoxGuestAdditions.iso",
+      "destination": "/tmp/VBoxGuestAdditions.iso"
+    },
+    {
       "type": "shell",
       "environment_vars": [
         "BCC_APT_KEY_URL={{user `bcc_apt_key_url`}}",
