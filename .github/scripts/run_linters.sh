@@ -17,6 +17,7 @@
 set -ev
 
 function main {
+    # shellcheck disable=SC1091
     source /tmp/linter_venv/bin/activate
 
     find . -name "*.sh" -exec shellcheck -x {} \;

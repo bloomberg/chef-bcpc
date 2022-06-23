@@ -15,9 +15,11 @@
 # limitations under the License.
 
 import argparse
-import sys
-import yaml
 from builtins import FileExistsError
+import sys
+
+import yaml
+
 from lib.bcc_chef_databags import BCCChefDatabags
 
 if __name__ == '__main__':

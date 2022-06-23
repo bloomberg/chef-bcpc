@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+from builtins import FileExistsError
 import os
 import random
 import secrets
@@ -21,12 +22,14 @@ import struct
 import subprocess
 import time
 import uuid
-import yaml
-from builtins import FileExistsError
+
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives.serialization.ssh import \
-    serialize_ssh_private_key, serialize_ssh_public_key
+    serialize_ssh_private_key
+from cryptography.hazmat.primitives.serialization.ssh import \
+    serialize_ssh_public_key
 from OpenSSL import crypto
+import yaml
 
 
 class APISSL:
