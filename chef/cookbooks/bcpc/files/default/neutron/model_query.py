@@ -207,6 +207,8 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None):
                 query_to_union = None
             if rbac_query_filter is not None:
                 rbac_query_filter = and_(rbac_query_filter, is_shared)
+            else:
+                rbac_query_filter = is_shared
 
     # NOTE(tstachecki): To avoid upsetting the MySQL optimizer, instead of
     # doing an OUTER JOIN above, do an INNER JOIN there and UNION it with
