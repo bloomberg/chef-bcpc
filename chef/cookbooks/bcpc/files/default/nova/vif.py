@@ -271,8 +271,11 @@ class LibvirtGenericVIFDriver(object):
             driver = 'vhost'
             max_tap_queues = self._get_max_tap_queues()
             if max_tap_queues:
-                vhost_queues = (max_tap_queues if flavor.vcpus > max_tap_queues
-                    else flavor.vcpus)
+                vhost_queues = (
+                    max_tap_queues
+                    if flavor.vcpus > max_tap_queues
+                    else flavor.vcpus
+                )
             else:
                 vhost_queues = flavor.vcpus
 
@@ -361,7 +364,7 @@ class LibvirtGenericVIFDriver(object):
         return conf
 
     def get_config_hw_veb(self, instance, vif, image_meta,
-                            inst_type, virt_type, host):
+                          inst_type, virt_type, host):
         conf = self.get_base_config(instance, vif['address'], image_meta,
                                     inst_type, virt_type, vif['vnic_type'],
                                     host)

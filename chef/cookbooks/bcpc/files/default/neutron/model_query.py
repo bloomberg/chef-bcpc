@@ -367,7 +367,12 @@ def get_collection(context, model, dict_func,
 
 
 def get_values(context, model, field, filters=None):
-    query = query_with_hooks(context, model, field=field, hoisted_filters=filters)
+    query = query_with_hooks(
+            context,
+            model,
+            field=field,
+            hoisted_filters=filters
+    )
     query = apply_filters(query, model, filters, context)
     return [c[0] for c in query]
 

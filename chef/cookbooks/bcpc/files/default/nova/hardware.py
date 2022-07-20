@@ -716,17 +716,21 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
     # get number of threads per core in host's cell
     threads_per_core = max(map(len, host_cell.siblings)) or 1
 
-    LOG.debug('Packing an instance onto a set of siblings: '
-             '    host_cell_free_siblings: %(siblings)s'
-             '    instance_cell: %(cells)s'
-             '    host_cell_id: %(host_cell_id)s'
-             '    threads_per_core: %(threads_per_core)s'
-             '    num_cpu_reserved: %(num_cpu_reserved)s',
-                {'siblings': host_cell.free_siblings,
-                 'cells': instance_cell,
-                 'host_cell_id': host_cell.id,
-                 'threads_per_core': threads_per_core,
-                 'num_cpu_reserved': num_cpu_reserved})
+    LOG.debug(
+            'Packing an instance onto a set of siblings: '
+            '    host_cell_free_siblings: %(siblings)s'
+            '    instance_cell: %(cells)s'
+            '    host_cell_id: %(host_cell_id)s'
+            '    threads_per_core: %(threads_per_core)s'
+            '    num_cpu_reserved: %(num_cpu_reserved)s',
+            {
+                'siblings': host_cell.free_siblings,
+                'cells': instance_cell,
+                'host_cell_id': host_cell.id,
+                'threads_per_core': threads_per_core,
+                'num_cpu_reserved': num_cpu_reserved
+            }
+    )
 
     # We build up a data structure that answers the question: 'Given the
     # number of threads I want to pack, give me a list of all the available
@@ -1000,8 +1004,11 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
 
     if not pinning or (num_cpu_reserved and not cpuset_reserved):
         return
-    LOG.debug('Selected cores for pinning: %s, in cell %s', pinning,
-                                                            host_cell.id)
+    LOG.debug(
+            'Selected cores for pinning: %s, in cell %s',
+            pinning,
+            host_cell.id
+    )
 
     topology = objects.VirtCPUTopology(sockets=1,
                                        cores=len(pinning) // threads_no,
@@ -1491,8 +1498,8 @@ def _get_numa_node_count_constraint(flavor, image_meta):
         raise exception.ImageNUMATopologyForbidden(name='hw_numa_nodes')
 
     nodes = flavor_nodes or image_nodes
-    if nodes is not None and (not strutils.is_int_like(nodes) or
-            int(nodes) < 1):
+    if nodes is not None and (not strutils.is_int_like(nodes)
+                              or int(nodes) < 1):
         raise exception.InvalidNUMANodesNumber(nodes=nodes)
 
     return int(nodes) if nodes else nodes
@@ -1582,7 +1589,7 @@ def get_cpu_thread_policy_constraint(flavor, image_meta):
 
 def _get_numa_topology_auto(nodes, flavor):
     if ((flavor.vcpus % nodes) > 0 or
-        (flavor.memory_mb % nodes) > 0):
+            (flavor.memory_mb % nodes) > 0):
         raise exception.ImageNUMATopologyAsymmetric()
 
     cells = []
@@ -1866,12 +1873,12 @@ def numa_get_constraints(flavor, image_meta):
 
         # If one property list is specified both must be
         if ((cpu_list is None and mem_list is not None) or
-            (cpu_list is not None and mem_list is None)):
+                (cpu_list is not None and mem_list is None)):
             raise exception.ImageNUMATopologyIncomplete()
 
         # If any node has data set, all nodes must have data set
         if ((cpu_list is not None and len(cpu_list) != nodes) or
-            (mem_list is not None and len(mem_list) != nodes)):
+                (mem_list is not None and len(mem_list) != nodes)):
             raise exception.ImageNUMATopologyIncomplete()
 
         if cpu_list is None:
@@ -2122,7 +2129,7 @@ def numa_fit_instance_to_host(
             try:
                 cpuset_reserved = 0
                 if (instance_topology.emulator_threads_isolated and
-                    len(chosen_instance_cells) == 0):
+                        len(chosen_instance_cells) == 0):
                     # For the case of isolate emulator threads, to
                     # make predictable where that CPU overhead is
                     # located we always configure it to be on host
