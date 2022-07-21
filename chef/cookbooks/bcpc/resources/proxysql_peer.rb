@@ -20,6 +20,7 @@
 #
 # See https://docs.chef.io/custom_resources_notes/#custom-resources for
 # additional information.
+unified_mode true
 
 # IP and port of the ProxySQL service to add a peer to
 property :ip, String, default: lazy { node['service_ip'] }

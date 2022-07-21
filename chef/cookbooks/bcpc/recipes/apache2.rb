@@ -30,12 +30,14 @@ package %w(
 service 'apache2'
 
 # log rotation configuration
+# rubocop:disable Chef/Modernize/CronDFileOrTemplate
 template '/etc/cron.d/logrotate-apache2' do
   source 'apache2/cron-logrotate.erb'
   variables(
     headnodes: headnodes(all: true)
   )
 end
+# rubocop:enable Chef/Modernize/CronDFileOrTemplate
 
 remote_file '/etc/apache2/logrotate.conf' do
   only_if { ::File.exist?('/etc/logrotate.d/apache2') }

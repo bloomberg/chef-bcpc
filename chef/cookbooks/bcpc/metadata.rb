@@ -1,4 +1,6 @@
+# rubocop:disable Chef/Correctness/MetadataMissingVersion
 name             'bcpc'
+# rubocop:enable Chef/Correctness/MetadataMissingVersion
 source_url       'https://github.com/bloomberg/chef-bcpc'
 issues_url       'https://github.com/bloomberg/chef-bcpc/issues'
 maintainer       'Bloomberg Finance L.P.'
