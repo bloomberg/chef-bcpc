@@ -23,7 +23,7 @@ all : \
 	configure-web-server \
 	configure-common-node \
 	run-chef-client \
-	reweight-ceph-osds \
+	configure-ceph \
 	add-cloud-images \
 	register-compute-nodes \
 	enable-compute-service \
@@ -196,16 +196,16 @@ run-chef-client-stubnodes :
 			-t chef-client --limit stubnodes; \
 	fi
 
-reweight-ceph-osds :
+configure-ceph :
 
 	@if [ "${storageheadnodes}" -gt 0 ]; then \
 		ansible-playbook -v \
 			-i ${inventory} ${playbooks}/site.yml \
-			-t reweight-ceph-osds --limit storageheadnodes; \
+			-t configure-ceph --limit storageheadnodes; \
 	else \
 		ansible-playbook -v \
 			-i ${inventory} ${playbooks}/site.yml \
-			-t reweight-ceph-osds --limit headnodes; \
+			-t configure-ceph --limit headnodes; \
 	fi
 
 add-cloud-images :
