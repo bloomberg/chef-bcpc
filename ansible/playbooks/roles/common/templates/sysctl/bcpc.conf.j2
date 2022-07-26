@@ -3,7 +3,7 @@
 ###############################################################################
 
 # Increase ephermeral IP ports
-net.ipv4.ip_local_port_range = 10000 65000
+net.ipv4.ip_local_port_range = 10000 64999
 
 # Reserve additional ports
 {% set default_reserved = [10050,10051,11211,15672,16509,16514,25672,35357,35358,55672] -%}

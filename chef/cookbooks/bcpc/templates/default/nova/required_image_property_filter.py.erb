@@ -1,0 +1,54 @@
+# Copyright (c) 2011-2012 OpenStack Foundation
+# Copyright (c) 2012 Canonical Ltd
+# Copyright (c) 2012 SUSE LINUX Products GmbH
+# Copyright (c) 2022, Bloomberg L.P.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
+from nova.scheduler import filters
+from oslo_log import log as logging
+
+LOG = logging.getLogger(__name__)
+
+
+class RequiredImagePropertyFilter(filters.BaseHostFilter):
+    """Filters compute nodes with provided image required traits."""
+
+    # a rebuild can be issued against a new image
+    RUN_ON_REBUILD = True
+    # image Properties do not change within a request
+    run_filter_once_per_request = True
+
+    def host_passes(self, host_state, spec_obj):
+        """Checks a host provides required image traits.
+        Passes if the host provides required traits by the image,
+        otherwise filtered out.
+        """
+        bcc_image_traits = [
+            <%= @license_traits.join(",\n            ") %>
+        ]
+
+        image_props = spec_obj.image.properties if spec_obj.image else {}
+        traits_required = image_props.get('traits_required', [])
+
+        # match on exactly one licensing trait.
+        filtered_traits = [t for t in traits_required if t in bcc_image_traits]
+        LOG.debug("required image property filter: host %(host)s is filtered "
+                  "with image properties %(image)s on matched traits "
+                  "%(traits)s",
+                  {'host': host_state.host,
+                   'image': traits_required,
+                   'traits': filtered_traits})
+        return len(filtered_traits) == 1

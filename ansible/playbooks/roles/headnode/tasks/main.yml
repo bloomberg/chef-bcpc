@@ -17,3 +17,15 @@
   become: true
   run_once: true
   tags: [never,configure-host-aggregates]
+
+- import_tasks: configure-licenses.yml
+  become: true
+  run_once: true
+  tags: [never,configure-licenses]
+  when: licenses['enabled']
+
+- import_tasks: remove-licenses.yml
+  become: true
+  run_once: true
+  tags: [never,configure-licenses]
+  when: not licenses['enabled']

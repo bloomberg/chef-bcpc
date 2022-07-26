@@ -1,0 +1,68 @@
+- name: Setting host trait variables
+  set_fact:
+    license_trait: "{{ licenses['traits'] \
+      | items2dict(key_name='name', value_name='trait') }}"
+    license_aggregate: "{{ licenses['traits'] \
+      | items2dict(key_name='name', value_name='aggregate') }}"
+
+- name: configuring licensed aggregates
+  shell: |
+    set -o pipefail
+    trait={{ item['trait'] }}
+    aggregate={{ item['aggregate'] }}
+    # create trait if it does not exist
+    if ! openstack --os-placement-api-version 1.6 trait show ${trait}; then
+        openstack --os-placement-api-version 1.6 trait create ${trait}
+    fi
+    # create licensed aggregate if it does not exist
+    if ! openstack aggregate show ${aggregate}; then
+        openstack --os-compute-api-version 2.53 aggregate create ${aggregate} \
+            --property trait:${trait}=required
+    fi
+  with_items:
+    "{{ licenses['traits'] }}"
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: configuring host traits
+  shell: |
+    set -o pipefail
+    host_name={{ item }}
+    domain={{ cloud_domain }}
+    trait_keyword={{ license_trait_keyword }}
+    aggregates_to_add=({{ hostvars[item] \
+      | aggregates_to_add_host(license_aggregate) }})
+    aggregates_to_remove=({{ hostvars[item] \
+      | aggregates_to_remove_host(license_aggregate) }})
+    host_uuid=$(openstack resource provider list \
+      --name ${host_name}.${domain} -c uuid -f value)
+
+    # update host traits from inventory license list
+    traits=$(openstack --os-placement-api-version 1.6 resource provider \
+      trait list -f json ${host_uuid} | jq -r --arg custom ${trait_keyword} \
+      '.[].name | select(. | startswith($custom) | not) | "--trait " + .')
+    traits="$traits {{ hostvars[item] | host_traits(license_trait) }}"
+    openstack --os-placement-api-version 1.6 \
+      resource provider trait set ${traits} ${host_uuid}
+
+    # add host to aggregates if it has the license
+    for aggregate in ${aggregates_to_add[@]}; do
+      if ! openstack aggregate show ${aggregate} -f json | \
+        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then 
+        openstack aggregate add host ${aggregate} ${host_name}
+      fi
+    done
+
+    # remove host from aggregates if it does not have the license
+    for aggregate in ${aggregates_to_remove[@]}; do
+      if openstack aggregate show ${aggregate} -f json | \
+        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then 
+        openstack aggregate remove host ${aggregate} ${host_name}
+      fi
+    done
+  with_items:
+    "{{ groups['worknodes'] }}"
+  args:
+    executable: /bin/bash
+  changed_when: false

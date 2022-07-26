@@ -19,7 +19,12 @@
 - import_tasks: reweight-ceph-osds.yml
   become: true
   run_once: true
-  tags: [never,reweight-ceph-osds]
+  tags: [never,configure-ceph,reweight-ceph-osds]
+
+- import_tasks: set-ceph-pools-size.yml
+  become: true
+  run_once: true
+  tags: [never,configure-ceph,set-ceph-pools-size]
 
 - import_tasks: configure-node.yml
   become: true

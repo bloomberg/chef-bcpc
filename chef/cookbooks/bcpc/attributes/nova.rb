@@ -13,7 +13,7 @@ default['bcpc']['nova']['debug'] = false
 # ceph (rbd)
 default['bcpc']['nova']['ceph']['user'] = 'nova'
 default['bcpc']['nova']['ceph']['pool']['name'] = 'vms'
-default['bcpc']['nova']['ceph']['pool']['size'] = 1
+default['bcpc']['nova']['ceph']['pool']['size'] = 3
 
 # Allow destination machine to match source for resize
 default['bcpc']['nova']['allow_resize_to_same_host'] = true
@@ -118,6 +118,17 @@ default['bcpc']['nova']['db-archive']['cron_minute'] = '0'
 default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['enabled'] = false
 default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['name'] = 'AntiAffinityAvailabilityZoneFilter'
 default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['filterPath'] = 'nova.scheduler.filters.anti_affinity_availability_zone_filter.AntiAffinityAvailabilityZoneFilter'
+
+# Required image property scheduler filter
+default['bcpc']['nova']['scheduler']['filter']['required_image_property']['enabled'] = false
+default['bcpc']['nova']['scheduler']['filter']['required_image_property']['name'] = 'RequiredImagePropertyFilter'
+default['bcpc']['nova']['scheduler']['filter']['required_image_property']['filterPath'] = 'nova.scheduler.filters.required_image_property_filter.RequiredImagePropertyFilter'
+
+# aggregate image properties isolation
+default['bcpc']['nova']['scheduler']['filter']['aggregate_image_isolation']['name'] = 'AggregateImagePropertiesIsolation'
+
+# isolated aggregate filtering
+default['bcpc']['nova']['scheduler']['filter']['isolated_aggregate_filtering']['enabled'] = false
 
 # (Integer) Automatically confirm resizes after N seconds.
 default['bcpc']['nova']['resize_confirm_window'] = 30

@@ -1,0 +1,63 @@
+- name: Setting host trait variables
+  set_fact:
+    license_trait: "{{ licenses['traits'] \
+      | items2dict(key_name='name', value_name='trait') }}"
+    license_aggregate: "{{ licenses['traits'] \
+      | items2dict(key_name='name', value_name='aggregate') }}"
+
+- name: remove custom traits from hosts
+  shell: |
+    set -o pipefail
+    host_name={{ item }}
+    domain={{ cloud_domain }}
+    trait_keyword={{ license_trait_keyword }}
+    host_uuid=$(openstack resource provider list \
+      --name ${host_name}.${domain} -c uuid -f value)
+
+    # remove host CUSTOM_LICENSED traits from host
+    traits=$(openstack --os-placement-api-version 1.6 resource provider \
+      trait list -f json ${host_uuid} | jq -r --arg custom ${trait_keyword} \
+      '.[].name | select(. | startswith($custom) | not) | "--trait " + .')
+    openstack --os-placement-api-version 1.6 \
+      resource provider trait set ${traits} ${host_uuid}
+  with_items:
+    "{{ groups['worknodes'] }}"
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: remove hosts from licensed aggregates and delete aggregates
+  shell: |
+    set -o pipefail
+    aggregate={{ item }}
+    hosts=$(openstack aggregate show ${aggregate} -f json \
+      | jq -rc '.hosts | join(" ")')
+
+    # remove hosts from aggregate
+    for host in ${hosts[@]}; do
+      openstack aggregate remove host ${aggregate} ${host}
+    done
+
+    # delete aggregate
+    if openstack aggregate show ${aggregate}; then
+      openstack aggregate delete ${aggregate}
+    fi
+  with_items:
+    "{{ license_aggregate.values() }}"
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: remove custom licensed traits
+  shell: |
+    set -o pipefail
+    trait={{ item }}
+    # delete trait
+    if openstack --os-placement-api-version 1.6 trait show ${trait}; then
+        openstack --os-placement-api-version 1.6 trait delete ${trait}
+    fi
+  with_items:
+    "{{ license_trait.values() }}"
+  args:
+    executable: /bin/bash
+  changed_when: false 

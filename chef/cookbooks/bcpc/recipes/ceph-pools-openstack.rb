@@ -36,7 +36,7 @@ bash 'create ceph pool' do
 end
 
 execute 'set ceph pool size' do
-  size = node['bcpc']['glance']['ceph']['pool']['size']
+  size = ceph_pool_size(node['bcpc']['glance']['ceph']['pool']['size'])
   pool = node['bcpc']['glance']['ceph']['pool']['name']
 
   command "ceph osd pool set #{pool} size #{size}"
@@ -81,7 +81,7 @@ nova_config.ceph_pools.each do |pool|
   end
 
   execute 'set ceph pool size' do
-    size = node['bcpc']['nova']['ceph']['pool']['size']
+    size = ceph_pool_size(node['bcpc']['nova']['ceph']['pool']['size'])
     command "ceph osd pool set #{pool_name} size #{size}"
     not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
   end
@@ -103,7 +103,7 @@ cinder_config.ceph_pools.each do |pool|
   end
 
   execute 'set ceph pool size' do
-    size = node['bcpc']['cinder']['ceph']['pool']['size']
+    size = ceph_pool_size(node['bcpc']['cinder']['ceph']['pool']['size'])
     command "ceph osd pool set #{pool_name} size #{size}"
     not_if "ceph osd pool get #{pool_name} size | grep -w 'size: #{size}'"
   end

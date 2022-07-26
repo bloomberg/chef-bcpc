@@ -148,6 +148,9 @@ until_refresh = 10
 
 [scheduler]
 driver = filter_scheduler
+<% if node['bcpc']['nova']['scheduler']['filter']['isolated_aggregate_filtering']['enabled'] -%>
+enable_isolated_aggregate_filtering = true
+<% end%>
 <% unless node['bcpc']['openstack']['services']['workers'].nil? %>
 workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end%>

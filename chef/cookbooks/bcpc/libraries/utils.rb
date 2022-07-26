@@ -375,3 +375,14 @@ def openstack_services
   # build a hash of service_type => list of uris
   service_list.map { |s| s['Type'] }
 end
+
+# Determine the maximum sane value for a ceph pool's "size".
+# If size N is requested but we have fewer than N hosts, then objects will
+# remain degraded. This function clips the configured replication factor to
+# the number of storagenodes configured in the cluster (or 1, in the case
+# that the cluster is still being bootstrapped).
+def ceph_pool_size(requested_size)
+  # Assume default CRUSH replication policy of host
+  num_storagenodes = search(:node, 'roles:storagenode').length
+  [[requested_size, num_storagenodes].min, 1].max
+end

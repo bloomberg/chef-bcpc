@@ -280,6 +280,38 @@ if anti_affinity['enabled']
   end
 end
 
+# add required image property scheduler filter
+required_image =
+ node['bcpc']['nova']['scheduler']['filter']['required_image_property']
+aggregate_image =
+ node['bcpc']['nova']['scheduler']['filter']['aggregate_image_isolation']
+
+if required_image['enabled']
+  available_filters.push(required_image['filterPath'])
+  enabled_filters.push(aggregate_image['name'])
+  enabled_filters.push(required_image['name'])
+  license_traits = node['bcpc']['licenses']['traits'].map { |t| "\'#{t['trait']}\'" }
+
+  template '/usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py' do
+    source 'nova/required_image_property_filter.py.erb'
+    mode '0644'
+    owner 'root'
+    group 'root'
+
+    variables(
+      license_traits: license_traits
+    )
+
+    notifies :run, 'execute[compile required-image-property filter]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :delayed
+  end
+
+  execute 'compile required-image-property filter' do
+    action :nothing
+    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py'
+  end
+end
+
 # Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
 # https://review.opendev.org/c/openstack/nova/+/792356
 cookbook_file '/usr/lib/python3/dist-packages/nova/api/validation/extra_specs/hw.py' do

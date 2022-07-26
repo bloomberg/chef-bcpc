@@ -76,6 +76,25 @@
 #    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
 
 ###############################################################################
+# license traits
+###############################################################################
+
+# uncomment if you wish to have additional licensed aggregates
+
+#licenses:
+#  enabled: false
+#  traits:
+#    - name: unlicensed
+#      aggregate: unlicensed
+#      trait: "{{ license_trait_keyword }}NONE"
+#    - name: windows
+#      aggregate: windows
+#      trait: "{{ license_trait_keyword }}WINDOWS"
+#    - name: rhel
+#      aggregate: rhel
+#      trait: "{{ license_trait_keyword }}RHEL"
+
+###############################################################################
 # additional_cloud_images
 ###############################################################################
 
