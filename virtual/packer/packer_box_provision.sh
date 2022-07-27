@@ -80,9 +80,9 @@ function configure_linux_kernel {
             "linux-tools-${kernel_version}"
     fi
 
-    # Disable IPv6
+    # Add serial console and disable IPv6
     eval "$(grep ^GRUB_CMDLINE_LINUX= /etc/default/grub)"
-    NEW_CMDLINE="${GRUB_CMDLINE_LINUX} ipv6.disable=1"
+    NEW_CMDLINE="${GRUB_CMDLINE_LINUX} console=ttyS0,115200 ipv6.disable=1"
     sed -i.orig \
         "s/^[#]*GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX=\"${NEW_CMDLINE}\"/" \
         /etc/default/grub
