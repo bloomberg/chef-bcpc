@@ -2,7 +2,7 @@
 # Cookbook:: bcpc
 # Recipe:: apache2
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2022 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,15 +29,25 @@ package %w(
 
 service 'apache2'
 
+headnodes = headnodes(all: true)
+logrotation = node['bcpc']['apache2']['logrotation']
+
+headnode_index =
+ headnodes.sort.index(headnodes.find { |x| x['hostname'] == node['hostname'] })
+headnode_splay_minutes = headnode_index * logrotation['splay_minutes']
+st_minute = (logrotation['start_minute'] + headnode_splay_minutes) % 60
+st_hour = logrotation['start_hour'] +
+          (logrotation['start_minute'] + headnode_splay_minutes) / 60
+
 # log rotation configuration
-# rubocop:disable Chef/Modernize/CronDFileOrTemplate
-template '/etc/cron.d/logrotate-apache2' do
-  source 'apache2/cron-logrotate.erb'
-  variables(
-    headnodes: headnodes(all: true)
-  )
+cron_d 'logrotate-apache2' do
+  command 'cd / && /usr/sbin/logrotate /etc/apache2/logrotate.conf'
+  comment 'Rotates apache2 logs and reloads apache2 at the specified time'
+  hour    st_hour
+  minute  st_minute
+  path    '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
+  shell   '/bin/sh'
 end
-# rubocop:enable Chef/Modernize/CronDFileOrTemplate
 
 remote_file '/etc/apache2/logrotate.conf' do
   only_if { ::File.exist?('/etc/logrotate.d/apache2') }
