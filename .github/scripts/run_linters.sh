@@ -20,7 +20,7 @@ function main {
     # shellcheck disable=SC1091
     source /tmp/linter_venv/bin/activate
 
-    find . -name "*.sh" -exec shellcheck -x {} \;
+    find . -name "*.sh" -exec shellcheck {} \;
     find . -name "*.sh" -exec bashate -e E006 {} \;
     find . -name "*.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/etcd3gw/watch.py" \
@@ -32,9 +32,7 @@ function main {
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hw.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/vif.py" \
         -exec flake8 {} \;
-    ansible-lint -x var-naming \
-                 -x meta-no-info \
-                 -x meta-no-tags ansible/
+    ansible-lint -x var-naming ansible/
     cookstyle --version && cookstyle .
 }
 
