@@ -259,6 +259,21 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/vif.py' do
   notifies :restart, 'service[nova-compute]', :delayed
 end
 
+# Add feature to rewrite monitor addresses in the domain XML using values from
+# ceph.conf instead to faciliate Ceph monitor migration exercises
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do
+  source 'nova/migration.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+# Do the same for nova.block_device_mappings when refreshing connection_info
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/block_device.py' do
+  source 'nova/block_device.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 execute 'py3compile-nova' do
   action :nothing
   command 'py3compile -p python3-nova'

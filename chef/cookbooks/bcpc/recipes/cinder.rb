@@ -391,3 +391,17 @@ execute 'make sure cinder-volume comes up' do
   command 'systemctl start cinder-volume'
   not_if 'systemctl status cinder-volume'
 end
+
+# Add feature to source monitor addresses for volume attachments using values
+# from ceph.conf instead the monmap to faciliate Ceph monitor migration
+# exercises
+cookbook_file '/usr/lib/python3/dist-packages/cinder/volume/drivers/rbd.py' do
+  source 'cinder/rbd.py'
+  notifies :run, 'execute[py3compile-cinder]', :immediately
+  notifies :restart, 'service[cinder-volume]', :delayed
+end
+
+execute 'py3compile-cinder' do
+  action :nothing
+  command 'py3compile -p python3-cinder'
+end
