@@ -701,11 +701,11 @@ class DriverVolumeBlockDevice(DriverBlockDevice):
             if multiattach:
                 connection_info['multiattach'] = True
 
-        # Rewrite the connection_info using the list of mons in ceph.conf
+        # Rewrite the connection_info using the list of mons in migration.conf
         mons = []
 
         try:
-            with open('/etc/ceph/ceph.conf', 'r') as config_file:
+            with open('/etc/ceph/migration.conf', 'r') as config_file:
                 config = ConfigParser()
                 config.read_file(config_file)
                 mon_host = config['global']['mon host']
@@ -715,7 +715,7 @@ class DriverVolumeBlockDevice(DriverBlockDevice):
         except (FileNotFoundError, KeyError, ValueError) as exception:
             LOG.error('ceph-mon-migration: {0}'.format(str(exception)))
 
-        if len(mons) and 'hosts' in connection_info.get('data', {}):
+        if len(mons) > 0 and 'hosts' in connection_info.get('data', {}):
             connection_info['data']['hosts'] = mons
 
         if 'serial' not in connection_info:

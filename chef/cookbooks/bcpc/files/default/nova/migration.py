@@ -282,12 +282,13 @@ def _update_volume_xml(xml_doc, migrate_data, get_volume_config):
 def _rewrite_ceph_monitor_hosts(xml_doc):
     """Rewrite monitor addresses for RBD volumes in the domain configuration
 
-    Extract monitor addresses from ceph.conf and overwrite whatever monitor
-    addresses associated with RBD volumes for the domain with these ones.
+    Extract monitor addresses from migration.conf and overwrite whatever
+    monitor addresses associated with RBD volumes for the domain with these
+    ones.
     """
     mons = []
     try:
-        with open('/etc/ceph/ceph.conf', 'r') as config_file:
+        with open('/etc/ceph/migration.conf', 'r') as config_file:
             config = ConfigParser()
             config.read_file(config_file)
             mons = [h.strip() for h in config['global']['mon host'].split(',')]

@@ -393,8 +393,16 @@ execute 'make sure cinder-volume comes up' do
 end
 
 # Add feature to source monitor addresses for volume attachments using values
-# from ceph.conf instead the monmap to faciliate Ceph monitor migration
+# from migration.conf instead the monmap to faciliate Ceph monitor migration
 # exercises
+template '/etc/ceph/migration.conf' do
+  action node['bcpc']['ceph']['mon-migration']['enabled'] ? :create : :delete
+  source 'ceph/migration.conf.erb'
+  owner 'root'
+  group 'root'
+  mode '0644'
+end
+
 cookbook_file '/usr/lib/python3/dist-packages/cinder/volume/drivers/rbd.py' do
   source 'cinder/rbd.py'
   notifies :run, 'execute[py3compile-cinder]', :immediately

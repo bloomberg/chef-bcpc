@@ -511,9 +511,9 @@ class RBDDriver(driver.CloneableImageVD, driver.MigrateVD,
             host, port = host_port.rsplit(':', 1)
             hosts.append(host.strip('[]'))
             ports.append(port)
-        # Overwrite the mon addrs using those in ceph.conf, not the monmap
+        # Overwrite the mon addrs using those in migration.conf, not the monmap
         try:
-            with open('/etc/ceph/ceph.conf', 'r') as config_file:
+            with open('/etc/ceph/migration.conf', 'r') as config_file:
                 config = ConfigParser()
                 config.read_file(config_file)
                 mon_host = config['global']['mon host']
