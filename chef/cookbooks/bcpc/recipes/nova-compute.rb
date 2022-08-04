@@ -261,6 +261,9 @@ end
 
 # Add feature to rewrite monitor addresses in the domain XML using values from
 # migration.conf instead to faciliate Ceph monitor migration exercises
+#
+# Also fix live-migration when the MTU of the network is changed (in which case
+# the instance MTU must remain the same if and when it is defined).
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do
   source 'nova/migration.py'
   notifies :run, 'execute[py3compile-nova]', :immediately

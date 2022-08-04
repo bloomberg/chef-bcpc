@@ -451,7 +451,9 @@ def _update_vif_xml(xml_doc, migrate_data, get_vif_config):
         for index, dest_interface_subelem in enumerate(dest_interface_elem):
             # NOTE(mnaser): If we don't have an MTU, don't define one, else
             #               the live migration will crash.
-            if dest_interface_subelem.tag == 'mtu' and mtu is None:
+            if dest_interface_subelem.tag == 'mtu':
+                if mtu is not None:
+                    interface_dev.insert(index, mtu)
                 continue
             interface_dev.insert(index, dest_interface_subelem)
         # And finally re-insert the hw address.

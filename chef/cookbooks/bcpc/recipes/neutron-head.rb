@@ -541,3 +541,14 @@ bash 'update admin default security group' do
     done
   DOC
 end
+
+# Add ability to set MTU: https://github.com/projectcalico/calico/pull/6487
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/datamodel_v3.py' do
+  source 'neutron/datamodel_v3.py'
+  notifies :restart, 'service[neutron-server]', :delayed
+end
+
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/plugins/ml2/drivers/calico/endpoints.py' do
+  source 'neutron/endpoints.py'
+  notifies :restart, 'service[neutron-server]', :delayed
+end

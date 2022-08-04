@@ -57,6 +57,17 @@ cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do
   notifies :restart, 'service[calico-dhcp-agent]', :delayed
 end
 
+# Add ability to set MTU: https://github.com/projectcalico/calico/pull/6487
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/datamodel_v3.py' do
+  source 'neutron/datamodel_v3.py'
+  notifies :restart, 'service[calico-dhcp-agent]', :delayed
+end
+
+cookbook_file '/usr/lib/python3.6/dist-packages/networking_calico/agent/dhcp_agent.py' do
+  source 'neutron/dhcp_agent.py'
+  notifies :restart, 'service[calico-dhcp-agent]', :delayed
+end
+
 template '/etc/neutron/neutron.conf' do
   source 'calico/neutron.conf.erb'
   mode '644'
