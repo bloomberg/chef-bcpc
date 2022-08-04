@@ -133,6 +133,13 @@ def node_roles
   matches[0]['roles']
 end
 
+def node_licenses
+  matches = search(:node, "hostname:#{node['hostname']}")
+  raise "the node '#{node['hostname']}' does not exist or has "\
+    'multiple matches' if matches.length != 1
+  matches[0]['license']
+end
+
 def generate_service_catalog_uri(svcprops, access_level)
   fqdn = node['bcpc']['cloud']['fqdn']
   port = svcprops['ports'][access_level]
