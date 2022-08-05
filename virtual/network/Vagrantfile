@@ -45,6 +45,17 @@ def sspine_name(plane, sspine)
 end
 
 Vagrant.configure(2) do |config|
+  config.vm.provider 'virtualbox' do
+    # If the vagrant-vbguest plugin is installed, alter the plugin's default
+    # kernel module check as described in the following issue:
+    #   https://github.com/dotless-de/vagrant-vbguest/issues/421
+    # Otherwise, vbox guest additions are installed every time a machine is
+    # brought up or reloaded.
+    if Vagrant.has_plugin?('vagrant-vbguest')
+      config.vbguest.installer_options = { running_kernel_modules: ['vboxguest'] }
+    end
+  end
+
   if ENV.key?('BCC_DEPLOY_NETWORK_VM')
     config.vm.define 'network' do |node|
       config.vm.provider 'virtualbox' do |vb|

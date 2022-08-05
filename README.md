@@ -104,6 +104,7 @@ pip install PyYaml ansible netaddr pyOpenSSL cryptography>=3.0
 To create a virtualbox build (the default):
 
 ```shell
+vagrant plugin install vagrant-vbguest
 make generate-chef-databags
 make create-packer-box
 make create all
