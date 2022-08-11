@@ -41,7 +41,7 @@ function install_linters_linux {
         bashate==2.1.0 \
         hacking==4.1.0
 
-    sudo gem install cookstyle
+    sudo gem install cookstyle -v 7.32.1
 }
 
 main

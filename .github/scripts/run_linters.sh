@@ -20,20 +20,23 @@ function main {
     # shellcheck disable=SC1091
     source /tmp/linter_venv/bin/activate
 
-    find . -name "*.sh" -exec shellcheck {} \;
-    find . -name "*.sh" -exec bashate -e E006 {} \;
+    find . -name "*.sh" -print0 | xargs -0 -t shellcheck;
+    find . -name "*.sh" -print0 | xargs -0 -t bashate -e E006;
     find . -name "*.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/cinder/rbd.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/etcd3gw/watch.py" \
         ! -path \
             "./chef/cookbooks/bcpc/files/default/neutron/external_net_db.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/api.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/block_device.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hardware.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hw.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/vif.py" \
-        -exec flake8 {} \;
+        -print0 | xargs -0 -t flake8
     ansible-lint -x var-naming ansible/
-    cookstyle --version && cookstyle .
+    cookstyle --version && cookstyle --fail-level A
 }
 
 main
