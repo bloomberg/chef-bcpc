@@ -36,3 +36,10 @@
   apt:
     update_cache: yes
   when: sources_list.changed  # noqa no-handler
+
+# Prevent upgrades to Cinc or Chef >= 15
+- name: install apt preferences file to pin Chef
+  copy:
+    src: apt/99chef
+    dest: /etc/apt/preferences.d/99chef
+    mode: 06444
