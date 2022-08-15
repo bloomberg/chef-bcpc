@@ -5,11 +5,11 @@ profiles:
   headnode:
     ram_gb: 8
     cpus: 4
-    swap_gb: 8
+    swap_gb: 4
   worknode:
     ram_gb: 8
     cpus: 4
-    swap_gb: 8
+    swap_gb: 4
     ext_disks:
       count: 4
       size_gb: 16
