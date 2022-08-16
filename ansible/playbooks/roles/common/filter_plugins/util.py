@@ -62,6 +62,12 @@ def update_chef_node_host_vars(a, *args, **kw):
     node_details['normal']['host_vars'] = {}
     node_details['normal']['host_vars'].update({'interfaces': interfaces})
 
+    licenses = hostvars.get('licenses')
+
+    if licenses is not None:
+        licenses = {'licenses': licenses}
+        node_details['normal'].update(licenses)
+
     # add aggregate to top level node attributes section
     aggregate = hostvars.get('aggregate')
 

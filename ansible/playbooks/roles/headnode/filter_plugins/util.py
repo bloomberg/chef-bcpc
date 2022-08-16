@@ -31,10 +31,10 @@ class FilterModule(object):
         Returns:
         host_traits (str): licensed traits of the host with --trait
         """
-        if host.get("license") is None:
+        if host.get("licenses") is None:
             return ''
         host_traits = list()
-        for license in host['license']:
+        for license in host['licenses']:
             host_traits.append(license_traits[license])
         return ' '.join(["--trait " + s for s in host_traits])
 
@@ -48,10 +48,10 @@ class FilterModule(object):
         Returns:
         host_aggregates (str): aggregates the host should be added to
         """
-        if host.get("license") is None:
+        if host.get("licenses") is None:
             return ''
         host_aggregates = list()
-        for license in host.get("license"):
+        for license in host.get("licenses"):
             host_aggregates.append(license_aggregate[license])
         return " ".join(host_aggregates)
 
@@ -65,10 +65,10 @@ class FilterModule(object):
         Returns:
         aggregates (str): aggregates the host should be removed from
         """
-        if host.get('license') is None:
+        if host.get('licenses') is None:
             return " ".join(license_aggregate.values())
         aggregates = list()
         for license in \
-                set(license_aggregate.keys()) - set(host.get("license")):
+                set(license_aggregate.keys()) - set(host.get("licenses")):
             aggregates.append(license_aggregate[license])
         return " ".join(aggregates)
