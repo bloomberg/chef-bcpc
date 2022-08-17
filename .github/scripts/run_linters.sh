@@ -30,6 +30,7 @@ function main {
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/api.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/block_device.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/guest.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hardware.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hw.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
