@@ -56,10 +56,10 @@ function configure_apt {
 
     if [ -n "${apt_url}" ]; then
 cat << EOF > /etc/apt/sources.list
-deb ${apt_url} bionic main restricted universe multiverse
-deb ${apt_url} bionic-backports main restricted universe multiverse
-deb ${apt_url} bionic-security main restricted universe multiverse
-deb ${apt_url} bionic-updates main restricted universe multiverse
+deb ${apt_url} $(lsb_release -sc) main restricted universe multiverse
+deb ${apt_url} $(lsb_release -sc)-backports main restricted universe multiverse
+deb ${apt_url} $(lsb_release -sc)-security main restricted universe multiverse
+deb ${apt_url} $(lsb_release -sc)-updates main restricted universe multiverse
 EOF
     fi
 
@@ -105,6 +105,7 @@ function cleanup_image {
     # blank netplan machine-id (DUID) so machines get unique ID generated on
     # boot
     truncate -s 0 /etc/machine-id
+    truncate -s 0 /var/lib/dbus/machine-id
 
     # remove the contents of /tmp and /var/tmp
     rm -rf /tmp/* /var/tmp/*
@@ -128,9 +129,13 @@ function cleanup_image {
 function download_debs {
     # Resynchronize package index files after above cleanup
     apt-get update
-    apt-get install --download-only -y -t bionic-backports \
-        bird2 init-system-helpers
-    apt-get install --download-only -y chrony tinyproxy unbound
+    if [ "$(lsb_release -sc)" == "bionic" ]; then
+        apt-get install --download-only -y -t bionic-backports \
+            bird2 init-system-helpers
+        apt-get install --download-only -y chrony tinyproxy unbound
+    elif [ "$(lsb_release -sc)" == "focal" ]; then
+        apt-get install --download-only -y bird2 chrony tinyproxy unbound
+    fi
 }
 
 main

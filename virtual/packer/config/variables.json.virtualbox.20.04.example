@@ -1,0 +1,11 @@
+{
+  "bcc_apt_key_url": "",
+  "bcc_apt_url": "",
+  "bcc_http_proxy_url": "",
+  "bcc_https_proxy_url": "",
+  "kernel_version": "generic-hwe-20.04-edge",
+  "base_box": "bento/ubuntu-20.04",
+  "base_box_version": "202206.03.0",
+  "base_box_provider": "virtualbox",
+  "output_packer_box_name": "bcc-ubuntu-20.04"
+}

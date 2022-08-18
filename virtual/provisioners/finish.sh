@@ -97,7 +97,7 @@ function configure_swap {
             mkswap "${swap_file}"
         fi
 
-        if ! sudo swapon -s | grep "${swap_file}"; then
+        if ! swapon -s | grep "${swap_file}"; then
             swapon "${swap_file}"
         fi
 
