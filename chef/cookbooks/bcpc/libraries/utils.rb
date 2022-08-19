@@ -137,7 +137,7 @@ def node_licenses
   matches = search(:node, "hostname:#{node['hostname']}")
   raise "the node '#{node['hostname']}' does not exist or has "\
     'multiple matches' if matches.length != 1
-  matches[0]['licenses']
+  matches[0]['licenses'].nil? ? [] : matches[0]['licenses']
 end
 
 def generate_service_catalog_uri(svcprops, access_level)
