@@ -18,9 +18,6 @@ default['bcpc']['nova']['ceph']['pool']['size'] = 3
 # Allow destination machine to match source for resize
 default['bcpc']['nova']['allow_resize_to_same_host'] = true
 
-# Allow destination machine to match source for resize
-default['bcpc']['nova']['allow_resize_to_same_host'] = true
-
 # Defines which physical CPUs (pCPUs) can be used by instance virtual CPUs
 default['bcpc']['nova']['vcpu_pin_set'] = nil
 
