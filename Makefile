@@ -140,7 +140,6 @@ run-chef-client-rmqnodes :
 			ansible-playbook -v \
 				-i ${inventory} ${playbooks}/site.yml \
 				-t chef-client --limit rmqnodes \
-				-e "step=1"; \
 		fi \
 	fi
 
@@ -171,7 +170,6 @@ run-chef-client-headnodes :
 		ansible-playbook -v \
 			-i ${inventory} ${playbooks}/site.yml \
 			-t chef-client --limit headnodes \
-			-e "step=1"; \
 	fi
 
 run-chef-client-worknodes :
