@@ -1,6 +1,0 @@
-chef_workstation_host: "{{ groups['bootstraps'][0] }}"
-chef_environments_dir: "{{ root_dir }}/chef/environments"
-chef_roles_dir: "{{ root_dir }}/chef/roles"
-chef_databags_dir: "{{ root_dir }}/chef/databags"
-chef_cookbooks_dir: "{{ root_dir }}/chef/cookbooks"
-chef_client_package: "{{ 'chef_client' | find_asset(all_file_assets) }}"

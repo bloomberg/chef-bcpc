@@ -1,0 +1,75 @@
+###############################################################################
+# chef
+###############################################################################
+
+chef_client:
+  config: {}
+
+node_hostname: "{{ inventory_hostname }}"
+node_fqdn: "{{ node_hostname }}.{{ cloud_infrastructure_domain }}"
+node_runlist: "{{ hostvars[node_hostname].run_list | join (',') }}"
+
+###############################################################################
+# chef environment
+###############################################################################
+
+chef_environment:
+  name: virtual
+  description: Virtualized BCPC Environment
+  json_class: Chef::Environment
+  chef_type: environment
+  override_attributes:
+    bcpc:
+      ceph:
+        pg_num: 32
+        pgp_num: 32
+      cloud:
+        domain: "{{ cloud_domain }}"
+        fqdn: "{{ cloud_fqdn }}"
+        vip: "{{ cloud_ip }}"
+      dns: "{{ dns }}"
+      grub:
+        cmdline_linux:
+          - net.ifnames=0
+          - biosdevname=0
+      networking:
+        mtu: "{{ networking['mtu'] }}"
+      nova:
+        cpu_config:
+          AuthenticAMD:
+            cpu_mode: custom
+            cpu_model: qemu64
+            cpu_model_extra_flags: []
+          GenuineIntel:
+            cpu_mode: custom
+            cpu_model: qemu64
+            cpu_model_extra_flags: []
+      ntp: "{{ ntp }}"
+      openstack:
+        flavors:
+          enabled: true
+      licenses: "{{ licenses }}"
+      local_proxy: "{{ local_proxy }}"
+      zones: "{{ zones }}"
+
+###############################################################################
+# zones
+###############################################################################
+
+zones:
+  enabled: false
+  partitions:
+    - zone: dev
+      ceph:
+        client: cinder
+      cinder:
+        backend:
+          name: ceph
+          private: true
+          type: ceph
+          pool:
+            name: volumes
+      nova:
+        ceph:
+          pool:
+            name: vms

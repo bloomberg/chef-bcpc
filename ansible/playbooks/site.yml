@@ -1,8 +1,10 @@
+- hosts: cloud:!bootstraps
+  gather_facts: no
+  serial: "{{ step | default(ansible_play_batch | length) }}"
+  roles:
+    - common
+    - chef-node
+
 - import_playbook: localhost.yml
-- import_playbook: stubnodes.yml
 - import_playbook: bootstraps.yml
 - import_playbook: headnodes.yml
-- import_playbook: rmqnodes.yml
-- import_playbook: storageheadnodes.yml
-- import_playbook: worknodes.yml
-- import_playbook: storagenodes.yml

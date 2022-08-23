@@ -1,5 +1,0 @@
-- hosts: storagenodes
-  gather_facts: no
-  roles:
-    - common
-    - chef-node

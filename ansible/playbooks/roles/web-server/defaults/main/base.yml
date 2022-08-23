@@ -1,0 +1,14 @@
+###############################################################################
+# web server file assets
+###############################################################################
+
+web_server_assets:
+  - file_asset: cirros
+  - file_asset: etcd
+  - file_asset: calicoctl
+  - file_asset: consul
+  - file_asset: etcd3gw
+
+# all web server file assets
+all_web_server_assets: "{{ web_server_assets +
+                            additional_web_server_assets | default([]) }}"

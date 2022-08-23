@@ -1,45 +1,20 @@
 ###############################################################################
-# chef environment
+# chef
 ###############################################################################
 
-chef_environment:
-  name: virtual
-  description: Virtualized BCPC Environment
-  json_class: Chef::Environment
-  chef_type: environment
-  override_attributes:
-    bcpc:
-      ceph:
-        pg_num: 32
-        pgp_num: 32
-      cloud:
-        domain: "{{ cloud_domain }}"
-        fqdn: "{{ cloud_fqdn }}"
-        vip: "{{ cloud_ip }}"
-      dns: "{{ dns }}"
-      grub:
-        cmdline_linux:
-          - net.ifnames=0
-          - biosdevname=0
-      networking:
-        mtu: "{{ networking['mtu'] }}"
-      nova:
-        cpu_config:
-          AuthenticAMD:
-            cpu_mode: custom
-            cpu_model: qemu64
-            cpu_model_extra_flags: []
-          GenuineIntel:
-            cpu_mode: custom
-            cpu_model: qemu64
-            cpu_model_extra_flags: []
-      ntp: "{{ ntp }}"
-      openstack:
-        flavors:
-          enabled: true
-      licenses: "{{ licenses }}"
-      local_proxy: "{{ local_proxy }}"
-      zones: "{{ zones }}"
+chef_extra_cookbooks:
+  - file_asset: logrotate
+
+# all chef extra cookbooks
+all_chef_extra_cookbooks: "{{ chef_extra_cookbooks +
+                              additional_chef_extra_cookbooks | default([]) }}"
+
+chef_workstation_host: "{{ groups['bootstraps'][0] }}"
+chef_environments_dir: "{{ root_dir }}/chef/environments"
+chef_roles_dir: "{{ root_dir }}/chef/roles"
+chef_databags_dir: "{{ root_dir }}/chef/databags"
+chef_cookbooks_dir: "{{ root_dir }}/chef/cookbooks"
+chef_client_package: "{{ 'chef_client' | find_asset(all_file_assets) }}"
 
 ###############################################################################
 # chef roles
@@ -147,23 +122,12 @@ chef_roles:
       - recipe[bcpc::nova-compute]
 
 ###############################################################################
-# zones
+# additional_runlists
 ###############################################################################
 
-zones:
-  enabled: false
-  partitions:
-    - zone: dev
-      ceph:
-        client: cinder
-      cinder:
-        backend:
-          name: ceph
-          private: true
-          type: ceph
-          pool:
-            name: volumes
-      nova:
-        ceph:
-          pool:
-            name: vms
+#additional_runlists:
+#  node:
+#    - recipe[bcpc::default]
+#  bootstrap:
+#    - recipe[bcpc::default]
+

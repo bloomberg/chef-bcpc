@@ -1,0 +1,9 @@
+###############################################################################
+# cloud images
+###############################################################################
+
+cloud_images:
+  - file_asset: cirros
+    type: qcow2
+
+all_cloud_images: "{{ cloud_images + additional_cloud_images | default([]) }}"

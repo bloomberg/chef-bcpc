@@ -1,3 +1,0 @@
-node_hostname: "{{ inventory_hostname }}"
-node_fqdn: "{{ node_hostname }}.{{ cloud_infrastructure_domain }}"
-node_runlist: "{{ hostvars[node_hostname].run_list | join (',') }}"

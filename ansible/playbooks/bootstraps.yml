@@ -2,7 +2,7 @@
   gather_facts: no
   roles:
     - common
+    - chef-node
     - chef-server
     - chef-workstation
-    - chef-node
     - web-server

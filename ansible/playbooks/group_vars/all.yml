@@ -1,0 +1,49 @@
+###############################################################################
+# external files (to be downloaded)
+###############################################################################
+
+assets_download_dir: "{{ root_dir }}/assets"
+
+assets_files:
+  - name: cirros
+    url: https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img
+    checksum: sha256:932fcae93574e242dc3d772d5235061747dfe537668443a1f0567d893614b464
+    filename: cirros-0.5.2-x86_64-disk.img
+
+  - name: etcd
+    url: https://github.com/etcd-io/etcd/releases/download/v3.3.10/etcd-v3.3.10-linux-amd64.tar.gz
+    checksum: sha256:1620a59150ec0a0124a65540e23891243feb2d9a628092fb1edcc23974724a45
+    filename: etcd-v3.3.10-linux-amd64.tar.gz
+
+  - name: calicoctl
+    url: https://github.com/projectcalico/calico/releases/download/v3.22.2/calicoctl-linux-amd64
+    checksum: sha256:2608fe464b50019e4ade388142f194463e351013ec81da21b111307411865a81
+    filename: calicoctl
+
+  - name: consul
+    url: https://releases.hashicorp.com/consul/1.7.2/consul_1.7.2_linux_amd64.zip
+    checksum: sha256:5ab689cad175c08a226a5c41d16392bc7dd30ceaaf90788411542a756773e698
+    filename: consul_1.7.2_linux_amd64.zip
+
+  - name: chef_client
+    url: https://packages.chef.io/files/stable/chef/14.13.11/ubuntu/18.04/chef_14.13.11-1_amd64.deb
+    checksum: sha256:9ddcd5ceef19c95ecc1f34bef080c23d9cb42ae8ebc69fd41dcf1c768a6a708f
+    filename: chef_14.13.11-1_amd64.deb
+
+  - name: chef_server
+    url: https://packages.chef.io/files/stable/chef-server/12.17.33/ubuntu/16.04/chef-server-core_12.17.33-1_amd64.deb
+    checksum: sha256:2800962092ead67747ed2cd2087b0e254eb5e1a1b169cdc162c384598e4caed5
+    filename: chef-server-core_12.17.33-1_amd64.deb
+
+  - name: logrotate
+    url: https://supermarket.chef.io/cookbooks/logrotate/versions/2.2.0/download
+    checksum: sha256:f9385a488ec0ee02bfd680ac5aac012000006e4168f97bbf06b5b28373a1d1aa
+    filename: logrotate-2.2.0.tar.gz
+
+  - name: etcd3gw
+    url: https://files.pythonhosted.org/packages/3b/1a/155c139adcf50c382f7ff8eb5a00b5aa725ee8ea438ec2b8109dfe67be9b/etcd3gw-0.2.6.tar.gz
+    checksum: sha256:4a765a382ae18ebd4fccbc1388d1ac5226db0540bccd1f081052600df89145fd
+    filename: etcd3gw-0.2.6.tar.gz
+
+# all file assets
+all_file_assets: "{{ assets_files + additional_assets_files | default([]) }}"
