@@ -228,7 +228,9 @@ end
 
 execute 'placement-manage db sync' do
   action :nothing
-  command "su -s /bin/sh -c 'placement-manage db sync' placement"
+  command 'placement-manage db sync'
+  user 'placement'
+  group 'placement'
 end
 #
 # create/manage placement databases ends

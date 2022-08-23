@@ -177,7 +177,9 @@ end
 
 execute 'keystone-manage db_sync' do
   action :nothing
-  command "su -s /bin/sh -c 'keystone-manage db_sync' keystone"
+  command 'keystone-manage db_sync'
+  user 'keystone'
+  group 'keystone'
 end
 
 execute 'bootstrap the identity service' do

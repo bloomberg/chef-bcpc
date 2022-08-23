@@ -17,6 +17,7 @@
 
 # Define the Percona repository to use
 repo = node['bcpc']['percona']['repo']
+tools_repo = node['bcpc']['percona-tools']['repo']
 codename = node['lsb']['codename']
 
 # Add the specified repository
@@ -26,4 +27,12 @@ apt_repository 'percona' do
   components ['main']
   key repo['key']
   only_if { repo['enabled'] }
+end
+
+apt_repository 'percona-tools' do
+  uri tools_repo['url']
+  distribution codename
+  components ['main']
+  key tools_repo['key']
+  only_if { tools_repo['enabled'] }
 end

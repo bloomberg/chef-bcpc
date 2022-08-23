@@ -20,41 +20,12 @@ include_recipe 'bcpc::percona-apt'
 
 package %w(
   debconf-utils
-  percona-xtradb-cluster-57
+  percona-xtradb-cluster
 )
-
-service 'mysql'
-service 'xinetd'
 
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 mysqladmin = mysqladmin()
-mysql_init_db_file = "#{Chef::Config[:file_cache_path]}/mysql-init-db.sql"
-mysql_init_done_file = '/var/lib/mysql/done'
-
-file mysql_init_db_file do
-  action :nothing
-end
-
-template mysql_init_db_file do
-  source 'mysql/init.sql.erb'
-
-  variables(
-    users: config['mysql']['users']
-  )
-
-  notifies :run, 'bash[configure mysql db]', :immediately
-  not_if { ::File.exist?(mysql_init_done_file) }
-end
-
-bash 'configure mysql db' do
-  action :nothing
-  code <<-EOH
-    mysql -u #{mysqladmin['username']} < #{mysql_init_db_file} && \
-    touch #{mysql_init_done_file}
-  EOH
-  notifies :delete, "file[#{mysql_init_db_file}]", :immediately
-end
 
 template '/root/.my.cnf' do
   source 'mysql/root.my.cnf.erb'
@@ -64,29 +35,8 @@ template '/root/.my.cnf' do
   )
 end
 
-template '/etc/mysql/my.cnf' do
-  source 'mysql/my.cnf.erb'
-  notifies :restart, 'service[mysql]', :immediately
-end
-
-template '/etc/mysql/debian.cnf' do
-  source 'mysql/debian.cnf.erb'
-  variables(
-    mysqladmin: mysqladmin
-  )
-  notifies :reload, 'service[mysql]', :immediately
-end
-
-template '/etc/mysql/conf.d/wsrep.cnf' do
-  source 'mysql/wsrep.cnf.erb'
-
-  variables(
-    config: config,
-    headnodes: headnodes(exclude: node['hostname'])
-  )
-
-  notifies :restart, 'service[mysql]', :immediately
-end
+# Configure xinetd to report MySQL clustering status (for Consul).
+service 'xinetd'
 
 execute 'add mysqlchk to /etc/services' do
   command <<-DOC
@@ -107,6 +57,72 @@ template '/etc/xinetd.d/mysqlchk' do
   notifies :restart, 'service[xinetd]', :immediately
 end
 
+# See below -- defer service restarts until the end of the recipe
+# if any of these MySQL/WSREP configuration files change.
+template '/etc/mysql/my.cnf' do
+  source 'mysql/my.cnf.erb'
+  notifies :run, 'ruby_block[recipe-deferred mysql restart]', :immediately
+end
+
+template '/etc/mysql/debian.cnf' do
+  source 'mysql/debian.cnf.erb'
+  variables(
+    mysqladmin: mysqladmin
+  )
+  notifies :run, 'ruby_block[recipe-deferred mysql restart]', :immediately
+end
+
+template '/etc/mysql/conf.d/wsrep.cnf' do
+  source 'mysql/wsrep.cnf.erb'
+  variables(
+    config: config,
+    headnodes: headnodes(exclude: node['hostname'])
+  )
+  notifies :run, 'ruby_block[recipe-deferred mysql restart]', :immediately
+end
+
+# MySQL/PXC does not respond well to multiple service restarts
+# (e.g., if/when each configuration file changes when a cluster is
+# bootstrapped, and each change notifies the service to restart).
+#
+# At the same time, Chef does not support end-of-recipe deferred
+# notifications. But, we can still do that with ruby_blocks:
+ruby_block 'recipe-deferred mysql restart' do
+  action :nothing
+  block do
+    node.run_state['mysql_restart'] = true
+  end
+end
+
+service 'mysql' do
+  action :restart
+  only_if { node.run_state.fetch('mysql_restart', false) }
+end
+
+# When the first node is bootstrapped, we need to define users, etc.
+mysql_init_db_file = "#{Chef::Config[:file_cache_path]}/mysql-init-db.sql"
+
+file mysql_init_db_file do
+  action :nothing
+end
+
+template mysql_init_db_file do
+  source 'mysql/init.sql.erb'
+  variables(
+    users: config['mysql']['users']
+  )
+  only_if { init_mysql? }
+end
+
+bash 'bootstrap mysql' do
+  code <<-EOH
+    mysql -u #{mysqladmin['username']} < #{mysql_init_db_file}
+  EOH
+  notifies :delete, "file[#{mysql_init_db_file}]", :immediately
+  only_if { init_mysql? }
+end
+
+# Wait until Consul elects the primary database instance.
 execute 'wait for consul to elect the primary mysql host' do
   retries 30
   command 'getent hosts primary.mysql.service.consul'

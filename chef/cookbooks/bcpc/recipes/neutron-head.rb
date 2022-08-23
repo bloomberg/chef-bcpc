@@ -251,7 +251,9 @@ end
 
 execute 'neutron-db-manage upgrade heads' do
   action :nothing
-  command 'su -s /bin/sh -c "neutron-db-manage upgrade heads" neutron'
+  command 'neutron-db-manage upgrade heads'
+  user 'neutron'
+  group 'neutron'
 end
 #
 # create/manage neutron database ends

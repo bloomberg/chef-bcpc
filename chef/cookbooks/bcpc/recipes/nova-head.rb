@@ -235,24 +235,32 @@ end
 
 execute 'nova-manage api_db sync' do
   action :nothing
-  command "su -s /bin/sh -c 'nova-manage api_db sync' nova"
+  command 'nova-manage api_db sync'
+  user 'nova'
+  group 'nova'
 end
 
 execute 'register the cell0 database' do
   action :nothing
-  command 'su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova'
+  command 'nova-manage cell_v2 map_cell0'
   not_if 'nova-manage cell_v2 list_cells | grep cell0'
+  user 'nova'
+  group 'nova'
 end
 
 execute 'create the cell1 cell' do
   action :nothing
-  command 'su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1" nova'
+  command 'nova-manage cell_v2 create_cell --name=cell1'
   not_if 'nova-manage cell_v2 list_cells | grep cell1'
+  user 'nova'
+  group 'nova'
 end
 
 execute 'nova-manage db sync' do
   action :nothing
-  command 'su -s /bin/sh -c "nova-manage db sync" nova'
+  command 'nova-manage db sync'
+  user 'nova'
+  group 'nova'
 end
 #
 # create/manage nova databases ends

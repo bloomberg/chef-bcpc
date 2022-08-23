@@ -332,7 +332,9 @@ end
 
 execute 'heat-manage db_sync' do
   action :nothing
-  command "su -s /bin/sh -c 'heat-manage db_sync' heat"
+  command 'heat-manage db_sync'
+  user 'heat'
+  group 'heat'
 end
 
 # configure heat

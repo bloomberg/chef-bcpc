@@ -1,7 +1,11 @@
-GRANT USAGE ON *.* \
-  TO '<%= @db['username'] %>'@'localhost' \
+CREATE USER IF NOT EXISTS '<%= @db['username'] %>'@'localhost' \
   IDENTIFIED BY '<%= @db['password'] %>';
 
 GRANT USAGE ON *.* \
-  TO '<%= @db['username'] %>'@'%' \
+  TO '<%= @db['username'] %>'@'localhost';
+
+CREATE USER IF NOT EXISTS '<%= @db['username'] %>'@'%' \
   IDENTIFIED BY '<%= @db['password'] %>';
+
+GRANT USAGE ON *.* \
+  TO '<%= @db['username'] %>'@'%';

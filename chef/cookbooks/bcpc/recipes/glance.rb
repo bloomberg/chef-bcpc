@@ -237,9 +237,9 @@ end
 
 execute 'glance-manage db_sync' do
   action :nothing
-  command <<-DOC
-    su -s /bin/sh -c 'glance-manage db_sync' glance
-  DOC
+  command 'glance-manage db_sync'
+  user 'glance'
+  group 'glance'
 end
 #
 # create/manage glance database ends

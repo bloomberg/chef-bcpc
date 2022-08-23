@@ -239,7 +239,9 @@ end
 
 execute 'cinder-manage db sync' do
   action :nothing
-  command "su -s /bin/sh -c 'cinder-manage db sync' cinder"
+  command 'cinder-manage db sync'
+  user 'cinder'
+  group 'cinder'
 end
 # create/manage cinder database ends
 

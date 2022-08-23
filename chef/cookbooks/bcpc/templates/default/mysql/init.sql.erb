@@ -1,19 +1,17 @@
 DELETE FROM mysql.user WHERE user='';
 
-ALTER USER IF EXISTS 'root'@'localhost' \
-  IDENTIFIED WITH mysql_native_password BY '<%= @users['root']['password'] %>';
+ALTER USER IF EXISTS \
+  'root'@'localhost' \
+  IDENTIFIED WITH 'mysql_native_password' BY '<%= @users['root']['password'] %>';
 
 UPDATE mysql.user \
   SET host='%' WHERE user='root' AND host='localhost';
 
-GRANT USAGE ON *.* \
-  TO 'sst'@'%' IDENTIFIED BY '<%= @users['sst']['password'] %>';
-
-GRANT ALL PRIVILEGES ON *.* \
-  TO 'sst'@'%' IDENTIFIED BY '<%= @users['sst']['password'] %>';
+CREATE USER IF NOT EXISTS \
+  'check'@'localhost' \
+  IDENTIFIED WITH 'mysql_native_password' BY '<%= @users['check']['password'] %>';
 
 GRANT PROCESS ON *.* \
-  TO 'check'@'localhost' \
-  IDENTIFIED WITH mysql_native_password BY '<%= @users['check']['password'] %>';
+  TO 'check'@'localhost';
 
 FLUSH PRIVILEGES;
