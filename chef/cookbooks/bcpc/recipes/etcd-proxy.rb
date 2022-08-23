@@ -18,15 +18,15 @@
 include_recipe 'bcpc::etcd-packages'
 include_recipe 'bcpc::etcd-ssl'
 
-# Headnodes have etcd-member and don't need etcd-proxy.
-return if headnode?
+# etcdnodes have etcd-member and don't need etcd-proxy.
+return if etcdnode?
 
 service 'etcd'
 
-headnodes = headnodes(all: true)
+etcdnodes = etcdnodes(all: true)
 
-etcd_endpoints = headnodes.collect do |headnode|
-  "https://#{headnode['service_ip']}:2379"
+etcd_endpoints = etcdnodes.collect do |etcdnode|
+  "https://#{etcdnode['service_ip']}:2379"
 end
 
 template '/etc/systemd/system/etcd.service' do

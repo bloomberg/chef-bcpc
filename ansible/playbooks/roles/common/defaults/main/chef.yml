@@ -64,6 +64,14 @@ chef_roles:
       - recipe[bcpc::rally]
       - recipe[bcpc::rally-deploy]
 
+  - name: etcdnode
+    description: etcd node
+    json_class: Chef::Role
+    chef_type: role
+    run_list:
+      - role[node]
+      - recipe[bcpc::etcd-member]
+
   - name: headnode
     description: cloud infrastructure services
     json_class: Chef::Role
@@ -71,7 +79,6 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::haproxy]
-      - recipe[bcpc::etcd-member]
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
       - recipe[bcpc::consul]

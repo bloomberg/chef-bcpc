@@ -77,8 +77,8 @@ nodes:
       zone: dev
 
   - host: r1n3
-    group: storagenodes
-    hardware_profile: worknode
+    group: etcdnodes
+    hardware_profile: headnode
     host_vars:
       bgp:
         asn: 4200858801
@@ -99,7 +99,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[storagenode]
+        - role[etcdnode]
 
   - host: r1n4
     group: rmqnodes
@@ -150,3 +150,28 @@ nodes:
               name: management4
       run_list:
         - role[storageheadnode]
+
+  - host: r1n6
+    group: storagenodes
+    hardware_profile: worknode
+    host_vars:
+      bgp:
+        asn: 4200858801
+      interfaces:
+        service:
+          ip: 10.65.0.7
+        transit:
+          - ip: 10.121.84.8/27
+            mac: '08:00:27:00:00:1c'
+            neighbor:
+              ip: 10.121.84.1
+              asn: 4200858701
+              name: management1
+          - ip: 10.121.88.8/27
+            mac: '08:00:27:00:00:1d'
+            neighbor:
+              ip: 10.121.88.1
+              asn: 4200858702
+              name: management4
+      run_list:
+        - role[storagenode]

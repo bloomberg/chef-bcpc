@@ -172,8 +172,11 @@ class EtcdSSL:
             if client == 'server':
                 alt_names = ','.join([
                     'IP:10.65.0.2',
+                    'IP:10.65.0.4',
                     'IP:10.65.0.16',
+                    'IP:10.65.0.18',
                     'IP:10.65.0.32',
+                    'IP:10.65.0.34',
                     'IP:127.0.0.1'
                 ]).encode()
 

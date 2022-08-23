@@ -47,7 +47,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[etcdnode]
+        - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
 
@@ -80,7 +80,7 @@ nodes:
       zone: dev
 
   - host: r1n3
-    group: rmqnodes
+    group: etcdnodes
     hardware_profile: headnode
     host_vars:
       bgp:
@@ -102,7 +102,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
-        - role[rmqnode]
+        - role[etcdnode]
 
   - host: r2n1
     group: headnodes
@@ -127,7 +127,7 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
-        - role[etcdnode]
+        - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
 
@@ -160,7 +160,7 @@ nodes:
       zone: dev
 
   - host: r2n3
-    group: rmqnodes
+    group: etcdnodes
     hardware_profile: headnode
     host_vars:
       bgp:
@@ -182,7 +182,7 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
-        - role[rmqnode]
+        - role[etcdnode]
 
   - host: r3n1
     group: headnodes
@@ -207,7 +207,7 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
-        - role[etcdnode]
+        - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
 
@@ -240,7 +240,7 @@ nodes:
       zone: dev
 
   - host: r3n3
-    group: rmqnodes
+    group: etcdnodes
     hardware_profile: headnode
     host_vars:
       bgp:
@@ -262,4 +262,4 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
-        - role[rmqnode]
+        - role[etcdnode]

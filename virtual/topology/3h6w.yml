@@ -47,6 +47,7 @@ nodes:
               asn: 4200858702
               name: management4
       run_list:
+        - role[etcdnode]
         - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
@@ -130,6 +131,7 @@ nodes:
               asn: 4200858704
               name: management5
       run_list:
+        - role[etcdnode]
         - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
@@ -213,6 +215,7 @@ nodes:
               asn: 4200858706
               name: management6
       run_list:
+        - role[etcdnode]
         - role[rmqnode]
         - role[storageheadnode]
         - role[headnode]
