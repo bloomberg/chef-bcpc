@@ -158,6 +158,28 @@
     - rpcbind
     - snapd
   ignore_errors: yes  # noqa ignore-errors
+  when: ansible_distribution_version == "18.04"
+
+- name: Stop and disable unused services
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  with_items:
+    - accounts-daemon
+    - atd
+    - fwupd
+    - multipathd.socket
+    - multipathd
+    - packagekit
+    - polkit
+    - snapd.socket
+    - snapd
+    - snapd.seeded
+    - udisks2
+    - upower
+  ignore_errors: yes # noqa ignore-errors
+  when: ansible_distribution_version == "20.04"
 
 # Purge some Ubuntu packages
 - name: Purge undesirable packages
@@ -169,6 +191,37 @@
     - ubuntu-advantage-tools
     - update-notifier-common
     - ubuntu-release-upgrader-core
+  when: ansible_distribution_version == "18.04"
+
+# Purge some Ubuntu stock packages we don't need
+- name: Purge unused service packages
+  apt:
+    name: "{{ item }}"
+    purge: yes
+    state: absent
+  with_items:
+    - accountsservice
+    - at
+    - fwupd
+    - fwupd-signed
+    - multipath-tools
+    - packagekit
+    - packagekit-tools
+    - policykit-1
+    - snapd
+    - ubuntu-advantage-tools
+    - update-notifier-common
+    - ubuntu-release-upgrader-core
+    - udisks2
+    - upower
+  when: ansible_distribution_version == "20.04"
+
+# Purge off dependencies of uneeded packages
+- name: Purge unused packages
+  apt:
+    autoremove: yes
+    purge: yes
+  when: ansible_distribution_version == "20.04"
 
 # Configure motd-news
 - name: Configure motd-news

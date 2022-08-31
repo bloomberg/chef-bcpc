@@ -33,7 +33,7 @@ LogLevel INFO
 
 # Authentication:
 LoginGraceTime 120
-PermitRootLogin yes
+PermitRootLogin {{ 'prohibit-password' if ansible_distribution_version == '20.04' else 'yes' }}
 StrictModes yes
 
 RSAAuthentication yes

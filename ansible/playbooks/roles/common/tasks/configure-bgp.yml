@@ -5,6 +5,7 @@
     src: bird/apt-preferences.j2
     dest: /etc/apt/preferences.d/98bird
     mode: 0644
+  when: ansible_distribution_version == "18.04"
 
 - name: install bird
   apt:

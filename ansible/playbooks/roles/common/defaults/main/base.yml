@@ -239,13 +239,13 @@ ubuntu_apt:
     - universe
     - multiverse
   sources:
-    - dist: bionic
+    - dist: "{{ ansible_distribution_release }}"
       url: http://archive.ubuntu.com/ubuntu
-    - dist: bionic-backports
+    - dist: "{{ ansible_distribution_release }}-backports"
       url: http://archive.ubuntu.com/ubuntu
-    - dist: bionic-security
+    - dist: "{{ ansible_distribution_release }}-security"
       url: http://security.ubuntu.com/ubuntu
-    - dist: bionic-updates
+    - dist: "{{ ansible_distribution_release }}-updates"
       url: http://archive.ubuntu.com/ubuntu
 
 ###############################################################################
@@ -255,6 +255,7 @@ ubuntu_apt:
 bird:
   distribution:
     name: bionic-backports
+  when: ansible_distribution_version == "18.04"
 
 ###############################################################################
 # license traits
@@ -280,7 +281,7 @@ grub_cmdline_linux: []
 ###############################################################################
 
 # Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
-hardware_io_scheduler: deadline
+hardware_io_scheduler: "{{ 'mq-' if ansible_distribution_version == '20.04' else ''}}deadline"
 
 # Select kernel NVMe multipath support.
 # Disabling addresses the issue with controller vs. disk/device naming issues,
@@ -296,7 +297,7 @@ hardware_cpu_load_microcode: true
 # If pin_version is false, track linux-{{ variant }} upstream
 # For example, linux-{{ generic-hwe-18.04 }}
 kernel_pin_version: false
-kernel_variant: generic-hwe-18.04-edge
+kernel_variant: 'generic-hwe-{{ ansible_distribution_version }}-edge'
 kernel_version: ''
 
 # Use this to *add* more reserved ports; i.e. modify value of
