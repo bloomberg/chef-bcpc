@@ -3,7 +3,7 @@
 # the chrony daemon without editing the init script or service file.
 
 # Options to pass to chrony.
-DAEMON_OPTS="{{ '-4' if not system_enable_ipv6 else '' }}"
+DAEMON_OPTS="{{ '-F 1' if ansible_distribution_version == '20.04' else '' }}{{ '-4' if not system_enable_ipv6 else '' }}"
 
 # Sync system clock in containers or without CAP_SYS_TIME (likely to fail)
 # See /usr/share/doc/chrony/README.container for details.
