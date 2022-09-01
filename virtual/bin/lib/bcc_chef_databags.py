@@ -15,7 +15,6 @@
 import base64
 from builtins import FileExistsError
 import os
-import random
 import secrets
 import string
 import struct
@@ -28,147 +27,171 @@ from cryptography.hazmat.primitives.serialization.ssh import \
     serialize_ssh_private_key
 from cryptography.hazmat.primitives.serialization.ssh import \
     serialize_ssh_public_key
+from cryptography import x509
 from OpenSSL import crypto
 import yaml
 
 
 class APISSL:
 
+    CA_KEY_SIZE = 2048
+    CA_CRT_YEARS_VALID = 5
+    CA_SIGNATURE_ALGO = "sha256"
+
     def __init__(self):
 
-        # create a key pair
-        self.__key = crypto.PKey()
-        self.__key.generate_key(crypto.TYPE_RSA, 4096)
+        # Create CA key pair
+        self.__ca_key = crypto.PKey()
+        self.__ca_key.generate_key(crypto.TYPE_RSA, self.CA_KEY_SIZE)
 
-        # define alt_names
+        # Define alt_names
         self.__alt_names = ','.join([
             'DNS:{}'.format('openstack.bcpc.example.com'),
             'DNS:localhost',
             'IP:10.65.0.254'
         ]).encode()
 
-        # create a self-signed cert
-        self.__cert = crypto.X509()
-        self.__cert.get_subject().C = "US"
-        self.__cert.get_subject().ST = "New York"
-        self.__cert.get_subject().L = "New York City"
-        self.__cert.get_subject().O = "Bloomberg L.P." # noqa
-        self.__cert.get_subject().OU = "openstack"
-        self.__cert.get_subject().CN = "openstack.bcpc.example.com"
-        self.__cert.set_serial_number(random.randrange(100000))
-        self.__cert.set_version(2)
-        self.__cert.gmtime_adj_notBefore(0)
-        self.__cert.gmtime_adj_notAfter(16*365*24*60*60)
-        self.__cert.set_issuer(self.__cert.get_subject())
-        self.__cert.set_pubkey(self.__key)
-        self.__cert.add_extensions([
-            crypto.X509Extension(b'subjectAltName', False, self.__alt_names),
-            crypto.X509Extension(b"basicConstraints", True, b"CA:false")
+        # Create the CA certificate
+        self.__ca = crypto.X509()
+        self.__ca.get_subject().C = "US"
+        self.__ca.get_subject().ST = "New York"
+        self.__ca.get_subject().L = "New York"
+        self.__ca.get_subject().O = "Bloomberg LP" # noqa
+        self.__ca.get_subject().OU = "ENG Cloud Infrastructure"
+        self.__ca.get_subject().CN = "openstack.bcpc.example.com"
+        self.__ca.set_version(2)
+        self.__ca.set_serial_number(x509.random_serial_number())
+        self.__ca.gmtime_adj_notBefore(0)
+        self.__ca.gmtime_adj_notAfter(
+                self.CA_CRT_YEARS_VALID * 365 * 24 * 60 * 60)
+        self.__ca.set_issuer(self.__ca.get_subject())
+        self.__ca.set_pubkey(self.__ca_key)
+
+        # Add certificate extensions
+        self.__ca.add_extensions([
+            # Note: This CA will only issue end-entity certificates, hence
+            # pathlen == 0
+            crypto.X509Extension(b"basicConstraints", True,
+                                 b"CA:TRUE, pathlen:0"),
+            crypto.X509Extension(b'subjectAltName', False,
+                                 self.__alt_names)
         ])
-        self.__cert.sign(self.__key, 'sha512')
+
+        # Self-sign the certificate
+        self.__ca.sign(self.__ca_key, self.CA_SIGNATURE_ALGO)
 
     def crt(self):
-        certificate = crypto.dump_certificate(crypto.FILETYPE_PEM, self.__cert)
+        certificate = crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                              self.__ca)
         return base64.b64encode(certificate).decode()
 
     def key(self):
-        private_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, self.__key)
+        private_key = crypto.dump_privatekey(crypto.FILETYPE_PEM,
+                                             self.__ca_key)
         return base64.b64encode(private_key).decode()
 
 
 class EtcdSSL:
 
+    CA_KEY_SIZE = 2048
+    CA_CRT_YEARS_VALID = 5
+    CA_SIGNATURE_ALGO = "sha256"
+
+    END_ENTITY_KEY_SIZE = 2048
+    END_ENTITY_CRT_YEARS_VALID = 5
+    END_ENTITY_SIGNATURE_ALGO = "sha256"
+
     def __init__(self):
 
         self.__certs = {}
 
-        # create key
-        self.__key = crypto.PKey()
-        self.__key.generate_key(crypto.TYPE_RSA, 2048)
+        # Create CA key pair
+        self.__ca_key = crypto.PKey()
+        self.__ca_key.generate_key(crypto.TYPE_RSA, self.CA_KEY_SIZE)
 
-        # create self-signed ca
+        # Create the CA certificate
         self.__ca = crypto.X509()
         self.__ca.get_subject().C = "US"
         self.__ca.get_subject().ST = "New York"
-        self.__ca.get_subject().L = "New York City"
-        self.__ca.get_subject().O = "Bloomberg L.P." # noqa
+        self.__ca.get_subject().L = "New York"
+        self.__ca.get_subject().O = "Bloomberg LP" # noqa
         self.__ca.get_subject().OU = "ENG Cloud Infrastructure"
-        self.__ca.get_subject().CN = "ca"
+        self.__ca.get_subject().CN = "ETCD Certificate Authority"
         self.__ca.set_version(2)
-        self.__ca.set_serial_number(random.randrange(100000))
+        self.__ca.set_serial_number(x509.random_serial_number())
         self.__ca.gmtime_adj_notBefore(0)
-        self.__ca.gmtime_adj_notAfter(16*365*24*60*60)
+        self.__ca.gmtime_adj_notAfter(
+                self.CA_CRT_YEARS_VALID * 365 * 24 * 60 * 60)
         self.__ca.set_issuer(self.__ca.get_subject())
-        self.__ca.set_pubkey(self.__key)
+        self.__ca.set_pubkey(self.__ca_key)
 
+        # Add certificate extensions
         self.__ca.add_extensions([
+            # Note: This CA will only issue end-entity certificates, hence
+            # pathlen == 0
             crypto.X509Extension(b"basicConstraints", True,
                                  b"CA:TRUE, pathlen:0"),
             crypto.X509Extension(b"keyUsage", True,
                                  b"keyCertSign, cRLSign"),
-            crypto.X509Extension(b"subjectKeyIdentifier", False, b"hash",
-                                 subject=self.__ca),
+            crypto.X509Extension(b"subjectKeyIdentifier", False,
+                                 b"hash", subject=self.__ca)
         ])
 
+        # Add authority key identifier extension only once other extensions
+        # have been added
         self.__ca.add_extensions([
             crypto.X509Extension(b"authorityKeyIdentifier", False,
                                  b"keyid:always", issuer=self.__ca)
         ])
 
-        self.__ca.sign(self.__key, 'sha512')
+        # Self-sign the certificate
+        self.__ca.sign(self.__ca_key, self.CA_SIGNATURE_ALGO)
 
-        # create self-signed client certs
+        # Create server and client certificates signed by the CA
         for client in ['client-ro', 'client-rw', 'server']:
 
-            # key
+            # Create the end entity key
             self.__certs[client] = {}
             self.__certs[client]['key'] = crypto.PKey()
-            self.__certs[client]['key'].generate_key(crypto.TYPE_RSA, 2048)
+            self.__certs[client]['key'].generate_key(
+                    crypto.TYPE_RSA, self.END_ENTITY_KEY_SIZE)
 
-            # cert
-            rand_int = random.randint(50000000, 100000000)
+            # Create the end entity certificate
             self.__certs[client]['cert'] = crypto.X509()
             self.__certs[client]['cert'].get_subject().C = "US"
             self.__certs[client]['cert'].get_subject().ST = "New York"
-            self.__certs[client]['cert'].get_subject().L = "New York City"
+            self.__certs[client]['cert'].get_subject().L = "New York"
             self.__certs[client]['cert'].get_subject().O = \
-                "Bloomberg L.P." # noqa
+                "Bloomberg LP" # noqa
             self.__certs[client]['cert'].get_subject().OU = \
                 "ENG Cloud Infrastructure"
             self.__certs[client]['cert'].get_subject().CN = client
             self.__certs[client]['cert'].set_version(2)
-            self.__certs[client]['cert'].set_serial_number(rand_int)
+            self.__certs[client]['cert'].set_serial_number(
+                    x509.random_serial_number())
             self.__certs[client]['cert'].gmtime_adj_notBefore(0)
             self.__certs[client]['cert'].gmtime_adj_notAfter(
-                10 * 365 * 24 * 60 * 60
+                self.END_ENTITY_CRT_YEARS_VALID * 365 * 24 * 60 * 60
             )
             self.__certs[client]['cert'].set_issuer(self.__ca.get_issuer())
             self.__certs[client]['cert'].set_pubkey(
                 self.__certs[client]['key']
             )
 
+            # Add common certificate extensions
             self.__certs[client]['cert'].add_extensions([
-                crypto.X509Extension(b"basicConstraints", False, b"CA:FALSE"),
-                crypto.X509Extension(
-                    b"subjectKeyIdentifier",
-                    False,
-                    b"hash",
-                    subject=self.__certs[client]['cert']
-                ),
+                crypto.X509Extension(b"basicConstraints", True,
+                                     b"CA:FALSE"),
+                crypto.X509Extension(b"subjectKeyIdentifier", False,
+                                     b"hash",
+                                     subject=self.__certs[client]['cert']),
+                crypto.X509Extension(b"authorityKeyIdentifier", False,
+                                     b"keyid:always", issuer=self.__ca),
+                crypto.X509Extension(b"keyUsage", True,
+                                     b"digitalSignature, keyEncipherment")
             ])
 
-            self.__certs[client]['cert'].add_extensions([
-                crypto.X509Extension(
-                    b"authorityKeyIdentifier",
-                    False,
-                    b"keyid:always",
-                    issuer=self.__ca
-                ),
-                crypto.X509Extension(b"extendedKeyUsage", False,
-                                     b"clientAuth",),
-                crypto.X509Extension(b"keyUsage", False, b"digitalSignature"),
-            ])
-
+            # Add additional certificate extensions
             if client == 'server':
                 alt_names = ','.join([
                     'IP:10.65.0.2',
@@ -181,15 +204,24 @@ class EtcdSSL:
                 ]).encode()
 
                 self.__certs[client]['cert'].add_extensions([
-                    crypto.X509Extension(b'subjectAltName', False, alt_names),
                     crypto.X509Extension(b"extendedKeyUsage", False,
-                                         b"serverAuth"),
+                                         b"serverAuth, clientAuth"),
+                    crypto.X509Extension(b'subjectAltName', False,
+                                         alt_names)
+                ])
+            else:
+                self.__certs[client]['cert'].add_extensions([
+                    crypto.X509Extension(b"extendedKeyUsage", False,
+                                         b"clientAuth")
                 ])
 
-            self.__certs[client]['cert'].sign(self.__key, 'sha256')
+            # Sign the certificate with the CA key
+            self.__certs[client]['cert'].sign(
+                    self.__ca_key, self.END_ENTITY_SIGNATURE_ALGO)
 
     def ca_crt(self):
-        certificate = crypto.dump_certificate(crypto.FILETYPE_PEM, self.__ca)
+        certificate = crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                              self.__ca)
         return base64.b64encode(certificate).decode()
 
     def server_crt(self):
