@@ -5,15 +5,14 @@
 #
 # The list of dependencies we resolve in configure-web-server [1] and here [2]:
 #   * [1] etcd requires bcpc::web-server (to obtain packages)
-#   * [2] etcd-proxy (non-headnodes) requires etcd (headnodes)
+#   * [2] etcd-proxy (non-headnodes) requires etcd (etcdnodes)
 #   * [2] calico-felix requires etcd-proxy or etcd-member
 #
 # In the future, we should move Consul, etcd, etc. out of Chef and into
 # Ansible so these dependencies can be resolved more elegantly.
-- hosts: headnodes
+- hosts: "{{ groups.get('etcdnodes', groups.get('headnodes', [])) }}"
   gather_facts: no
   become: yes
-  order: inventory
   tasks:
     - name: provision the first etcd server
       become: true

@@ -1,6 +1,7 @@
 - import_playbook: localhost.yml
 - import_playbook: stubnodes.yml
 - import_playbook: bootstraps.yml
+- import_playbook: etcdnodes.yml
 - import_playbook: headnodes.yml
 - import_playbook: rmqnodes.yml
 - import_playbook: storageheadnodes.yml

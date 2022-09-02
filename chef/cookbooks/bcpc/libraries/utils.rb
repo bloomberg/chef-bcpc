@@ -26,6 +26,12 @@ def init_cloud?
   nodes.empty?
 end
 
+def init_etcd?
+  nodes = search(:node, 'roles:etcdnode')
+  nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
+  nodes.empty?
+end
+
 def init_rmq?
   nodes = search(:node, 'roles:rmqnode')
   nodes = nodes.reject { |n| n['hostname'] == node['hostname'] }
@@ -40,6 +46,10 @@ end
 
 def bootstrap?
   search(:node, "role:bootstrap AND hostname:#{node['hostname']}").any?
+end
+
+def etcdnode?
+  search(:node, "role:etcdnode AND hostname:#{node['hostname']}").any?
 end
 
 def headnode?
@@ -68,6 +78,21 @@ end
 
 def bootstraps
   nodes = search(:node, 'role:bootstrap')
+  nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
+end
+
+def etcdnodes(exclude: nil, all: false)
+  nodes = []
+
+  if !exclude.nil?
+    nodes = search(:node, 'roles:etcdnode')
+    nodes = nodes.reject { |h| h['hostname'] == exclude }
+  elsif all == true
+    nodes = search(:node, 'role:etcdnode')
+  else
+    nodes = search(:node, 'roles:etcdnode')
+  end
+
   nodes.sort! { |a, b| a['hostname'] <=> b['hostname'] }
 end
 
@@ -199,12 +224,19 @@ def os_adminrc
 end
 
 def etcdctl_env
-  if headnode?
+  if etcdnode?
     {
       'ETCDCTL_API' => '3',
       'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
       'ETCDCTL_CERT' => node['bcpc']['etcd']['server']['crt']['filepath'],
       'ETCDCTL_KEY' => node['bcpc']['etcd']['server']['key']['filepath'],
+    }
+  elsif headnode?
+    {
+      'ETCDCTL_API' => '3',
+      'ETCDCTL_CACERT' => node['bcpc']['etcd']['ca']['crt']['filepath'],
+      'ETCDCTL_CERT' => node['bcpc']['etcd']['client-rw']['crt']['filepath'],
+      'ETCDCTL_KEY' => node['bcpc']['etcd']['client-rw']['key']['filepath'],
     }
   else
     {
