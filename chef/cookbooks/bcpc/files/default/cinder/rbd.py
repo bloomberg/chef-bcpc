@@ -520,6 +520,7 @@ class RBDDriver(driver.CloneableImageVD, driver.MigrateVD,
                 mons = [h.strip() for h in mon_host.split(',')]
                 validated_mons = [IPv4Address(host) for host in mons]
                 hosts = mons
+                ports = [ports[0]] * len(mons)
         except (FileNotFoundError, KeyError, ValueError) as exception:
             LOG.error('ceph-mon-migration: {0}'.format(str(exception)))
         return hosts, ports

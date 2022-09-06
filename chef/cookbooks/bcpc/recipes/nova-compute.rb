@@ -274,6 +274,13 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/block_device.py' do
   notifies :restart, 'service[nova-compute]', :delayed
 end
 
+# And do the same when using rbd_utils (used by the ImageBackend for net-new BDMs)
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/storage/rbd_utils.py' do
+  source 'nova/rbd_utils.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 # (rendition of): https://review.opendev.org/c/openstack/nova/+/852002
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
   source 'nova/guest.py'

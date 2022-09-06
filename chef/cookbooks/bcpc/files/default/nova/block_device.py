@@ -715,8 +715,12 @@ class DriverVolumeBlockDevice(DriverBlockDevice):
         except (FileNotFoundError, KeyError, ValueError) as exception:
             LOG.error('ceph-mon-migration: {0}'.format(str(exception)))
 
-        if len(mons) > 0 and 'hosts' in connection_info.get('data', {}):
-            connection_info['data']['hosts'] = mons
+        if len(mons) > 0:
+            if 'hosts' in connection_info.get('data', {}):
+                connection_info['data']['hosts'] = mons
+            if 'ports' in connection_info.get('data', {}):
+                port = connection_info['data']['ports'][0]
+                connection_info['data']['ports'] = [port] * len(mons)
 
         if 'serial' not in connection_info:
             connection_info['serial'] = self.volume_id

@@ -34,6 +34,7 @@ function main {
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hardware.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hw.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/rbd_utils.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/vif.py" \
         -print0 | xargs -0 -t flake8
     ansible-lint -x var-naming ansible/
