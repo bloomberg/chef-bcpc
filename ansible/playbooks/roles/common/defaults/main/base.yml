@@ -255,7 +255,7 @@ ubuntu_apt:
 bird:
   distribution:
     name: bionic-backports
-  when: ansible_distribution_version == "18.04"
+  when: ansible_distribution_release == "bionic"
 
 ###############################################################################
 # license traits
@@ -281,7 +281,7 @@ grub_cmdline_linux: []
 ###############################################################################
 
 # Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
-hardware_io_scheduler: "{{ 'mq-' if ansible_distribution_version == '20.04' else ''}}deadline"
+hardware_io_scheduler: "{{ 'mq-deadline' if ansible_distribution_release == 'focal' else 'deadline'}}"
 
 # Select kernel NVMe multipath support.
 # Disabling addresses the issue with controller vs. disk/device naming issues,

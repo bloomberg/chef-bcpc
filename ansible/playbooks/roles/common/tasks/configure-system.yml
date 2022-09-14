@@ -158,7 +158,7 @@
     - rpcbind
     - snapd
   ignore_errors: yes  # noqa ignore-errors
-  when: ansible_distribution_version == "18.04"
+  when: ansible_distribution_release == "bionic"
 
 - name: Stop and disable unused services
   service:
@@ -179,7 +179,7 @@
     - udisks2
     - upower
   ignore_errors: yes # noqa ignore-errors
-  when: ansible_distribution_version == "20.04"
+  when: ansible_distribution_release == "focal"
 
 # Purge some Ubuntu packages
 - name: Purge undesirable packages
@@ -191,7 +191,7 @@
     - ubuntu-advantage-tools
     - update-notifier-common
     - ubuntu-release-upgrader-core
-  when: ansible_distribution_version == "18.04"
+  when: ansible_distribution_release == "bionic"
 
 # Purge some Ubuntu stock packages we don't need
 - name: Purge unused service packages
@@ -214,14 +214,13 @@
     - ubuntu-release-upgrader-core
     - udisks2
     - upower
-  when: ansible_distribution_version == "20.04"
+  when: ansible_distribution_release == "focal"
 
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages
   apt:
     autoremove: yes
     purge: yes
-  when: ansible_distribution_version == "20.04"
 
 # Configure motd-news
 - name: Configure motd-news

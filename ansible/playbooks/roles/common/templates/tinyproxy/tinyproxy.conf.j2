@@ -28,16 +28,18 @@ Listen {{ local_proxy['config']['listen'] }}
 #
 # The upstream rules allow you to selectively route upstream connections
 # based on the host/domain of the site being accessed.
+{% if ansible_distribution_release == 'focal' %}
 {% for upstream in local_proxy['config'].get('upstream',[]) %}
-{% if ansible_distribution_version == '20.04' %}
 upstream http {{ upstream }}
-{% else %}
-upstream {{ upstream }}
-{% endif %}
 {% endfor %}
+{% else %}
+{% for upstream in local_proxy['config'].get('upstream',[]) %}
+upstream {{ upstream }}
+{% endfor %}
+{% endif %}
 
 # no upstream proxy for internal websites and unqualified hosts
-{% if ansible_distribution_version == '20.04' %}
+{% if ansible_distribution_release == 'focal' %}
 upstream none "{{ cloud_ip }}/32"
 upstream none "{{ cloud_fqdn }}"
 {% for no_upstream in local_proxy['config'].get('no_upstream',[]) %}

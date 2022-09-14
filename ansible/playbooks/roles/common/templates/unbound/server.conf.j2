@@ -2,7 +2,7 @@
 # managed by ansible
 ###############################################################################
 
-{% if ansible_distribution_version == '20.04' %}
+{% if ansible_distribution_release == 'focal' %}
 remote-control:
     control-enable: {{ 'yes' if 'headnodes' is in group_names else 'no' }}
     control-interface: 127.0.0.1

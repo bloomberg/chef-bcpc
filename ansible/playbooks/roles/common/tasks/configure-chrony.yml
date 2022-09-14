@@ -21,7 +21,7 @@
     path: /etc/systemd/system/chrony.service.d
     recurse: yes
     state: directory
-  when: ansible_distribution_version == "18.04"
+  when: ansible_distribution_release == "bionic"
 
 - name: install systemd dependency work-around for chrony
   copy:
@@ -33,14 +33,14 @@
     dest: /etc/systemd/system/chrony.service.d/custom.conf
     mode: 0644
   register: chrony_custom
-  when: ansible_distribution_version == "18.04"
+  when: ansible_distribution_release == "bionic"
 
 - name: reload chrony
   systemd:
     name: chrony
     daemon_reload: yes
     enabled: yes
-  when: ansible_distribution_version == "18.04" and chrony_custom.changed  # noqa no-handler
+  when: ansible_distribution_release == "bionic" and chrony_custom.changed  # noqa no-handler
 
 - name: restart chrony
   systemd:
