@@ -22,6 +22,10 @@ ff02::2	ip6-allrouters
 {% if host == chef_server_host %}
 {{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_infrastructure_domain }}	{{ host }}	bootstrap
 {% else %}
+{% if host in host_to_etcdnode_cname %}
+{{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_infrastructure_domain }}	{{ host }}	{{ host_to_etcdnode_cname[host] }}
+{% else %}
 {{ hostvars[host]['interfaces']['service']['ip'] }}	{{ host }}.{{ cloud_infrastructure_domain }}	{{ host }}
+{% endif %}
 {% endif %}
 {% endfor %}

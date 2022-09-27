@@ -7,6 +7,10 @@ default['bcpc']['etcd']['remote']['file'] = etcd_file
 default['bcpc']['etcd']['remote']['source'] = "#{default['bcpc']['web_server']['url']}/#{etcd_file}"
 default['bcpc']['etcd']['remote']['checksum'] = '1620a59150ec0a0124a65540e23891243feb2d9a628092fb1edcc23974724a45'
 
+# environment
+default['bcpc']['etcd']['host_to_cnames'] = {}
+
+# databag
 default['bcpc']['etcd']['ssl']['dir'] = '/etc/etcd/ssl'
 default['bcpc']['etcd']['ca']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/ca.pem"
 default['bcpc']['etcd']['client-ro']['crt']['filepath'] = "#{default['bcpc']['etcd']['ssl']['dir']}/client-ro.pem"

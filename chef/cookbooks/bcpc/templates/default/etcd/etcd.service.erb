@@ -21,10 +21,10 @@ ExecStart=/usr/local/bin/etcd \
     --trusted-ca-file=<%= node['bcpc']['etcd']['ca']['crt']['filepath'] %> \
     --cert-file=<%= node['bcpc']['etcd']['server']['crt']['filepath'] %> \
     --key-file=<%= node['bcpc']['etcd']['server']['key']['filepath'] %> \
-    --advertise-client-urls=https://<%= node['service_ip'] %>:2379 \
+    --advertise-client-urls=https://<%= etcd_advertised_name() %>:2379 \
     --listen-client-urls=https://<%= node['service_ip'] %>:2379,https://127.0.0.1:2379 \
     --listen-peer-urls=https://<%= node['service_ip'] %>:2380 \
-    --initial-advertise-peer-urls=https://<%= node['service_ip'] %>:2380 \
+    --initial-advertise-peer-urls=https://<%= etcd_advertised_name() %>:2380 \
     --initial-cluster-token=<%= node['bcpc']['cloud']['region'] %>-etcd-cluster-01 \
     --initial-cluster=<%= @initial_cluster %> \
     --initial-cluster-state=<%= @initial_cluster_state %>

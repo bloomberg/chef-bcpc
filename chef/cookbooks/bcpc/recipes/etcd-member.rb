@@ -42,7 +42,7 @@ begin
   unless init_etcd?
 
     members = etcdnodes(exclude: node['hostname'])
-    endpoints = members.map { |m| "#{m['service_ip']}:2379" }.join(' ')
+    endpoints = members.map { |m| "#{etcd_advertised_name(m)}:2379" }.join(' ')
 
     bash "try to add #{node['hostname']} to existing etcd cluster" do
       environment etcdctl_env
@@ -66,7 +66,7 @@ begin
         # check to see if we're already a member
         #
         member_list=$(etcdctl --endpoints ${member} member list)
-        peer_url="https://#{node['service_ip']}:2380"
+        peer_url="https://#{etcd_advertised_name()}:2380"
 
         if echo ${member_list} | grep ${peer_url}; then
           echo "#{node['fqdn']} is already a member of this cluster"
@@ -95,14 +95,14 @@ initial_cluster = []
 initial_cluster_state = 'existing'
 
 if init_etcd?
-  initial_cluster = "#{node['fqdn']}=https://#{node['service_ip']}:2380"
+  initial_cluster = "#{node['fqdn']}=https://#{etcd_advertised_name()}:2380"
   initial_cluster_state = 'new'
 else
   etcdnodes = etcdnodes(exclude: node['hostname'])
   etcdnodes.push(node)
 
   initial_cluster = etcdnodes.collect do |h|
-    "#{h['fqdn']}=https://#{h['service_ip']}:2380"
+    "#{h['fqdn']}=https://#{etcd_advertised_name(h)}:2380"
   end
 
   initial_cluster = initial_cluster.join(',')

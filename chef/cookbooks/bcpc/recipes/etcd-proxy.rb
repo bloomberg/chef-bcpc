@@ -26,7 +26,7 @@ service 'etcd'
 etcdnodes = etcdnodes(all: true)
 
 etcd_endpoints = etcdnodes.collect do |etcdnode|
-  "https://#{etcdnode['service_ip']}:2379"
+  "https://#{etcd_advertised_name(etcdnode)}:2379"
 end
 
 template '/etc/systemd/system/etcd.service' do

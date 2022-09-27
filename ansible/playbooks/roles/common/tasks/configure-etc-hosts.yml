@@ -7,3 +7,5 @@
     src: etc/hosts.j2
     dest: /etc/hosts
     mode: 0644
+  vars:
+    host_to_etcdnode_cname: "{{ etcd['host_indexes'] | etcdnode_to_cnames(cloud_domain) }}"

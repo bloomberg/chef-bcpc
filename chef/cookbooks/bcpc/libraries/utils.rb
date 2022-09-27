@@ -425,3 +425,8 @@ def ceph_pool_size(requested_size)
   num_storagenodes = search(:node, 'roles:storagenode').length
   [[requested_size, num_storagenodes].min, 1].max
 end
+
+def etcd_advertised_name(member = node)
+  hosts_to_cnames = node['bcpc']['etcd']['host_to_cnames']
+  hosts_to_cnames.fetch(member['hostname'], member['service_ip'])
+end

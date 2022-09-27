@@ -124,6 +124,19 @@ def osadmin(a, *args, **kw):
     }
 
 
+def etcdnode_to_cnames(a, *args, **kw):
+
+    etcd_hosts = a
+    domain = args[0]
+
+    host_to_etcdnode_cnames = {}
+    for host, index in etcd_hosts.items():
+        cname_fqdn = "etcdnode-{0}.{1}".format(index, domain)
+        host_to_etcdnode_cnames[host] = cname_fqdn
+
+    return host_to_etcdnode_cnames
+
+
 class FilterModule(object):
 
     filter_map = {
@@ -131,7 +144,8 @@ class FilterModule(object):
         'transit_interfaces': transit_interfaces,
         'update_chef_node_host_vars': update_chef_node_host_vars,
         'find_asset': find_asset,
-        'osadmin': osadmin
+        'osadmin': osadmin,
+        'etcdnode_to_cnames': etcdnode_to_cnames,
     }
 
     def filters(self):

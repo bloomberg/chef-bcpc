@@ -17,6 +17,8 @@ chef_environment:
         fqdn: "{{ cloud_fqdn }}"
         vip: "{{ cloud_ip }}"
       dns: "{{ dns }}"
+      etcd:
+        host_to_cnames: "{{ etcd['host_indexes'] | etcdnode_to_cnames(cloud_domain) }}"
       grub:
         cmdline_linux:
           - net.ifnames=0
