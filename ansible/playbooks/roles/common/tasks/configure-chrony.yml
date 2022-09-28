@@ -22,23 +22,34 @@
     recurse: yes
     state: directory
 
-- name: install systemd dependency work-around for chrony
-  copy:
-    content: |
-      [Unit]
-      After=
-      After=network.target network-online.target
-      Wants=network-online.target
-    dest: /etc/systemd/system/chrony.service.d/custom.conf
-    mode: 0644
-  register: chrony_custom
+- name: install service to start monitoring sources after getting a default route
+  block:
+    - name: install the systemd unit
+      copy:
+        content: |
+          [Unit]
+          Description=Wait for default route and bring Chrony sources online
+          After=bird.service chrony.service
+          Requires=chrony.service
 
-- name: reload chrony
-  systemd:
-    name: chrony
-    daemon_reload: yes
-    enabled: yes
-  when: chrony_custom.changed  # noqa no-handler
+          [Service]
+          Type=oneshot
+          ExecStart=/bin/sh -c 'while [ -z "$(/sbin/ip route list default)" ]; do sleep 1; done'
+          ExecStartPost=/usr/bin/chronyc online
+          TimeoutStopSec=1
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/wait-for-default-route.service
+        mode: 0644
+      register: chrony_custom
+
+    - name: enable the service at reboot
+      service:
+        name: wait-for-default-route
+        daemon_reload: yes
+        enabled: yes
+      when: chrony_custom.changed
 
 - name: restart chrony
   systemd:
