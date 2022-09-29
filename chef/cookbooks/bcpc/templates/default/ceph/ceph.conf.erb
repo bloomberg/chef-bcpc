@@ -5,7 +5,8 @@ auth cluster required = cephx
 auth service required = cephx
 auth client required = cephx
 mon initial members = <%= @storageheadnodes.map{ |n| n['hostname'] }.join(',') %>
-mon host = <%= @storageheadnodes.map{ |n| n['service_ip'] }.join(',') %>
+mon host = <%= @storageheadnodes.map{ |n| "[v2:#{n['service_ip']}:3300]" }.join(',') %>
+ms_bind_msgr1 = false
 max open files = <%= node['bcpc']['ceph']['max_open_files'] %>
 rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
