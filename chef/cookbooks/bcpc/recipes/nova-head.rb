@@ -246,13 +246,13 @@ end
 
 # add availability zone anti-affinity scheduler filter
 available_filters = ['nova.scheduler.filters.all_filters']
-enabled_filters = node.default['bcpc']['nova']['scheduler_default_filters']
+enabled_filters = node['bcpc']['nova']['scheduler_default_filters']
 anti_affinity =
  node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
 
 if anti_affinity['enabled']
   available_filters.push(anti_affinity['filterPath'])
-  enabled_filters.push(anti_affinity['name'])
+  enabled_filters += [anti_affinity['name']]
 
   cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
     source 'nova/anti_affinity_availability_zone_filter.py'
@@ -275,8 +275,7 @@ aggregate_image =
 
 if required_image['enabled']
   available_filters.push(required_image['filterPath'])
-  enabled_filters.push(aggregate_image['name'])
-  enabled_filters.push(required_image['name'])
+  enabled_filters += [aggregate_image['name'], required_image['name']]
   license_traits = node['bcpc']['licenses']['traits'].map { |t| "\'#{t['trait']}\'" }
 
   template '/usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py' do
