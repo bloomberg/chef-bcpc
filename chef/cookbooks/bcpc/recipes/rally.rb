@@ -93,6 +93,7 @@ execute 'install rally in virtualenv' do
     pip install 'pip>=19.1.1'
     pip install 'decorator<=4.4.2'
     pip install 'jinja2<3.0.0'
+    pip install 'markupsafe==2.0.1'
     pip install rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
   not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
