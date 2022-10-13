@@ -288,6 +288,31 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
   notifies :restart, 'service[nova-compute]', :delayed
 end
 
+# Add support for configuring iothreads within libvirt/qemu
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/config.py' do
+  source 'nova/config.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/driver.py' do
+  source 'nova/driver.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/imagebackend.py' do
+  source 'nova/imagebackend.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/volume/volume.py' do
+  source 'nova/volume.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 template '/etc/ceph/migration.conf' do
   action node['bcpc']['ceph']['mon-migration']['enabled'] ? :create : :delete
   source 'ceph/migration.conf.erb'

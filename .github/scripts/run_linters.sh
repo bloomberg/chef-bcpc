@@ -30,12 +30,16 @@ function main {
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/api.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/block_device.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/config.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/driver.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/guest.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hardware.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/hw.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/imagebackend.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/rbd_utils.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/vif.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/volume.py" \
         -print0 | xargs -0 -t flake8
     ansible-lint -x var-naming ansible/
     cookstyle --version && cookstyle --fail-level A

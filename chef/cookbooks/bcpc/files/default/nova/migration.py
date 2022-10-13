@@ -88,6 +88,7 @@ def get_updated_guest_xml(guest, migrate_data, get_volume_config,
     xml_doc = _update_graphics_xml(xml_doc, migrate_data)
     xml_doc = _update_serial_xml(xml_doc, migrate_data)
     xml_doc = _update_volume_xml(xml_doc, migrate_data, get_volume_config)
+    xml_doc = _upgrade_rbd_iothreads(xml_doc)
     xml_doc = _rewrite_ceph_monitor_hosts(xml_doc)
     xml_doc = _update_perf_events_xml(xml_doc, migrate_data)
     xml_doc = _update_memory_backing_xml(xml_doc, migrate_data)
@@ -276,6 +277,36 @@ def _update_volume_xml(xml_doc, migrate_data, get_volume_config):
                     # again, hw address presented to guest must never change
                     item_dst.tail = None
                     disk_dev.insert(cnt, item_dst)
+    return xml_doc
+
+
+def _upgrade_rbd_iothreads(xml_doc):
+    """Update domain's XML to pickup dedicated I/O threads for RBD use cases.
+
+    Domains constructed prior to the ImageBackend changes to introduce I/O
+    threads for RBD use cases will fail to observe the changes, and must be
+    injected during live migration."""
+    iothreads = xml_doc.find('iothreads')
+
+    if iothreads is None:
+        iothreads = etree.SubElement(xml_doc, 'iothreads')
+        iothreads.text = '1'
+
+    for disk in xml_doc.findall('./devices/disk'):
+        driver = disk.find('driver')
+        source = disk.find('source')
+        target = disk.find('target')
+
+        if target is None or target.get('bus') != 'virtio':
+            continue
+
+        if source is None or source.get('protocol') != 'rbd':
+            continue
+
+        if driver is not None:
+            driver.set('io', 'threads')
+            driver.set('iothread', '1')
+
     return xml_doc
 
 
