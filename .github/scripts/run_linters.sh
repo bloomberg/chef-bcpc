@@ -23,6 +23,7 @@ function main {
     find . -name "*.sh" -print0 | xargs -0 -t shellcheck;
     find . -name "*.sh" -print0 | xargs -0 -t bashate -e E006;
     find . -name "*.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/calico/dhcp.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/cinder/rbd.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/etcd3gw/watch.py" \
         ! -path \
