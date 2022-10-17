@@ -103,6 +103,10 @@ default['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] = 1
 # instances from being able to access their root file system after a crash.
 default['bcpc']['ceph']['rbd_default_features'] = 33
 
+# Disable automated autoscaler changes on new pools by default, but still
+# raise a health warning when PGs are deemed undersized.
+default['bcpc']['ceph']['osd_pool_default_pg_autoscale_mode'] = 'warn'
+
 # ceph mgr,mon,osd service installation flags
 default['bcpc']['ceph']['mgr']['enabled'] = true
 default['bcpc']['ceph']['mon']['enabled'] = true

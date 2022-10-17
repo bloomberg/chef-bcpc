@@ -17,6 +17,11 @@ mon osd down out interval = <%= node['bcpc']['ceph']['mon_osd_down_out_interval'
 osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
 osd scrub max interval = <%= @node['bcpc']['ceph']['osd_scrub_max_interval'] %>
 
+# Autoscaler control. This allows operators to optionally receive health
+# warnings (or disregard suggestions altogether) when the PGs are deemed under
+# or over-sized, rather than having Ceph act on them automatically.
+osd_pool_default_pg_autoscale_mode = <%= node['bcpc']['ceph']['osd_pool_default_pg_autoscale_mode'] %>
+
 [mon]
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
