@@ -1,0 +1,57 @@
+- name: Check if volume is formatted
+  stat:
+    path: "/dev/disk/by-label/{{ item.volume_label }}"
+  register: fs_check
+
+- name: Partition volume and format filesystem
+  block:
+    - name: Format NVMe namespace
+      include_tasks: format-nvme.yml
+      vars:
+        block_device: "{{ item.block_device }}"
+      when: item.block_device.split('/')[-1].startswith('nvme')
+
+    - name: Partition volume
+      command: "parted -s -a optimal -- {{ item.block_device }} mklabel gpt mkpart {{ item.volume_label }} ext4 0% 100%"
+      register: parted_result
+      changed_when: parted_result.rc == 0
+      become: yes
+
+    - name: Format filesystem
+      command: "mkfs.ext4 -L {{ item.volume_label }} /dev/disk/by-partlabel/{{ item.volume_label }}"
+      register: mkfs_ext4_result
+      changed_when: mkfs_ext4_result.rc == 0
+      become: yes
+  when: not fs_check.stat.exists
+
+- name: Determine mount name
+  command: "systemd-escape -p --suffix=mount '{{ item.mount_path }}'"
+  register: systemd_escape
+  changed_when: False
+
+- name: Configure mount unit
+  template:
+    dest: "/etc/systemd/system/{{ systemd_escape.stdout.strip() }}"
+    src: systemd/mount.j2
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Manage mount unit
+  service:
+    name: "{{ systemd_escape.stdout.strip() }}"
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Manage initial mount directory permissions
+  file:
+    path: "{{ item.mount_path }}"
+    state: directory
+    owner: "{{ item.get('mount_owner', 'root') }}"
+    group: "{{ item.get('mount_group', 'root') }}"
+    mode: "{{ item.get('mount_mode', '0755') }}"
+  become: yes
+  when: not fs_check.stat.exists

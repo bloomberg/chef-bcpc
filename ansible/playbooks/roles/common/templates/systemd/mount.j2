@@ -1,0 +1,11 @@
+[Unit]
+Description={{ item.volume_label }} mount
+
+[Mount]
+What=/dev/disk/by-label/{{ item.volume_label }}
+Where={{ item.mount_path }}
+Type=ext4
+Options=defaults
+
+[Install]
+WantedBy=multi-user.target

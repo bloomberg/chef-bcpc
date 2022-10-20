@@ -137,6 +137,22 @@ def etcdnode_to_cnames(a, *args, **kw):
     return host_to_etcdnode_cnames
 
 
+def optimal_nvme_lbaf(a, *args, **kw):
+
+    lbafs = a
+
+    # Index all the LBAFs for identification
+    for index, lbaf in enumerate(lbafs):
+        lbaf['index'] = index
+
+    # Order LBAFs by RP (relative performance), then MS (metadata size)
+    # We want the best-performing LBAF with the least amount of metadata
+    ordered_lbafs = sorted(lbafs, key=lambda lbaf: (lbaf['rp'], lbaf['ms']))
+
+    # Return the "best" LBAF index given the above criteria
+    return ordered_lbafs[0]['index']
+
+
 class FilterModule(object):
 
     filter_map = {
@@ -146,6 +162,7 @@ class FilterModule(object):
         'find_asset': find_asset,
         'osadmin': osadmin,
         'etcdnode_to_cnames': etcdnode_to_cnames,
+        'optimal_nvme_lbaf': optimal_nvme_lbaf,
     }
 
     def filters(self):
