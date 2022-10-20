@@ -5,3 +5,7 @@
 - import_tasks: configure-system.yml
   become: true
   tags: [never,configure-system]
+
+- import_tasks: configure-volumes.yml
+  become: true
+  tags: [never,configure-volumes]
