@@ -220,9 +220,14 @@ class EtcdSSL:
                     self.__ca_key, self.END_ENTITY_SIGNATURE_ALGO)
 
     def ca_crt(self):
-        certificate = crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                              self.__ca)
-        return base64.b64encode(certificate).decode()
+        dump = crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                       self.__ca)
+        return base64.b64encode(dump).decode()
+
+    def ca_key(self):
+        dump = crypto.dump_privatekey(crypto.FILETYPE_PEM,
+                                      self.__ca_key)
+        return base64.b64encode(dump).decode()
 
     def server_crt(self):
         dump = crypto.dump_certificate(crypto.FILETYPE_PEM,
@@ -406,6 +411,7 @@ class BCCChefDatabags:
                 'ssl': {
                     'ca': {
                         'crt': self.etcd_ssl.ca_crt(),
+                        'key': self.etcd_ssl.ca_key(),
                     },
                     'server': {
                         'crt': self.etcd_ssl.server_crt(),
