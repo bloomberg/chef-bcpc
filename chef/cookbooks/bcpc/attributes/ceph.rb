@@ -117,10 +117,3 @@ default['bcpc']['ceph']['osd']['enabled'] = true
 # https://tracker.ceph.com/issues/50778
 # Mons may become unstable when the progress module is enabled.
 default['bcpc']['ceph']['module']['progress']['enabled'] = false
-
-# ceph mon migration configuration
-
-# If enabled, any monitor addresses for RBD volumes (Cinder attachments,
-# Nova block device mappings, etc.) will be sourced from this list.
-default['bcpc']['ceph']['mon-migration']['enabled'] = false
-default['bcpc']['ceph']['mon-migration']['hosts'] = []
