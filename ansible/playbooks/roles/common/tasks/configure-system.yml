@@ -19,7 +19,7 @@
         mode: '0644'
       vars:
         kernel_module_name: ipmi_devintf
-  when: ansible_virtualization_role == "NA"
+  when: ansible_virtualization_role in ["NA", "host"]
 
 # ip_conntrack module configuration and loading
 - name: Configure ip_conntrack kernel module when loaded
@@ -304,4 +304,4 @@
     - name: Update initramfs for all kernels
       command: update-initramfs -uk all
       when: amd_microcode.changed or intel_microcode.changed
-  when: ansible_virtualization_role == "NA"
+  when: ansible_virtualization_role in ["NA", "host"]
