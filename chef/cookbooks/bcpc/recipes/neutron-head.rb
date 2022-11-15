@@ -275,6 +275,22 @@ cookbook_file '/etc/neutron/api-paste.ini' do
   mode '0640'
   notifies :restart, 'service[neutron-server]', :immediately
 end
+
+# Apply endpoints look up fix to Calico ML2 driver
+# https://github.com/projectcalico/calico/pull/6979
+if platform?('ubuntu')
+  if node['platform_version'] == '18.04'
+    dist_packages = '/usr/lib/python3.6/dist-packages'
+  elsif node['platform_version'] == '20.04'
+    dist_packages = '/usr/lib/python3.8/dist-packages'
+  end
+end
+
+cookbook_file "#{dist_packages}/networking_calico/plugins/ml2/drivers/calico/status.py" do
+  source 'calico/status.py'
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
 # configure neutron ends
 
 execute 'wait for neutron to come online' do
