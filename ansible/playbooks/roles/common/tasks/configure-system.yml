@@ -171,7 +171,6 @@
     - multipathd.socket
     - multipathd
     - packagekit
-    - polkit
     - snapd.socket
     - snapd
     - snapd.seeded
@@ -204,7 +203,6 @@
     - multipath-tools
     - packagekit
     - packagekit-tools
-    - policykit-1
     - snapd
     - ubuntu-advantage-tools
     - update-notifier-common
