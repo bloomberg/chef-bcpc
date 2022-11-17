@@ -178,6 +178,22 @@ if platform?('ubuntu') && node['platform_version'] == '18.04'
   end
 end
 
+# neutron-server can fail to restart during bootstrap; add a throttle to
+# reduce intervals between starts from 100ms to 3sec to avoid failures.
+execute 'reload systemd' do
+  action :nothing
+  command 'systemctl daemon-reload'
+end
+
+directory '/etc/systemd/system/neutron-server.service.d' do
+  action :create
+end
+
+cookbook_file '/etc/systemd/system/neutron-server.service.d/override.conf' do
+  source 'neutron/override.conf'
+  notifies :run, 'execute[reload systemd]', :immediately
+end
+
 service 'neutron-server'
 
 #
