@@ -27,20 +27,6 @@ end
 
 service 'calico-dhcp-agent'
 
-execute 'reload systemd' do
-  action :nothing
-  command 'systemctl daemon-reload'
-end
-
-cookbook_file '/etc/systemd/system/calico-dhcp-agent.service.d/custom.conf' do
-  action :delete
-  notifies :run, 'execute[reload systemd]', :immediately
-end
-
-directory '/etc/systemd/system/calico-dhcp-agent.service.d' do
-  action :delete
-end
-
 # these neutron services are installed/enabled by calico packages
 # these services are superseded by nova-metadata-agent and calico-dhcp-agent
 # so we don't need them to be enabled/running
