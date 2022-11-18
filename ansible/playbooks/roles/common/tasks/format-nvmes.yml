@@ -1,0 +1,18 @@
+- name: Derive a list of NVMe block devices
+  ansible.builtin.find:
+    paths: /sys/block
+    patterns: '^nvme\d+n\d+$'
+    use_regex: yes
+    recurse: no
+    file_type: link
+  register: found_nvmes
+
+- name: Set a fact corresponding to a list of NVMe block devices
+  set_fact:
+    nvme_block_devices: "{{ found_nvmes['files'] | map(attribute='path') | map('regex_replace', '^/sys/block', '/dev') }}"
+
+- name: Format the NVMes
+  include_tasks: format-nvme.yml
+  loop: "{{ nvme_block_devices }}"
+  loop_control:
+    loop_var: block_device

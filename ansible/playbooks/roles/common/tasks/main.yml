@@ -29,3 +29,7 @@
 - import_tasks: configure-node.yml
   become: true
   tags: [never,configure-node]
+
+- import_tasks: format-nvmes.yml
+  become: true
+  tags: [never,format-nvmes]

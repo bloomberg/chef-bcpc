@@ -145,9 +145,13 @@ def optimal_nvme_lbaf(a, *args, **kw):
     for index, lbaf in enumerate(lbafs):
         lbaf['index'] = index
 
-    # Order LBAFs by RP (relative performance), then MS (metadata size)
-    # We want the best-performing LBAF with the least amount of metadata
-    ordered_lbafs = sorted(lbafs, key=lambda lbaf: (lbaf['rp'], lbaf['ms']))
+    # Order LBAFs by largest sector size, then RP (relative performance), and
+    # finally smallest MS (metadata size). We want the largest sector size
+    # possible that is best-performing and which has the least metadata.
+    def lbaf_filter(lbaf):
+        return (-lbaf['ds'], -lbaf['rp'], lbaf['ms'])
+
+    ordered_lbafs = sorted(lbafs, key=lbaf_filter)
 
     # Return the "best" LBAF index given the above criteria
     return ordered_lbafs[0]['index']
