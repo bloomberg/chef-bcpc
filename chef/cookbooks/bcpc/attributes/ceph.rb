@@ -20,6 +20,9 @@ default['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] = false
 # more threads if they are available.
 default['bcpc']['ceph']['mon_cpu_threads'] = 16
 
+# The maximum value of pg_num and pgp_num for any given pool.
+default['bcpc']['ceph']['mon_max_pool_pg_num'] = 131072
+
 # Max time between consecutive beacons before marking a mgr as failed.
 # And how long between mgr beacons to the mons.
 # The defaults are too small for large clusters with lots of PGs; it is
