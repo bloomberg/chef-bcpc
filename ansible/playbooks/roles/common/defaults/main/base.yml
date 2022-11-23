@@ -294,6 +294,11 @@ grub_cmdline_linux: []
 # system configuration
 ###############################################################################
 
+# Disable "correctable" MCE (Machine Check Error) and EDAC (Error Detection
+# and Correction) reporting. This relinquishes control of the kernel/OS
+# processing of correctable/soft error polling and reporting to the platform.
+hardware_edac_polling: false
+
 # Select desired I/O scheduler to be applied at startup (deadline, noop, cfq)
 hardware_io_scheduler: mq-deadline
 

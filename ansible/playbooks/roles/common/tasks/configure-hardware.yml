@@ -6,6 +6,59 @@
       - hardware
       - virtual
 
+# EDAC controller configuration
+- name: Enumerate a list of supported EDAC modules
+  block:
+    - name: Get the current kernel release
+      command: uname -r
+      register: kernel_uname
+      changed_when: false
+
+    - name: Find a list of modules
+      find:
+        paths:
+          - "/lib/modules/{{ kernel_uname['stdout'].strip() }}/kernel/drivers/edac"
+        file_type: file
+        use_regex: yes
+        patterns:
+          - "^\\w+\\.ko$"
+      register: edac_kos
+
+    - name: Set a fact with the list of modules
+      set_fact:
+        kernel_edac_modules: "{{ edac_kos['files']
+                               | map(attribute='path')
+                               | map('basename')
+                               | map('regex_replace', '\\.ko$', '')
+                               | list }}"
+
+- name: Disable EDAC controllers
+  block:
+    - name: Unload kernel modules for EDAC
+      modprobe:
+        name: "{{ item }}"
+        state: absent
+      with_items: "{{ kernel_edac_modules }}"
+
+    - name: Ensure EDAC modules are blacklisted
+      template:
+        src: hardware/edac.conf.j2
+        dest: /etc/modprobe.d/edac.conf
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        modules: "{{ kernel_edac_modules }}"
+  when: not hardware_edac_polling
+
+- name: Enable EDAC controllers
+  block:
+    - name: Ensure EDAC modules are not blacklisted
+      file:
+        path: /etc/modprobe.d/edac.conf
+        state: absent
+  when: hardware_edac_polling
+
 # IPMI module configuration and loading
 - name: Configure the kernel's IPMI module
   block:
