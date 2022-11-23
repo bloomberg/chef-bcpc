@@ -6,6 +6,10 @@
   become: true
   tags: [never,configure-system]
 
+- import_tasks: configure-hardware.yml
+  become: true
+  tags: [never,configure-hardware]
+
 - import_tasks: configure-volumes.yml
   become: true
   tags: [never,configure-volumes]

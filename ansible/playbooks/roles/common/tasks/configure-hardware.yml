@@ -1,0 +1,103 @@
+- name: Gather a list of hardware/virtualization facts
+  setup:
+    gather_subset:
+      - '!all'
+      - '!any'
+      - hardware
+      - virtual
+
+# IPMI module configuration and loading
+- name: Configure the kernel's IPMI module
+  block:
+    - name: Load ipmi_devintf kernel module
+      modprobe:
+        name: ipmi_devintf
+
+    - name: Ensure ipmi_devintf is loaded at boot
+      template:
+        src: system/modules-load.conf.j2
+        dest: /etc/modules-load.d/ipmi_devintf.conf
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        kernel_module_name: ipmi_devintf
+  when: ansible_virtualization_role in ["NA", "host"]
+
+# Configure I/O scheduler algorithm
+- name: Configure disk scheduler algorithm
+  template:
+    src: udev/98-io-scheduler.rules.j2
+    dest: /etc/udev/rules.d/98-io-scheduler.rules
+    owner: root
+    group: root
+    mode: '0644'
+  register: udev_io_scheduler
+
+# Configure block device readahead
+- name: Configure block device readahead
+  template:
+    src: udev/99-readahead.rules.j2
+    dest: /etc/udev/rules.d/99-readahead.rules
+    owner: root
+    group: root
+    mode: '0644'
+  register: udev_readahead
+
+- name: Reload udevadm rules
+  command: udevadm control --reload-rules
+  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
+
+- name: Replay udev events
+  command: udevadm trigger
+  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
+
+# Control processor microcode application
+- name: Control processor microcode application
+  block:
+    - name: Check if AMD processor
+      command: grep -q AuthenticAMD /proc/cpuinfo
+      ignore_errors: true
+      register: is_amd
+      changed_when: false
+
+    - name: Install amd64-microcode package
+      apt:
+        name: amd64-microcode
+      when: is_amd is successful
+
+    - name: Configure amd64-microcode package
+      template:
+        src: amd64-microcode/default.j2
+        dest: /etc/default/amd64-microcode
+        owner: root
+        group: root
+        mode: '0644'
+      register: amd_microcode
+      when: is_amd is successful
+
+    - name: Check if Intel processor
+      command: grep -q GenuineIntel /proc/cpuinfo
+      ignore_errors: true
+      register: is_intel
+      changed_when: false
+
+    - name: Install intel-microcode package
+      apt:
+        name: intel-microcode
+      when: is_intel is successful
+
+    - name: Configure intel-microcode package
+      template:
+        src: intel-microcode/default.j2
+        dest: /etc/default/intel-microcode
+        owner: root
+        group: root
+        mode: '0644'
+      register: intel_microcode
+      when: is_intel is successful
+
+    - name: Update initramfs for all kernels
+      command: update-initramfs -uk all
+      when: amd_microcode.changed or intel_microcode.changed
+  when: ansible_virtualization_role in ["NA", "host"]
