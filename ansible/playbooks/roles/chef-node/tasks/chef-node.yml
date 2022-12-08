@@ -8,6 +8,12 @@
   apt:
     deb: "/var/tmp/{{ chef_client_package.filename }}"
 
+- name: replace cpu.rb to account for changes in /proc/cpuinfo
+  copy:
+    src: ohai/cpu.rb
+    dest: /opt/chef/embedded/lib/ruby/gems/2.5.0/gems/ohai-14.8.12/lib/ohai/plugins/cpu.rb
+    mode: 0664
+
 - name: create /etc/chef directory
   file:
     path: /etc/chef

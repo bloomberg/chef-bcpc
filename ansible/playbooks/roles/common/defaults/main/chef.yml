@@ -112,7 +112,6 @@ chef_roles:
     json_class: Chef::Role
     chef_type: role
     run_list:
-      - recipe[bcpc::ohai]
       - recipe[bcpc::default]
       - recipe[bcpc::ssl]
       - recipe[bcpc::cloud-archive]
