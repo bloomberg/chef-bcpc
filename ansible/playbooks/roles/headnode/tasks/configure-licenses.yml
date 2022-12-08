@@ -49,7 +49,7 @@
     # add host to aggregates if it has the license
     for aggregate in ${aggregates_to_add[@]}; do
       if ! openstack aggregate show ${aggregate} -f json | \
-        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then 
+        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then
         openstack aggregate add host ${aggregate} ${host_name}
       fi
     done
@@ -57,7 +57,7 @@
     # remove host from aggregates if it does not have the license
     for aggregate in ${aggregates_to_remove[@]}; do
       if openstack aggregate show ${aggregate} -f json | \
-        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then 
+        jq -e --arg host ${host_name} '.hosts | any(.==$host)'; then
         openstack aggregate remove host ${aggregate} ${host_name}
       fi
     done

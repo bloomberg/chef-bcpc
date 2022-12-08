@@ -60,4 +60,4 @@
     "{{ license_trait.values() }}"
   args:
     executable: /bin/bash
-  changed_when: false 
+  changed_when: false

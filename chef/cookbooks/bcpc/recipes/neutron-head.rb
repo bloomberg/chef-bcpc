@@ -412,7 +412,7 @@ node['bcpc']['neutron']['networks'].each do |network|
       new_fn_output=$(openstack network create #{float_network} \
                         --external \
                         --format shell \
-			--mtu #{default_network_mtu} \
+                        --mtu #{default_network_mtu} \
                         --prefix 'fn_')
 
       # evaluate the shell output so we can access the values
