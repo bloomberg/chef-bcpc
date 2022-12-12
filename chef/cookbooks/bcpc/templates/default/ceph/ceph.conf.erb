@@ -26,6 +26,7 @@ osd_pool_default_pg_autoscale_mode = <%= node['bcpc']['ceph']['osd_pool_default_
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
 mon cpu threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
+mon max pg per osd = <%= node['bcpc']['ceph']['mon_max_pg_per_osd'] %>
 mon max pool pg num = <%= node['bcpc']['ceph']['mon_max_pool_pg_num'] %>
 mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
 mgr tick period = <%= node['bcpc']['ceph']['mgr_tick_period'] %>

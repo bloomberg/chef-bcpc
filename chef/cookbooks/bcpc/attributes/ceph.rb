@@ -20,6 +20,11 @@ default['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] = false
 # more threads if they are available.
 default['bcpc']['ceph']['mon_cpu_threads'] = 16
 
+# When raising pg(p)_num and size on large deployments, one may also need
+# to raise mon_max_pg_per_osd to allow OSDs to recover under certain
+# conditions.
+default['bcpc']['ceph']['mon_max_pg_per_osd'] = 450
+
 # The maximum value of pg_num and pgp_num for any given pool.
 default['bcpc']['ceph']['mon_max_pool_pg_num'] = 131072
 
