@@ -11,6 +11,11 @@ default['bcpc']['ceph']['osds'] = %w(sdb sdc sdd sde)
 default['bcpc']['ceph']['choose_leaf_type'] = 0
 default['bcpc']['ceph']['osd_scrub_load_threshold'] = 0.5
 
+# With the increase to 4 copies the number of PGs on an osd in machine maint might > 250
+default['bcpc']['ceph']['mon_max_pg_per_osd'] = 450 
+
+
+
 # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
 # By default, new clusters should reclaim global_id for good security posture
 default['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] = false
