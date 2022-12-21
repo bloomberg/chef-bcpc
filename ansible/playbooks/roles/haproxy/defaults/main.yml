@@ -2,7 +2,17 @@
 #  haproxy
 ###############################################################################
 
-haproxy_creds: "{{ chef_databags | selectattr('id', 'equalto', 'config') | map(attribute='haproxy') | first }}"
+haproxy_creds: "{{
+  chef_databags |
+  selectattr('id', 'equalto', 'config') |
+  map(attribute='haproxy') | first
+}}"
+
+haproxy_ssl: "{{
+  chef_databags |
+  selectattr('id', 'equalto', 'config') |
+  map(attribute='ssl') | first
+}}"
 
 # Installation-related configuration options
 haproxy_repo_enabled: false
@@ -50,7 +60,7 @@ haproxy_qos_path: roles/haproxy/templates/haproxy.cfg.qos.j2
 # silently.
 # NOTE: It is **highly** recommended that `http-keep-alive` not be set to 5s.
 # If set to 5s there is the possibility of a race condition when the --wait
-# option of the Openstack client is used, which periodically executes API
+# option of the OpenStack client is used, which periodically executes API
 # requests every 5 seconds, that results in client TCP connections being closed
 # unexpectedly.
 haproxy_qos_http_request_timeout: 10s
