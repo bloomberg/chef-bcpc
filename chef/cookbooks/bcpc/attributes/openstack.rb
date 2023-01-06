@@ -1,10 +1,12 @@
 ###############################################################################
 # openstack
 ###############################################################################
-if platform?('ubuntu') && node['platform_version'] == '18.04'
-  default['bcpc']['openstack']['repo']['enabled'] = true
-elsif platform?('ubuntu') && node['platform_version'] == '20.04'
-  default['bcpc']['openstack']['repo']['enabled'] = false
+if platform?('ubuntu')
+  if node['platform_version'] == '18.04'
+    default['bcpc']['openstack']['repo']['enabled'] = true
+  elsif ['20.04', '22.04'].include? node['platform_version']
+    default['bcpc']['openstack']['repo']['enabled'] = false
+  end
 end
 default['bcpc']['openstack']['repo']['url'] = 'http://ubuntu-cloud.archive.canonical.com/ubuntu'
 

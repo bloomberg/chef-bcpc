@@ -93,7 +93,7 @@
   ignore_errors: yes  # noqa ignore-errors
   when: ansible_distribution_version == "18.04"
 
-- name: Stop and disable unused services (Focal)
+- name: Stop and disable unused services (Focal and Jammy)
   service:
     name: "{{ item }}"
     enabled: no
@@ -111,7 +111,7 @@
     - udisks2
     - upower
   ignore_errors: yes # noqa ignore-errors
-  when: ansible_distribution_version == "20.04"
+  when: ansible_distribution_version in ["20.04", "22.04"]
 
 - name: Purge unused service packages (Bionic)
   apt:
@@ -124,7 +124,7 @@
     - ubuntu-release-upgrader-core
   when: ansible_distribution_version == "18.04"
 
-- name: Purge unused service packages (Focal)
+- name: Purge unused service packages (Focal and Jammy)
   apt:
     name: "{{ item }}"
     purge: yes
@@ -143,7 +143,7 @@
     - ubuntu-release-upgrader-core
     - udisks2
     - upower
-  when: ansible_distribution_version == "20.04"
+  when: ansible_distribution_version in ["20.04", "22.04"]
 
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages
