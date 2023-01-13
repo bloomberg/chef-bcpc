@@ -18,7 +18,7 @@
 # the outside such as running DHCP and adding a masquerade source NAT rule.
 
 # The distribution_codename is the codename of the operating system
-# distribution, which should either be "bionic" or "focal"
+# distribution, which should either be "bionic", "focal", or "jammy"
 
 set -eux
 
@@ -50,7 +50,7 @@ switch_config() {
 base_config() {
     if [ "${distribution_codename}" == "bionic" ]; then
         disabled_services=(rpcbind lxcfs snapd lxd iscsid)
-    elif [ "${distribution_codename}" == "focal" ]; then
+    else
         disabled_services=(multipathd.socket multipathd snapd.socket \
             snapd snapd.seeded udisks2)
     fi

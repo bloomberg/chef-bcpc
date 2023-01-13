@@ -133,7 +133,7 @@ function download_debs {
     if [ "${distribution_codename}" == "bionic" ]; then
         apt-get install --download-only -y -t bionic-backports \
             bird2 init-system-helpers
-    elif [ "${distribution_codename}" == "focal" ]; then
+    else
         apt-get install --download-only -y bird2
     fi
     apt-get install --download-only -y chrony tinyproxy unbound
