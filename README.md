@@ -115,17 +115,6 @@ To create a libvirt build, first install the following packages and plugins:
 ```shell
 sudo apt-get install build-essential dnsmasq libguestfs-tools libvirt-dev pkg-config qemu-utils
 vagrant plugin install vagrant-libvirt vagrant-mutate
-```
-
-If you are using Ubuntu 18.04, a base Bento box for Vagrant can be added with the following commands:
-
-```shell
-vagrant box add bento/ubuntu-18.04 --box-version 202005.21.0 --provider virtualbox
-vagrant mutate bento/ubuntu-18.04 libvirt
-```
-
-Or if you are using Ubuntu 20.04:
-```shell
 vagrant box add bento/ubuntu-20.04 --box-version 202206.03.0 --provider virtualbox
 vagrant mutate bento/ubuntu-20.04 libvirt
 ```
@@ -170,13 +159,6 @@ reboot your development host (assuming no scripts reset the VAGRANT
 variables).
 
 This would look something like this:
-
-```shell
-$ rm -rf ~/.vagrant.d/boxes/bento-VAGRANTSLASH-ubuntu-18.04/202005.21.0/libvirt/
-$ sudo reboot
-```
-Similarly, to remove the mutated libvirt box built with Ubuntu 20.04,
-the following commands can be used:
 
 ```shell
 $ rm -rf ~/.vagrant.d/boxes/bento-VAGRANTSLASH-ubuntu-20.04/202206.03.0/libvirt/
