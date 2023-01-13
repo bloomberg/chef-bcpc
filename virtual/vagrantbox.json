@@ -1,4 +1,4 @@
 {
-  "vagrant_box": "bcc-ubuntu-18.04",
+  "vagrant_box": "bcc-ubuntu-20.04",
   "vagrant_box_version": "0"
 }
