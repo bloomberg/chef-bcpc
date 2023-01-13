@@ -22,6 +22,8 @@
       "box_version": "{{user `base_box_version`}}",
       "provider": "{{user `base_box_provider`}}",
       "add_force": true,
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
       "type": "vagrant"
     }
   ]

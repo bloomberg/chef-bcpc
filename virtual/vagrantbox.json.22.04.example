@@ -1,0 +1,4 @@
+{
+  "vagrant_box": "bcc-ubuntu-22.04",
+  "vagrant_box_version": "0"
+}
