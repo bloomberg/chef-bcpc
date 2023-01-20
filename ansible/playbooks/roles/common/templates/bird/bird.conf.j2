@@ -11,7 +11,14 @@ filter to_tor {
 
 filter to_kernel {
   krt_prefsrc = {{ interfaces['service']['ip'] }};
+{% if 'default_route_params' in networking %}
+  if net = 0.0.0.0/0 then {
+    {{ networking['default_route_params'] }}
+    accept;
+  }
+{% else %}
   if net = 0.0.0.0/0 then accept;
+{% endif %}
   reject;
 }
 
