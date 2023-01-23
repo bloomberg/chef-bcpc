@@ -12,6 +12,7 @@ rbd default features = <%= node['bcpc']['ceph']['rbd_default_features'] %>
 osd crush initial weight = <%= node['bcpc']['ceph']['osd_crush_initial_weight'] %>
 admin socket mode = 0775
 mon osd down out interval = <%= node['bcpc']['ceph']['mon_osd_down_out_interval'] %>
+mon max pg per osd = <%= node['bcpc']['ceph']['mon_max_pg_per_osd'] %>
 
 # settings to throttle OSD scrubbing visible to both mgrs and OSDs
 osd deep scrub interval = <%= @node['bcpc']['ceph']['osd_deep_scrub_interval'] %>
@@ -26,7 +27,6 @@ osd_pool_default_pg_autoscale_mode = <%= node['bcpc']['ceph']['osd_pool_default_
 auth allow insecure global id reclaim = <%= node['bcpc']['ceph']['mon_auth_allow_insecure_global_id_reclaim'] %>
 mon compact on start = true
 mon cpu threads = <%= node['bcpc']['ceph']['mon_cpu_threads'] %>
-mon max pg per osd = <%= node['bcpc']['ceph']['mon_max_pg_per_osd'] %>
 mon max pool pg num = <%= node['bcpc']['ceph']['mon_max_pool_pg_num'] %>
 mon mgr beacon grace = <%= node['bcpc']['ceph']['mon_mgr_beacon_grace'] %>
 mgr tick period = <%= node['bcpc']['ceph']['mgr_tick_period'] %>
