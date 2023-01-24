@@ -6,7 +6,7 @@
 net.ipv4.ip_local_port_range = 10000 64999
 
 # Reserve additional ports
-{% set default_reserved = [10050,10051,11211,15672,16509,16514,25672,35357,35358,55672] -%}
+{% set default_reserved = [10050,10051,11211,15672,16509,16514,25672,32768,35357,35358,55672] -%}
 {% set reserved_set = default_reserved + (system_additional_reserved_ports | map('int') | list) -%}
 net.ipv4.ip_local_reserved_ports = {{ ','.join(reserved_set | sort | map('string')) }}
 
