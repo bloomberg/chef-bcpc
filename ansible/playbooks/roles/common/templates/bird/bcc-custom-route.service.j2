@@ -1,0 +1,18 @@
+[Unit]
+Description=Custom Route
+After=network.target
+StartLimitInterval=120
+StartLimitBurst=8
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/sbin/ip route add {{ networking['custom_route']['dest'] }} proto static src {{ interfaces['service']['ip'] }} metric 32 mtu lock {{ networking['custom_route']['mtu'] }} nexthop via {{ transit_interfaces[0]['neighbor']['ip'] }} dev {{ transit_interfaces[0]['name'] }} weight 1 nexthop via {{ transit_interfaces[1]['neighbor']['ip'] }} dev {{ transit_interfaces[1]['name'] }} weight 1
+ExecStop=/sbin/ip route del {{ networking['custom_route']['dest'] }} proto static src {{ interfaces['service']['ip'] }} metric 32 mtu lock {{ networking['custom_route']['mtu'] }} nexthop via {{ transit_interfaces[0]['neighbor']['ip'] }} dev {{ transit_interfaces[0]['name'] }} weight 1 nexthop via {{ transit_interfaces[1]['neighbor']['ip'] }} dev {{ transit_interfaces[1]['name'] }} weight 1
+{% if ansible_distribution_version != "18.04" %}
+Restart=on-failure
+{% endif %}
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
