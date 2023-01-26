@@ -155,6 +155,7 @@ web_server_assets:
   - file_asset: calicoctl
   - file_asset: consul
   - file_asset: etcd3gw
+  - file_asset: ceph-deploy
 
 # all web server file assets
 all_web_server_assets: "{{ web_server_assets +
@@ -206,6 +207,13 @@ assets_files:
     url: https://files.pythonhosted.org/packages/3b/1a/155c139adcf50c382f7ff8eb5a00b5aa725ee8ea438ec2b8109dfe67be9b/etcd3gw-0.2.6.tar.gz
     checksum: sha256:4a765a382ae18ebd4fccbc1388d1ac5226db0540bccd1f081052600df89145fd
     filename: etcd3gw-0.2.6.tar.gz
+
+  # ceph-deploy has been deprecated and is unavailable in Jammy
+  # We are really due to move off of ceph-deploy, but for now...
+  - name: ceph-deploy
+    url: http://mirrors.kernel.org/ubuntu/pool/universe/c/ceph-deploy/ceph-deploy_2.0.1-0ubuntu1_all.deb
+    checksum: sha256:6ecd4769dbe3d65ff114f458f60840b976cb73873f7e825987613f929ffed911
+    filename: ceph-deploy_2.0.1-0ubuntu1_all.deb
 
 # all file assets
 all_file_assets: "{{ assets_files + additional_assets_files | default([]) }}"
