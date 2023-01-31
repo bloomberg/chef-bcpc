@@ -85,6 +85,8 @@ begin
   # add this node to the existing rabbitmq cluster if one exists
   unless init_rmq?
     members = rmqnodes(exclude: node['hostname'])
+    username = config['rabbit']['username']
+    password = config['rabbit']['password']
 
     hosts = members.collect do |m|
       "rabbit@#{m['hostname']}"
@@ -94,12 +96,17 @@ begin
 
     bash 'join rabbitmq cluster' do
       code <<-DOC
-        member=''
+        set -o pipefail
+        unset http_proxy
+        unset https_proxy
 
         # try to find a healthy cluster member
         #
+        member=''
+
         for h in #{hosts}; do
-          if rabbitmqctl node_health_check -n ${h}; then
+          status=$(curl -su '#{username}:#{password}' "http://${h}:55672/api/health/checks/alarms")
+          if echo ${status} | jq -e 'select(.status == "ok")'; then
             member=${h}
             break
           fi
