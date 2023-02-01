@@ -77,7 +77,6 @@ default['bcpc']['nova']['metadata']['cache_expiration'] = 60
 # Nova scheduler default filters
 default['bcpc']['nova']['scheduler_default_filters'] = %w(
   AggregateInstanceExtraSpecsFilter
-  RetryFilter
   AvailabilityZoneFilter
   ComputeFilter
   ComputeCapabilitiesFilter

@@ -22,14 +22,32 @@ apt_repository 'ceph' do
   only_if { node['bcpc']['ceph']['repo']['enabled'] }
 end
 
-package %w(
-  ceph
-  ceph-deploy
-)
+package 'ceph'
+
+# ceph-deploy has been deprecated and is unavailable in Jammy
+if platform?('ubuntu') && node['platform_version'] == '22.04'
+  package = node['bcpc']['ceph']['ceph-deploy']['file']
+  save_path = "#{Chef::Config[:file_cache_path]}/#{package}"
+  file_url = node['bcpc']['ceph']['ceph-deploy']['source']
+  file_checksum = node['bcpc']['ceph']['ceph-deploy']['checksum']
+
+  remote_file save_path do
+    source file_url
+    checksum file_checksum
+    notifies :run, 'execute[install ceph-deploy]', :immediately
+  end
+
+  execute 'install ceph-deploy' do
+    action :nothing
+    command "dpkg -i #{Chef::Config[:file_cache_path]}/#{package}"
+  end
+else
+  package 'ceph-deploy'
+end
 
 # workaround python3.8 deprecation of platform.linux_distribution.
 # ceph-deploy has not been rewired to workaround this, so we do it here.
-if platform?('ubuntu') && node['platform_version'] == '20.04'
+if platform?('ubuntu') && ['20.04', '22.04'].include?(node['platform_version'])
   package 'python3-distro'
 
   cookbook_file '/usr/lib/python3/dist-packages/ceph_deploy/hosts/remotes.py' do

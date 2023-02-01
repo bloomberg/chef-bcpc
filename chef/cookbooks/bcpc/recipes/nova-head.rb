@@ -163,6 +163,85 @@ end
 #
 # ssl certs ends
 
+# add availability zone anti-affinity scheduler filter
+available_filters = ['nova.scheduler.filters.all_filters']
+enabled_filters = node['bcpc']['nova']['scheduler_default_filters']
+anti_affinity =
+ node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
+
+if anti_affinity['enabled']
+  available_filters.push(anti_affinity['filterPath'])
+  enabled_filters += [anti_affinity['name']]
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
+    source 'nova/anti_affinity_availability_zone_filter.py'
+    mode '0644'
+    notifies :run, 'execute[compile az anti-affinity filter]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :delayed
+  end
+
+  execute 'compile az anti-affinity filter' do
+    action :nothing
+    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
+  end
+end
+
+# add required image property scheduler filter
+required_image =
+ node['bcpc']['nova']['scheduler']['filter']['required_image_property']
+aggregate_image =
+ node['bcpc']['nova']['scheduler']['filter']['aggregate_image_isolation']
+
+if required_image['enabled']
+  available_filters.push(required_image['filterPath'])
+  enabled_filters += [aggregate_image['name'], required_image['name']]
+  license_traits = node['bcpc']['licenses']['traits'].map { |t| "\'#{t['trait']}\'" }
+
+  template '/usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py' do
+    source 'nova/required_image_property_filter.py.erb'
+    mode '0644'
+    owner 'root'
+    group 'root'
+
+    variables(
+      license_traits: license_traits
+    )
+
+    notifies :run, 'execute[compile required-image-property filter]', :immediately
+    notifies :restart, 'service[nova-scheduler]', :delayed
+  end
+
+  execute 'compile required-image-property filter' do
+    action :nothing
+    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py'
+  end
+end
+
+# Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
+# https://review.opendev.org/c/openstack/nova/+/792356
+cookbook_file '/usr/lib/python3/dist-packages/nova/api/validation/extra_specs/hw.py' do
+  source 'nova/hw.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/compute/api.py' do
+  source 'nova/api.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
+  source 'nova/hardware.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+execute 'py3compile-nova' do
+  action :nothing
+  command 'py3compile -p python3-nova'
+end
+
 # Ensure the database user is present on ProxySQL
 #
 bcpc_proxysql_user "create #{database['username']} proxysql user" do
@@ -243,85 +322,6 @@ execute 'nova-manage db sync' do
 end
 #
 # create/manage nova databases ends
-
-# add availability zone anti-affinity scheduler filter
-available_filters = ['nova.scheduler.filters.all_filters']
-enabled_filters = node['bcpc']['nova']['scheduler_default_filters']
-anti_affinity =
- node['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']
-
-if anti_affinity['enabled']
-  available_filters.push(anti_affinity['filterPath'])
-  enabled_filters += [anti_affinity['name']]
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py' do
-    source 'nova/anti_affinity_availability_zone_filter.py'
-    mode '0644'
-    notifies :run, 'execute[compile az anti-affinity filter]', :immediately
-    notifies :restart, 'service[nova-scheduler]', :delayed
-  end
-
-  execute 'compile az anti-affinity filter' do
-    action :nothing
-    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/anti_affinity_availability_zone_filter.py'
-  end
-end
-
-# add required image property scheduler filter
-required_image =
- node['bcpc']['nova']['scheduler']['filter']['required_image_property']
-aggregate_image =
- node['bcpc']['nova']['scheduler']['filter']['aggregate_image_isolation']
-
-if required_image['enabled']
-  available_filters.push(required_image['filterPath'])
-  enabled_filters += [aggregate_image['name'], required_image['name']]
-  license_traits = node['bcpc']['licenses']['traits'].map { |t| "\'#{t['trait']}\'" }
-
-  template '/usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py' do
-    source 'nova/required_image_property_filter.py.erb'
-    mode '0644'
-    owner 'root'
-    group 'root'
-
-    variables(
-      license_traits: license_traits
-    )
-
-    notifies :run, 'execute[compile required-image-property filter]', :immediately
-    notifies :restart, 'service[nova-scheduler]', :delayed
-  end
-
-  execute 'compile required-image-property filter' do
-    action :nothing
-    command 'py3compile /usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py'
-  end
-end
-
-# Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
-# https://review.opendev.org/c/openstack/nova/+/792356
-cookbook_file '/usr/lib/python3/dist-packages/nova/api/validation/extra_specs/hw.py' do
-  source 'nova/hw.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-api]', :delayed
-end
-
-cookbook_file '/usr/lib/python3/dist-packages/nova/compute/api.py' do
-  source 'nova/api.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-api]', :delayed
-end
-
-cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
-  source 'nova/hardware.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-api]', :delayed
-end
-
-execute 'py3compile-nova' do
-  action :nothing
-  command 'py3compile -p python3-nova'
-end
 
 # configure nova starts
 #
