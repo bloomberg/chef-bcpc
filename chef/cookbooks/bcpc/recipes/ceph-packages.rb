@@ -24,6 +24,12 @@ end
 
 package 'ceph'
 
+if storagenode?
+  package 'ceph-volume' do
+    ignore_failure true
+  end
+end
+
 # ceph-deploy has been deprecated and is unavailable in Jammy
 if platform?('ubuntu') && node['platform_version'] == '22.04'
   package = node['bcpc']['ceph']['ceph-deploy']['file']
