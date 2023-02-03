@@ -93,6 +93,11 @@ begin
     end
 
     hosts = hosts.join(' ')
+    healthcheck_path = if ['18.04', '20.04'].include?(node['platform_version'])
+                         '/api/healthchecks/node'
+                       else
+                         '/api/health/checks/alarms'
+                       end
 
     bash 'join rabbitmq cluster' do
       code <<-DOC
@@ -105,7 +110,7 @@ begin
         member=''
 
         for h in #{hosts}; do
-          status=$(curl -su '#{username}:#{password}' "http://${h}:55672/api/health/checks/alarms")
+          status=$(curl -su '#{username}:#{password}' "http://${h}:55672#{healthcheck_path}")
           if echo ${status} | jq -e 'select(.status == "ok")'; then
             member=${h}
             break
