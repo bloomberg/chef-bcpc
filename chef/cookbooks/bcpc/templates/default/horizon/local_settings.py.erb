@@ -57,7 +57,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 CACHES = {
   'default': {
     'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
-    'LOCATION' : [<%= @headnodes.map{|n| "'#{n['service_ip']}:11211'"}.join(',') %>]
+    'LOCATION' : [<%= @headnodes.map{|n| "'#{n['service_ip']}:11211'"}.join(',') %>],
+    'OPTIONS': {'socket_timeout': 1, 'dead_retry': 60}
   }
 }
 
