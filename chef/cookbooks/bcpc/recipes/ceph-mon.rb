@@ -105,6 +105,7 @@ template '/etc/ceph/ceph.conf' do
 
   variables(
     config: config,
+    is_bootstrapping: init_storage?,
     storageheadnodes: init_storage? ? [node] : storageheadnodes,
     public_network: primary_network_aggregate_cidr,
     rbd_users: rbd_users

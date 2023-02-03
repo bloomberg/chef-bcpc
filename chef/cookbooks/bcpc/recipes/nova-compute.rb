@@ -107,6 +107,7 @@ unless storagenode?
     source 'ceph/ceph.conf.erb'
     variables(
       config: config,
+      is_bootstrapping: false,
       storageheadnodes: storageheadnodes,
       public_network: primary_network_aggregate_cidr,
       rbd_users: rbd_users
