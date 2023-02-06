@@ -121,6 +121,11 @@ begin
 end
 # create cinder volume services and endpoints ends
 
+# Install *only* the base Cinder scaffolding that creates the role account
+# and provides functionality for initializing the database. This gives us
+# a window to configure the services and initialize the database prior to
+# installing the packages which provide unit files (and thus start) the
+# actual Cinder services (cinder-api, cinder-scheduler, cinder-volume).
 package %w(
   cinder-common
   python3-cinder
@@ -213,8 +218,8 @@ template '/etc/cinder/cinder.conf' do
   )
 
   notifies :restart, 'service[cinder-api]', :delayed
-  notifies :restart, 'service[cinder-volume]', :delayed
   notifies :restart, 'service[cinder-scheduler]', :delayed
+  notifies :restart, 'service[cinder-volume]', :delayed
 end
 
 # Ensure the database user is present on ProxySQL
