@@ -49,6 +49,6 @@ if platform?('ubuntu') && node['platform_version'] == '18.04'
     retries 5
     retry_delay 2
   end
-elsif platform?('ubuntu') && node['platform_version'] == '20.04'
+elsif platform?('ubuntu') && ['20.04', '22.04'].include?(node['platform_version'])
   package 'python3-etcd3gw'
 end
