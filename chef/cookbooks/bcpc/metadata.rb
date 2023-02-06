@@ -9,6 +9,6 @@ license          'Apache-2.0'
 supports         'ubuntu'
 description      'Installs/Configures Bloomberg Clustered Private Cloud (BCPC)'
 version          IO.read(File.join(File.dirname(__FILE__), '.version'))
-chef_version     '~> 14'
+chef_version     '~> 15'
 
 depends 'logrotate', '>= 2.2.0'

@@ -2,6 +2,10 @@ Package: chef
 Pin: version 14.*
 Pin-Priority: 999
 
+Package: cinc
+Pin: version 15.*
+Pin-Priority: 999
+
 Package: chef-server-core
 Pin: version 12.*
 Pin-Priority: 999
