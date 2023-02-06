@@ -11,7 +11,7 @@
 - name: create .chef directory
   become: false
   file:
-    path: .chef
+    path: "/home/{{ operator_username }}/.chef"
     state: directory
     mode: 0755
 
@@ -45,7 +45,7 @@
   become: false
   template:
     src: knife.rb.j2
-    dest: .chef/knife.rb
+    dest: "/home/{{ operator_username }}/.chef/knife.rb"
     mode: 0600
 
 - name: fetch knife ssl certs

@@ -25,11 +25,14 @@
     - "{{ chef_roles_dir }}"
     - "{{ chef_databags_dir }}"
 
-- name: import data bags
-  shell: |
-    for data_bag in $(ls *.json); do
-      knife data bag from file "{{ cloud_region }}" ${data_bag}
-    done
+- name: import config data bag
+  command: knife data bag from file "{{ cloud_region }}" config.json
+  args:
+    chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
+  changed_when: false
+
+- name: import zones data bag
+  command: knife data bag from file "{{ cloud_region }}" zones.json
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
   changed_when: false

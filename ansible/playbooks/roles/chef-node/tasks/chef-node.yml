@@ -8,10 +8,19 @@
   apt:
     deb: "/var/tmp/{{ chef_client_package.filename }}"
 
+# https://github.com/chef/ohai/issues/1791
 - name: replace cpu.rb to account for changes in /proc/cpuinfo
   copy:
     src: ohai/cpu.rb
-    dest: /opt/chef/embedded/lib/ruby/gems/2.5.0/gems/ohai-14.8.12/lib/ohai/plugins/cpu.rb
+    dest: /opt/cinc/embedded/lib/ruby/gems/2.6.0/gems/ohai-15.6.3/lib/ohai/plugins/cpu.rb
+    mode: 0664
+
+# https://github.com/chef/ohai/issues/1414
+# https://github.com/chef/ohai/pull/1423
+- name: replace dmi.rb to account for Ohai::Common::DMI.convenience_keys() fix
+  copy:
+    src: ohai/dmi.rb
+    dest: /opt/cinc/embedded/lib/ruby/gems/2.6.0/gems/ohai-15.6.3/lib/ohai/common/dmi.rb
     mode: 0664
 
 - name: create /etc/chef directory
@@ -19,6 +28,24 @@
     path: /etc/chef
     state: directory
     mode: 0755
+
+- name: link /etc/cinc to /etc/chef
+  file:
+    src: chef
+    dest: /etc/cinc
+    state: link
+
+- name: create /var/chef directory
+  file:
+    path: /var/chef
+    state: directory
+    mode: 0755
+
+- name: link /var/cinc to /var/chef
+  file:
+    src: chef
+    dest: /var/cinc
+    state: link
 
 - name: get contents of chef validation key
   slurp:

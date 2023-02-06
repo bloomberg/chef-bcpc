@@ -189,9 +189,9 @@ assets_files:
     filename: consul_1.7.2_linux_amd64.zip
 
   - name: chef_client
-    url: https://packages.chef.io/files/stable/chef/14.13.11/ubuntu/18.04/chef_14.13.11-1_amd64.deb
-    checksum: sha256:9ddcd5ceef19c95ecc1f34bef080c23d9cb42ae8ebc69fd41dcf1c768a6a708f
-    filename: chef_14.13.11-1_amd64.deb
+    url: http://downloads.cinc.sh/files/stable/cinc/15.6.10/ubuntu/18.04/cinc_15.6.10-1_amd64.deb
+    checksum: sha256:08099c5a971001db92db92b06a81a816bd4f7006d2a261d1cda2c2ec46d8e235
+    filename: cinc_15.6.10-1_amd64.deb
 
   - name: chef_server
     url: https://packages.chef.io/files/stable/chef-server/12.17.33/ubuntu/16.04/chef-server-core_12.17.33-1_amd64.deb
