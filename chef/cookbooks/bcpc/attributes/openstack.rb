@@ -2,15 +2,15 @@
 # openstack
 ###############################################################################
 if platform?('ubuntu')
-  if node['platform_version'] == '18.04'
+  if node['platform_version'] == '18.04' || node['platform_version'] == '20.04'
     default['bcpc']['openstack']['repo']['enabled'] = true
-  elsif ['20.04', '22.04'].include? node['platform_version']
+  elsif ['22.04'].include? node['platform_version']
     default['bcpc']['openstack']['repo']['enabled'] = false
   end
 end
 default['bcpc']['openstack']['repo']['url'] = 'http://ubuntu-cloud.archive.canonical.com/ubuntu'
 
-default['bcpc']['openstack']['repo']['release'] = 'ussuri'
+default['bcpc']['openstack']['repo']['release'] = 'yoga'
 default['bcpc']['openstack']['repo']['branch'] = 'updates'
 default['bcpc']['openstack']['repo']['key'] = 'openstack/release.key'
 
