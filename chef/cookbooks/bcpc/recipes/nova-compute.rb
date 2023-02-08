@@ -246,20 +246,6 @@ template '/etc/nova/nova-compute.conf' do
   notifies :restart, 'service[nova-compute]', :immediately
 end
 
-# Backport 'hw:vif_multiqueue_enabled' flavor extra spec to Ussuri
-# https://review.opendev.org/c/openstack/nova/+/792356
-cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
-  source 'nova/hardware.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-compute]', :delayed
-end
-
-cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/vif.py' do
-  source 'nova/vif.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-compute]', :delayed
-end
-
 # Ensure that the MTU is not changed during a live-migration
 # https://bugs.launchpad.net/nova/+bug/1984009
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do

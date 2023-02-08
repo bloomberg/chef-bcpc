@@ -16,10 +16,12 @@ NOTE: This module is a temporary shim until networking projects move to
       versioned objects at which point this module shouldn't be needed.
 """
 from oslo_db.sqlalchemy import utils as sa_utils
+from sqlalchemy.orm import lazyload
 from sqlalchemy import sql, or_, and_
 
 from neutron_lib._i18n import _
 from neutron_lib.api import attributes
+from neutron_lib import constants
 from neutron_lib.db import utils as db_utils
 from neutron_lib import exceptions as n_exc
 from neutron_lib.objects import utils as obj_utils
@@ -102,7 +104,6 @@ def get_hooks(model):
 
 def _prep_query_with_hooks(context, model, field):
     """Prepares a SQLalchemy query for use with query_with_hooks.
-
     :param context: The context to use for the DB session.
     :param model: The model to query.
     :param field: The column.
@@ -118,12 +119,13 @@ def _prep_query_with_hooks(context, model, field):
     return context.session.query(model)
 
 
-def query_with_hooks(context, model, field=None, hoisted_filters=None):
+def query_with_hooks(context, model, field=None, hoisted_filters=None, lazy_fields=None):
     """Query with hooks using the said context and model.
 
     :param context: The context to use for the DB session.
     :param model: The model to query.
     :param field: The column.
+    :param lazy_fields: list of fields for lazy loading
     :returns: The query with hooks applied to it.
     """
     query = _prep_query_with_hooks(context, model, field)
@@ -138,9 +140,10 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None):
             rbac_model = model.rbac_entries.property.mapper.class_
             model_query_filter = (model.tenant_id == context.tenant_id)
             rbac_query_filter = (
-                ((rbac_model.action == 'access_as_shared') &
-                 ((rbac_model.target_tenant == context.tenant_id) |
-                  (rbac_model.target_tenant == '*'))))
+                (rbac_model.action.in_(
+                    [constants.ACCESS_SHARED, constants.ACCESS_READONLY]) &
+                 ((rbac_model.target_project == context.tenant_id) |
+                  (rbac_model.target_project == '*'))))
         elif hasattr(model, 'shared'):
             query_filter = ((model.tenant_id == context.tenant_id) |
                             (model.shared == sql.true()))
@@ -155,7 +158,7 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None):
         filter_hook = helpers.resolve_ref(hook.get('filter'))
         if filter_hook:
             query_filter = filter_hook(context, model, query_filter)
-
+        
         filter_hook = helpers.resolve_ref(hook.get('rbac_filter'))
         if filter_hook:
             rbac_query_filter = filter_hook(context, model, rbac_query_filter)
@@ -227,18 +230,23 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None):
     if query_filter is not None:
         query = query.filter(query_filter)
 
+    if lazy_fields:
+        for field in lazy_fields:
+            query = query.options(lazyload(field))
     return query
 
 
-def get_by_id(context, model, object_id):
+def get_by_id(context, model, object_id, lazy_fields=None):
     """Query the said model with the given context for a specific object.
 
     :param context: The context to use in the query.
     :param model: The model to query.
     :param object_id: The ID of the object to query for.
+    :param lazy_fields: list of fields for lazy loading
     :returns: The object with the give object_id for the said model.
     """
-    query = query_with_hooks(context=context, model=model)
+    query = query_with_hooks(context=context, model=model,
+                             lazy_fields=lazy_fields)
     return query.filter(model.id == object_id).one()
 
 
@@ -295,7 +303,8 @@ def apply_filters(query, model, filters, context=None):
 
 
 def get_collection_query(context, model, filters=None, sorts=None, limit=None,
-                         marker_obj=None, page_reverse=False):
+                         marker_obj=None, page_reverse=False, field=None,
+                         lazy_fields=None):
     """Get a collection query.
 
     :param context: The context to use for the DB session.
@@ -305,9 +314,13 @@ def get_collection_query(context, model, filters=None, sorts=None, limit=None,
     :param limit: The limit associated with the query.
     :param marker_obj: The marker object if applicable.
     :param page_reverse: If reverse paging should be used.
+    :param field: Column, in string format, from the "model"; the query will
+                  return only this parameter instead of the full model columns.
+    :param lazy_fields: list of fields for lazy loading
     :returns: A paginated query for the said model.
     """
-    collection = query_with_hooks(context, model, hoisted_filters=filters)
+    collection = query_with_hooks(context, model, field=field,
+                                  hoisted_filters=filters, lazy_fields=lazy_fields)
     collection = apply_filters(collection, model, filters, context)
     if sorts:
         sort_keys = db_utils.get_and_validate_sort_keys(sorts, model)
@@ -340,7 +353,7 @@ def _unique_keys(model):
 def get_collection(context, model, dict_func,
                    filters=None, fields=None,
                    sorts=None, limit=None, marker_obj=None,
-                   page_reverse=False):
+                   page_reverse=False, lazy_fields=None):
     """Get a collection for a said model.
 
     :param context: The context to use for the DB session.
@@ -352,12 +365,14 @@ def get_collection(context, model, dict_func,
     :param limit: The limit for the query if applicable.
     :param marker_obj: The marker object if applicable.
     :param page_reverse: If reverse paging should be used.
+    :param lazy_fields: list of fields for lazy loading
     :returns: A list of dicts where each dict is an object in the collection.
     """
     query = get_collection_query(context, model,
                                  filters=filters, sorts=sorts,
                                  limit=limit, marker_obj=marker_obj,
-                                 page_reverse=page_reverse)
+                                 page_reverse=page_reverse,
+                                 lazy_fields=lazy_fields)
     items = [
         attributes.populate_project_info(
             dict_func(c, fields) if dict_func else c)
@@ -374,12 +389,16 @@ def get_values(context, model, field, filters=None):
     return [c[0] for c in query]
 
 
-def get_collection_count(context, model, filters=None):
+def get_collection_count(context, model, filters=None, query_field=None):
     """Get the count for a specific collection.
 
     :param context: The context to use for the DB session.
     :param model: The model for the query.
     :param filters: The filters to apply.
+    :param query_field: Column, in string format, from the "model"; the query
+                        will return only this parameter instead of the full
+                        model columns.
     :returns: The number of objects for said model with filters applied.
     """
-    return get_collection_query(context, model, filters).count()
+    return get_collection_query(context, model, filters=filters,
+                                field=query_field).count()
