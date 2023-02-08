@@ -51,6 +51,10 @@ else
   package 'ceph-deploy'
 end
 
+if storagenode?
+  package 'ceph-volume'
+end
+
 # workaround python3.8 deprecation of platform.linux_distribution.
 # ceph-deploy has not been rewired to workaround this, so we do it here.
 if platform?('ubuntu') && ['20.04', '22.04'].include?(node['platform_version'])
