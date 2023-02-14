@@ -268,6 +268,14 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do
   notifies :restart, 'service[nova-compute]', :delayed
 end
 
+# Issue similar to the above, but to assert that the MTU also does not change
+# when `nova-compute` is restarted and attempts to reinitialize all the VIFs.
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/driver.py' do
+  source 'nova/driver.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 # (rendition of): https://review.opendev.org/c/openstack/nova/+/852002
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
   source 'nova/guest.py'
