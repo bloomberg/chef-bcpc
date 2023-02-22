@@ -85,6 +85,10 @@ bluestore_allocator = bitmap
 # it stays on regardless of what upstream does.
 bluefs buffered io = true
 
+# In preparation for Quincy, we are remaining on the WPQ scheduler until we
+# have landed on the new release and tested mClock sufficiently.
+osd op queue = wpq
+
 <% @rbd_users.each do |user| %>
 <%= "[client.#{user}]" %>
 rbd cache = true
