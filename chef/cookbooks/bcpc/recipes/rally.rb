@@ -87,6 +87,8 @@ execute 'install rally in virtualenv' do
   # - 'jinja2' is pinned due to a change in how 3.0.0+ handles variables set in
   #     templates containing macros. This change breaks rally tasks used
   #     internally by Bloomberg, which likely need to be fixed.
+  # - 'python-novaclient' is pinned due to an incompatibility with 18.3.0 and
+  #     the 'NovaServers.resize_server' scenario.
   command <<-EOH
     virtualenv --no-download #{venv_dir} -p /usr/bin/python3
     . #{venv_dir}/bin/activate
@@ -95,6 +97,7 @@ execute 'install rally in virtualenv' do
     pip install 'jinja2<3.0.0'
     pip install 'markupsafe==2.0.1'
     pip install 'SQLAlchemy<2.0.0'
+    pip install 'python-novaclient==18.2.0'
     pip install rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
   not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
