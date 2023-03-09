@@ -237,6 +237,19 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/hardware.py' do
   notifies :restart, 'service[nova-api]', :delayed
 end
 
+# not-yet-upstreamed bugfixes for the CPU and RAM weighers
+cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/weights/cpu.py' do
+  source 'nova/cpu.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-scheduler]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/weights/ram.py' do
+  source 'nova/ram.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-scheduler]', :delayed
+end
+
 execute 'py3compile-nova' do
   action :nothing
   command 'py3compile -p python3-nova'
