@@ -36,8 +36,7 @@ realtime_validators = [
         ),
         value={
             'type': str,
-            # NOTE(stephenfin): Yes, these things *have* to start with '^'
-            'pattern': r'\^\d+((-\d+)?(,\^?\d+(-\d+)?)?)*',
+            'pattern': r'(\^)?\d+((-\d+)?(,\^?\d+(-\d+)?)?)*',
         },
     ),
 ]
@@ -64,14 +63,17 @@ cpu_policy_validators = [
             'CPUs can run on. If ``shared`` (default), guest CPUs can be '
             'overallocated but cannot float across host cores. If '
             '``dedicated``, guest CPUs cannot be overallocated but are '
-            'individually pinned to their own host core.'
+            'individually pinned to their own host core. ``mixed`` is a '
+            'policy with which the guest is mixing the overallocated and '
+            'pinned guest CPUs.'
         ),
         value={
             'type': str,
             'description': 'The CPU policy.',
             'enum': [
                 'dedicated',
-                'shared'
+                'shared',
+                'mixed',
             ],
         },
     ),
@@ -110,6 +112,22 @@ cpu_policy_validators = [
                 'isolate',
                 'share',
             ],
+        },
+    ),
+    base.ExtraSpecValidator(
+        name='hw:cpu_dedicated_mask',
+        description=(
+            'A mapping of **guest** CPUs to be pinned to **host** CPUs for an '
+            'instance with a ``mixed`` CPU policy. For **guest** CPUs which '
+            'are not in this mapping it will float across host cores.'
+        ),
+        value={
+            'type': str,
+            'description': (
+                'The **guest** CPU mapping to be pinned to **host** CPUs for '
+                'an instance with a ``mixed`` CPU policy.'),
+            # This pattern is identical to 'hw:cpu_realtime_mask' pattern.
+            'pattern': r'\^?\d+((-\d+)?(,\^?\d+(-\d+)?)?)*',
         },
     ),
 ]
@@ -364,6 +382,35 @@ feature_flag_validators = [
             'type': int,
             'min': 0,
             'description': 'The number of serial ports to allocate',
+        },
+    ),
+    base.ExtraSpecValidator(
+        name='hw:tpm_model',
+        description=(
+            'The model of the attached TPM device.'
+        ),
+        value={
+            'type': str,
+            'description': 'A TPM model',
+            'enum': [
+                'tpm-tis',
+                'tpm-crb',
+            ],
+        },
+    ),
+    base.ExtraSpecValidator(
+        name='hw:tpm_version',
+        description=(
+            "The TPM version. Required if requesting a vTPM via the "
+            "'hw:tpm_model' extra spec or equivalent image metadata property."
+        ),
+        value={
+            'type': str,
+            'description': 'A TPM version.',
+            'enum': [
+                '1.2',
+                '2.0',
+            ],
         },
     ),
     base.ExtraSpecValidator(

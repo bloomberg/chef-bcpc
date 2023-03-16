@@ -53,33 +53,6 @@ def graphics_listen_addrs(migrate_data):
     return listen_addrs
 
 
-def serial_listen_addr(migrate_data):
-    """Returns listen address serial from a LibvirtLiveMigrateData"""
-    listen_addr = None
-    # NOTE (markus_z/dansmith): Our own from_legacy_dict() code can return
-    # an object with nothing set here. That can happen based on the
-    # compute RPC version pin. Until we can bump that major (which we
-    # can do just before Ocata releases), we may still get a legacy
-    # dict over the wire, converted to an object, and thus is may be unset
-    # here.
-    if migrate_data.obj_attr_is_set('serial_listen_addr'):
-        # NOTE (markus_z): The value of 'serial_listen_addr' is either
-        # an IP address (as string type) or None. There's no need of a
-        # conversion, in fact, doing a string conversion of None leads to
-        # 'None', which is an invalid (string type) value here.
-        listen_addr = migrate_data.serial_listen_addr
-    return listen_addr
-
-
-# TODO(sahid): remove me for Q*
-def serial_listen_ports(migrate_data):
-    """Returns ports serial from a LibvirtLiveMigrateData"""
-    ports = []
-    if migrate_data.obj_attr_is_set('serial_listen_ports'):
-        ports = migrate_data.serial_listen_ports
-    return ports
-
-
 def get_updated_guest_xml(guest, migrate_data, get_volume_config,
                           get_vif_config=None, new_resources=None):
     xml_doc = etree.fromstring(guest.get_xml_desc(dump_migratable=True))
@@ -190,8 +163,8 @@ def _update_graphics_xml(xml_doc, migrate_data):
 
 
 def _update_serial_xml(xml_doc, migrate_data):
-    listen_addr = serial_listen_addr(migrate_data)
-    listen_ports = serial_listen_ports(migrate_data)
+    listen_addr = migrate_data.serial_listen_addr
+    listen_ports = migrate_data.serial_listen_ports
 
     def set_listen_addr_and_port(source, listen_addr, serial_listen_ports):
         # The XML nodes can be empty, which would make checks like
@@ -371,14 +344,21 @@ def _update_vif_xml(xml_doc, migrate_data, get_vif_config):
     instance_uuid = xml_doc.findtext('uuid')
     parser = etree.XMLParser(remove_blank_text=True)
     interface_nodes = xml_doc.findall('./devices/interface')
-    migrate_vif_by_mac = {vif.source_vif['address']: vif
+    # MAC address stored for port in neutron DB and in domain XML
+    # might be in different cases, so to harmonize that
+    # we convert MAC to lower case for dict key.
+    migrate_vif_by_mac = {vif.source_vif['address'].lower(): vif
                           for vif in migrate_data.vifs}
     for interface_dev in interface_nodes:
         mac = interface_dev.find('mac')
         mac = mac if mac is not None else {}
         mac_addr = mac.get('address')
         if mac_addr:
-            migrate_vif = migrate_vif_by_mac[mac_addr]
+            # MAC address stored in libvirt should always be normalized
+            # and stored in lower case. But just to be extra safe here
+            # we still normalize MAC retrieved from XML to be absolutely
+            # sure it will be the same with the Neutron provided one.
+            migrate_vif = migrate_vif_by_mac[mac_addr.lower()]
             vif = migrate_vif.get_dest_vif()
             # get_vif_config is a partial function of
             # nova.virt.libvirt.vif.LibvirtGenericVIFDriver.get_config
