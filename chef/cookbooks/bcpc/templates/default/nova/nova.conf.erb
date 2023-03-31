@@ -161,6 +161,7 @@ workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 available_filters = <%= available_filter %>
 <% end %>
 enabled_filters = <%= @enabled_filters.join(',') %>
+weight_classes = nova.scheduler.weights.affinity.ServerGroupSoftAffinityWeigher,nova.scheduler.weights.affinity.ServerGroupSoftAntiAffinityWeigher,nova.scheduler.weights.bcpc_cpu.BCPCCPUWeigher,nova.scheduler.weights.bcpc_ram.BCPCRAMWeigher,nova.scheduler.weights.compute.BuildFailureWeigher,nova.scheduler.weights.cross_cell.CrossCellWeigher,nova.scheduler.weights.disk.DiskWeigher,nova.scheduler.weights.io_ops.IoOpsWeigher,nova.scheduler.weights.metrics.MetricsWeigher,nova.scheduler.weights.pci.PCIWeigher
 
 [vnc]
 enabled = true
