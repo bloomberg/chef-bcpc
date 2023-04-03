@@ -85,6 +85,7 @@
     enabled: no
     state: stopped
   with_items:
+    - irqbalance
     - iscsid
     - lxcfs
     - lxd
@@ -102,6 +103,7 @@
     - accounts-daemon
     - atd
     - fwupd
+    - irqbalance
     - multipathd.socket
     - multipathd
     - packagekit
