@@ -1,7 +1,7 @@
 # chef-bcpc
 
 chef-bcpc is a set of [Chef](https://github.com/opscode/chef) cookbooks that
-build a highly-available [OpenStack](http://www.openstack.org/) cloud.
+build a highly-available [OpenStack](http://www.openstack.org/) cloud..
 
 The cloud consists of head nodes (OpenStack controller services, Ceph Mons,
 etc.) and work nodes (hypervisors).
