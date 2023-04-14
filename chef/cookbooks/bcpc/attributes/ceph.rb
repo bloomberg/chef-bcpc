@@ -104,8 +104,6 @@ default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
   'max_background_compactions=4',
 ]
 
-default['bcpc']['ceph']['bluestore_cache_size_ssd'] = 10737418240
-
 # https://tracker.ceph.com/issues/50017
 # Some issues noted with multiple fsck/quick fix threads; we'll wait
 # around a bit longer if it improves odds that fsck doesn't shred OSDs.
