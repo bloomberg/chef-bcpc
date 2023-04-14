@@ -74,9 +74,6 @@ default['bcpc']['ceph']['mon_niceness'] = -10
 # Set tcmalloc max total thread cache
 default['bcpc']['ceph']['tcmalloc_max_total_thread_cache_bytes'] = '128MB'
 
-# Set the max open fds at the OS level
-default['bcpc']['ceph']['max_open_files'] = 2048
-
 # Set tunables for Ceph OSD recovery
 default['bcpc']['ceph']['paxos_propose_interval'] = 1
 default['bcpc']['ceph']['osd_recovery_max_active'] = 1
