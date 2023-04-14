@@ -82,7 +82,7 @@ default['bcpc']['ceph']['paxos_propose_interval'] = 1
 default['bcpc']['ceph']['osd_recovery_max_active'] = 1
 default['bcpc']['ceph']['osd_recovery_op_priority'] = 1
 default['bcpc']['ceph']['osd_max_backfills'] = 1
-default['bcpc']['ceph']['osd_max_scrubs'] = 5
+default['bcpc']['ceph']['osd_max_scrubs'] = 1
 default['bcpc']['ceph']['osd_deep_scrub_interval'] = 2592000
 default['bcpc']['ceph']['osd_scrub_max_interval'] = 604800
 default['bcpc']['ceph']['osd_scrub_sleep'] = 0.05
@@ -100,11 +100,6 @@ default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
   'compaction_readahead_size=2097152',
   'max_background_compactions=4',
 ]
-
-# https://tracker.ceph.com/issues/50017
-# Some issues noted with multiple fsck/quick fix threads; we'll wait
-# around a bit longer if it improves odds that fsck doesn't shred OSDs.
-default['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] = 1
 
 # Set RBD default feature set to only include layering and
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent
