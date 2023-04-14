@@ -80,11 +80,8 @@ default['bcpc']['ceph']['max_open_files'] = 2048
 # Set tunables for Ceph OSD recovery
 default['bcpc']['ceph']['paxos_propose_interval'] = 1
 default['bcpc']['ceph']['osd_recovery_max_active'] = 1
-default['bcpc']['ceph']['osd_recovery_threads'] = 2
 default['bcpc']['ceph']['osd_recovery_op_priority'] = 1
 default['bcpc']['ceph']['osd_max_backfills'] = 1
-default['bcpc']['ceph']['osd_op_threads'] = 2
-default['bcpc']['ceph']['osd_mon_report_interval_min'] = 5
 default['bcpc']['ceph']['osd_max_scrubs'] = 5
 default['bcpc']['ceph']['osd_deep_scrub_interval'] = 2592000
 default['bcpc']['ceph']['osd_scrub_max_interval'] = 604800

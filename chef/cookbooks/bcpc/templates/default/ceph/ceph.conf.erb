@@ -60,16 +60,12 @@ osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
 osd scrub max scrubs = <%= @node['bcpc']['ceph']['osd_max_scrubs'] %>
 
 # settings to throttle OSD recovery parameters
-osd mon report interval min = <%= @node['bcpc']['ceph']['osd_mon_report_interval_min'] %>
 osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
-osd recovery threads = <%= @node['bcpc']['ceph']['osd_recovery_threads'] %>
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
-osd op threads = <%= @node['bcpc']['ceph']['osd_op_threads'] %>
 
 # bluestore tuning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
-bluestore cache size ssd = <%= @node['bcpc']['ceph']['bluestore_cache_size_ssd'] %>
 bluestore fsck quick fix threads = <%= node['bcpc']['ceph']['bluestore_fsck_quick_fix_threads'] %>
 
 # As of Octopus 15.2.12, the AVL block allocator can degrade performance
