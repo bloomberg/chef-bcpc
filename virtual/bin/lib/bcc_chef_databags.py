@@ -23,10 +23,12 @@ import time
 import uuid
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from cryptography.hazmat.primitives.serialization.ssh import \
-    serialize_ssh_private_key
-from cryptography.hazmat.primitives.serialization.ssh import \
-    serialize_ssh_public_key
+from cryptography.hazmat.primitives.serialization import (
+    Encoding,
+    PublicFormat,
+    PrivateFormat,
+    NoEncryption,
+)
 from cryptography import x509
 from OpenSSL import crypto
 import yaml
@@ -275,13 +277,20 @@ class SSH:
 
     def public(self):
         # key = self.key.publickey().exportKey('OpenSSH')
-        key = serialize_ssh_public_key(self.key.public_key())
-        return base64.b64encode(key).decode()
+        serialized_public_key = self.key.public_key().public_bytes(
+            encoding=Encoding.OpenSSH,
+            format=PublicFormat.OpenSSH,
+        )
+        return base64.b64encode(serialized_public_key).decode()
 
     def private(self):
         # key = self.key.exportKey('PEM')
-        key = serialize_ssh_private_key(self.key)
-        return base64.b64encode(key).decode()
+        serialized_private_key = self.key.private_bytes(
+            encoding=Encoding.PEM,
+            format=PrivateFormat.OpenSSH,
+            encryption_algorithm=NoEncryption(),
+        )
+        return base64.b64encode(serialized_private_key).decode()
 
 
 class BCCChefDatabags:
