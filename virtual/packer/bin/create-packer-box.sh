@@ -82,7 +82,7 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
     current_packer_ver=$(packer --version)
     required_packer_ver="1.4.0"
     lower_packer_ver=$(printf '%s\n' "$required_packer_ver" \
-                                     "$current_packer_ver" \
+                                    "$current_packer_ver" \
                         | sort -V \
                         | head -n1)
     if [ "$lower_packer_ver" = "$required_packer_ver" ]; then

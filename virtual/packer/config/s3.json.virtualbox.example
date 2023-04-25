@@ -1,8 +1,0 @@
-{
-    "s3_config_file" : "",
-    "upload_bucket" : "s3://packer",
-    "upload_source_packer_box" : "output-vagrant/package.box",
-    "upload_target_packer_box" : "package.virtualbox.box",
-    "download_bucket" : "s3://packer",
-    "download_packer_box" : "package.virtualbox.box"
-}
