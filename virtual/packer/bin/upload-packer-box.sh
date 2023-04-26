@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2023, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,29 +16,36 @@
 
 set -xe
 
-packer_dir=$(dirname "$(dirname "$0")")
+cd "$(dirname "$(dirname "$0")")"
+os_config_variables="config/variables.json"
+s3_variables="config/s3.json"
 
 # Check if an official base box is added to vagrant
-s3_variables="${packer_dir}/config/s3.json"
-
 S3_CONFIG_FILE=$(jq -r '.s3_config_file' "$s3_variables")
-UPLOAD_BUCKET=$(jq -r '.upload_bucket' "$s3_variables")
-UPLOAD_SOURCE_PACKER_BOX=$(jq -r '.upload_source_packer_box' "$s3_variables")
-UPLOAD_TARGET_PACKER_BOX=$(jq -r '.upload_target_packer_box' "$s3_variables")
+BUCKET=$(jq -r '.bucket' "$s3_variables")
 
-if [ "$UPLOAD_BUCKET" == "null" ] \
-   || [ "$UPLOAD_SOURCE_PACKER_BOX" == "null" ] \
-   || [ "$UPLOAD_TARGET_PACKER_BOX" == "null" ]; then
+if [ "$BUCKET" == "null" ]; then
     printf "One or more variables in %s are undefined.\n" "$s3_variables"
     exit 1
 fi
 
-#upload base box from s3 storage
-if [ "$S3_CONFIG_FILE" == "null" ]; then
-    s3cmd put --force "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" \
-        "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
-else
-    s3cmd -c "${S3_CONFIG_FILE}" put --force \
-        "${packer_dir}/${UPLOAD_SOURCE_PACKER_BOX}" \
-        "${UPLOAD_BUCKET}/${UPLOAD_TARGET_PACKER_BOX}"
+if [ -z "${VAGRANT_DEFAULT_PROVIDER}" ]; then
+    echo "VAGRANT_DEFAULT_PROVIDER is not defined"
+    exit 1
 fi
+
+
+for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
+    OS_RELEASE_AND_PROVIDER="${OS_RELEASE}_${VAGRANT_DEFAULT_PROVIDER}"
+
+    # Upload base box to s3 storage
+    if [ "$S3_CONFIG_FILE" == "null" ]; then
+        s3cmd put --force \
+            "output-vagrant-${OS_RELEASE}/package.box" \
+            "${BUCKET}/bcc-ubuntu-${OS_RELEASE_AND_PROVIDER}.box"
+    else
+        s3cmd -c "${S3_CONFIG_FILE}" put --force \
+            "output-vagrant-${OS_RELEASE}/package.box" \
+            "${BUCKET}/bcc-ubuntu-${OS_RELEASE_AND_PROVIDER}.box"
+    fi
+done
