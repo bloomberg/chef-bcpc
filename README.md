@@ -45,7 +45,8 @@ list of tested topologies and hardware configurations please see
 [virtual/README](virtual/README.md).
 * Set the variables in `virtual/vagrantbox.json`. The variable `vagrant_box` specifies the
 Vagrant box we use to build the virtual environment, and `vagrant_box_version` specifies
-the version of the Vagrant box.
+the version of the Vagrant box. These variables are specified per Ansible inventory group
+of hosts, and must have a "default" group as is done in the default `vagrantbox.json`.
 * If one would like to build a pre-provisioned custom Packer box and use it as the base box
 to create the virtual environment, the steps below should be followed:
   * Create `virtual/packer/config/variables.json` and set the variables. Depends on the

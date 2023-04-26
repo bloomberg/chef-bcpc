@@ -42,12 +42,13 @@ module Util
     name + '_' + hash
   end
 
-  def self.get_vagrant_box
+  def self.get_vagrant_box(group = 'default')
     virtual_dir = File.dirname(File.dirname(__FILE__))
     config_variable_file = File.read(virtual_dir + '/vagrantbox.json')
     config_variables = JSON.parse(config_variable_file)
-    vagrant_box = config_variables['vagrant_box']
-    vagrant_box_version = config_variables['vagrant_box_version']
+    selector = config_variables.fetch(group, config_variables['default'])
+    vagrant_box = selector['vagrant_box']
+    vagrant_box_version = selector['vagrant_box_version']
     if vagrant_box.nil? ||
        vagrant_box.empty? ||
        vagrant_box_version.nil? ||

@@ -1,4 +1,14 @@
 {
-  "vagrant_box": "bcc-ubuntu-20.04",
-  "vagrant_box_version": "0"
+  "default": {
+      "vagrant_box": "bcc-ubuntu-20.04",
+      "vagrant_box_version": "0"
+  },
+  "storageheadnodes": {
+      "vagrant_box": "bcc-ubuntu-22.04",
+      "vagrant_box_version": "0"
+  },
+  "storagenodes": {
+      "vagrant_box": "bcc-ubuntu-22.04",
+      "vagrant_box_version": "0"
+  }
 }
