@@ -64,6 +64,9 @@ default['bcpc']['nova']['compute']['limits']['nofile']['hard'] = 4096
 # frequency of syncing power states between hypervisor and database
 default['bcpc']['nova']['sync_power_state_interval'] = 600
 
+# frequency of updating compute resources
+default['bcpc']['nova']['update_resources_interval'] = 3600
+
 # automatically restart guests that were running when hypervisor was rebooted
 default['bcpc']['nova']['resume_guests_state_on_host_boot'] = false
 

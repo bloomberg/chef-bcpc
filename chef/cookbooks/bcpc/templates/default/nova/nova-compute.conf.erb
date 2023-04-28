@@ -4,6 +4,7 @@
 [DEFAULT]
 compute_driver = libvirt.LibvirtDriver
 enable_new_services = false
+update_resources_interval = <%= node['bcpc']['nova']['update_resources_interval'] %>
 
 [libvirt]
 virt_type = <%= @virt_type %>
