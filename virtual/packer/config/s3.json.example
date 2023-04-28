@@ -1,0 +1,4 @@
+{
+    "s3_config_file" : "",
+    "bucket" : "s3://packer"
+}

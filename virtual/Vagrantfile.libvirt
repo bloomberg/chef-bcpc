@@ -17,8 +17,6 @@
 require 'yaml'
 require './lib/util'
 
-vagrant_box, vagrant_box_version = Util.get_vagrant_box()
-
 def load_topology
   # load the vm topology profile
   topology = './topology/topology.yml'
@@ -53,9 +51,6 @@ hardware = load_hardware
 
 Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
-  config.vm.box = vagrant_box
-  config.vm.box_version = vagrant_box_version
-  config.vm.box_download_insecure = true
 
   config.vm.provider :libvirt do |lv|
     if ENV['BCC_LIBVIRT_DRIVER'] == 'qemu'
@@ -81,6 +76,10 @@ Vagrant.configure('2') do |config|
     hw_profile = hw_profiles[node['hardware_profile']]
 
     config.vm.define vm_name do |subconfig|
+      group = node['group']
+      subconfig.vm.box, subconfig.vm.box_version = Util.get_vagrant_box(group)
+      subconfig.vm.box_download_insecure = true
+
       # finish provisioner
       finish_args = []
 

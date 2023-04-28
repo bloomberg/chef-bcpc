@@ -29,6 +29,8 @@ backend_name = <%= node['hostname'] %>
 <% if !node['bcpc']['cinder']['backend_native_threads_pool_size'].nil? %>
 [backend_defaults]
 backend_native_threads_pool_size = <%= node['bcpc']['cinder']['backend_native_threads_pool_size'] %>
+deferred_deletion_purge_interval = <%= node['bcpc']['cinder']['deferred_deletion_purge_interval'] %>
+enable_deferred_deletion = <%= node['bcpc']['cinder']['enable_deferred_deletion'] %>
 rbd_exclusive_cinder_pool = <%= node['bcpc']['cinder']['rbd_exclusive_cinder_pool'] %>
 
 <% end %>
