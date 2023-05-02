@@ -17,36 +17,55 @@
 require 'yaml'
 require './lib/util'
 
-# load the vm topology profile
-topology = './topology/topology.yml'
-topology_overrides = './topology/topology.overrides.yml'
+def load_topology
+  # load the vm topology profile
+  topology = './topology/topology.yml'
+  topology_overrides = './topology/topology.overrides.yml'
 
-if File.file?(File.expand_path(topology_overrides))
-  topology = YAML.load_file(File.expand_path(topology_overrides))
-elsif File.file?(File.expand_path(topology))
-  topology = YAML.load_file(File.expand_path(topology))
-else
-  raise "#{topology} or #{topology_overrides} not found"
+  if File.file?(File.expand_path(topology_overrides))
+    YAML.load_file(File.expand_path(topology_overrides))
+  elsif File.file?(File.expand_path(topology))
+    YAML.load_file(File.expand_path(topology))
+  else
+    raise "#{topology} or #{topology_overrides} not found"
+  end
 end
 
-# load the hardware profiles
-hardware = './topology/hardware.yml'
-hardware_overrides = './topology/hardware.overrides.yml'
+def load_hardware
+  # load the hardware profiles
+  hardware = './topology/hardware.yml'
+  hardware_overrides = './topology/hardware.overrides.yml'
 
-if File.file?(File.expand_path(hardware_overrides))
-  hardware = YAML.load_file(File.expand_path(hardware_overrides))
-elsif File.file?(File.expand_path(hardware))
-  hardware = YAML.load_file(File.expand_path(hardware))
-else
-  raise "#{hardware} or #{hardware_overrides} not found"
+  if File.file?(File.expand_path(hardware_overrides))
+    YAML.load_file(File.expand_path(hardware_overrides))
+  elsif File.file?(File.expand_path(hardware))
+    YAML.load_file(File.expand_path(hardware))
+  else
+    raise "#{hardware} or #{hardware_overrides} not found"
+  end
 end
 
-project_name = '/' + File.basename(File.dirname(Dir.getwd))
-vb_folder = `VBoxManage list systemproperties | grep 'Default machine folder'`
-vb_folder = vb_folder.match(/^Default machine folder:\s+(.+)$/)[1]
+topology = load_topology
+hardware = load_hardware
 
 Vagrant.configure('2') do |config|
   config.ssh.forward_x11 = true
+
+  config.vm.provider :libvirt do |lv|
+    if ENV['BCC_LIBVIRT_DRIVER'] == 'qemu'
+      lv.driver = 'qemu'
+      lv.cpu_mode = 'custom'
+      config.vm.synced_folder './', '/vagrant', type: 'rsync'
+    else
+      lv.driver = 'kvm'
+      lv.nested = true
+      lv.cpu_mode = 'host-passthrough'
+      if ENV['BCC_LIBVIRT_KVM_HUGEPAGES'] == 'true'
+        lv.memorybacking :hugepages
+      end
+      config.vm.synced_folder './', '/vagrant', type: '9p'
+    end
+  end
 
   topology['nodes'].each do |node|
     vm_name = node['host']
@@ -71,7 +90,9 @@ Vagrant.configure('2') do |config|
       operations_user = 'operations'
       operations_user_ssh_pub_key = File.read('files/ssh/id_ed25519.pub')
       finish_args.append("--operations-user #{operations_user}")
-      finish_args.append("--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\"")
+      finish_args.append(
+        "--operations-user-ssh-pub-key \"#{operations_user_ssh_pub_key}\""
+      )
 
       subconfig.vm.provision 'shell' do |shell|
         shell.path = 'provisioners/finish.sh'
@@ -79,38 +100,30 @@ Vagrant.configure('2') do |config|
       end
 
       # network connections
-      #
       host_vars = node['host_vars']
       transit = host_vars['interfaces']['transit']
 
       transit.each do |t_iface|
-        subconfig.vm.network('private_network',
-          virtualbox__intnet: Util.vbox_name(t_iface['neighbor']['name']),
-          mac: t_iface['mac'].delete(':'),
-          nic_type: '82543GC',
-          auto_config: false)
+        args = {}.tap do |a|
+          a[:auto_config] = false
+          a[:ip] = t_iface['ip'].split('/')[0]
+          a[:mac] = t_iface['mac'].delete(':')
+          a[:libvirt__network_name] =
+            Util.libvirt_prefix() + t_iface['neighbor']['name']
+          a[:libvirt__dhcp_enabled] = false
+          a[:libvirt__forward_mode] = 'veryisolated'
+          a[:libvirt__mtu] = 9000
+        end
+        subconfig.vm.network('private_network', args)
       end
 
-      subconfig.vm.provider 'virtualbox' do |vb|
-        vbox_vm_name = Util.vbox_name(vm_name)
-        vb.name = vbox_vm_name
-        vb.cpus = hw_profile['cpus']
-        vb.memory = hw_profile['ram_gb'] * 1024
-        vb.customize ['modifyvm', :id, '--groups', project_name]
-        vb.customize ['modifyvm', :id, '--uart1', '0x3F8', '4']
-        vb.customize ['modifyvm', :id, '--uart2', '0x2F8', '3']
-        vb.customize ['modifyvm', :id, '--uartmode1', 'disconnected']
-        vb.customize ['modifyvm', :id, '--uartmode2', 'disconnected']
-        vb.customize ['modifyvm', :id, '--vram', '16']
-
-        # If the vagrant-vbguest plugin is installed, alter the plugin's default
-        # kernel module check as described in the following issue:
-        #   https://github.com/dotless-de/vagrant-vbguest/issues/421
-        # Otherwise, vbox guest additions are installed every time a machine is
-        # brought up or reloaded.
-        if Vagrant.has_plugin?('vagrant-vbguest')
-          config.vbguest.installer_options = { running_kernel_modules: ['vboxguest'] }
-        end
+      subconfig.vm.provider :libvirt do |lv|
+        lv.default_prefix = Util.libvirt_prefix()
+        lv.cpus = hw_profile['cpus']
+        lv.memory = hw_profile['ram_gb'] * 1024
+        lv.disk_bus = 'scsi'
+        lv.disk_device = 'sda'
+        lv.machine_virtual_size = 10
 
         # add additional hard drives
         if hw_profile.key?('ext_disks')
@@ -119,28 +132,10 @@ Vagrant.configure('2') do |config|
           count = hw_profile['ext_disks']['count']
           drive_letters = ('a'..'z').to_a[1..count]
 
-          drive_letters.each_with_index do |l, i|
-            drive_file = "sd#{l}.vdi"
-            drive_fp = File.join(vb_folder, project_name, vbox_vm_name, drive_file)
-
-            next if File.exist?(drive_fp)
-
-            drive_port = i + 1
-
-            vb.customize [
-              'createhd',
-              '--filename', drive_fp,
-              '--size', size_gb * 1024
-            ]
-
-            vb.customize [
-              'storageattach', :id,
-              '--storagectl', 'SATA Controller',
-              '--type', 'hdd',
-              '--device', 0,
-              '--port', drive_port,
-              '--medium', drive_fp
-            ]
+          drive_letters.each do |l|
+            device = "sd#{l}"
+            lv.storage :file, size: "#{size_gb}G", device: device.to_s,
+                                                   bus: 'scsi', type: 'raw'
           end
         end
       end

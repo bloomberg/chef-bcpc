@@ -34,8 +34,8 @@ if [ -f "${topology_overrides_file}" ]; then
     topology_file=${topology_overrides_file}
 fi
 
-if [ "${VAGRANT_DEFAULT_PROVIDER}" == "libvirt" ] ; then
-    export VAGRANT_VAGRANTFILE=Vagrantfile.libvirt
+if [ "${VAGRANT_DEFAULT_PROVIDER}" == "virtualbox" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.virtualbox
 fi
 
 # generate operations ssh key pair

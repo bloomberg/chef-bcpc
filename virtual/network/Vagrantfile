@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,16 @@
 require '../lib/util'
 
 vagrant_box, vagrant_box_version = Util.get_vagrant_box()
+
+def load_network
+  # load the network topology
+  network = './netplan/network.yaml'
+  if File.file?(File.expand_path(network))
+    YAML.load_file(File.expand_path(network))
+  else
+    raise "#{network} not found"
+  end
+end
 
 FABRIC_ID = 'bcpc-'.freeze
 
@@ -44,68 +54,78 @@ def sspine_name(plane, sspine)
   FABRIC_ID + "pl#{plane}fs#{sspine}"
 end
 
-Vagrant.configure(2) do |config|
-  config.vm.provider 'virtualbox' do
-    # If the vagrant-vbguest plugin is installed, alter the plugin's default
-    # kernel module check as described in the following issue:
-    #   https://github.com/dotless-de/vagrant-vbguest/issues/421
-    # Otherwise, vbox guest additions are installed every time a machine is
-    # brought up or reloaded.
-    if Vagrant.has_plugin?('vagrant-vbguest')
-      config.vbguest.installer_options = { running_kernel_modules: ['vboxguest'] }
+def add_private_network(config, name, ipaddr)
+  netmask = IPAddr.new('255.255.255.255').to_s
+  config.vm.network('private_network',
+                    ip: ipaddr,
+                    auto_config: false,
+                    libvirt__network: netmask,
+                    libvirt__network_name: Util.libvirt_prefix() + name,
+                    libvirt__dhcp_enabled: false,
+                    libvirt__forward_mode: 'veryisolated',
+                    libvirt__mtu: 9000)
+end
+
+def configure_router_vm(config, _name)
+  config.vm.provider :libvirt do |lv|
+    lv.default_prefix = Util.libvirt_prefix()
+    if ENV['BCC_LIBVIRT_DRIVER'] == 'qemu'
+      lv.driver = 'qemu'
+      lv.cpu_mode = 'custom'
+      config.vm.synced_folder './', '/vagrant', type: 'rsync'
+    else
+      lv.driver = 'kvm'
+      lv.nested = true
+      lv.cpu_mode = 'host-passthrough'
+      if ENV['BCC_LIBVIRT_KVM_HUGEPAGES'] == 'true'
+        lv.memorybacking :hugepages
+      end
+      config.vm.synced_folder './', '/vagrant', type: '9p'
     end
+    lv.cpus = 1
+    lv.memory = 512 # can work as low as 384
+    lv.disk_bus = 'scsi'
+    lv.disk_device = 'sda'
   end
+end
+
+Vagrant.configure(2) do |config|
+  config.vm.box = vagrant_box
+  config.vm.box_version = vagrant_box_version
+  config.vm.box_download_insecure = true
 
   if ENV.key?('BCC_DEPLOY_NETWORK_VM')
+    configure_router_vm(config, 'network')
     config.vm.define 'network' do |node|
-      config.vm.provider 'virtualbox' do |vb|
-        vb.name = Util.vbox_name('network')
-        vb.memory = 512
-      end
       node.vm.hostname = 'network'
-      node.vm.box = vagrant_box
-      config.vm.box_version = vagrant_box_version
-      node.vm.box_download_insecure = true
-      node.vm.network('private_network',
-        virtualbox__intnet: Util.vbox_name('management1'),
-        auto_config: false)
-      node.vm.network('private_network',
-        virtualbox__intnet: Util.vbox_name('management2'),
-        auto_config: false)
-      node.vm.network('private_network',
-        virtualbox__intnet: Util.vbox_name('management3'),
-        auto_config: false)
+      network = load_network
+      (1..network['network']['ethernets'].length - 1).each do |i|
+        eth = "eth#{i}"
+        a = network['network']['ethernets'][eth]['addresses'][0].split('/')
+        add_private_network(config, "management#{i}", a[0])
+      end
       node.vm.provision 'shell', path: 'provisioner.sh', args: '-E network'
     end
 
   else
 
+    DEFAULTIP = IPAddr.new('127.0.0.1').to_s
     # Create pods
     (1..PODS).each do |p|
       # Create TORs
       (1..TORS_PER_POD).each do |t|
         tor = tor_name(p, t)
         config.vm.define "#{tor}" do |node|
-          node.vm.provider 'virtualbox' do |vb|
-            vb.name = Util.vbox_name("#{tor}")
-            vb.memory = 512
-          end
+          configure_router_vm(node, "#{tor}")
           node.vm.hostname = "#{tor}"
-          node.vm.box = vagrant_box
-          config.vm.box_version = vagrant_box_version
-          node.vm.box_download_insecure = true
           (1..SPINES_PER_POD).each do |s|
             spine = spine_name(s, p)
-            node.vm.network('private_network',
-              virtualbox__intnet: Util.vbox_name(spine + ':' + tor),
-              auto_config: false)
+            add_private_network(node, spine + ':' + tor, DEFAULTIP)
           end
           # One management network per TOR. Reserve a TORS_PER_POD set of
           # such networks for a future second TOR per virtual rack.
           management = ((p - 1) * TORS_PER_POD * 2) + t
-          node.vm.network('private_network',
-            virtualbox__intnet: Util.vbox_name("management#{management}"),
-            auto_config: false)
+          add_private_network(node, "management#{management}", DEFAULTIP)
           node.vm.provision 'shell', path: 'provisioner.sh', args: "#{tor}"
         end
       end
@@ -114,27 +134,17 @@ Vagrant.configure(2) do |config|
       (1..SPINES_PER_POD).each do |s|
         spine = spine_name(s, p)
         config.vm.define "#{spine}" do |node|
-          node.vm.provider 'virtualbox' do |vb|
-            vb.name = Util.vbox_name("#{spine}")
-            vb.memory = 512
-          end
+          configure_router_vm(node, "#{spine}")
           node.vm.hostname = "#{spine}"
-          node.vm.box = vagrant_box
-          config.vm.box_version = vagrant_box_version
-          node.vm.box_download_insecure = true
           (1..TORS_PER_POD).each do |t|
             tor = tor_name(p, t)
-            node.vm.network('private_network',
-              virtualbox__intnet: Util.vbox_name(spine + ':' + tor),
-              auto_config: false)
+            add_private_network(node, spine + ':' + tor, DEFAULTIP)
           end
           if PODS > 1
             # Create link to superspine on same plane as the spine value.
             (1..SUPERSPINES_PER_PLANE).each do |ss|
               sspine = sspine_name(s, ss)
-              node.vm.network('private_network',
-                virtualbox__intnet: Util.vbox_name(sspine + ':' + spine),
-                auto_config: false)
+              add_private_network(node, sspine + ':' + spine, DEFAULTIP)
             end
             on_edge = ''
           else
@@ -153,19 +163,11 @@ Vagrant.configure(2) do |config|
         (1..SUPERSPINES_PER_PLANE).each do |ss|
           sspine = sspine_name(pl, ss)
           config.vm.define "#{sspine}" do |node|
-            node.vm.provider 'virtualbox' do |vb|
-              vb.name = Util.vbox_name("#{sspine}")
-              vb.memory = 512
-            end
+            configure_router_vm(config, "#{sspine}")
             node.vm.hostname = "#{sspine}"
-            node.vm.box = vagrant_box
-            config.vm.box_version = vagrant_box_version
-            node.vm.box_download_insecure = true
             (1..PODS).each do |p|
               spine = spine_name(pl, p)
-              node.vm.network('private_network',
-                virtualbox__intnet: Util.vbox_name(sspine + ':' + spine),
-                auto_config: false)
+              add_private_network(node, sspine + ':' + spine, DEFAULTIP)
             end
             node.vm.provision 'shell', path: 'provisioner.sh',
                                        args: "-E #{sspine}"
@@ -173,6 +175,5 @@ Vagrant.configure(2) do |config|
         end
       end
     end
-
   end
 end
