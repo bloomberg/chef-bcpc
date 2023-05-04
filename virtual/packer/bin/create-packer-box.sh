@@ -29,6 +29,7 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
     BASE_BOX=$(jq -r '.base_box' "${config_variables}")
     BASE_BOX_VERSION=$(jq -r '.base_box_version' "${config_variables}")
     BASE_BOX_PROVIDER=$(jq -r '.base_box_provider' "${config_variables}")
+    VAGRANT_CACERT=$(jq -r '.vagrant_cacert' "${config_variables}")
     PACKER_BOX_NAME=$(jq -r '.output_packer_box_name' "${config_variables}")
     if [ "$BASE_BOX" == "null" ] \
         || [ "$BASE_BOX_VERSION" == "null" ] \
@@ -42,11 +43,11 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
         || true
     )
     if [ -z "$base_box_exists" ]; then
-        vagrant box add \
-            --force \
-            --insecure "$BASE_BOX" \
+        CURL_CA_BUNDLE=${VAGRANT_CACERT:+$VAGRANT_CACERT} vagrant box add \
             --box-version "$BASE_BOX_VERSION" \
-            --provider virtualbox;
+            --force \
+            --provider virtualbox \
+            "$BASE_BOX"
         if [ "$BASE_BOX_PROVIDER" == "libvirt" ]; then
             printf "Checking for vagrant mutate"
             mutate=$(vagrant plugin list | grep mutate)

@@ -92,7 +92,6 @@ end
 Vagrant.configure(2) do |config|
   config.vm.box = vagrant_box
   config.vm.box_version = vagrant_box_version
-  config.vm.box_download_insecure = true
 
   if ENV.key?('BCC_DEPLOY_NETWORK_VM')
     configure_router_vm(config, 'network')

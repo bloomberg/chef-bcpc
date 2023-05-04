@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,7 +65,6 @@ Vagrant.configure(2) do |config|
       node.vm.hostname = 'network'
       node.vm.box = vagrant_box
       config.vm.box_version = vagrant_box_version
-      node.vm.box_download_insecure = true
       node.vm.network('private_network',
         virtualbox__intnet: Util.vbox_name('management1'),
         auto_config: false)
@@ -93,7 +92,6 @@ Vagrant.configure(2) do |config|
           node.vm.hostname = "#{tor}"
           node.vm.box = vagrant_box
           config.vm.box_version = vagrant_box_version
-          node.vm.box_download_insecure = true
           (1..SPINES_PER_POD).each do |s|
             spine = spine_name(s, p)
             node.vm.network('private_network',
@@ -121,7 +119,6 @@ Vagrant.configure(2) do |config|
           node.vm.hostname = "#{spine}"
           node.vm.box = vagrant_box
           config.vm.box_version = vagrant_box_version
-          node.vm.box_download_insecure = true
           (1..TORS_PER_POD).each do |t|
             tor = tor_name(p, t)
             node.vm.network('private_network',
@@ -160,7 +157,6 @@ Vagrant.configure(2) do |config|
             node.vm.hostname = "#{sspine}"
             node.vm.box = vagrant_box
             config.vm.box_version = vagrant_box_version
-            node.vm.box_download_insecure = true
             (1..PODS).each do |p|
               spine = spine_name(pl, p)
               node.vm.network('private_network',

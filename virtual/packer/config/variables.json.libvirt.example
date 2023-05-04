@@ -8,7 +8,8 @@
     "base_box": "bento/ubuntu-22.04",
     "base_box_version": "202206.13.0",
     "base_box_provider": "libvirt",
-    "output_packer_box_name": "bcc-ubuntu-22.04"
+    "output_packer_box_name": "bcc-ubuntu-22.04",
+    "vagrant_cacert": ""
   },
   "20.04": {
     "bcc_apt_key_url": "",
@@ -19,6 +20,7 @@
     "base_box": "bento/ubuntu-20.04",
     "base_box_version": "202206.03.0",
     "base_box_provider": "libvirt",
-    "output_packer_box_name": "bcc-ubuntu-20.04"
+    "output_packer_box_name": "bcc-ubuntu-20.04",
+    "vagrant_cacert": ""
   }
 }
