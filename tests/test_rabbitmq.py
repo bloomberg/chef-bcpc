@@ -15,7 +15,6 @@
 import pytest
 
 
-@pytest.mark.headnodes
 @pytest.mark.rmqnodes
 @pytest.mark.parametrize("name", [
     ("rabbitmq-server"),
@@ -31,8 +30,6 @@ def test_services(host, name):
 
 
 @pytest.mark.bootstraps
-@pytest.mark.headnodes
-@pytest.mark.storageheadnodes
 @pytest.mark.worknodes
 @pytest.mark.storagenodes
 @pytest.mark.stubnodes

@@ -10,7 +10,7 @@
 #
 # In the future, we should move Consul, etcd, etc. out of Chef and into
 # Ansible so these dependencies can be resolved more elegantly.
-- hosts: "{{ groups.get('etcdnodes', groups.get('headnodes', [])) }}"
+- hosts: etcdnodes
   gather_facts: yes
   become: yes
   tasks:

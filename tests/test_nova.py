@@ -30,8 +30,7 @@ def test_services(host, name):
 
 
 @pytest.mark.bootstraps
-@pytest.mark.rmqnodes
-@pytest.mark.storageheadnodes
+@pytest.mark.auxnodes
 @pytest.mark.storagenodes
 @pytest.mark.stubnodes
 @pytest.mark.parametrize("name", [

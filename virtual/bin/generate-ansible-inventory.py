@@ -116,6 +116,23 @@ def get_inventory_data(ssh_config, nodes):
         if len(cloud['children']):
             inventory['all']['children'].update({'cloud': cloud})
 
+    # For any auxiliary headnodes defined, ensure that the full definition of
+    # node itself is defined underneath the auxiliary group and not somewhere
+    # else. Furthermore, ensure that supplimental groups (etcd, rmq, etc.)
+    # exist and that they are populated with skeleton group members.
+    auxnodes = dict()
+
+    for group in ['etcdnodes', 'rmqnodes', 'storageheadnodes']:
+        if group in cloud['children']:
+            auxnodes.update(cloud['children'][group])
+            cloud['children'][group] = {}
+
+        role = 'role[{0}]'.format(group[:-1])
+        hosts = [(n['host'], {}) for n in nodes
+                 if role in n['host_vars']['run_list']]
+        cloud['children'].update({group: {'hosts': dict(hosts)}})
+
+    cloud['children']['auxnodes'] = auxnodes
     return inventory
 
 

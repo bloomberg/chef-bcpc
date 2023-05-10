@@ -27,8 +27,7 @@ def test_services(host, name):
 
 
 @pytest.mark.bootstraps
-@pytest.mark.rmqnodes
-@pytest.mark.storageheadnodes
+@pytest.mark.auxnodes
 @pytest.mark.worknodes
 @pytest.mark.storagenodes
 @pytest.mark.stubnodes
