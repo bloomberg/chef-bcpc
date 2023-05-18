@@ -76,25 +76,6 @@
 #    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
 
 ###############################################################################
-# license traits
-###############################################################################
-
-# uncomment if you wish to have additional licensed aggregates
-
-#license_traits:
-#  enabled: false
-#  traits:
-#    - name: unlicensed
-#      aggregate: unlicensed
-#      trait: "{{ license_trait_keyword }}NONE"
-#    - name: windows
-#      aggregate: windows
-#      trait: "{{ license_trait_keyword }}WINDOWS"
-#    - name: rhel
-#      aggregate: rhel
-#      trait: "{{ license_trait_keyword }}RHEL"
-
-###############################################################################
 # additional_cloud_images
 ###############################################################################
 
@@ -115,6 +96,25 @@
 #    compression: xz
 
 ###############################################################################
+# license traits
+###############################################################################
+
+# uncomment if you wish to have additional licensed aggregates
+
+#license_traits:
+#  enabled: false
+#  traits:
+#    - name: unlicensed
+#      aggregate: unlicensed
+#      trait: "{{ license_trait_keyword }}NONE"
+#    - name: windows
+#      aggregate: windows
+#      trait: "{{ license_trait_keyword }}WINDOWS"
+#    - name: rhel
+#      aggregate: rhel
+#      trait: "{{ license_trait_keyword }}RHEL"
+
+###############################################################################
 # networking
 ###############################################################################
 
@@ -123,3 +123,13 @@
 
 # networking
 #   mtu: 1500
+
+###############################################################################
+# locales
+###############################################################################
+
+# uncomment the following if you wish to set custom locales
+
+#locale_categories:
+#  LANG: "en_US.UTF-8"
+#  LC_TIME: "C.UTF-8"

@@ -77,7 +77,7 @@ nodes:
               name: management4
       licenses:
         - windows
-        - unlicensed      
+        - unlicensed
       run_list:
         - role[worknode]
       zone: dev
