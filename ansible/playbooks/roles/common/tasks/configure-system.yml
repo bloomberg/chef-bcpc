@@ -189,3 +189,18 @@
 - name: Install kexec-tools
   apt:
     name: kexec-tools
+
+# Configure locale categories
+- name: Define locale categories
+  set_fact:
+    categories: >
+      {{
+        categories | default('')
+        + item.key
+        + ('=' + item.value if item.value != '' else '')
+      }}
+  with_items: "{{ locale_categories | dict2items }}"
+
+- name: Configure locale categories
+  command: update-locale {{ categories }}
+  changed_when: false

@@ -77,7 +77,7 @@ nodes:
               name: management4
       licenses:
         - windows
-        - unlicensed      
+        - unlicensed
       run_list:
         - role[storagenode]
         - role[worknode]
@@ -108,7 +108,7 @@ nodes:
               name: management4
       licenses:
         - windows
-        - unlicensed      
+        - unlicensed
       run_list:
         - role[storagenode]
         - role[worknode]
