@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: rally
 #
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -81,26 +81,26 @@ execute 'install rally in virtualenv' do
   retries 3
   user 'rally'
   # Installation notes:
-  # - 'pip' is pinned to avoid issues when installing `cryptography>3.4` as
+  # - The system's Python packages are used with the following exceptions:
+  # - 'pip' is upgraded to avoid issues when installing `cryptography>3.4` as
   #     part of `pycryptodome` etc.
-  # - 'decorator' is pinned due to https://bugs.launchpad.net/rally/+bug/1922707
-  # - 'jinja2' is pinned due to a change in how 3.0.0+ handles variables set in
-  #     templates containing macros. This change breaks rally tasks used
-  #     internally by Bloomberg, which likely need to be fixed.
-  # - 'python-novaclient' is pinned due to an incompatibility with 18.3.0 and
-  #     the 'NovaServers.resize_server' scenario.
+  # - 'pyOpenSSL' is upgraded due to
+  #     https://github.com/pyca/pyopenssl/issues/1114 but pinned to the last
+  #     stable release.
+  # - 'SQLAlchemy' is installed and upgraded but pinned due to
+  #     https://bugs.launchpad.net/rally/+bug/2004022.
   command <<-EOH
-    virtualenv --no-download #{venv_dir} -p /usr/bin/python3
+    virtualenv --no-download -p /usr/bin/python3 --system-site-packages \
+      #{venv_dir}
     . #{venv_dir}/bin/activate
-    pip install 'pip>=19.1.1'
-    pip install 'decorator<=4.4.2'
-    pip install 'jinja2<3.0.0'
-    pip install 'markupsafe==2.0.1'
+    pip install -U pip
+    pip install -U 'pyOpenSSL < 23.0.0'
     pip install 'SQLAlchemy<2.0.0'
-    pip install 'python-novaclient==18.2.0'
-    pip install rally-openstack==#{rally_openstack_version} rally==#{rally_version}
+    pip install \
+      rally-openstack==#{rally_openstack_version} rally==#{rally_version}
   EOH
-  not_if "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
+  not_if \
+    "rally --version | grep rally-openstack | grep #{rally_openstack_version}"
 end
 
 directory conf_dir do
