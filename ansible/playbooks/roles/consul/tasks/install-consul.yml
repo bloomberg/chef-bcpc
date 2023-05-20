@@ -1,0 +1,97 @@
+- name: create temp download directory
+  tempfile:
+    state: directory
+    prefix: ansible-consul.
+  register: temp_directory
+
+- name: unarchive consul
+  unarchive:
+    src: "{{ assets_download_dir }}/{{ consul_filename }}"
+    dest: "{{ temp_directory.path }}/"
+    creates: "{{ temp_directory.path }}/consul"
+    mode: 0755
+
+- name: install consul
+  copy:
+    src: "{{ temp_directory.path }}/consul"
+    dest: "{{ consul_executable }}"
+    remote_src: yes
+    mode: 0755
+  notify: restart consul
+
+- name: create consul config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - "{{ consul_bcpc_directory }}"
+    - "{{ consul_config_directory }}"
+    - "{{ consul_config_data_directory }}"
+
+- name: create consul service file systemd
+  template:
+    src: consul.service.j2
+    dest: /etc/systemd/system/consul.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart consul
+
+- name: copy consul scripts
+  template:
+    src: "{{ item }}"
+    dest: "{{ consul_bcpc_directory }}/{{ item.split('.j2')[0] }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop: "{{ consul_scripts }}"
+  notify: restart consul
+
+- name: copy consul services checks
+  copy:
+    src: "{{ item }}"
+    dest: "{{ consul_bcpc_directory }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop: "{{ consul_service_checks }}"
+
+- name: copy consul services watches
+  template:
+    src: "{{ item }}"
+    dest: "{{ consul_bcpc_directory }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop: "{{ consul_service_watches }}"
+
+- name: configure consul servers config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    - {src: 'config.json.j2', dest: '{{ consul_config_directory }}/config.json'}
+    - {src: 'services.json.j2', dest: '{{ consul_config_directory }}/services.json'}
+    - {src: 'watches.json.j2', dest: '{{ consul_config_directory }}/watches.json'}
+  notify: restart consul
+
+- name: reload systemd
+  systemd:
+    service: consul.service
+    enabled: true
+    daemon_reload: yes
+  notify: restart consul
+
+- name: cleanup temp download directory
+  file:
+    path: "{{ temp_directory.path }}"
+    state: "absent"
+
+- name: force all notified handlers to run at this point
+  meta: flush_handlers

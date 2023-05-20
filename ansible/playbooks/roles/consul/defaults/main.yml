@@ -1,0 +1,43 @@
+###############################################################################
+# consul files
+###############################################################################
+
+consul_filename: "{{ assets_files | selectattr('name', '==', 'consul') | map(attribute='filename') | first}}"
+consul_checksum: "{{ assets_files | selectattr('name', '==', 'consul') | map(attribute='checksum') | first}}"
+
+consul_executable: /usr/local/sbin/consul
+consul_config_directory: /etc/consul/conf.d
+consul_config_data_directory: /var/lib/consul
+consul_bcpc_directory: /usr/local/bcpc/bin
+
+service_ip: "{{ hostvars[inventory_hostname]['interfaces']['service']['ip'] }}"
+
+client_address: 127.0.0.1
+consul_dns_port: 8600
+
+consul_scripts:
+  - if_leader.j2
+  - if_primary_mysql.sh.j2
+  - if_not_primary_mysql.sh.j2
+  - if_primary_proxysql.sh.j2
+  - if_not_primary_proxysql.sh.j2
+  - proxysql-check-helper.j2
+
+consul_service_checks:
+  - dns-check
+  - haproxy-check
+  - mysql-check
+  - proxysql-check
+
+consul_service_watches:
+  - cloud-ip-watch
+  - service-elect-watch
+  - service-watch
+
+consul_services_interval: 10s
+consul_services_timeout: 2s
+
+proxysql_datadir: /var/lib/proxysql
+proxysql_admin_port: 6032
+proxysql_port: 6033
+myysql_port: 3306

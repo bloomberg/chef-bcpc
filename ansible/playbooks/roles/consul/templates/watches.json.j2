@@ -1,0 +1,61 @@
+{#
+ NOTE: In order to more easily switch between a ProxySQL-enabled installation
+ and one where MySQL is used directly, the ProxySQL service is defined in
+ Consul regardless of whether or not it is enabled. The ProxySQL Consul service
+ will only be available when ProxySQL is enabled.
+
+ Watch definitions reference:
+ https://www.consul.io/docs/agent/watches.html
+#}
+{
+  "watches": [
+    {
+      "service": "haproxy",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/cloud-ip-watch",
+        "haproxy"
+      ]
+    },
+    {
+      "service": "mysql",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/service-elect-watch",
+        "mysql"
+      ]
+    },
+    {
+      "service": "mysql",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/service-watch",
+        "mysql"
+      ]
+    },
+    {
+      "service": "proxysql",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/service-elect-watch",
+        "proxysql"
+      ]
+    },
+    {
+      "service": "proxysql",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/service-watch",
+        "proxysql"
+      ]
+    },
+    {
+      "service": "dns",
+      "type": "checks",
+      "args": [
+        "{{ consul_bcpc_directory }}/cloud-ip-watch",
+        "dns"
+      ]
+    }
+  ]
+}

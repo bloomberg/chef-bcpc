@@ -1,0 +1,67 @@
+{#
+ NOTE: In order to more easily switch between a ProxySQL-enabled installation
+ and one where MySQL is used directly, the ProxySQL service is defined in
+ Consul regardless of whether or not it is enabled. The ProxySQL Consul service
+ will only be available when ProxySQL is enabled.
+
+ Service definitions reference:
+ https://www.consul.io/docs/agent/services.html
+#}
+{
+  "services": [
+    {
+      "name": "mysql",
+      "port": {{ myysql_port }},
+      "enable_tag_override": true,
+      "tags": [
+        "mysql"
+      ],
+      "check": {
+        "name": "mysql",
+        "args": [
+          "{{ consul_bcpc_directory }}/mysql-check"
+        ],
+        "interval": "{{ consul_services_interval }}",
+        "timeout": "{{ consul_services_timeout }}"
+      }
+    },
+    {
+      "name": "proxysql",
+      "port": {{ proxysql_port }},
+      "enable_tag_override": true,
+      "tags": [
+        "proxysql"
+      ],
+      "check": {
+        "name": "proxysql",
+        "args": [
+          "{{ consul_bcpc_directory }}/proxysql-check"
+        ],
+        "interval": "{{ consul_services_interval }}",
+        "timeout": "{{ consul_services_timeout }}"
+      }
+    },
+    {
+      "name": "haproxy",
+      "check": {
+        "name": "haproxy",
+        "args": [
+          "{{ consul_bcpc_directory }}/haproxy-check"
+        ],
+        "interval": "{{ consul_services_interval }}",
+        "timeout": "{{ consul_services_timeout }}"
+      }
+    },
+    {
+      "name": "dns",
+      "check": {
+        "name": "dns",
+        "args": [
+          "{{ consul_bcpc_directory }}/dns-check"
+        ],
+        "interval": "{{ consul_services_interval }}",
+        "timeout": "{{ consul_services_timeout }}"
+      }
+    }
+  ]
+}

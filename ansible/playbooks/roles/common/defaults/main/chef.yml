@@ -82,7 +82,6 @@ chef_roles:
       - role[node]
       - recipe[bcpc::memcached]
       - recipe[bcpc::unbound]
-      - recipe[bcpc::consul]
       - recipe[bcpc::mysql]
       - recipe[bcpc::proxysql]
       - recipe[bcpc::powerdns]

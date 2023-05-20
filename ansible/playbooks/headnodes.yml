@@ -4,6 +4,7 @@
   roles:
     - common
     - chef-node
+    - consul
     - cinder
     - glance
     - haproxy
