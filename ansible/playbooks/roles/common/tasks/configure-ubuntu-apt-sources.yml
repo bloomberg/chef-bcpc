@@ -28,13 +28,14 @@
 - name: generate apt sources.list
   template:
     src: apt/sources.list.j2
-    dest: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.d/bcc-extra.list
     mode: 0644
   register: sources_list
 
 - name: apt-get update
   apt:
     update_cache: yes
+  ignore_errors: true
   when: sources_list.changed  # noqa no-handler
 
 # Prevent upgrades to Cinc or Chef >= 15

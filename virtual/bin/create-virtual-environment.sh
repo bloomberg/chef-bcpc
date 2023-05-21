@@ -36,6 +36,8 @@ fi
 
 if [ "${VAGRANT_DEFAULT_PROVIDER}" == "virtualbox" ] ; then
     export VAGRANT_VAGRANTFILE=Vagrantfile.virtualbox
+elif [ "${VAGRANT_DEFAULT_PROVIDER}" == "parallels" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.parallels
 fi
 
 # generate operations ssh key pair

@@ -21,11 +21,16 @@ Port 22
 ListenAddress {{ virtualbox['nat_ip'] }}
 {% elif libvirt_kvm_guest %}
 ListenAddress {{ ansible_eth0.ipv4.address }}
+{% elif ansible_virtualization_type == 'NA' %}
+ListenAddress {{ ansible_eth0.ipv4.address }}
 {% endif %}
 ListenAddress {{ interfaces['service']['ip'] }}
 {% for transit in transit_interfaces -%}
 ListenAddress {{ transit['ip'] | ipaddr('address') }}
 {% endfor %}
+## ansible_virtualization_type {{ ansible_virtualization_type }}
+## ansible_eth0.ipv4.address {{ ansible_eth0.ipv4.address }}
+#ListenAddress 0.0.0.0
 
 # Logging
 SyslogFacility AUTH

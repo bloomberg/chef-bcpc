@@ -21,6 +21,8 @@ virtual_dir="${root_dir}/virtual"
 
 if [ "${VAGRANT_DEFAULT_PROVIDER}" == "virtualbox" ] ; then
     export VAGRANT_VAGRANTFILE=Vagrantfile.virtualbox
+elif [ "${VAGRANT_DEFAULT_PROVIDER}" == "parallels" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.parallels
 fi
 
 (cd "${virtual_dir}"; vagrant destroy -f || true)

@@ -1,0 +1,11 @@
+{
+  "20.04": {
+      "bcc_apt_key_url": "",
+      "bcc_apt_url": "",
+      "kernel_version": "generic",
+      "base_box": "jeffnoxon/ubuntu-20.04-arm64",
+      "base_box_version": "1.0.1",
+      "base_box_provider": "parallels",
+      "output_packer_box_name": "bcc-ubuntu-20.04"
+  }
+}

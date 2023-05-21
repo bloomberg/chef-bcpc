@@ -28,6 +28,14 @@
   register: netplan
   when: libvirt_kvm_guest
 
+- name: install parallels nat interface config
+  template:
+    src: netplan/parallels.yaml.j2
+    dest: "/etc/netplan/parallels.yaml"
+    mode: 0644
+  register: netplan
+  when: ansible_virtualization_type == 'NA'
+
 - name: netplan transit interfaces
   template:
     src: netplan/transit.yaml.j2

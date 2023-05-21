@@ -23,6 +23,8 @@ network_dir="${virtual_dir}/network"
 
 if [ "${VAGRANT_DEFAULT_PROVIDER}" == "virtualbox" ] ; then
     export VAGRANT_VAGRANTFILE=Vagrantfile.virtualbox
+elif [ "${VAGRANT_DEFAULT_PROVIDER}" == "parallels" ] ; then
+    export VAGRANT_VAGRANTFILE=Vagrantfile.parallels
 fi
 
 # bring up network nodes

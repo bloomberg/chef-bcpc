@@ -1,0 +1,170 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Copyright:: 2021 Bloomberg Finance L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+require '../lib/util'
+
+vagrant_box, vagrant_box_version = Util.get_vagrant_box()
+
+
+FABRIC_ID = 'bcpc-'.freeze
+
+PODS = if ENV.key?('BCC_POD_COUNT')
+         ENV['BCC_POD_COUNT'].to_i
+       else
+         1
+       end
+
+# We assume that the number of planes & spines per pod are the same.
+PLANES = 2
+SPINES_PER_POD = PLANES
+SUPERSPINES_PER_PLANE = 2
+TORS_PER_POD = 3
+
+def tor_name(pod, tor)
+  FABRIC_ID + "pd#{pod}-sw#{tor}"
+end
+
+def spine_name(spine, pod)
+  FABRIC_ID + "pl#{spine}-sp#{pod}"
+end
+
+def sspine_name(plane, sspine)
+  FABRIC_ID + "pl#{plane}fs#{sspine}"
+end
+
+Vagrant.configure(2) do |config|
+  if ENV.key?('BCC_DEPLOY_NETWORK_VM')
+    DEFAULTIP = IPAddr.new('254.0.0.1').to_s
+    config.vm.define 'network' do |node|
+      node.vm.synced_folder ".", "/vagrant", type: "rsync"
+      config.vm.provider 'parallels' do |pb|
+        pb.name = Util.vbox_name('network')
+        pb.memory = 512
+      end
+      node.vm.hostname = 'network'
+      node.vm.box = vagrant_box
+      config.vm.box_version = vagrant_box_version
+      node.vm.box_download_insecure = true
+      node.vm.network('private_network',
+        parallels__intnet: Util.vbox_name('management1'),
+        auto_config: false, ip: DEFAULTIP)
+      node.vm.network('private_network',
+        parallels__intnet: Util.vbox_name('management2'),
+        auto_config: false, ip: DEFAULTIP)
+      node.vm.network('private_network',
+        parallels__intnet: Util.vbox_name('management3'),
+        auto_config: false, ip: DEFAULTIP)
+      node.vm.provision 'shell', path: 'provisioner.sh', args: '-E network'
+    end
+
+  else
+
+    # Create pods
+    (1..PODS).each do |p|
+      # Create TORs
+      (1..TORS_PER_POD).each do |t|
+        tor = tor_name(p, t)
+        config.vm.define "#{tor}" do |node|
+          node.vm.provider 'parallels' do |pb|
+            pb.name = Util.vbox_name("#{tor}")
+            pb.memory = 512
+          end
+          node.vm.hostname = "#{tor}"
+          node.vm.box = vagrant_box
+          config.vm.box_version = vagrant_box_version
+          node.vm.box_download_insecure = true
+          (1..SPINES_PER_POD).each do |s|
+            spine = spine_name(s, p)
+            node.vm.network('private_network',
+              parallels__intnet: Util.vbox_name(spine + ':' + tor),
+              auto_config: false)
+          end
+          # One management network per TOR. Reserve a TORS_PER_POD set of
+          # such networks for a future second TOR per virtual rack.
+          management = ((p - 1) * TORS_PER_POD * 2) + t
+          node.vm.network('private_network',
+            parallels__intnet: Util.vbox_name("management#{management}"),
+            auto_config: false)
+          node.vm.provision 'shell', path: 'provisioner.sh', args: "#{tor}"
+        end
+      end
+
+      # Create spines
+      (1..SPINES_PER_POD).each do |s|
+        spine = spine_name(s, p)
+        config.vm.define "#{spine}" do |node|
+          node.vm.provider 'parallels' do |pb|
+            pb.name = Util.vbox_name("#{spine}")
+            pb.memory = 512
+          end
+          node.vm.hostname = "#{spine}"
+          node.vm.box = vagrant_box
+          config.vm.box_version = vagrant_box_version
+          node.vm.box_download_insecure = true
+          (1..TORS_PER_POD).each do |t|
+            tor = tor_name(p, t)
+            node.vm.network('private_network',
+              parallels__intnet: Util.vbox_name(spine + ':' + tor),
+              auto_config: false)
+          end
+          if PODS > 1
+            # Create link to superspine on same plane as the spine value.
+            (1..SUPERSPINES_PER_PLANE).each do |ss|
+              sspine = sspine_name(s, ss)
+              node.vm.network('private_network',
+                parallels__intnet: Util.vbox_name(sspine + ':' + spine),
+                auto_config: false)
+            end
+            on_edge = ''
+          else
+            on_edge = '-E'
+          end
+          node.vm.provision 'shell', path: 'provisioner.sh',
+                                     args: "#{on_edge} #{spine}"
+        end
+      end
+    end
+
+    if PODS > 1
+      # Create planes
+      (1..PLANES).each do |pl|
+        # Create superspines
+        (1..SUPERSPINES_PER_PLANE).each do |ss|
+          sspine = sspine_name(pl, ss)
+          config.vm.define "#{sspine}" do |node|
+            node.vm.provider 'parallels' do |pb|
+              pb.name = Util.vbox_name("#{sspine}")
+              pb.memory = 512
+            end
+            node.vm.hostname = "#{sspine}"
+            node.vm.box = vagrant_box
+            config.vm.box_version = vagrant_box_version
+            node.vm.box_download_insecure = true
+            (1..PODS).each do |p|
+              spine = spine_name(pl, p)
+              node.vm.network('private_network',
+                parallels__intnet: Util.vbox_name(sspine + ':' + spine),
+                auto_config: false)
+            end
+            node.vm.provision 'shell', path: 'provisioner.sh',
+                                       args: "-E #{sspine}"
+          end
+        end
+      end
+    end
+
+  end
+end
