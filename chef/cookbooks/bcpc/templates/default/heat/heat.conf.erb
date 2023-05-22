@@ -25,6 +25,9 @@ num_engine_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 # (string value)
 transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
+# Maximum depth allowed when using nested stacks/templates.
+max_nested_stack_depth = <%= node['bcpc']['heat']['max_nested_stack_depth'] %>
+
 
 [clients_keystone]
 

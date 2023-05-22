@@ -13,3 +13,8 @@ default['bcpc']['heat']['db']['max_pool_size'] = 64
 # available by default. This provides an override.
 default['bcpc']['heat']['api_workers'] = nil
 default['bcpc']['heat']['engine_workers'] = nil
+
+# Maximum depth allowed when using nested stacks/templates. Currently, this
+# defaults to 5 upstream, which can be exceeded with sufficiently complex
+# templates. Bumping this from 5 to 8 provides sufficient headroom.
+default['bcpc']['heat']['max_nested_stack_depth'] = 8
