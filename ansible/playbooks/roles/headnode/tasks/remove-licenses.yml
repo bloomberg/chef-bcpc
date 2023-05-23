@@ -1,8 +1,8 @@
 - name: Setting host trait variables
   set_fact:
-    license_trait: "{{ licenses['traits'] \
+    license_trait: "{{ license_traits['traits'] \
       | items2dict(key_name='name', value_name='trait') }}"
-    license_aggregate: "{{ licenses['traits'] \
+    license_aggregate: "{{ license_traits['traits'] \
       | items2dict(key_name='name', value_name='aggregate') }}"
 
 - name: remove custom traits from hosts

@@ -39,7 +39,7 @@ chef_environment:
       openstack:
         flavors:
           enabled: true
-      licenses: "{{ licenses }}"
+      license_traits: "{{ license_traits }}"
       local_proxy: "{{ local_proxy }}"
       zones: "{{ zones }}"
 

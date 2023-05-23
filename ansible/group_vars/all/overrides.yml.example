@@ -76,12 +76,32 @@
 #    filename: CentOS-7-x86_64-GenericCloud-1808.qcow2.xz
 
 ###############################################################################
+# additional_cloud_images
+###############################################################################
+
+# uncomment the following if you wish to have additional server images
+# available to your cloud. you will also need to make sure that your server
+# image file is downloaded via additional_assets_files
+
+#additional_cloud_images:
+#  - file_asset: ubuntu-18.04
+#    type: qcow2
+#    license_name: unlicensed
+#  - file_asset: ubuntu-16.04
+#    type: qcow2
+#    license_name: unlicensed
+#  - file_asset: centos-7
+#    type: qcow2
+#    license_name: unlicensed
+#    compression: xz
+
+###############################################################################
 # license traits
 ###############################################################################
 
 # uncomment if you wish to have additional licensed aggregates
 
-#licenses:
+#license_traits:
 #  enabled: false
 #  traits:
 #    - name: unlicensed
@@ -95,23 +115,6 @@
 #      trait: "{{ license_trait_keyword }}RHEL"
 
 ###############################################################################
-# additional_cloud_images
-###############################################################################
-
-# uncomment the following if you wish to have additional server images
-# available to your cloud. you will also need to make sure that your server
-# image file is downloaded via additional_assets_files
-
-#additional_cloud_images:
-#  - file_asset: ubuntu-18.04
-#    type: qcow2
-#  - file_asset: ubuntu-16.04
-#    type: qcow2
-#  - file_asset: centos-7
-#    type: qcow2
-#    compression: xz
-
-###############################################################################
 # networking
 ###############################################################################
 
@@ -120,3 +123,13 @@
 
 # networking
 #   mtu: 1500
+
+###############################################################################
+# locales
+###############################################################################
+
+# uncomment the following if you wish to set custom locales
+
+#locale_categories:
+#  LANG: "en_US.UTF-8"
+#  LC_TIME: "C.UTF-8"

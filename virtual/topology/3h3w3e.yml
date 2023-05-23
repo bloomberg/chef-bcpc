@@ -74,6 +74,9 @@ nodes:
               ip: 10.121.88.1
               asn: 4200858702
               name: management4
+      licenses:
+        - windows
+        - unlicensed
       run_list:
         - role[storagenode]
         - role[worknode]
@@ -154,6 +157,9 @@ nodes:
               ip: 10.121.89.1
               asn: 4200858704
               name: management5
+      licenses:
+        - windows
+        - unlicensed
       run_list:
         - role[storagenode]
         - role[worknode]
@@ -234,6 +240,9 @@ nodes:
               ip: 10.121.90.1
               asn: 4200858706
               name: management6
+      licenses:
+        - windows
+        - unlicensed
       run_list:
         - role[storagenode]
         - role[worknode]

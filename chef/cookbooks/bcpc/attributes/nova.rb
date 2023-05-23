@@ -18,9 +18,6 @@ default['bcpc']['nova']['ceph']['pool']['size'] = 3
 # Allow destination machine to match source for resize
 default['bcpc']['nova']['allow_resize_to_same_host'] = true
 
-# Defines which physical CPUs (pCPUs) can be used by instance virtual CPUs
-default['bcpc']['nova']['vcpu_pin_set'] = nil
-
 # Over-allocation settings. Set according to your cluster
 # SLAs. Default is to not allow over allocation of memory
 # a slight over allocation of CPU (x2).
@@ -41,9 +38,6 @@ default['bcpc']['nova']['cpu_config']['AuthenticAMD']['cpu_model_extra_flags'] =
 default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_mode'] = 'custom'
 default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model'] = 'qemu64'
 default['bcpc']['nova']['cpu_config']['GenuineIntel']['cpu_model_extra_flags'] = []
-
-# select from between this many equally optimal hosts when launching an instance
-default['bcpc']['nova']['scheduler_host_subset_size'] = 3
 
 # maximum number of builds to allow the scheduler to run simultaneously
 # (setting too high may cause Three Stooges Syndrome, particularly on RBD-intensive operations)
@@ -115,6 +109,9 @@ default['bcpc']['nova']['db-archive']['cron_day'] = '*'
 default['bcpc']['nova']['db-archive']['cron_weekday'] = '6'
 default['bcpc']['nova']['db-archive']['cron_hour'] = '4'
 default['bcpc']['nova']['db-archive']['cron_minute'] = '0'
+
+# select from between this many equally optimal hosts when launching an instance
+default['bcpc']['nova']['scheduler']['host_subset_size'] = 3
 
 # Anti-affinity availability zone scheduler filter
 default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['enabled'] = false

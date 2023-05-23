@@ -72,6 +72,9 @@ nodes:
               ip: 10.121.88.1
               asn: 4200858702
               name: management4
+      licenses:
+        - windows
+        - unlicensed
       run_list:
         - role[worknode]
       zone: dev

@@ -195,7 +195,7 @@ aggregate_image =
 if required_image['enabled']
   available_filters.push(required_image['filterPath'])
   enabled_filters += [aggregate_image['name'], required_image['name']]
-  license_traits = node['bcpc']['licenses']['traits'].map { |t| "\'#{t['trait']}\'" }
+  license_traits = node['bcpc']['license_traits']['traits'].map { |t| "\'#{t['trait']}\'" }
 
   template '/usr/lib/python3/dist-packages/nova/scheduler/filters/required_image_property_filter.py' do
     source 'nova/required_image_property_filter.py.erb'

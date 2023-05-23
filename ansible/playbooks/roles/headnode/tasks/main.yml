@@ -22,10 +22,10 @@
   become: true
   run_once: true
   tags: [never,configure-licenses]
-  when: licenses['enabled']
+  when: license_traits['enabled']
 
 - import_tasks: remove-licenses.yml
   become: true
   run_once: true
   tags: [never,configure-licenses]
-  when: not licenses['enabled']
+  when: not license_traits['enabled']

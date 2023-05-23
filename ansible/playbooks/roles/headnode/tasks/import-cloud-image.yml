@@ -1,6 +1,8 @@
 - name: set file fact
   set_fact:
     file_asset: "{{ item.file_asset | find_asset(all_file_assets) }}"
+    license_trait: "{{ license_traits['traits'] \
+      | items2dict(key_name='name', value_name='trait') }}"
 
 - name: "check for {{ item.file_asset }}"
   command: "openstack image show {{ item.file_asset }}"
@@ -28,6 +30,7 @@
     image_filename={{ file_asset.filename }}
     image_filepath="/var/tmp/${image_filename}"
     image_compression={{ item.compression | default('') }}
+    image_trait={{ license_trait[item.license_name] }}
 
     # if the image is compressed, we need to uncompress it before going further
     if [ ! -z ${image_compression} ]; then
@@ -60,7 +63,8 @@
       qemu-img convert -f qcow2 -O raw ${input_filepath} ${image_filepath}
     fi
 
-    openstack image create ${image_name} --public --file ${image_filepath}
+    openstack --os-compute-api-version 2.53 image create ${image_name} \
+      --public --file ${image_filepath} --property trait:${image_trait}=required
   args:
     executable: /bin/bash
   environment:

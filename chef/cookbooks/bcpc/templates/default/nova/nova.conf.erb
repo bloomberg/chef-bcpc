@@ -13,22 +13,18 @@ cert = /etc/nova/ssl-bcpc.pem
 my_ip = <%= node['service_ip'] %>
 enable_new_services = false
 cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
-<% if node['bcpc']['nova']['vcpu_pin_set'] %>
-vcpu_pin_set =  <%= node['bcpc']['nova']['vcpu_pin_set'] %>
-<% end %>
 force_config_drive = true
 ram_allocation_ratio = <%= node['bcpc']['nova']['ram_allocation_ratio'] %>
 reserved_host_memory_mb = <%= node['bcpc']['nova']['reserved_host_memory_mb'] %>
 resume_guests_state_on_host_boot = <%= node['bcpc']['nova']['resume_guests_state_on_host_boot'] %>
 max_concurrent_builds = <%= node['bcpc']['nova']['max_concurrent_builds'] %>
 sync_power_state_interval = <%= node['bcpc']['nova']['sync_power_state_interval'] %>
-send_arp_for_ha = true
 state_path = /var/lib/nova
 
 transport_url = rabbit://<%= @rmqnodes.map{|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 
 <% if @is_headnode -%>
-osapi_compute_link_prefix = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:8774" %>
+compute_link_prefix = <%= "https://#{node["bcpc"]['cloud']["fqdn"]}:8774" %>
 enabled_apis = osapi_compute
 osapi_compute_listen = <%= node['service_ip'] %>
 <% if node['bcpc']['nova']['osapi_workers'] %>
@@ -50,7 +46,6 @@ metadata_workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% if not node['bcpc']['nova']['default_log_levels'].nil? %>
 default_log_levels = "<%= node['bcpc']['nova']['default_log_levels'] %>"
 <% end %>
-dhcp_domain = <%= node['bcpc']['cloud']['domain'] %>
 
 <% unless node['bcpc']['nova']['resize_confirm_window'].nil? %>
 resize_confirm_window = <%= node['bcpc']['nova']['resize_confirm_window'] %>
@@ -59,6 +54,7 @@ resize_confirm_window = <%= node['bcpc']['nova']['resize_confirm_window'] %>
 [api]
 auth_strategy = keystone
 
+dhcp_domain = <%= node['bcpc']['cloud']['domain'] %>
 local_metadata_per_cell = true
 <% if not node['bcpc']['nova']['vendordata']['name'].nil? %>
 vendordata_dynamic_targets = <%= node['bcpc']['nova']['vendordata']['name'] %>@https://<%= @node['bcpc']['cloud']['fqdn'] %>:<%= node['bcpc']['nova']['vendordata']['port'] %>
@@ -143,8 +139,6 @@ memcache_servers = <%= "#{node['service_ip']}:11211" %>
 <% node['bcpc']['nova'].fetch('quota',{}).fetch('default',{}).each do |resource, limit| %>
 <%= "#{resource} = #{limit}" %>
 <% end %>
-max_age = 28800
-until_refresh = 10
 
 [scheduler]
 driver = filter_scheduler
@@ -161,6 +155,7 @@ workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 available_filters = <%= available_filter %>
 <% end %>
 enabled_filters = <%= @enabled_filters.join(',') %>
+host_subset_size = <%= node['bcpc']['nova']['scheduler']['host_subset_size'] %>
 weight_classes = nova.scheduler.weights.affinity.ServerGroupSoftAffinityWeigher,nova.scheduler.weights.affinity.ServerGroupSoftAntiAffinityWeigher,nova.scheduler.weights.bcpc_cpu.BCPCCPUWeigher,nova.scheduler.weights.bcpc_ram.BCPCRAMWeigher,nova.scheduler.weights.compute.BuildFailureWeigher,nova.scheduler.weights.cross_cell.CrossCellWeigher,nova.scheduler.weights.disk.DiskWeigher,nova.scheduler.weights.io_ops.IoOpsWeigher,nova.scheduler.weights.metrics.MetricsWeigher,nova.scheduler.weights.pci.PCIWeigher
 
 [vnc]
