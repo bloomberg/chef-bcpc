@@ -29,11 +29,13 @@ default['bcpc']['apache2']['keepalive']['timeout'] = 5
 # mod_status is a security hazard in production environments
 default['bcpc']['apache2']['status']['enabled'] = false
 
-# event mpm module configuration (below are Ubuntu packaging defaults)
+# event mpm module configuration
+default['bcpc']['apache2']['mpm_event']['graceful_shutdown_timeout'] = 900
+default['bcpc']['apache2']['mpm_event']['server_limit'] = 32
 default['bcpc']['apache2']['mpm_event']['start_servers'] = 2
 default['bcpc']['apache2']['mpm_event']['min_spare_threads'] = 25
 default['bcpc']['apache2']['mpm_event']['max_spare_threads'] = 75
 default['bcpc']['apache2']['mpm_event']['thread_limit'] = 64
 default['bcpc']['apache2']['mpm_event']['threads_per_child'] = 25
-default['bcpc']['apache2']['mpm_event']['max_request_workers'] = 150
+default['bcpc']['apache2']['mpm_event']['max_request_workers'] = 800
 default['bcpc']['apache2']['mpm_event']['max_connections_per_child'] = 0
