@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: neutron-head
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -162,22 +162,6 @@ execute 'py3compile-neutron-lib' do
   command 'py3compile -p python3-neutron-lib'
 end
 
-# patch an outstanding python3 issue in etcd3gw
-# we do this here and not in bcpc::etcd3gw so we can notify neutron-server
-
-if platform?('ubuntu') && node['platform_version'] == '18.04'
-  cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do
-    source 'etcd3gw/watch.py'
-    notifies :run, 'execute[py3compile-etcd3gw-watch]', :immediately
-    notifies :restart, 'service[neutron-server]', :delayed
-  end
-
-  execute 'py3compile-etcd3gw-watch' do
-    action :nothing
-    command 'py3compile /usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py'
-  end
-end
-
 # neutron-server can fail to restart during bootstrap; add a throttle to
 # reduce intervals between starts from 100ms to 3sec to avoid failures.
 execute 'reload systemd' do
@@ -289,21 +273,6 @@ end
 cookbook_file '/etc/neutron/api-paste.ini' do
   source 'neutron/api-paste.ini'
   mode '0640'
-  notifies :restart, 'service[neutron-server]', :immediately
-end
-
-# Apply endpoints look up fix to Calico ML2 driver
-# https://github.com/projectcalico/calico/pull/6979
-if platform?('ubuntu')
-  if node['platform_version'] == '18.04'
-    dist_packages = '/usr/lib/python3.6/dist-packages'
-  elsif node['platform_version'] == '20.04'
-    dist_packages = '/usr/lib/python3.8/dist-packages'
-  end
-end
-
-cookbook_file "#{dist_packages}/networking_calico/plugins/ml2/drivers/calico/status.py" do
-  source 'calico/status.py'
   notifies :restart, 'service[neutron-server]', :immediately
 end
 

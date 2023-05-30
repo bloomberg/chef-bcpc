@@ -94,7 +94,7 @@ execute 'install rally in virtualenv' do
       #{venv_dir}
     . #{venv_dir}/bin/activate
     pip install -U pip
-    pip install -U 'pyOpenSSL < 23.0.0'
+    pip install -U 'pyOpenSSL<23.0.0'
     pip install 'SQLAlchemy<2.0.0'
     pip install \
       rally-openstack==#{rally_openstack_version} rally==#{rally_version}

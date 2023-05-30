@@ -182,8 +182,8 @@ assets_files:
     environment: "{{ internet_proxy | default({}) }}"
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calico/releases/download/v3.22.5/calicoctl-linux-amd64
-    checksum: sha256:ba75fa65be0e97555b37282e1ab469ad933866eed164b40513e835279bea7348
+    url: https://github.com/projectcalico/calico/releases/download/v3.26.0/calicoctl-linux-amd64
+    checksum: sha256:19ce069f121f9e245f785a7517521e20fe3294ce1add9d1b2bbcbb0a9b9de24e
     filename: calicoctl
     environment: "{{ internet_proxy | default({}) }}"
 
@@ -212,9 +212,9 @@ assets_files:
     environment: "{{ internet_proxy | default({}) }}"
 
   - name: etcd3gw
-    url: https://files.pythonhosted.org/packages/3b/1a/155c139adcf50c382f7ff8eb5a00b5aa725ee8ea438ec2b8109dfe67be9b/etcd3gw-0.2.6.tar.gz
-    checksum: sha256:4a765a382ae18ebd4fccbc1388d1ac5226db0540bccd1f081052600df89145fd
-    filename: etcd3gw-0.2.6.tar.gz
+    url: https://files.pythonhosted.org/packages/a4/2e/262c4de0ba23430cd47fa9923904fa8b757806182ca07c5249067f99f424/etcd3gw-1.0.2.tar.gz
+    checksum: sha256:8a1482c6993cb3032ea9bee76c78f18d438730f006d772df6bcc8b330fa2740e
+    filename: etcd3gw-1.0.2.tar.gz
     environment: "{{ internet_proxy | default({}) }}"
 
   # ceph-deploy has been deprecated and is unavailable in Jammy

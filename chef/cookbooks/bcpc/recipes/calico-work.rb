@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: calico-work
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,25 +34,6 @@ service 'calico-dhcp-agent'
   service srv do
     action %i(disable stop)
   end
-end
-
-# patch an outstanding python3 issue in etcd3gw
-# we do this here and not in bcpc::etcd3gw so we can notify calico-dhcp-agent
-if platform?('ubuntu')
-  if node['platform_version'] == '18.04'
-    dist_packages = '/usr/lib/python3.6/dist-packages'
-    cookbook_file '/usr/local/lib/python3.6/dist-packages/etcd3gw/watch.py' do
-      source 'etcd3gw/watch.py'
-      notifies :restart, 'service[calico-dhcp-agent]', :delayed
-    end
-  elsif node['platform_version'] == '20.04'
-    dist_packages = '/usr/lib/python3.8/dist-packages'
-  end
-end
-
-cookbook_file "#{dist_packages}/networking_calico/agent/linux/dhcp.py" do
-  source 'calico/dhcp.py'
-  notifies :restart, 'service[calico-dhcp-agent]', :delayed
 end
 
 template '/etc/neutron/neutron.conf' do

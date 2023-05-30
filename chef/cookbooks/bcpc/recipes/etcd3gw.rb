@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: etcd3gw
 #
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ if platform?('ubuntu') && node['platform_version'] == '18.04'
     python3-pbr
     python3-requests
     python3-setuptools
-    python3-six
-    python3-urllib3
     python3-wheel
   )
 
@@ -42,7 +40,8 @@ if platform?('ubuntu') && node['platform_version'] == '18.04'
     cwd Chef::Config[:file_cache_path]
     code <<-EOH
       tar -xzf #{target}
-      # Bionic version (2.18.4) of python3-requests has addressed CVE-2018-18074
+      # Bionic version (2.18.4) of python3-requests has addressed
+      # CVE-2018-18074
       sed -i.orig '/^requests>=/s/2\.20\.0/2.18.4/' #{etcd3gw}/requirements.txt
       python3 -m pip install ./#{etcd3gw}
     EOH

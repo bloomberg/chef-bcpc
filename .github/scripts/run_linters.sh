@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2023, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@ function main {
     find . -name "*.sh" -print0 | xargs -0 -t shellcheck;
     find . -name "*.sh" -print0 | xargs -0 -t bashate -e E006;
     find . -name "*.py" \
-        ! -path "./chef/cookbooks/bcpc/files/default/calico/dhcp.py" \
-        ! -path "./chef/cookbooks/bcpc/files/default/calico/status.py" \
-        ! -path "./chef/cookbooks/bcpc/files/default/etcd3gw/watch.py" \
         ! -path \
             "./chef/cookbooks/bcpc/files/default/neutron/external_net_db.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
