@@ -59,6 +59,7 @@ osd scrub chunk max = <%= @node['bcpc']['ceph']['osd_scrub_chunk_max'] %>
 osd max scrubs = <%= @node['bcpc']['ceph']['osd_max_scrubs'] %>
 
 # settings to throttle OSD recovery parameters
+osd mon report interval = <%= @node['bcpc']['ceph']['osd_mon_report_interval'] %>
 osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %>
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
