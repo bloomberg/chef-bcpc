@@ -1,38 +1,28 @@
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
-
 try:
     import configparser
 except ImportError:
     import ConfigParser as configparser
-import distro as distro_module
 import errno
+import socket
 import os
+import shutil
+import tempfile
 import platform
 import re
-import shutil
-import socket
-import tempfile
 
 
 def platform_information(_linux_distribution=None):
-    """detect platform information from remote host"""
-    linux_distribution = _linux_distribution or \
-        distro_module.linux_distribution
-    distro, release, codename = linux_distribution()
+    """ detect platform information from remote host """
+    distro = release = codename = None
+    try:
+        linux_distribution = _linux_distribution or platform.linux_distribution
+        distro, release, codename = linux_distribution()
+    except AttributeError:
+        # NOTE: py38 does not have platform.linux_distribution
+        pass
     if not distro:
         distro, release, codename = parse_os_release()
-    # This codename could be an empty string in Debian
-    if not codename and 'debian' in distro.lower():
+    if not codename and 'debian' in distro.lower():  # this could be an empty string in Debian
         debian_codenames = {
             '10': 'buster',
             '9': 'stretch',
@@ -43,21 +33,19 @@ def platform_information(_linux_distribution=None):
         major_version = release.split('.')[0]
         codename = debian_codenames.get(major_version, '')
 
-        # In order to support newer jessie/sid or wheezy/sid strings we test
-        # this. If sid is buried in the minor, we should use sid anyway.
+        # In order to support newer jessie/sid or wheezy/sid strings we test this
+        # if sid is buried in the minor, we should use sid anyway.
         if not codename and '/' in release:
             major, minor = release.split('/')
             if minor == 'sid':
                 codename = minor
             else:
                 codename = major
-    # This codename could be an empty string in
-    # Oracle, Virtuozzo, and Arch linux
-    if not codename and 'oracle' in distro.lower():
+    if not codename and 'oracle' in distro.lower():  # this could be an empty string in Oracle linux
         codename = 'oracle'
-    if not codename and 'virtuozzo linux' in distro.lower():
+    if not codename and 'virtuozzo linux' in distro.lower():  # this could be an empty string in Virtuozzo linux
         codename = 'virtuozzo'
-    if not codename and 'arch' in distro.lower():
+    if not codename and 'arch' in distro.lower():  # this could be an empty string in Arch linux
         codename = 'arch'
 
     return (
@@ -68,7 +56,7 @@ def platform_information(_linux_distribution=None):
 
 
 def parse_os_release(release_path='/etc/os-release'):
-    """Extract (distro, release, codename) from /etc/os-release if present"""
+    """ Extract (distro, release, codename) from /etc/os-release if present """
     release_info = {}
     if os.path.isfile(release_path):
         for line in open(release_path, 'r').readlines():
@@ -87,8 +75,7 @@ def parse_os_release(release_path='/etc/os-release'):
     # VERSION, with some exceptions.
     distro = release_info.get('ID', '')
     release = release_info.get('VERSION_ID', '')
-    codename = release_info.get('UBUNTU_CODENAME',
-                                release_info.get('VERSION', ''))
+    codename = release_info.get('UBUNTU_CODENAME', release_info.get('VERSION', ''))
     match = re.match(r'^[^(]+ \(([^)]+)\)', codename)
     if match:
         codename = match.group(1).lower()
@@ -96,9 +83,8 @@ def parse_os_release(release_path='/etc/os-release'):
         codename = 'tumbleweed'
     return (distro, release, codename)
 
-
 def machine_type():
-    """detect machine type"""
+    """ detect machine type """
     return platform.machine()
 
 
@@ -135,9 +121,7 @@ def set_apt_priority(fqdn, path='/etc/apt/preferences.d/ceph.pref'):
         fout.write(content)
 
 
-def set_repo_priority(sections,
-                      path='/etc/yum.repos.d/ceph.repo',
-                      priority='1'):
+def set_repo_priority(sections, path='/etc/yum.repos.d/ceph.repo', priority='1'):
     Config = configparser.ConfigParser()
     Config.read(path)
     Config.sections()
@@ -164,9 +148,7 @@ def set_repo_priority(sections,
             if not line.startswith("#") and separator in line:
                 assignment = line.split(separator, 1)
                 assignment = tuple(map(str.strip, assignment))
-                fp.write("%s%s%s\n" % (assignment[0],
-                                       separator,
-                                       assignment[1]))
+                fp.write("%s%s%s\n" % (assignment[0], separator, assignment[1]))
             else:
                 fp.write(line + "\n")
 
@@ -174,11 +156,10 @@ def set_repo_priority(sections,
 
 
 def write_conf(cluster, conf, overwrite):
-    """write cluster configuration to /etc/ceph/{cluster}.conf"""
+    """ write cluster configuration to /etc/ceph/{cluster}.conf """
     path = '/etc/ceph/{cluster}.conf'.format(cluster=cluster)
     tmp_file = tempfile.NamedTemporaryFile('w', dir='/etc/ceph', delete=False)
-    err_msg = 'config file %s exists with different content; \
-        use --overwrite-conf to overwrite' % path
+    err_msg = 'config file %s exists with different content; use --overwrite-conf to overwrite' % path
 
     if os.path.exists(path):
         with open(path, 'r') as f:
@@ -200,7 +181,7 @@ def write_conf(cluster, conf, overwrite):
 
 
 def write_keyring(path, key, uid=-1, gid=-1):
-    """create a keyring file"""
+    """ create a keyring file """
     # Note that we *require* to avoid deletion of the temp file
     # otherwise we risk not being able to copy the contents from
     # one file system to the other, hence the `delete=False`
@@ -217,14 +198,14 @@ def create_mon_path(path, uid=-1, gid=-1):
     """create the mon path if it does not exist"""
     if not os.path.exists(path):
         os.makedirs(path)
-        os.chown(path, uid, gid)
+        os.chown(path, uid, gid);
 
 
 def create_done_path(done_path, uid=-1, gid=-1):
     """create a done file to avoid re-doing the mon deployment"""
     with open(done_path, 'wb'):
         pass
-    os.chown(done_path, uid, gid)
+    os.chown(done_path, uid, gid);
 
 
 def create_init_path(init_path, uid=-1, gid=-1):
@@ -232,7 +213,7 @@ def create_init_path(init_path, uid=-1, gid=-1):
     if not os.path.exists(init_path):
         with open(init_path, 'wb'):
             pass
-        os.chown(init_path, uid, gid)
+        os.chown(init_path, uid, gid);
 
 
 def append_to_file(file_path, contents):
@@ -240,14 +221,11 @@ def append_to_file(file_path, contents):
     with open(file_path, 'a') as f:
         f.write(contents)
 
-
 def path_getuid(path):
     return os.stat(path).st_uid
 
-
 def path_getgid(path):
     return os.stat(path).st_gid
-
 
 def readline(path):
     with open(path) as _file:
@@ -277,7 +255,7 @@ def makedir(path, ignored=None, uid=-1, gid=-1):
             # re-raise the original exception
             raise
     else:
-        os.chown(path, uid, gid)
+        os.chown(path, uid, gid);
 
 
 def unlink(_file):
@@ -308,7 +286,7 @@ def touch_file(path):
 
 
 def get_file(path):
-    """fetch remote file"""
+    """ fetch remote file """
     try:
         with open(path, 'rb') as f:
             return f.read()
@@ -349,7 +327,7 @@ def shortname():
 
 
 def which_service():
-    """locating the `service` executable..."""
+    """ locating the `service` executable... """
     # XXX This should get deprecated at some point. For now
     # it just bypasses and uses the new helper.
     return which('service')
@@ -373,7 +351,7 @@ def which(executable):
 
 
 def make_mon_removed_dir(path, file_name):
-    """move old monitor data"""
+    """ move old monitor data """
     try:
         os.makedirs('/var/lib/ceph/mon-removed')
     except OSError as e:
@@ -383,7 +361,7 @@ def make_mon_removed_dir(path, file_name):
 
 
 def safe_mkdir(path, uid=-1, gid=-1):
-    """create path if it doesn't exist"""
+    """ create path if it doesn't exist """
     try:
         os.mkdir(path)
     except OSError as e:
@@ -396,7 +374,7 @@ def safe_mkdir(path, uid=-1, gid=-1):
 
 
 def safe_makedirs(path, uid=-1, gid=-1):
-    """create path recursively if it doesn't exist"""
+    """ create path recursively if it doesn't exist """
     try:
         os.makedirs(path)
     except OSError as e:
@@ -409,7 +387,7 @@ def safe_makedirs(path, uid=-1, gid=-1):
 
 
 def zeroing(dev):
-    """zeroing last few blocks of device"""
+    """ zeroing last few blocks of device """
     # this kills the crab
     #
     # sgdisk will wipe out the main copy of the GPT partition
@@ -425,8 +403,7 @@ def zeroing(dev):
         f.write(size*b'\0')
 
 
-def enable_yum_priority_obsoletes(path="/etc/yum/pluginconf.d/\
-        priorities.conf"):
+def enable_yum_priority_obsoletes(path="/etc/yum/pluginconf.d/priorities.conf"):
     """Configure Yum priorities to include obsoletes"""
     config = configparser.ConfigParser()
     config.read(path)
