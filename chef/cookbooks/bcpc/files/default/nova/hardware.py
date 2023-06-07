@@ -13,24 +13,22 @@
 # under the License.
 
 import collections
-import fractions
 import itertools
-import math
 import re
-from typing import List, Optional, Set, Tuple
+import typing as ty
 
 import os_resource_classes as orc
 import os_traits
 from oslo_log import log as logging
 from oslo_utils import strutils
 from oslo_utils import units
-import six
 
 import nova.conf
 from nova import exception
 from nova.i18n import _
 from nova import objects
 from nova.objects import fields
+from nova.pci import stats
 
 
 CONF = nova.conf.CONF
@@ -39,6 +37,11 @@ LOG = logging.getLogger(__name__)
 MEMPAGES_SMALL = -1
 MEMPAGES_LARGE = -2
 MEMPAGES_ANY = -3
+
+
+class VTPMConfig(ty.NamedTuple):
+    version: str
+    model: str
 
 
 def get_vcpu_pin_set():
@@ -90,7 +93,7 @@ def get_cpu_shared_set():
     return shared_ids
 
 
-def parse_cpu_spec(spec):
+def parse_cpu_spec(spec: str) -> ty.Set[int]:
     """Parse a CPU set specification.
 
     Each element in the list is either a single CPU number, a range of
@@ -101,8 +104,8 @@ def parse_cpu_spec(spec):
 
     :returns: a set of CPU indexes
     """
-    cpuset_ids = set()
-    cpuset_reject_ids = set()
+    cpuset_ids: ty.Set[int] = set()
+    cpuset_reject_ids: ty.Set[int] = set()
     for rule in spec.split(','):
         rule = rule.strip()
         # Handle multi ','
@@ -152,7 +155,10 @@ def parse_cpu_spec(spec):
     return cpuset_ids
 
 
-def format_cpu_spec(cpuset, allow_ranges=True):
+def format_cpu_spec(
+    cpuset: ty.Set[int],
+    allow_ranges: bool = True,
+) -> str:
     """Format a libvirt CPU range specification.
 
     Format a set/list of CPU indexes as a libvirt CPU range
@@ -161,6 +167,8 @@ def format_cpu_spec(cpuset, allow_ranges=True):
     index explicitly.
 
     :param cpuset: set (or list) of CPU indexes
+    :param allow_ranges: Whether we should attempt to detect continuous ranges
+        of CPUs.
 
     :returns: a formatted CPU range string
     """
@@ -168,7 +176,7 @@ def format_cpu_spec(cpuset, allow_ranges=True):
     # trying to do range negations to minimize the overall
     # spec string length
     if allow_ranges:
-        ranges = []
+        ranges: ty.List[ty.List[int]] = []
         previndex = None
         for cpuindex in sorted(cpuset):
             if previndex is None or previndex != (cpuindex - 1):
@@ -329,7 +337,7 @@ def get_cpu_topology_constraints(flavor, image_meta):
         flavor_max_cores = int(flavor_max_cores)
         flavor_max_threads = int(flavor_max_threads)
     except ValueError as e:
-        msg = _('Invalid flavor extra spec. Error: %s') % six.text_type(e)
+        msg = _('Invalid flavor extra spec. Error: %s') % str(e)
         raise exception.InvalidRequest(msg)
 
     LOG.debug("Flavor limits %(sockets)d:%(cores)d:%(threads)d",
@@ -369,7 +377,7 @@ def get_cpu_topology_constraints(flavor, image_meta):
         flavor_cores = int(flavor_cores)
         flavor_threads = int(flavor_threads)
     except ValueError as e:
-        msg = _('Invalid flavor extra spec. Error: %s') % six.text_type(e)
+        msg = _('Invalid flavor extra spec. Error: %s') % str(e)
         raise exception.InvalidRequest(msg)
 
     LOG.debug("Flavor pref %(sockets)d:%(cores)d:%(threads)d",
@@ -495,44 +503,6 @@ def _get_possible_cpu_topologies(vcpus, maxtopology,
     return possible
 
 
-def _filter_for_numa_threads(possible, wantthreads):
-    """Filter topologies which closest match to NUMA threads.
-
-    Determine which topologies provide the closest match to the number
-    of threads desired by the NUMA topology of the instance.
-
-    The possible topologies may not have any entries which match the
-    desired thread count. This method will find the topologies which
-    have the closest matching count. For example, if 'wantthreads' is 4
-    and the possible topologies has entries with 6, 3, 2 or 1 threads,
-    the topologies which have 3 threads will be identified as the
-    closest match not greater than 4 and will be returned.
-
-    :param possible: list of objects.VirtCPUTopology instances
-    :param wantthreads: desired number of threads
-
-    :returns: list of objects.VirtCPUTopology instances
-    """
-    # First figure out the largest available thread
-    # count which is not greater than wantthreads
-    mostthreads = 0
-    for topology in possible:
-        if topology.threads > wantthreads:
-            continue
-        if topology.threads > mostthreads:
-            mostthreads = topology.threads
-
-    # Now restrict to just those topologies which
-    # match the largest thread count
-    bestthreads = []
-    for topology in possible:
-        if topology.threads != mostthreads:
-            continue
-        bestthreads.append(topology)
-
-    return bestthreads
-
-
 def _sort_possible_cpu_topologies(possible, wanttopology):
     """Sort the topologies in order of preference.
 
@@ -552,7 +522,9 @@ def _sort_possible_cpu_topologies(possible, wanttopology):
     # We don't use python's sort(), since we want to
     # preserve the sorting done when populating the
     # 'possible' list originally
-    scores = collections.defaultdict(list)
+    scores: ty.Dict[int, ty.List['objects.VirtCPUTopology']] = (
+        collections.defaultdict(list)
+    )
     for topology in possible:
         score = _score_cpu_topology(topology, wanttopology)
         scores[score].append(topology)
@@ -568,8 +540,7 @@ def _sort_possible_cpu_topologies(possible, wanttopology):
     return desired
 
 
-def _get_desirable_cpu_topologies(flavor, image_meta, allow_threads=True,
-                                  numa_topology=None):
+def _get_desirable_cpu_topologies(flavor, image_meta, allow_threads=True):
     """Identify desirable CPU topologies based for given constraints.
 
     Look at the properties set in the flavor extra specs and the image
@@ -580,10 +551,6 @@ def _get_desirable_cpu_topologies(flavor, image_meta, allow_threads=True,
     :param flavor: objects.Flavor instance to query extra specs from
     :param image_meta: nova.objects.ImageMeta object instance
     :param allow_threads: if the hypervisor supports CPU threads
-    :param numa_topology: objects.InstanceNUMATopology instance that
-                          may contain additional topology constraints
-                          (such as threading information) that should
-                          be considered
 
     :returns: sorted list of objects.VirtCPUTopology instances
     """
@@ -601,36 +568,12 @@ def _get_desirable_cpu_topologies(flavor, image_meta, allow_threads=True,
                                             maximum,
                                             allow_threads)
     LOG.debug("Possible topologies %s", possible)
-
-    if numa_topology:
-        min_requested_threads = None
-        cell_topologies = [cell.cpu_topology for cell in numa_topology.cells
-                           if ('cpu_topology' in cell and cell.cpu_topology)]
-        if cell_topologies:
-            min_requested_threads = min(
-                    topo.threads for topo in cell_topologies)
-
-        if min_requested_threads:
-            if preferred.threads:
-                min_requested_threads = min(preferred.threads,
-                                            min_requested_threads)
-
-            specified_threads = max(1, min_requested_threads)
-            LOG.debug("Filtering topologies best for %d threads",
-                      specified_threads)
-
-            possible = _filter_for_numa_threads(possible,
-                                                specified_threads)
-            LOG.debug("Remaining possible topologies %s",
-                      possible)
-
     desired = _sort_possible_cpu_topologies(possible, preferred)
     LOG.debug("Sorted desired topologies %s", desired)
     return desired
 
 
-def get_best_cpu_topology(flavor, image_meta, allow_threads=True,
-                          numa_topology=None):
+def get_best_cpu_topology(flavor, image_meta, allow_threads=True):
     """Identify best CPU topology for given constraints.
 
     Look at the properties set in the flavor extra specs and the image
@@ -640,15 +583,11 @@ def get_best_cpu_topology(flavor, image_meta, allow_threads=True,
     :param flavor: objects.Flavor instance to query extra specs from
     :param image_meta: nova.objects.ImageMeta object instance
     :param allow_threads: if the hypervisor supports CPU threads
-    :param numa_topology: objects.InstanceNUMATopology instance that
-                          may contain additional topology constraints
-                          (such as threading information) that should
-                          be considered
 
     :returns: an objects.VirtCPUTopology instance for best topology
     """
-    return _get_desirable_cpu_topologies(flavor, image_meta,
-                                         allow_threads, numa_topology)[0]
+    return _get_desirable_cpu_topologies(
+        flavor, image_meta, allow_threads)[0]
 
 
 def _numa_cell_supports_pagesize_request(host_cell, inst_cell):
@@ -731,7 +670,9 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
     # We build up a data structure that answers the question: 'Given the
     # number of threads I want to pack, give me a list of all the available
     # sibling sets (or groups thereof) that can accommodate it'
-    sibling_sets = collections.defaultdict(list)
+    sibling_sets: ty.Dict[int, ty.List[ty.Set[int]]] = (
+        collections.defaultdict(list)
+    )
     for sib in host_cell.free_siblings:
         for threads_no in range(1, len(sib) + 1):
             sibling_sets[threads_no].append(sib)
@@ -739,47 +680,6 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
 
     pinning = None
     threads_no = 1
-
-    def _orphans(instance_cell, threads_per_core):
-        """Number of instance CPUs which will not fill up a host core.
-
-        Best explained by an example: consider set of free host cores as such:
-            [(0, 1), (3, 5), (6, 7, 8)]
-        This would be a case of 2 threads_per_core AKA an entry for 2 in the
-        sibling_sets structure.
-
-        If we attempt to pack a 5 core instance on it - due to the fact that we
-        iterate the list in order, we will end up with a single core of the
-        instance pinned to a thread "alone" (with id 6), and we would have one
-        'orphan' vcpu.
-        """
-        return len(instance_cell) % threads_per_core
-
-    def _threads(instance_cell, threads_per_core):
-        """Threads to expose to the instance via the VirtCPUTopology.
-
-        This is calculated by taking the GCD of the number of threads we are
-        considering at the moment, and the number of orphans. An example for
-            instance_cell = 6
-            threads_per_core = 4
-
-        So we can fit the instance as such:
-            [(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11)]
-              x  x  x  x    x  x
-
-        We can't expose 4 threads, as that will not be a valid topology (all
-        cores exposed to the guest have to have an equal number of threads),
-        and 1 would be too restrictive, but we want all threads that guest sees
-        to be on the same physical core, so we take GCD of 4 (max number of
-        threads) and 2 (number of 'orphan' CPUs) and get 2 as the number of
-        threads.
-        """
-        # fractions.gcd is deprecated in favor of math.gcd starting in py35
-        if six.PY2:
-            gcd = fractions.gcd
-        else:
-            gcd = math.gcd
-        return gcd(threads_per_core, _orphans(instance_cell, threads_per_core))
 
     def _get_pinning(threads_no, sibling_set, instance_cores):
         """Determines pCPUs/vCPUs mapping
@@ -930,7 +830,7 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
         pinning = _get_pinning(
             1,  # we only want to "use" one thread per core
             sibling_sets[threads_per_core],
-            instance_cell.cpuset)
+            instance_cell.pcpuset)
         cpuset_reserved = _get_reserved(
             sibling_sets[1], pinning, num_cpu_reserved=num_cpu_reserved,
             cpu_thread_isolate=True)
@@ -966,7 +866,7 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
 
             pinning = _get_pinning(
                 threads_no, sibling_set,
-                instance_cell.cpuset)
+                instance_cell.pcpuset)
             cpuset_reserved = _get_reserved(
                 sibling_sets[1], pinning, num_cpu_reserved=num_cpu_reserved)
             if not pinning or (num_cpu_reserved and not cpuset_reserved):
@@ -979,7 +879,6 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
         if (instance_cell.cpu_thread_policy !=
                 fields.CPUThreadAllocationPolicy.REQUIRE and
                 not pinning):
-            threads_no = 1
             # we create a fake sibling set by splitting all sibling sets and
             # treating each core as if it has no siblings. This is necessary
             # because '_get_pinning' will normally only take the same amount of
@@ -992,74 +891,27 @@ def _pack_instance_onto_cores(host_cell, instance_cell,
             sibling_set = [set([x]) for x in itertools.chain(*sibling_sets[1])]
             pinning = _get_pinning(
                 threads_no, sibling_set,
-                instance_cell.cpuset)
+                instance_cell.pcpuset)
             cpuset_reserved = _get_reserved(
                 sibling_set, pinning, num_cpu_reserved=num_cpu_reserved)
-
-        threads_no = _threads(instance_cell, threads_no)
 
     if not pinning or (num_cpu_reserved and not cpuset_reserved):
         return
     LOG.debug('Selected cores for pinning: %s, in cell %s', pinning,
                                                             host_cell.id)
 
-    topology = objects.VirtCPUTopology(sockets=1,
-                                       cores=len(pinning) // threads_no,
-                                       threads=threads_no)
     instance_cell.pin_vcpus(*pinning)
-    instance_cell.cpu_topology = topology
     instance_cell.id = host_cell.id
     instance_cell.cpuset_reserved = cpuset_reserved
     return instance_cell
 
 
-def _numa_fit_instance_cell_with_pinning(host_cell, instance_cell,
-                                         num_cpu_reserved=0):
-    """Determine if cells can be pinned to a host cell.
-
-    :param host_cell: objects.NUMACell instance - the host cell that
-                      the instance should be pinned to
-    :param instance_cell: objects.InstanceNUMACell instance without any
-                          pinning information
-    :param num_cpu_reserved: int - number of pCPUs reserved for hypervisor
-
-    :returns: objects.InstanceNUMACell instance with pinning information,
-              or None if instance cannot be pinned to the given host
-    """
-    required_cpus = len(instance_cell.cpuset) + num_cpu_reserved
-    if host_cell.avail_pcpus < required_cpus:
-        LOG.debug('Not enough available CPUs to schedule instance. '
-                  'Oversubscription is not possible with pinned instances. '
-                  'Required: %(required)d (%(vcpus)d + %(num_cpu_reserved)d), '
-                  'actual: %(actual)d',
-                  {'required': required_cpus,
-                   'vcpus': len(instance_cell.cpuset),
-                   'actual': host_cell.avail_pcpus,
-                   'num_cpu_reserved': num_cpu_reserved})
-        return
-
-    if host_cell.avail_memory < instance_cell.memory:
-        LOG.debug('Not enough available memory to schedule instance. '
-                  'Oversubscription is not possible with pinned instances. '
-                  'Required: %(required)s, available: %(available)s, '
-                  'total: %(total)s. ',
-                  {'required': instance_cell.memory,
-                   'available': host_cell.avail_memory,
-                   'total': host_cell.memory})
-        return
-
-    # Try to pack the instance cell onto cores
-    numa_cell = _pack_instance_onto_cores(
-        host_cell, instance_cell, num_cpu_reserved=num_cpu_reserved)
-
-    if not numa_cell:
-        LOG.debug('Failed to map instance cell CPUs to host cell CPUs')
-
-    return numa_cell
-
-
-def _numa_fit_instance_cell(host_cell, instance_cell, limit_cell=None,
-                            cpuset_reserved=0):
+def _numa_fit_instance_cell(
+    host_cell: 'objects.NUMACell',
+    instance_cell: 'objects.InstanceNUMACell',
+    limits: ty.Optional['objects.NUMATopologyLimit'] = None,
+    cpuset_reserved: int = 0,
+) -> ty.Optional['objects.InstanceNUMACell']:
     """Ensure an instance cell can fit onto a host cell
 
     Ensure an instance cell can fit onto a host cell and, if so, return
@@ -1068,7 +920,7 @@ def _numa_fit_instance_cell(host_cell, instance_cell, limit_cell=None,
 
     :param host_cell: host cell to fit the instance cell onto
     :param instance_cell: instance cell we want to fit
-    :param limit_cell: an objects.NUMATopologyLimit or None
+    :param limits: an objects.NUMATopologyLimit or None
     :param cpuset_reserved: An int to indicate the number of CPUs overhead
 
     :returns: objects.InstanceNUMACell with the id set to that of the
@@ -1087,7 +939,7 @@ def _numa_fit_instance_cell(host_cell, instance_cell, limit_cell=None,
             LOG.debug('Host does not support requested memory pagesize, '
                       'or not enough free pages of the requested size. '
                       'Requested: %d kB', instance_cell.pagesize)
-            return
+            return None
         LOG.debug('Selected memory pagesize: %(selected_mem_pagesize)d kB. '
                   'Requested memory pagesize: %(requested_mem_pagesize)d '
                   '(small = -1, large = -2, any = -3)',
@@ -1116,7 +968,7 @@ def _numa_fit_instance_cell(host_cell, instance_cell, limit_cell=None,
                            'available': host_cell.avail_memory,
                            'total': host_cell.memory,
                            'pagesize': pagesize})
-                return
+                return None
         else:
             # The host does not support explicit page sizes. Ignore pagesizes
             # completely.
@@ -1129,88 +981,158 @@ def _numa_fit_instance_cell(host_cell, instance_cell, limit_cell=None,
                           'Required: %(required)d, actual: %(actual)d',
                           {'required': instance_cell.memory,
                            'actual': host_cell.memory})
-                return
-
-    # The 'pcpuset' field is only set by newer compute nodes, so if it's
-    # not present then we've received this object from a pre-Train compute
-    # node and need to query against the 'cpuset' field instead until the
-    # compute node has been upgraded and starts reporting things properly.
-    # TODO(stephenfin): Remove in U
-    if 'pcpuset' not in host_cell:
-        host_cell.pcpuset = host_cell.cpuset
+                return None
 
     # NOTE(stephenfin): As with memory, do not allow an instance to overcommit
     # against itself on any NUMA cell
-    if instance_cell.cpu_pinning_requested:
-        # TODO(stephenfin): Is 'cpuset_reserved' present if consuming emulator
-        # threads from shared CPU pools? If so, we don't want to add this here
-        required_cpus = len(instance_cell.cpuset) + cpuset_reserved
+    if instance_cell.cpu_policy in (
+        fields.CPUAllocationPolicy.DEDICATED,
+        fields.CPUAllocationPolicy.MIXED,
+    ):
+        required_cpus = len(instance_cell.pcpuset) + cpuset_reserved
         if required_cpus > len(host_cell.pcpuset):
             LOG.debug('Not enough host cell CPUs to fit instance cell; '
                       'required: %(required)d + %(cpuset_reserved)d as '
                       'overhead, actual: %(actual)d', {
-                          'required': len(instance_cell.cpuset),
+                          'required': len(instance_cell.pcpuset),
                           'actual': len(host_cell.pcpuset),
                           'cpuset_reserved': cpuset_reserved
                       })
-            return
-    else:
-        required_cpus = len(instance_cell.cpuset) + cpuset_reserved
+            return None
+
+    if instance_cell.cpu_policy in (
+        fields.CPUAllocationPolicy.SHARED,
+        fields.CPUAllocationPolicy.MIXED,
+        None,
+    ):
+        required_cpus = len(instance_cell.cpuset)
         if required_cpus > len(host_cell.cpuset):
             LOG.debug('Not enough host cell CPUs to fit instance cell; '
-                      'required: %(required)d + %(cpuset_reserved)d as '
-                      'overhead, actual: %(actual)d', {
+                      'required: %(required)d, actual: %(actual)d', {
                           'required': len(instance_cell.cpuset),
                           'actual': len(host_cell.cpuset),
-                          'cpuset_reserved': cpuset_reserved
                       })
-            return
+            return None
 
-    if instance_cell.cpu_pinning_requested:
-        LOG.debug('Pinning has been requested')
-        new_instance_cell = _numa_fit_instance_cell_with_pinning(
-            host_cell, instance_cell, cpuset_reserved)
-        if not new_instance_cell:
-            return
-        new_instance_cell.pagesize = instance_cell.pagesize
-        instance_cell = new_instance_cell
+    if instance_cell.cpu_policy in (
+        fields.CPUAllocationPolicy.DEDICATED,
+        fields.CPUAllocationPolicy.MIXED,
+    ):
+        LOG.debug('Instance has requested pinned CPUs')
+        required_cpus = len(instance_cell.pcpuset) + cpuset_reserved
+        if required_cpus > host_cell.avail_pcpus:
+            LOG.debug('Not enough available CPUs to schedule instance. '
+                      'Oversubscription is not possible with pinned '
+                      'instances. Required: %(required)d (%(vcpus)d + '
+                      '%(num_cpu_reserved)d), actual: %(actual)d',
+                      {'required': required_cpus,
+                       'vcpus': len(instance_cell.pcpuset),
+                       'actual': host_cell.avail_pcpus,
+                       'num_cpu_reserved': cpuset_reserved})
+            return None
 
-    elif limit_cell:
-        LOG.debug('No pinning requested, considering limitations on usable cpu'
-                  ' and memory')
-        memory_usage = host_cell.memory_usage + instance_cell.memory
+        if instance_cell.memory > host_cell.avail_memory:
+            LOG.debug('Not enough available memory to schedule instance. '
+                      'Oversubscription is not possible with pinned '
+                      'instances. Required: %(required)s, available: '
+                      '%(available)s, total: %(total)s. ',
+                      {'required': instance_cell.memory,
+                       'available': host_cell.avail_memory,
+                       'total': host_cell.memory})
+            return None
+
+        # Try to pack the instance cell onto cores
+        instance_cell = _pack_instance_onto_cores(
+            host_cell, instance_cell, num_cpu_reserved=cpuset_reserved,
+        )
+        if not instance_cell:
+            LOG.debug('Failed to map instance cell CPUs to host cell CPUs')
+            return None
+
+    if instance_cell.cpu_policy in (
+        fields.CPUAllocationPolicy.SHARED,
+        fields.CPUAllocationPolicy.MIXED,
+        None,
+    ) and limits:
+        LOG.debug(
+            'Instance has requested shared CPUs; considering limitations '
+            'on usable CPU and memory.')
         cpu_usage = host_cell.cpu_usage + len(instance_cell.cpuset)
-        cpu_limit = len(host_cell.cpuset) * limit_cell.cpu_allocation_ratio
-        ram_limit = host_cell.memory * limit_cell.ram_allocation_ratio
-        if memory_usage > ram_limit:
-            LOG.debug('Host cell has limitations on usable memory. There is '
-                      'not enough free memory to schedule this instance. '
-                      'Usage: %(usage)d, limit: %(limit)d',
-                      {'usage': memory_usage, 'limit': ram_limit})
-            return
+        cpu_limit = len(host_cell.cpuset) * limits.cpu_allocation_ratio
         if cpu_usage > cpu_limit:
             LOG.debug('Host cell has limitations on usable CPUs. There are '
                       'not enough free CPUs to schedule this instance. '
                       'Usage: %(usage)d, limit: %(limit)d',
                       {'usage': cpu_usage, 'limit': cpu_limit})
-            return
+            return None
+
+        ram_usage = host_cell.memory_usage + instance_cell.memory
+        ram_limit = host_cell.memory * limits.ram_allocation_ratio
+        if ram_usage > ram_limit:
+            LOG.debug('Host cell has limitations on usable memory. There is '
+                      'not enough free memory to schedule this instance. '
+                      'Usage: %(usage)d, limit: %(limit)d',
+                      {'usage': ram_usage, 'limit': ram_limit})
+            return None
 
     instance_cell.id = host_cell.id
     return instance_cell
 
 
-def _get_flavor_image_meta(key, flavor, image_meta, default=None):
+def _get_flavor_image_meta(
+    key: str,
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+    default: ty.Any = None,
+    prefix: str = 'hw',
+) -> ty.Tuple[ty.Any, ty.Any]:
     """Extract both flavor- and image-based variants of metadata."""
-    flavor_key = ':'.join(['hw', key])
-    image_key = '_'.join(['hw', key])
+    flavor_key = ':'.join([prefix, key])
+    image_key = '_'.join([prefix, key])
 
-    flavor_policy = flavor.get('extra_specs', {}).get(flavor_key, default)
-    image_policy = image_meta.properties.get(image_key, default)
+    flavor_value = flavor.get('extra_specs', {}).get(flavor_key, default)
+    image_value = image_meta.properties.get(image_key, default)
 
-    return flavor_policy, image_policy
+    return flavor_value, image_value
 
 
-def get_mem_encryption_constraint(flavor, image_meta, machine_type=None):
+def _get_unique_flavor_image_meta(
+    key: str,
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+    default: ty.Any = None,
+    prefix: str = 'hw',
+) -> ty.Any:
+    """A variant of '_get_flavor_image_meta' that errors out on conflicts."""
+    flavor_value, image_value = _get_flavor_image_meta(
+        key, flavor, image_meta, default, prefix,
+    )
+    if image_value and flavor_value and image_value != flavor_value:
+        msg = _(
+            "Flavor %(flavor_name)s has %(prefix)s:%(key)s extra spec "
+            "explicitly set to %(flavor_val)s, conflicting with image "
+            "%(image_name)s which has %(prefix)s_%(key)s explicitly set to "
+            "%(image_val)s."
+        )
+        raise exception.FlavorImageConflict(
+            msg % {
+                'prefix': prefix,
+                'key': key,
+                'flavor_name': flavor.name,
+                'flavor_val': flavor_value,
+                'image_name': image_meta.name,
+                'image_val': image_value,
+            },
+        )
+
+    return flavor_value or image_value
+
+
+def get_mem_encryption_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+    machine_type: ty.Optional[str] = None,
+) -> bool:
     """Return a boolean indicating whether encryption of guest memory was
     requested, either via the hw:mem_encryption extra spec or the
     hw_mem_encryption image property (or both).
@@ -1236,7 +1158,7 @@ def get_mem_encryption_constraint(flavor, image_meta, machine_type=None):
     cannot be called since it relies on being run from the compute
     node in order to retrieve CONF.libvirt.hw_machine_type.
 
-    :param instance_type: Flavor object
+    :param flavor: Flavor object
     :param image: an ImageMeta object
     :param machine_type: a string representing the machine type (optional)
     :raises: nova.exception.FlavorImageConflict
@@ -1270,7 +1192,7 @@ def get_mem_encryption_constraint(flavor, image_meta, machine_type=None):
                           flavor.name)
     if image_mem_enc:
         requesters.append("hw_mem_encryption property of image %s" %
-                          image_meta.name)
+                          image_meta.id)
 
     _check_mem_encryption_uses_uefi_image(requesters, image_meta)
     _check_mem_encryption_machine_type(image_meta, machine_type)
@@ -1347,7 +1269,10 @@ def _check_mem_encryption_machine_type(image_meta, machine_type=None):
             reason=_("q35 type is required for SEV to work"))
 
 
-def _get_numa_pagesize_constraint(flavor, image_meta):
+def _get_numa_pagesize_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[int]:
     """Return the requested memory page size
 
     :param flavor: a Flavor object to read extra specs from
@@ -1412,8 +1337,10 @@ def _get_constraint_mappings_from_flavor(flavor, key, func):
     return hw_numa_map or None
 
 
-def _get_numa_cpu_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[List[Set[int]]]
+def _get_numa_cpu_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[ty.List[ty.Set[int]]]:
     """Validate and return the requested guest NUMA-guest CPU mapping.
 
     Extract the user-provided mapping of guest CPUs to guest NUMA nodes. For
@@ -1442,8 +1369,10 @@ def _get_numa_cpu_constraint(flavor, image_meta):
     return flavor_cpu_list
 
 
-def _get_numa_mem_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[List[Set[int]]]
+def _get_numa_mem_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[ty.List[int]]:
     """Validate and return the requested guest NUMA-guest memory mapping.
 
     Extract the user-provided mapping of guest memory to guest NUMA nodes. For
@@ -1472,8 +1401,10 @@ def _get_numa_mem_constraint(flavor, image_meta):
     return flavor_mem_list
 
 
-def _get_numa_node_count_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[int]
+def _get_numa_node_count_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[int]:
     """Validate and return the requested NUMA nodes.
 
     :param flavor: ``nova.objects.Flavor`` instance
@@ -1499,8 +1430,10 @@ def _get_numa_node_count_constraint(flavor, image_meta):
 
 
 # NOTE(stephenfin): This must be public as it's used elsewhere
-def get_cpu_policy_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[str]
+def get_cpu_policy_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[str]:
     """Validate and return the requested CPU policy.
 
     :param flavor: ``nova.objects.Flavor`` instance
@@ -1528,8 +1461,15 @@ def get_cpu_policy_constraint(flavor, image_meta):
 
     if flavor_policy == fields.CPUAllocationPolicy.DEDICATED:
         cpu_policy = flavor_policy
-    elif flavor_policy == fields.CPUAllocationPolicy.SHARED:
+    elif flavor_policy == fields.CPUAllocationPolicy.MIXED:
         if image_policy == fields.CPUAllocationPolicy.DEDICATED:
+            raise exception.ImageCPUPinningForbidden()
+        cpu_policy = flavor_policy
+    elif flavor_policy == fields.CPUAllocationPolicy.SHARED:
+        if image_policy in (
+            fields.CPUAllocationPolicy.MIXED,
+            fields.CPUAllocationPolicy.DEDICATED,
+        ):
             raise exception.ImageCPUPinningForbidden()
         cpu_policy = flavor_policy
     elif image_policy in fields.CPUAllocationPolicy.ALL:
@@ -1541,8 +1481,10 @@ def get_cpu_policy_constraint(flavor, image_meta):
 
 
 # NOTE(stephenfin): This must be public as it's used elsewhere
-def get_cpu_thread_policy_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[str]
+def get_cpu_thread_policy_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[str]:
     """Validate and return the requested CPU thread policy.
 
     :param flavor: ``nova.objects.Flavor`` instance
@@ -1580,9 +1522,24 @@ def get_cpu_thread_policy_constraint(flavor, image_meta):
     return policy
 
 
-def _get_numa_topology_auto(nodes, flavor):
-    if ((flavor.vcpus % nodes) > 0 or
-        (flavor.memory_mb % nodes) > 0):
+def _get_numa_topology_auto(
+    nodes: int,
+    flavor: 'objects.Flavor',
+    vcpus: ty.Set[int],
+    pcpus: ty.Set[int],
+) -> 'objects.InstanceNUMATopology':
+    """Generate a NUMA topology automatically based on CPUs and memory.
+
+    This is "automatic" because there's no user-provided per-node configuration
+    here - it's all auto-generated based on the number of nodes.
+
+    :param nodes: The number of nodes required in the generated topology.
+    :param flavor: The flavor used for the instance, from which to extract the
+        CPU and memory count.
+    :param vcpus: A set of IDs for CPUs that should be shared.
+    :param pcpus: A set of IDs for CPUs that should be dedicated.
+    """
+    if (flavor.vcpus % nodes) > 0 or (flavor.memory_mb % nodes) > 0:
         raise exception.ImageNUMATopologyAsymmetric()
 
     cells = []
@@ -1590,15 +1547,35 @@ def _get_numa_topology_auto(nodes, flavor):
         ncpus = int(flavor.vcpus / nodes)
         mem = int(flavor.memory_mb / nodes)
         start = node * ncpus
-        cpuset = set(range(start, start + ncpus))
+        cpus = set(range(start, start + ncpus))
 
         cells.append(objects.InstanceNUMACell(
-            id=node, cpuset=cpuset, memory=mem))
+            id=node, cpuset=cpus & vcpus, pcpuset=cpus & pcpus, memory=mem))
 
     return objects.InstanceNUMATopology(cells=cells)
 
 
-def _get_numa_topology_manual(nodes, flavor, cpu_list, mem_list):
+def _get_numa_topology_manual(
+    nodes: int,
+    flavor: 'objects.Flavor',
+    vcpus: ty.Set[int],
+    pcpus: ty.Set[int],
+    cpu_list: ty.List[ty.Set[int]],
+    mem_list: ty.List[int],
+) -> 'objects.InstanceNUMATopology':
+    """Generate a NUMA topology based on user-provided NUMA topology hints.
+
+    :param nodes: The number of nodes required in the generated topology.
+    :param flavor: The flavor used for the instance, from which to extract the
+        CPU and memory count.
+    :param vcpus: A set of IDs for CPUs that should be shared.
+    :param pcpus: A set of IDs for CPUs that should be dedicated.
+    :param cpu_list: A list of sets of ints; each set in the list corresponds
+        to the set of guest cores to assign to NUMA node $index.
+    :param mem_list: A list of ints; each int corresponds to the amount of
+        memory to assign to NUMA node $index.
+    :returns: The generated instance NUMA topology.
+    """
     cells = []
     totalmem = 0
 
@@ -1606,9 +1583,9 @@ def _get_numa_topology_manual(nodes, flavor, cpu_list, mem_list):
 
     for node in range(nodes):
         mem = mem_list[node]
-        cpuset = cpu_list[node]
+        cpus = cpu_list[node]
 
-        for cpu in cpuset:
+        for cpu in cpus:
             if cpu > (flavor.vcpus - 1):
                 raise exception.ImageNUMATopologyCPUOutOfRange(
                     cpunum=cpu, cpumax=(flavor.vcpus - 1))
@@ -1620,7 +1597,7 @@ def _get_numa_topology_manual(nodes, flavor, cpu_list, mem_list):
             availcpus.remove(cpu)
 
         cells.append(objects.InstanceNUMACell(
-            id=node, cpuset=cpuset, memory=mem))
+            id=node, cpuset=cpus & vcpus, pcpuset=cpus & pcpus, memory=mem))
         totalmem = totalmem + mem
 
     if availcpus:
@@ -1640,8 +1617,9 @@ def is_realtime_enabled(flavor):
     return strutils.bool_from_string(flavor_rt)
 
 
-def _get_vcpu_pcpu_resources(flavor):
-    # type: (objects.Flavor) -> Tuple[bool, bool]
+def _get_vcpu_pcpu_resources(
+    flavor: 'objects.Flavor',
+) -> ty.Tuple[int, int]:
     requested_vcpu = 0
     requested_pcpu = 0
 
@@ -1659,11 +1637,13 @@ def _get_vcpu_pcpu_resources(flavor):
                 # this is handled elsewhere
                 pass
 
-    return (requested_vcpu, requested_pcpu)
+    return requested_vcpu, requested_pcpu
 
 
-def _get_hyperthreading_trait(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[str]
+def _get_hyperthreading_trait(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[str]:
     for key, val in flavor.get('extra_specs', {}).items():
         if re.match('trait([1-9][0-9]*)?:%s' % os_traits.HW_CPU_HYPERTHREADING,
                     key):
@@ -1673,47 +1653,91 @@ def _get_hyperthreading_trait(flavor, image_meta):
             'traits_required', []):
         return 'required'
 
+    return None
 
-def _get_realtime_constraint(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> Optional[str]
+
+# NOTE(stephenfin): This must be public as it's used elsewhere
+def get_dedicated_cpu_constraint(
+    flavor: 'objects.Flavor',
+) -> ty.Optional[ty.Set[int]]:
+    """Validate and return the requested dedicated CPU mask.
+
+    :param flavor: ``nova.objects.Flavor`` instance
+    :returns: The dedicated CPUs requested, else None.
+    """
+    mask = flavor.get('extra_specs', {}).get('hw:cpu_dedicated_mask')
+    if not mask:
+        return None
+
+    if mask.strip().startswith('^'):
+        pcpus = parse_cpu_spec("0-%d,%s" % (flavor.vcpus - 1, mask))
+    else:
+        pcpus = parse_cpu_spec("%s" % (mask))
+
+    cpus = set(range(flavor.vcpus))
+    vcpus = cpus - pcpus
+    if not pcpus or not vcpus:
+        raise exception.InvalidMixedInstanceDedicatedMask()
+
+    if not pcpus.issubset(cpus):
+        msg = _('Mixed instance dedicated vCPU(s) mask is not a subset of '
+                'vCPUs in the flavor. See "hw:cpu_dedicated_mask"')
+        raise exception.InvalidMixedInstanceDedicatedMask(msg)
+
+    return pcpus
+
+
+# NOTE(stephenfin): This must be public as it's used elsewhere
+def get_realtime_cpu_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[ty.Set[int]]:
     """Validate and return the requested realtime CPU mask.
 
     :param flavor: ``nova.objects.Flavor`` instance
     :param image_meta: ``nova.objects.ImageMeta`` instance
-    :returns: The realtime CPU mask requested, else None.
+    :returns: The realtime CPU set requested, else None.
     """
+    if not is_realtime_enabled(flavor):
+        return None
+
     flavor_mask, image_mask = _get_flavor_image_meta(
         'cpu_realtime_mask', flavor, image_meta)
 
     # Image masks are used ahead of flavor masks as they will have more
     # specific requirements
-    return image_mask or flavor_mask
+    mask = image_mask or flavor_mask
 
+    vcpus_set = set(range(flavor.vcpus))
+    if mask:
+        if mask.strip().startswith('^'):
+            vcpus_rt = parse_cpu_spec("0-%d,%s" % (flavor.vcpus - 1, mask))
+        else:
+            vcpus_rt = parse_cpu_spec("%s" % (mask))
+    else:
+        vcpus_rt = set(range(flavor.vcpus))
 
-def vcpus_realtime_topology(flavor, image_meta):
-    # type: (objects.Flavor, objects.ImageMeta) -> List[int]
-    """Determines instance vCPUs used as RT for a given spec.
-
-    :param flavor: ``nova.objects.Flavor`` instance
-    :param image_meta: ``nova.objects.ImageMeta`` instance
-    :raises: exception.RealtimeMaskNotFoundOrInvalid if mask was not found or
-        is invalid.
-    :returns: The realtime CPU mask requested, else None.
-    """
-    mask = _get_realtime_constraint(flavor, image_meta)
-    if not mask:
+    if not vcpus_rt:
         raise exception.RealtimeMaskNotFoundOrInvalid()
 
-    vcpus_rt = parse_cpu_spec("0-%d,%s" % (flavor.vcpus - 1, mask))
-    if len(vcpus_rt) < 1:
+    # TODO(stephenfin): Do this check in numa_get_constraints instead
+    emu_policy = get_emulator_thread_policy_constraint(flavor)
+    if vcpus_set == vcpus_rt and not emu_policy:
         raise exception.RealtimeMaskNotFoundOrInvalid()
+
+    if not vcpus_rt.issubset(vcpus_set):
+        msg = _("Realtime policy vCPU(s) mask is configured with RT vCPUs "
+                "that are not a subset of the vCPUs in the flavor. See "
+                "hw:cpu_realtime_mask or hw_cpu_realtime_mask")
+        raise exception.RealtimeMaskNotFoundOrInvalid(msg)
 
     return vcpus_rt
 
 
 # NOTE(stephenfin): This must be public as it's used elsewhere
-def get_emulator_thread_policy_constraint(flavor):
-    # type: (objects.Flavor) -> Optional[str]
+def get_emulator_thread_policy_constraint(
+    flavor: 'objects.Flavor',
+) -> ty.Optional[str]:
     """Validate and return the requested emulator threads policy.
 
     :param flavor: ``nova.objects.Flavor`` instance
@@ -1725,7 +1749,7 @@ def get_emulator_thread_policy_constraint(flavor):
         'hw:emulator_threads_policy')
 
     if not emu_threads_policy:
-        return
+        return None
 
     if emu_threads_policy not in fields.CPUEmulatorThreadsPolicy.ALL:
         raise exception.InvalidEmulatorThreadsPolicy(
@@ -1735,8 +1759,11 @@ def get_emulator_thread_policy_constraint(flavor):
     return emu_threads_policy
 
 
-def get_pci_numa_policy_constraint(flavor, image_meta):
-    """Return pci numa affinity policy or None.
+def get_pci_numa_policy_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> str:
+    """Validate and return the requested PCI NUMA affinity policy.
 
     :param flavor: a flavor object to read extra specs from
     :param image_meta: nova.objects.ImageMeta object instance
@@ -1757,7 +1784,10 @@ def get_pci_numa_policy_constraint(flavor, image_meta):
     return policy
 
 
-def get_vif_multiqueue_constraint(flavor, image_meta):
+def get_vif_multiqueue_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> bool:
     """Validate and return the requested VIF multiqueue configuration.
 
     :param flavor: ``nova.objects.Flavor`` instance
@@ -1803,7 +1833,77 @@ def get_vif_multiqueue_constraint(flavor, image_meta):
     return flavor_value or image_value or False
 
 
-# TODO(sahid): Move numa related to hardware/numa.py
+def get_vtpm_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[VTPMConfig]:
+    """Validate and return the requested vTPM configuration.
+
+    :param flavor: ``nova.objects.Flavor`` instance
+    :param image_meta: ``nova.objects.ImageMeta`` instance
+    :raises: nova.exception.FlavorImageConflict if a value is specified in both
+        the flavor and the image, but the values do not match
+    :raises: nova.exception.Invalid if a value or combination of values is
+        invalid
+    :returns: A named tuple containing the vTPM version and model, else None.
+    """
+    version = _get_unique_flavor_image_meta('tpm_version', flavor, image_meta)
+    if version is None:
+        return None
+
+    if version not in fields.TPMVersion.ALL:
+        raise exception.Invalid(
+            "Invalid TPM version %(version)r. Allowed values: %(valid)s." %
+            {'version': version, 'valid': ', '.join(fields.TPMVersion.ALL)}
+        )
+
+    model = _get_unique_flavor_image_meta('tpm_model', flavor, image_meta)
+    if model is None:
+        # model defaults to TIS
+        model = fields.TPMModel.TIS
+    elif model not in fields.TPMModel.ALL:
+        raise exception.Invalid(
+            "Invalid TPM model %(model)r. Allowed values: %(valid)s." %
+            {'model': model, 'valid': ', '.join(fields.TPMModel.ALL)}
+        )
+    elif model == fields.TPMModel.CRB and version != fields.TPMVersion.v2_0:
+        raise exception.Invalid(
+            "TPM model CRB is only valid with TPM version 2.0."
+        )
+
+    return VTPMConfig(version, model)
+
+
+def get_secure_boot_constraint(
+    flavor: 'objects.Flavor',
+    image_meta: 'objects.ImageMeta',
+) -> ty.Optional[str]:
+    """Validate and return the requested secure boot policy.
+
+    :param flavor: ``nova.objects.Flavor`` instance
+    :param image_meta: ``nova.objects.ImageMeta`` instance
+    :raises: nova.exception.Invalid if a value or combination of values is
+        invalid
+    :returns: The secure boot configuration requested, if any.
+    """
+    policy = _get_unique_flavor_image_meta(
+        'secure_boot', flavor, image_meta, prefix='os',
+    )
+    if policy is None:
+        return None
+
+    if policy not in fields.SecureBoot.ALL:
+        msg = _(
+            'Invalid secure boot policy %(policy)r. Allowed values: %(valid)s.'
+        )
+        raise exception.Invalid(msg % {
+            'policy': policy,
+            'valid': ', '.join(fields.SecureBoot.ALL)
+        })
+
+    return policy
+
+
 def numa_get_constraints(flavor, image_meta):
     """Return topology related to input request.
 
@@ -1850,44 +1950,20 @@ def numa_get_constraints(flavor, image_meta):
              with invalid value in image or flavor.
     :raises: exception.InvalidRequest if there is a conflict between explicitly
              and implicitly requested resources of hyperthreading traits
+    :raises: exception.RequiredMixedInstancePolicy if dedicated CPU mask is
+             provided in flavor while CPU policy is not 'mixed'.
+    :raises: exception.RequiredMixedOrRealtimeCPUMask the mixed policy instance
+             dedicated CPU mask can only be specified through either
+             'hw:cpu_realtime_mask' or 'hw:cpu_dedicated_mask', not both.
+    :raises: exception.InvalidMixedInstanceDedicatedMask if specify an invalid
+             CPU mask for 'hw:cpu_dedicated_mask'.
     :returns: objects.InstanceNUMATopology, or None
     """
-    numa_topology = None
-
-    nodes = _get_numa_node_count_constraint(flavor, image_meta)
-    pagesize = _get_numa_pagesize_constraint(flavor, image_meta)
-    vpmems = get_vpmems(flavor)
-
-    if nodes or pagesize or vpmems:
-        nodes = nodes or 1
-
-        cpu_list = _get_numa_cpu_constraint(flavor, image_meta)
-        mem_list = _get_numa_mem_constraint(flavor, image_meta)
-
-        # If one property list is specified both must be
-        if ((cpu_list is None and mem_list is not None) or
-            (cpu_list is not None and mem_list is None)):
-            raise exception.ImageNUMATopologyIncomplete()
-
-        # If any node has data set, all nodes must have data set
-        if ((cpu_list is not None and len(cpu_list) != nodes) or
-            (mem_list is not None and len(mem_list) != nodes)):
-            raise exception.ImageNUMATopologyIncomplete()
-
-        if cpu_list is None:
-            numa_topology = _get_numa_topology_auto(
-                nodes, flavor)
-        else:
-            numa_topology = _get_numa_topology_manual(
-                nodes, flavor, cpu_list, mem_list)
-
-        # We currently support same pagesize for all cells.
-        for c in numa_topology.cells:
-            setattr(c, 'pagesize', pagesize)
 
     cpu_policy = get_cpu_policy_constraint(flavor, image_meta)
     cpu_thread_policy = get_cpu_thread_policy_constraint(flavor, image_meta)
-    rt_mask = _get_realtime_constraint(flavor, image_meta)
+    realtime_cpus = get_realtime_cpu_constraint(flavor, image_meta)
+    dedicated_cpus = get_dedicated_cpu_constraint(flavor)
     emu_threads_policy = get_emulator_thread_policy_constraint(flavor)
 
     # handle explicit VCPU/PCPU resource requests and the HW_CPU_HYPERTHREADING
@@ -1896,7 +1972,6 @@ def numa_get_constraints(flavor, image_meta):
     requested_vcpus, requested_pcpus = _get_vcpu_pcpu_resources(flavor)
 
     if cpu_policy and (requested_vcpus or requested_pcpus):
-        # TODO(stephenfin): Make these custom exceptions
         raise exception.InvalidRequest(
             "It is not possible to use the 'resources:VCPU' or "
             "'resources:PCPU' extra specs in combination with the "
@@ -1954,39 +2029,100 @@ def numa_get_constraints(flavor, image_meta):
         if emu_threads_policy == fields.CPUEmulatorThreadsPolicy.ISOLATE:
             raise exception.BadRequirementEmulatorThreadsPolicy()
 
-        if is_realtime_enabled(flavor):
+        # 'hw:cpu_dedicated_mask' should not be defined in a flavor with
+        # 'shared' policy.
+        if dedicated_cpus:
+            raise exception.RequiredMixedInstancePolicy()
+
+        if realtime_cpus:
             raise exception.RealtimeConfigurationInvalid()
+    elif cpu_policy == fields.CPUAllocationPolicy.DEDICATED:
+        # 'hw:cpu_dedicated_mask' should not be defined in a flavor with
+        # 'dedicated' policy.
+        if dedicated_cpus:
+            raise exception.RequiredMixedInstancePolicy()
+    else:  # MIXED
+        if realtime_cpus and dedicated_cpus:
+            raise exception.RequiredMixedOrRealtimeCPUMask()
 
-        return numa_topology
+        if not (realtime_cpus or dedicated_cpus):
+            raise exception.RequiredMixedOrRealtimeCPUMask()
 
-    if is_realtime_enabled(flavor) and not rt_mask:
-        raise exception.RealtimeMaskNotFoundOrInvalid()
+        # NOTE(huaquiang): If using mixed with realtime, then cores listed in
+        # the realtime mask are dedicated and everything else is shared.
+        dedicated_cpus = dedicated_cpus or realtime_cpus
 
-    if numa_topology:
-        for cell in numa_topology.cells:
-            cell.cpu_policy = cpu_policy
-            cell.cpu_thread_policy = cpu_thread_policy
-    else:
-        single_cell = objects.InstanceNUMACell(
-            id=0,
-            cpuset=set(range(flavor.vcpus)),
-            memory=flavor.memory_mb,
-            cpu_policy=cpu_policy,
-            cpu_thread_policy=cpu_thread_policy)
-        numa_topology = objects.InstanceNUMATopology(cells=[single_cell])
+    nodes = _get_numa_node_count_constraint(flavor, image_meta)
+    pagesize = _get_numa_pagesize_constraint(flavor, image_meta)
+    vpmems = get_vpmems(flavor)
 
-    if emu_threads_policy:
+    # If 'hw:cpu_dedicated_mask' is not found in flavor extra specs, the
+    # 'dedicated_cpus' variable is None, while we hope it being an empty set.
+    dedicated_cpus = dedicated_cpus or set()
+    if cpu_policy == fields.CPUAllocationPolicy.DEDICATED:
+        # But for an instance with 'dedicated' CPU allocation policy, all
+        # CPUs are 'dedicated' CPUs, which is 1:1 pinned to a host CPU.
+        dedicated_cpus = set(range(flavor.vcpus))
+
+    # NOTE(stephenfin): There are currently four things that will configure a
+    # NUMA topology for an instance:
+    #
+    # - The user explicitly requesting one
+    # - The use of CPU pinning
+    # - The use of hugepages
+    # - The use of vPMEM
+    if nodes or pagesize or vpmems or cpu_policy in (
+        fields.CPUAllocationPolicy.DEDICATED,
+        fields.CPUAllocationPolicy.MIXED,
+    ):
+        # NOTE(huaqiang): Here we build the instance dedicated CPU set and the
+        # shared CPU set, through 'pcpus' and 'vcpus' respectively,
+        # which will be used later to calculate the per-NUMA-cell CPU set.
+        cpus = set(range(flavor.vcpus))
+        pcpus = dedicated_cpus
+        vcpus = cpus - pcpus
+
+        nodes = nodes or 1
+        cpu_list = _get_numa_cpu_constraint(flavor, image_meta)
+        mem_list = _get_numa_mem_constraint(flavor, image_meta)
+
+        if cpu_list is None and mem_list is None:
+            numa_topology = _get_numa_topology_auto(
+                nodes, flavor, vcpus, pcpus,
+            )
+        elif cpu_list is not None and mem_list is not None:
+            # If any node has data set, all nodes must have data set
+            if len(cpu_list) != nodes or len(mem_list) != nodes:
+                raise exception.ImageNUMATopologyIncomplete()
+
+            numa_topology = _get_numa_topology_manual(
+                nodes, flavor, vcpus, pcpus, cpu_list, mem_list
+            )
+        else:
+            # If one property list is specified both must be
+            raise exception.ImageNUMATopologyIncomplete()
+
+        # We currently support the same pagesize, CPU policy and CPU thread
+        # policy for all cells, but these are still stored on a per-cell
+        # basis :(
+        for c in numa_topology.cells:
+            setattr(c, 'pagesize', pagesize)
+            setattr(c, 'cpu_policy', cpu_policy)
+            setattr(c, 'cpu_thread_policy', cpu_thread_policy)
+
+        # ...but emulator threads policy is not \o/
         numa_topology.emulator_threads_policy = emu_threads_policy
+    else:
+        numa_topology = None
 
     return numa_topology
 
 
 def _numa_cells_support_network_metadata(
-        host_topology,  # type: objects.NUMATopology
-        chosen_host_cells,  # type: List[objects.NUMACell]
-        network_metadata  # type: objects.NetworkMetadata
-        ):
-    # type: (...) -> bool
+    host_topology: 'objects.NUMATopology',
+    chosen_host_cells: ty.List['objects.NUMACell'],
+    network_metadata: 'objects.NetworkMetadata',
+) -> bool:
     """Determine whether the cells can accept the network requests.
 
     :param host_topology: The entire host topology, used to find non-chosen
@@ -2002,12 +2138,12 @@ def _numa_cells_support_network_metadata(
     if not network_metadata:
         return True
 
-    required_physnets = None  # type: Set[str]
+    required_physnets: ty.Set[str] = set()
     if 'physnets' in network_metadata:
         # use set() to avoid modifying the original data structure
         required_physnets = set(network_metadata.physnets)
 
-    required_tunnel = False  # type: bool
+    required_tunnel: bool = False
     if 'tunneled' in network_metadata:
         required_tunnel = network_metadata.tunneled
 
@@ -2062,8 +2198,12 @@ def _numa_cells_support_network_metadata(
 
 
 def numa_fit_instance_to_host(
-        host_topology, instance_topology, limits=None,
-        pci_requests=None, pci_stats=None):
+    host_topology: 'objects.NUMATopology',
+    instance_topology: 'objects.InstanceNUMATopology',
+    limits: ty.Optional['objects.NUMATopologyLimit'] = None,
+    pci_requests: ty.Optional['objects.InstancePCIRequests'] = None,
+    pci_stats: ty.Optional[stats.PciDeviceStats] = None,
+):
     """Fit the instance topology onto the host topology.
 
     Given a host, instance topology, and (optional) limits, attempt to
@@ -2108,15 +2248,15 @@ def numa_fit_instance_to_host(
     # devices attached. Presence of a given numa_node in a PCI pool is
     # indicative of a PCI device being associated with that node
     if not pci_requests and pci_stats:
+        # TODO(stephenfin): pci_stats can't be None here but mypy can't figure
+        # that out for some reason
         host_cells = sorted(host_cells, key=lambda cell: cell.id in [
-            pool['numa_node'] for pool in pci_stats.pools])
+            pool['numa_node'] for pool in pci_stats.pools])  # type: ignore
 
-    # TODO(ndipanov): We may want to sort permutations differently
-    # depending on whether we want packing/spreading over NUMA nodes
     for host_cell_perm in itertools.permutations(
             host_cells, len(instance_topology)):
-        chosen_instance_cells = []
-        chosen_host_cells = []
+        chosen_instance_cells: ty.List['objects.InstanceNUMACell'] = []
+        chosen_host_cells: ty.List['objects.NUMACell'] = []
         for host_cell, instance_cell in zip(
                 host_cell_perm, instance_topology.cells):
             try:
@@ -2166,14 +2306,14 @@ def numa_get_reserved_huge_pages():
 
     :raises: exception.InvalidReservedMemoryPagesOption when
              reserved_huge_pages option is not correctly set.
-    :returns: a list of dict ordered by NUMA node ids; keys of dict
+    :returns: A dict of dicts keyed by NUMA node IDs; keys of child dict
               are pages size and values of the number reserved.
     """
     if not CONF.reserved_huge_pages:
         return {}
 
     try:
-        bucket = collections.defaultdict(dict)
+        bucket: ty.Dict[int, ty.Dict[int, int]] = collections.defaultdict(dict)
         for cfg in CONF.reserved_huge_pages:
             try:
                 pagesize = int(cfg['size'])
@@ -2241,23 +2381,10 @@ def numa_usage_from_instance_numa(host_topology, instance_topology,
         memory_usage = host_cell.memory_usage
         shared_cpus_usage = host_cell.cpu_usage
 
-        # The 'pcpuset' field is only set by newer compute nodes, so if it's
-        # not present then we've received this object from a pre-Train compute
-        # node and need to dual-report all CPUS listed therein as both
-        # dedicated and shared until the compute node has been upgraded and
-        # starts reporting things properly.
-        # TODO(stephenfin): Remove in U
-        if 'pcpuset' not in host_cell:
-            shared_cpus = host_cell.cpuset
-            dedicated_cpus = host_cell.cpuset
-        else:
-            shared_cpus = host_cell.cpuset
-            dedicated_cpus = host_cell.pcpuset
-
         new_cell = objects.NUMACell(
             id=host_cell.id,
-            cpuset=shared_cpus,
-            pcpuset=dedicated_cpus,
+            cpuset=host_cell.cpuset,
+            pcpuset=host_cell.pcpuset,
             memory=host_cell.memory,
             cpu_usage=0,
             memory_usage=0,
@@ -2277,14 +2404,19 @@ def numa_usage_from_instance_numa(host_topology, instance_topology,
 
             memory_usage = memory_usage + sign * instance_cell.memory
 
-            if not instance_cell.cpu_pinning_requested:
-                shared_cpus_usage += sign * len(instance_cell.cpuset)
+            shared_cpus_usage += sign * len(instance_cell.cpuset)
+
+            if instance_cell.cpu_policy in (
+                None, fields.CPUAllocationPolicy.SHARED,
+            ):
                 continue
 
             pinned_cpus = set(instance_cell.cpu_pinning.values())
             if instance_cell.cpuset_reserved:
                 pinned_cpus |= instance_cell.cpuset_reserved
 
+            # TODO(stephenfin): Remove the '_with_siblings' variants when we
+            # drop support for 'vcpu_pin_set' since they will then be no-ops
             if free:
                 if (instance_cell.cpu_thread_policy ==
                         fields.CPUThreadAllocationPolicy.ISOLATE):
