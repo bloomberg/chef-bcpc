@@ -61,6 +61,16 @@ vendordata_dynamic_targets = <%= node['bcpc']['nova']['vendordata']['name'] %>@h
 vendordata_providers = DynamicJSON,StaticJSON
 <% end -%>
 
+[service_user]
+send_service_user_token = true
+auth_type = password
+auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
+project_domain_name = Default
+user_domain_name = Default
+project_name = service
+username = <%= @config['cinder']['creds']['os']['username'] %>
+password = <%= @config['cinder']['creds']['os']['password'] %>
+
 [keystone_authtoken]
 auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 auth_url = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:35357/" %>
@@ -71,6 +81,8 @@ project_domain_name = Default
 user_domain_name = Default
 username = <%= @config['nova']['creds']['os']['username'] %>
 password = <%= @config['nova']['creds']['os']['password'] %>
+service_token_roles = Admin
+service_token_roles_required = True
 
 [api_database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}_api" %>
