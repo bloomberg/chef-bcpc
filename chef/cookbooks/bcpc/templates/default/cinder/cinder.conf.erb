@@ -66,7 +66,7 @@ user_domain_name = Default
 project_name = service
 username = <%= @config['cinder']['creds']['os']['username'] %>
 password = <%= @config['cinder']['creds']['os']['password'] %>
-service_token_roles = Admin
+service_token_roles = admin
 service_token_roles_required = True
 
 <% @backends.each do |backend| %>
