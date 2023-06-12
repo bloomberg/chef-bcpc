@@ -29,9 +29,9 @@ all : \
 	configure-ceph \
 	add-cloud-images \
 	register-compute-nodes \
-	enable-compute-service \
 	configure-host-aggregates \
 	configure-licenses \
+	enable-compute-service \
 	print-success-banner
 
 create: create-virtual-network create-virtual-hosts
