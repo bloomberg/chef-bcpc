@@ -46,16 +46,6 @@ lock_path = /var/lock/cinder
 [oslo_policy]
 policy_dirs = policy.d
 
-[service_user]
-send_service_user_token = true
-auth_type = password
-auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
-project_domain_name = Default
-user_domain_name = Default
-project_name = service
-username = <%= @config['cinder']['creds']['os']['username'] %>
-password = <%= @config['cinder']['creds']['os']['password'] %>
-
 [keystone_authtoken]
 www_authenticate_uri = <%= "https://#{node['bcpc']['cloud']['fqdn']}:5000" %>
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>
@@ -66,8 +56,6 @@ user_domain_name = Default
 project_name = service
 username = <%= @config['cinder']['creds']['os']['username'] %>
 password = <%= @config['cinder']['creds']['os']['password'] %>
-service_token_roles = Admin
-service_token_roles_required = True
 
 <% @backends.each do |backend| %>
 [<%= backend['name'] %>]
