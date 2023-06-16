@@ -246,6 +246,22 @@ end
 #
 # create/manage neutron database ends
 
+# Add patch missing from Calico v3.26.0
+if platform?('ubuntu')
+  if node['platform_version'] == '18.04'
+    dist_packages = '/usr/lib/python3.6/dist-packages'
+  elsif node['platform_version'] == '20.04'
+    dist_packages = '/usr/lib/python3.8/dist-packages'
+  elsif node['platform_version'] == '22.04'
+    dist_packages = '/usr/lib/python3.10/dist-packages'
+  end
+end
+
+cookbook_file "#{dist_packages}/networking_calico/plugins/ml2/drivers/calico/mech_calico.py" do
+  source 'calico/mech_calico.py'
+  notifies :restart, 'service[neutron-server]', :immediately
+end
+
 # configure neutron starts
 #
 
