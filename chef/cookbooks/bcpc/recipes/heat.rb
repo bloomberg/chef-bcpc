@@ -17,9 +17,6 @@
 
 return unless node['bcpc']['heat']['enabled']
 
-package 'python3-vitrageclient'
-package 'python3-zunclient'
-
 region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 
