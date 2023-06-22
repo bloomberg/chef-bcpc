@@ -342,7 +342,7 @@ def _update_vif_xml(xml_doc, migrate_data, get_vif_config):
     # MAC address stored for port in neutron DB and in domain XML
     # might be in different cases, so to harmonize that
     # we convert MAC to lower case for dict key.
-    migrate_vif_by_mac = {vif.source_vif['address']: vif
+    migrate_vif_by_mac = {vif.source_vif['address'].lower(): vif
                           for vif in migrate_data.vifs}
     for interface_dev in interface_nodes:
         mac = interface_dev.find('mac')
@@ -353,7 +353,7 @@ def _update_vif_xml(xml_doc, migrate_data, get_vif_config):
             # and stored in lower case. But just to be extra safe here
             # we still normalize MAC retrieved from XML to be absolutely
             # sure it will be the same with the Neutron provided one.
-            migrate_vif = migrate_vif_by_mac[mac_addr]
+            migrate_vif = migrate_vif_by_mac[mac_addr.lower()]
             vif = migrate_vif.get_dest_vif()
             # get_vif_config is a partial function of
             # nova.virt.libvirt.vif.LibvirtGenericVIFDriver.get_config

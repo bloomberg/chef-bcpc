@@ -104,6 +104,7 @@ def get_hooks(model):
 
 def _prep_query_with_hooks(context, model, field):
     """Prepares a SQLalchemy query for use with query_with_hooks.
+
     :param context: The context to use for the DB session.
     :param model: The model to query.
     :param field: The column.
@@ -119,7 +120,8 @@ def _prep_query_with_hooks(context, model, field):
     return context.session.query(model)
 
 
-def query_with_hooks(context, model, field=None, hoisted_filters=None, lazy_fields=None):
+def query_with_hooks(context, model, field=None, lazy_fields=None,
+                     hoisted_filters=None):
     """Query with hooks using the said context and model.
 
     :param context: The context to use for the DB session.
@@ -158,7 +160,7 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None, lazy_fiel
         filter_hook = helpers.resolve_ref(hook.get('filter'))
         if filter_hook:
             query_filter = filter_hook(context, model, query_filter)
-        
+
         filter_hook = helpers.resolve_ref(hook.get('rbac_filter'))
         if filter_hook:
             rbac_query_filter = filter_hook(context, model, rbac_query_filter)
@@ -172,12 +174,12 @@ def query_with_hooks(context, model, field=None, hoisted_filters=None, lazy_fiel
             # translate a filter on shared into a query against the
             # object's rbac entries
             rbac = model.rbac_entries.property.mapper.class_
-            matches = [rbac.target_tenant == '*']
+            matches = [rbac.target_project == '*']
             if context:
-                matches.append(rbac.target_tenant == context.tenant_id)
+                matches.append(rbac.target_project == context.tenant_id)
             # any 'access_as_shared' records that match the
             # wildcard or requesting tenant
-            is_shared = and_(rbac.action == 'access_as_shared',
+            is_shared = and_(rbac.action == constants.ACCESS_SHARED,
                              or_(*matches))
             if not value[0]:
                 # NOTE(kevinbenton): we need to find objects that don't
@@ -320,7 +322,8 @@ def get_collection_query(context, model, filters=None, sorts=None, limit=None,
     :returns: A paginated query for the said model.
     """
     collection = query_with_hooks(context, model, field=field,
-                                  hoisted_filters=filters, lazy_fields=lazy_fields)
+                                  lazy_fields=lazy_fields,
+                                  hoisted_filters=filters)
     collection = apply_filters(collection, model, filters, context)
     if sorts:
         sort_keys = db_utils.get_and_validate_sort_keys(sorts, model)
@@ -384,8 +387,8 @@ def get_collection(context, model, dict_func,
 
 
 def get_values(context, model, field, filters=None):
-    query = query_with_hooks(context, model, field=field, hoisted_filters=filters)
-    query = apply_filters(query, model, filters, context)
+    query = query_with_hooks(context, model, field=field,
+                             hoisted_filters=filters)
     return [c[0] for c in query]
 
 
