@@ -30,7 +30,7 @@
                                | map(attribute='path')
                                | map('basename')
                                | map('regex_replace', '\\.ko$', '')
-                               | list }}"
+                               | list | sort }}"
 
 - name: Disable EDAC controllers
   block:
