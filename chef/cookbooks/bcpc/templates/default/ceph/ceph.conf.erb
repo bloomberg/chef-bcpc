@@ -86,22 +86,6 @@ bluefs buffered io = true
 # have landed on the new release and tested mClock sufficiently.
 osd op queue = wpq
 
-# "fast" OSD shutdown, which is just an abrupt stop of the OSD instead of a
-# "clean" stop, is a default feature of new Cephs. The mechanism bizzarely
-# provides no notice ot the mon that the OSD is being stopped, and thus
-# relies on timeouts, etc. to tear things down by default.
-#
-# This, implemented as is, results in seconds of I/O latency when OSDs stop:
-# particularly on large clusters, which have the clog flooded with notices
-# pertaining to unexpected death of an OSD.
-#
-# In order to resolve the latency issues associated with this, we instead
-# notify the mon that we're shutting down (with haste) so that it's not quite
-# so brutal. Though, we still abruptly stop.
-#
-# This is the default in Quincy, so we remove this once we land on it.
-osd fast shutdown notify mon = true
-
 <% @rbd_users.each do |user| %>
 <%= "[client.#{user}]" %>
 rbd cache = true
