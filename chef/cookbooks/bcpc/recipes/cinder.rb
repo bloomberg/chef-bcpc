@@ -374,71 +374,46 @@ end
 
 # cinder qos 
 node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
+  ruby_block "create a qos for the volume type #{volume_type['name']}" do
+    block do
+      # create a qos
+      qos_name = "#{volume_type['name']}-qos"
+      qos_create_opts = []
 
-  # create a qos
-  execute "create qos" do
-    # construct openstack command based on the qos attributes
-    qos_name = "#{volume_type['name']}-qos"
-    qos_create_opts = []
-
-    # Iterate over each key and value in the limits
-    # construct openstack argument
-    # add it to qos_create_opts
-    volume_type.fetch('limits', []).each do |key, value|
-      qos_create_opts.push("--property #{key}=#{value}")
-    end
-
-    # execute the openstack command
-    environment os_adminrc
-    retries 3
-    command <<-DOC
-      openstack volume qos create \
+      volume_type.fetch('limits', []).each do |key, value|
+        qos_create_opts.push("--property #{key}=#{value}")
+      end
+    
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      os_command = "openstack volume qos create \
         #{qos_create_opts.join(' ')} \
-        #{qos_name}
-    DOC
-    only_if { node['bcpc']['cinder']['qos']['enabled'] }
-  end
+        #{qos_name}"
+      os_command_out = shell_out(os_command, env: os_adminrc)
 
-  # associate qos to the volume type
-  execute "associate qos to the volume type #{volume_type['name']}" do
-    qos_name = "#{volume_type['name']}-qos"
-
-    environment os_adminrc
-    retries 3
-    command <<-DOC
-      openstack volume qos associate \
+      # associate the qos to the volume type
+      os_command = "openstack volume qos associate \
         #{qos_name} \
-        #{volume_type['name']}
-    DOC
+        #{volume_type['name']}"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+    end
     only_if { node['bcpc']['cinder']['qos']['enabled'] }
   end
 
-  # disassociate the qos from the volume type
-  execute "disassociate qos from the volume type #{volume_type['name']}" do
+  ruby_block 'clean up the qos' do
     qos_name = "#{volume_type['name']}-qos"
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
 
-    environment os_adminrc
-    retries 3
-    command <<-DOC
-      openstack volume qos disassociate \
+      # disassociate the qos from the volume type
+      os_command = "openstack volume qos disassociate \
         --volume-type #{volume_type['name']} \
-        #{qos_name}
-    DOC
-    not_if { node['bcpc']['cinder']['qos']['enabled'] }
-    only_if <<-DOC
-      openstack volume qos show #{qos_name}
-    DOC
-  end
+        #{qos_name}"
+      os_command_out = shell_out(os_command, env: os_adminrc)
 
-  # delete the qos
-  execute "delete the qos" do
-    qos_name = "#{volume_type['name']}-qos"
-
-    environment os_adminrc
-    retries 3
-    command <<-DOC
-      openstack volume qos delete #{qos_name}
-    DOC
+      # delete the qos
+      os_command = "openstack volume qos delete #{qos_name}"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+    end
     not_if { node['bcpc']['cinder']['qos']['enabled'] }
     only_if <<-DOC
       openstack volume qos show #{qos_name}
