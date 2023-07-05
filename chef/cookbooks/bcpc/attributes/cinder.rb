@@ -19,6 +19,7 @@ default['bcpc']['cinder']['quota'] = {
   'snapshots' => 10,
   'gigabytes' => 1000,
 }
+default['bcpc']['cinder']['qos']['enabled'] = false
 
 # ceph (rbd)
 default['bcpc']['cinder']['ceph']['user'] = 'cinder'
