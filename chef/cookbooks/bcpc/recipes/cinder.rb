@@ -374,9 +374,9 @@ end
 
 # cinder qos 
 node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
-  ruby_block "create a qos for the volume type #{volume_type['name']}" do
+  ruby_block "create a qos policy for the volume type #{volume_type['name']}" do
     block do
-      # create a qos
+      # create a qos policy
       qos_name = "#{volume_type['name']}-qos"
       qos_create_opts = []
 
@@ -385,35 +385,50 @@ node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
       end
     
       Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
-      os_command = "openstack volume qos create \
-        #{qos_create_opts.join(' ')} \
-        #{qos_name}"
-      os_command_out = shell_out(os_command, env: os_adminrc)
+      cmd = "openstack volume qos show #{qos_name}"
+      cmd_out = shell_out(cmd, env: os_adminrc)
 
-      # associate the qos to the volume type
-      os_command = "openstack volume qos associate \
+      if cmd_out.error?
+        cmd = "openstack volume qos create \
+          #{qos_create_opts.join(' ')} \
+          #{qos_name}"
+        cmd_out = shell_out(cmd, env: os_adminrc)
+
+        raise "unable to create a qos policy" if cmd_out.error?
+      end
+
+      # associate the qos policy to the volume type
+      cmd = "openstack volume qos associate \
         #{qos_name} \
         #{volume_type['name']}"
-      os_command_out = shell_out(os_command, env: os_adminrc)
+      cmd_out = shell_out(cmd, env: os_adminrc)
+
+      raise "unable to associate the qos policy" if cmd_out.error?
     end
+
     only_if { node['bcpc']['cinder']['qos']['enabled'] }
   end
 
-  ruby_block 'clean up the qos' do
+  ruby_block 'clean up the qos policy' do
     qos_name = "#{volume_type['name']}-qos"
     block do
       Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
 
-      # disassociate the qos from the volume type
-      os_command = "openstack volume qos disassociate \
+      # disassociate the qos policy from the volume type
+      cmd = "openstack volume qos disassociate \
         --volume-type #{volume_type['name']} \
         #{qos_name}"
-      os_command_out = shell_out(os_command, env: os_adminrc)
+      cmd_out = shell_out(cmd, env: os_adminrc)
 
-      # delete the qos
-      os_command = "openstack volume qos delete #{qos_name}"
-      os_command_out = shell_out(os_command, env: os_adminrc)
+      raise "unable to disassociate the qos policy" if cmd_out.error?
+
+      # delete the qos policy
+      cmd = "openstack volume qos delete #{qos_name}"
+      cmd_out = shell_out(cmd, env: os_adminrc)
+
+      raise "unable to delete the qos policy" if cmd_out.error?
     end
+
     not_if { node['bcpc']['cinder']['qos']['enabled'] }
     only_if <<-DOC
       openstack volume qos show #{qos_name}
