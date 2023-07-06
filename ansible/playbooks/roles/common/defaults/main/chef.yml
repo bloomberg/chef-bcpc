@@ -114,6 +114,7 @@ chef_roles:
     run_list:
       - recipe[bcpc::default]
       - recipe[bcpc::ssl]
+      - recipe[bcpc::apparmor]
       - recipe[bcpc::cloud-archive]
       - recipe[bcpc::postfix]
       - recipe[bcpc::common-packages]
