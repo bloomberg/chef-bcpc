@@ -376,40 +376,42 @@ end
 node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
   ruby_block "create a qos policy for the volume type #{volume_type['name']}" do
     block do
-      # create a qos policy
       qos_name = "#{volume_type['name']}-qos"
-      qos_create_opts = []
-
-      volume_type.fetch('limits', []).each do |key, value|
-        qos_create_opts.push("--property #{key}=#{value}")
-      end
-
+      
       Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      # check if the qos policy already exists
       cmd = "openstack volume qos show #{qos_name}"
       cmd_out = shell_out(cmd, env: os_adminrc)
 
       if cmd_out.error?
+        # create a qos policy
+        qos_create_opts = []
+
+        volume_type.fetch('limits', []).each do |key, value|
+          qos_create_opts.push("--property #{key}=#{value}")
+        end
+
         cmd = "openstack volume qos create \
           #{qos_create_opts.join(' ')} \
           #{qos_name}"
         cmd_out = shell_out(cmd, env: os_adminrc)
 
         raise 'unable to create a qos policy' if cmd_out.error?
+
+        # associate the qos policy to the volume type
+        cmd = "openstack volume qos associate \
+          #{qos_name} \
+          #{volume_type['name']}"
+        cmd_out = shell_out(cmd, env: os_adminrc)
+
+        raise 'unable to associate the qos policy' if cmd_out.error?
       end
-
-      # associate the qos policy to the volume type
-      cmd = "openstack volume qos associate \
-        #{qos_name} \
-        #{volume_type['name']}"
-      cmd_out = shell_out(cmd, env: os_adminrc)
-
-      raise 'unable to associate the qos policy' if cmd_out.error?
     end
 
     only_if { node['bcpc']['cinder']['qos']['enabled'] }
   end
 
-  ruby_block 'clean up the qos policy' do
+  ruby_block "delete the qos policy on the volume type #{volume_type['name']}" do
     qos_name = "#{volume_type['name']}-qos"
     block do
       Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
