@@ -372,7 +372,7 @@ cinder_config.backends.each do |backend|
   end
 end
 
-# cinder qos 
+# cinder qos
 node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
   ruby_block "create a qos policy for the volume type #{volume_type['name']}" do
     block do
@@ -383,7 +383,7 @@ node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
       volume_type.fetch('limits', []).each do |key, value|
         qos_create_opts.push("--property #{key}=#{value}")
       end
-    
+
       Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
       cmd = "openstack volume qos show #{qos_name}"
       cmd_out = shell_out(cmd, env: os_adminrc)
@@ -394,7 +394,7 @@ node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
           #{qos_name}"
         cmd_out = shell_out(cmd, env: os_adminrc)
 
-        raise "unable to create a qos policy" if cmd_out.error?
+        raise 'unable to create a qos policy' if cmd_out.error?
       end
 
       # associate the qos policy to the volume type
@@ -403,7 +403,7 @@ node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
         #{volume_type['name']}"
       cmd_out = shell_out(cmd, env: os_adminrc)
 
-      raise "unable to associate the qos policy" if cmd_out.error?
+      raise 'unable to associate the qos policy' if cmd_out.error?
     end
 
     only_if { node['bcpc']['cinder']['qos']['enabled'] }
@@ -420,13 +420,13 @@ node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
         #{qos_name}"
       cmd_out = shell_out(cmd, env: os_adminrc)
 
-      raise "unable to disassociate the qos policy" if cmd_out.error?
+      raise 'unable to disassociate the qos policy' if cmd_out.error?
 
       # delete the qos policy
       cmd = "openstack volume qos delete #{qos_name}"
       cmd_out = shell_out(cmd, env: os_adminrc)
 
-      raise "unable to delete the qos policy" if cmd_out.error?
+      raise 'unable to delete the qos policy' if cmd_out.error?
     end
 
     not_if { node['bcpc']['cinder']['qos']['enabled'] }
