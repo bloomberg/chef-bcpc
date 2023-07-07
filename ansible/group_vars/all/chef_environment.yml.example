@@ -27,6 +27,28 @@ chef_environment:
         ceph:
           pool:
             size: 2
+        qos:
+          enabled: true
+          volume_types:
+            - name: ceph
+              limits:
+                # for fixed iops per volume
+                read_iops_sec: 1000000
+                write_iops_sec: 1000000
+                total_iops_sec:
+                # for burst iops per volume
+                read_iops_sec_max:
+                write_iops_sec_max:
+                # for fixed bandwidth per volume
+                read_bytes_sec:
+                write_bytes_sec:
+                total_bytes_sec:
+                # for burst bandwidth per volume
+                read_bytes_sec_max:
+                write_bytes_sec_max:
+                total_bytes_sec_max:
+                # for burst bucket size:
+                size_iops_sec:
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
