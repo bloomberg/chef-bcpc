@@ -160,6 +160,7 @@ enable_isolated_aggregate_filtering = true
 <% unless node['bcpc']['openstack']['services']['workers'].nil? %>
 workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end%>
+query_placement_for_availability_zone = false
 
 <% if @is_headnode -%>
 [filter_scheduler]
