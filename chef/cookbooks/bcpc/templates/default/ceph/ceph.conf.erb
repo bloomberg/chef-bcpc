@@ -67,12 +67,13 @@ osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 # bluestore tuning
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
 
-# As of Octopus 15.2.12, the AVL block allocator can degrade performance
-# when OSDs have fragmentated blocks, especially so when high IOP flash media
-# backs bluestore.  Use bitmap allocators at the expense of memory consumption
-# to avoid degrading I/O performance in such cases.
-bluefs_allocator = bitmap
-bluestore_allocator = bitmap
+# In Quincy 17.2.5, the bitmap (and by extension, hybrid when it falls back to
+# bitmap internally) allocators can have tremendous p99_* latency degredation
+# when they have to scan L0 tables. The AVL allocator uses a bit more memory,
+# but is much more consistent in the worst case since the bluestore_avl_alloc_
+# ff_max_* options were added.
+bluefs_allocator = avl
+bluestore_allocator = avl
 
 # Although 'bluefs buffered io' is default on (again) in Octopus 15.2.13,
 # it has a history of being flipped on/off.  It provides a large performance
