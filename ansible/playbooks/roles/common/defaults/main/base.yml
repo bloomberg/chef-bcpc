@@ -157,6 +157,8 @@ web_server_assets:
   - file_asset: consul
   - file_asset: etcd3gw
   - file_asset: ceph-deploy
+  - file_asset: apparmor
+  - file_asset: libapparmor1
 
 # all web server file assets
 all_web_server_assets: "{{ web_server_assets +
@@ -223,6 +225,20 @@ assets_files:
     url: http://mirrors.kernel.org/ubuntu/pool/universe/c/ceph-deploy/ceph-deploy_2.0.1-0ubuntu1_all.deb
     checksum: sha256:6ecd4769dbe3d65ff114f458f60840b976cb73873f7e825987613f929ffed911
     filename: ceph-deploy_2.0.1-0ubuntu1_all.deb
+    environment: "{{ internet_proxy | default({}) }}"
+
+  # Remove this until when we have a new tested baseline
+  # https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1964636
+  - name: apparmor
+    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/apparmor_2.13.3-7ubuntu5.2_amd64.deb
+    checksum: sha256:a377c3ac00ea9d008f55299ff97e88d7199ea127c2f70195ba506c8273cfa7c9
+    filename: apparmor_2.13.3-7ubuntu5.2_amd64.deb
+    environment: "{{ internet_proxy | default({}) }}"
+
+  - name: libapparmor1
+    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/libapparmor1_2.13.3-7ubuntu5.2_amd64.deb
+    checksum: sha256:ada0314841a62b200c96228b25ad0bfb7c4d6bf23906d4467ce2d8afb9f31606
+    filename: libapparmor1_2.13.3-7ubuntu5.2_amd64.deb
     environment: "{{ internet_proxy | default({}) }}"
 
 # all file assets
