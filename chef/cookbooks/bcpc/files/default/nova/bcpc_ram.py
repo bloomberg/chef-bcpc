@@ -24,7 +24,7 @@ hypervisor). Only after this point are allocations spread evenly.
 For heterogeneous clusters geared around performance, this behavior is likely
 suboptimal. This modified weigher spreads allocations unconditionally by
 normalizing the weight to the range [0,1] according to the capabilities of this
-specific hypervisor.
+specific hypervisor. The amount of memory used by the guest is also weighed in.
 """
 
 import nova.conf
@@ -45,4 +45,5 @@ class BCPCRAMWeigher(weights.BaseHostWeigher):
 
     def _weigh_object(self, host_state, weight_properties):
         """Higher weights win.  We want spreading to be the default."""
-        return host_state.free_ram_mb / float(host_state.total_usable_ram_mb)
+        free_ram = host_state.free_ram_mb - weight_properties.flavor.memory_mb
+        return free_ram / float(host_state.total_usable_ram_mb)
