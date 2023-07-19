@@ -26,13 +26,21 @@ For heterogeneous clusters geared around performance, this behavior is likely
 suboptimal. This modified weigher spreads allocations unconditionally by
 normalizing the weight to the range [0,1] according to the capabilities of this
 specific hypervisor.
+
+To account for overloads that may result after scheduling a VM, the guest
+properties are also weighed. This way an overloaded hypervisor will return a
+negative weight. Also to make the spread more even, the CPU idle percentage is
+plugged in the weight.
 """
 
 import nova.conf
 from nova.scheduler import utils
 from nova.scheduler import weights
+from oslo_log import log as logging
 
 CONF = nova.conf.CONF
+
+LOG = logging.getLogger(__name__)
 
 
 class BCPCCPUWeigher(weights.BaseHostWeigher):
@@ -44,7 +52,39 @@ class BCPCCPUWeigher(weights.BaseHostWeigher):
             host_state, 'cpu_weight_multiplier',
             CONF.filter_scheduler.cpu_weight_multiplier)
 
+    def _get_cpu_idle(self, host_state):
+        """Extract CPU idle percentage from host metrics."""
+        for metric in host_state.metrics.to_list():
+            if metric['name'] == 'cpu.idle.percent':
+                return metric['value']
+
+        LOG.warning("Host %s has `cpu.idle.percent` missing.", host_state.host)
+        return 1
+
     def _weigh_object(self, host_state, weight_properties):
         """Higher weights win.  We want spreading to be the default."""
         vcpus_total = host_state.vcpus_total * host_state.cpu_allocation_ratio
-        return 1 - (float(host_state.vcpus_used) / vcpus_total)
+        # The number of vCPUs that will be used on the host (VM included)
+        used_vcpus = host_state.vcpus_used + weight_properties.flavor.vcpus
+        cpu_idle = self._get_cpu_idle(host_state)
+
+        # Compute the average usage of every current vCPU
+        average_usage = 0
+        if host_state.vcpus_used > 0:
+            average_usage = (1 - cpu_idle) / host_state.vcpus_used
+
+        # Assume the VM will use the average value for each requested vCPU
+        new_idle = 1 - average_usage * used_vcpus
+        # Percentage of vCPUs used after scheduling (future state)
+        free_percentage = 1 - float(used_vcpus) / vcpus_total
+
+        weight = free_percentage
+        if free_percentage > 0:
+            weight = free_percentage * new_idle
+        elif new_idle > 0:
+            # When the CPU is overloaded the free percentage is negative.
+            # To prevent the weight from growing when the idle time is lower,
+            # the reverse if the idle percentage is used.
+            weight = free_percentage * (1 / new_idle)
+
+        return weight
