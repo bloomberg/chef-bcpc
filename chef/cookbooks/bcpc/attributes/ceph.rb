@@ -89,16 +89,7 @@ default['bcpc']['ceph']['osd_memory_target'] = 8589934592
 default['bcpc']['ceph']['mon_osd_down_out_interval'] = 300
 
 # BlueStore tuning
-default['bcpc']['ceph']['bluestore_rocksdb_options'] = [
-  'compression=kNoCompression',
-  'max_write_buffer_number=4',
-  'min_write_buffer_number_to_merge=1',
-  'recycle_log_file_num=4',
-  'write_buffer_size=268435456',
-  'writable_file_max_buffer_size=0',
-  'compaction_readahead_size=2097152',
-  'max_background_compactions=4',
-]
+default['bcpc']['ceph']['bluestore_rocksdb_options'] = nil
 
 # Set RBD default feature set to only include layering and
 # deep-flatten. Other values (in particular, exclusive-lock) may prevent

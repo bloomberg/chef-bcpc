@@ -65,7 +65,9 @@ osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority']
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 
 # bluestore tuning
+<% unless node['bcpc']['ceph']['bluestore_rocksdb_options'].nil? %>
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
+<% end %>
 
 # As of Octopus 15.2.12, the AVL block allocator can degrade performance
 # when OSDs have fragmentated blocks, especially so when high IOP flash media
