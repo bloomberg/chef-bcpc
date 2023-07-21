@@ -85,7 +85,7 @@ default['bcpc']['ceph']['osd_max_scrubs'] = 1
 default['bcpc']['ceph']['osd_deep_scrub_interval'] = 2592000
 default['bcpc']['ceph']['osd_scrub_max_interval'] = 604800
 default['bcpc']['ceph']['osd_scrub_sleep'] = 0.05
-default['bcpc']['ceph']['osd_memory_target'] = 6442450944
+default['bcpc']['ceph']['osd_memory_target'] = 8589934592
 default['bcpc']['ceph']['mon_osd_down_out_interval'] = 300
 
 # BlueStore tuning
