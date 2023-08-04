@@ -217,6 +217,59 @@ if required_image['enabled']
   end
 end
 
+# Add code for server system metadata APIs
+
+system_medata_apis = node['bcpc']['nova']['server_system_metadata_apis']
+if system_medata_apis['enabled']
+  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/routes.py' do
+    source 'nova/api_routes.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/schemas/server_system_metadata.py' do
+    source 'nova/server_system_metadata_schema.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/server_system_metadata.py' do
+    source 'nova/server_system_metadata_api.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/compute/api.py' do
+    source 'nova/compute_api.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/db/main/api.py' do
+    source 'nova/db_main_api.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/objects/instance.py' do
+    source 'nova/instance.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/__init__.py' do
+    source 'nova/policies_init.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+
+  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/server_system_metadata.py' do
+    source 'nova/policy_server_system_metadata.py'
+    notifies :run, 'execute[py3compile-nova]', :delayed
+    notifies :restart, 'service[nova-api]', :delayed
+  end
+end
+
 # not-yet-upstreamed bugfixes for the CPU and RAM weighers
 cookbook_file '/usr/lib/python3/dist-packages/nova/scheduler/weights/bcpc_cpu.py' do
   source 'nova/bcpc_cpu.py'
