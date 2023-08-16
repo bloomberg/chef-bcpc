@@ -33,7 +33,7 @@ remote_file 'install calicoctl' do
 end
 
 repo = node['bcpc']['calico']['repo']
-codename = node['lsb']['codename'] == 'jammy' ? 'focal' : node['lsb']['codename']
+codename = node['lsb']['codename']
 
 apt_repository 'calico' do
   uri repo['url']

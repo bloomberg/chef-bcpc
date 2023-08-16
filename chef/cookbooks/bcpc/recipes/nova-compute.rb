@@ -39,6 +39,7 @@ package %w(
   nova-api-metadata
   ovmf
   pm-utils
+  qemu-block-extra
   sysfsutils
 ) do
   options '--no-install-recommends'
