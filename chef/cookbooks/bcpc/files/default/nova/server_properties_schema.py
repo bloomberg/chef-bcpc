@@ -18,7 +18,7 @@ from nova.api.validation import parameter_types
 update = {
     'type': 'object',
     'properties': {
-        'optimizations': {
+        'properties': {
             'type': 'object',
             'properties': {
                 'os_type': parameter_types.name_or_none
@@ -26,6 +26,6 @@ update = {
             'additionalProperties': False,
         },
     },
-    'required': ['optimizations'],
+    'required': ['properties'],
     'additionalProperties': False,
 }

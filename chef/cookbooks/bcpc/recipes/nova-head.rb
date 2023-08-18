@@ -383,20 +383,20 @@ if extended_apis['enabled']
     notifies :restart, 'service[nova-api]', :delayed
   end
 
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/schemas/server_optimizations.py' do
-    source 'nova/server_optimizations_schema.py'
+  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/schemas/server_properties.py' do
+    source 'nova/server_properties_schema.py'
     notifies :run, 'execute[py3compile-nova]', :delayed
     notifies :restart, 'service[nova-api]', :delayed
   end
 
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/server_optimizations.py' do
-    source 'nova/server_optimizations_api.py'
+  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/server_properties.py' do
+    source 'nova/server_properties_api.py'
     notifies :run, 'execute[py3compile-nova]', :delayed
     notifies :restart, 'service[nova-api]', :delayed
   end
 
-  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/server_optimizations.py' do
-    source 'nova/server_optimizations_policy.py'
+  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/server_properties.py' do
+    source 'nova/server_properties_policy.py'
     notifies :run, 'execute[py3compile-nova]', :delayed
     notifies :restart, 'service[nova-api]', :delayed
   end

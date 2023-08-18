@@ -18,17 +18,17 @@ from oslo_policy import policy
 from nova.policies import base
 
 
-POLICY_ROOT = 'os_compute_api:server-optimizations:%s'
+POLICY_ROOT = 'os_compute_api:server-properties:%s'
 
 
-server_optimizations_policies = [
+server_properties_policies = [
     policy.DocumentedRuleDefault(
         name=POLICY_ROOT % 'show',
         check_str=base.PROJECT_READER,
-        description="Show optimizations for a server",
+        description="Show properties for a server",
         operations=[
             {
-                'path': '/servers/{server_id}/optimizations/{key}',
+                'path': '/servers/{server_id}/properties/{key}',
                 'method': 'GET'
             }
         ],
@@ -40,7 +40,7 @@ server_optimizations_policies = [
         description="Update an optimization for a server",
         operations=[
             {
-                'path': '/servers/{server_id}/optimizations/{key}',
+                'path': '/servers/{server_id}/properties/{key}',
                 'method': 'PUT'
             }
         ],
@@ -50,4 +50,4 @@ server_optimizations_policies = [
 
 
 def list_rules():
-    return server_optimizations_policies
+    return server_properties_policies

@@ -17,20 +17,20 @@ from webob import exc
 
 from nova.api.openstack import common
 from nova.api.openstack.compute import helpers
-from nova.api.openstack.compute.schemas import server_optimizations
+from nova.api.openstack.compute.schemas import server_properties
 from nova.api.openstack import wsgi
 from nova.api import validation
 from nova.compute import api as compute
 from nova import exception
 from nova.i18n import _
-from nova.policies import server_optimizations as so_policies
+from nova.policies import server_properties as so_policies
 
 
-class ServerOptimizationsController(wsgi.Controller):
+class ServerPropertiesController(wsgi.Controller):
     """The server optimization API controller for the OpenStack API."""
 
     def __init__(self):
-        super(ServerOptimizationsController, self).__init__()
+        super(ServerPropertiesController, self).__init__()
         self.compute_api = compute.API()
 
     @wsgi.expected_errors(404)
@@ -42,10 +42,10 @@ class ServerOptimizationsController(wsgi.Controller):
                     target={'project_id': server.project_id})
 
         opt_value = getattr(server, id) if server.obj_attr_is_set(id) else None
-        return {'optimizations': {id: opt_value}}
+        return {'properties': {id: opt_value}}
 
     @wsgi.expected_errors((400, 403, 404, 409))
-    @validation.schema(server_optimizations.update)
+    @validation.schema(server_properties.update)
     def update(self, req, server_id, id, body):
         """Update server then pass on to version-specific controller."""
 
@@ -56,20 +56,20 @@ class ServerOptimizationsController(wsgi.Controller):
                     target={'user_id': server.user_id,
                             'project_id': server.project_id})
 
-        optimizations = body['optimizations']
-        if id not in optimizations:
+        properties = body['properties']
+        if id not in properties:
             expl = _('Request body and URI mismatch')
             raise exc.HTTPBadRequest(explanation=expl)
-        if 'os_type' in optimizations:
-            update_dict['os_type'] = optimizations['os_type']
+        if 'os_type' in properties:
+            update_dict['os_type'] = properties['os_type']
 
         helpers.translate_attributes(helpers.UPDATE,
-                                     optimizations,
+                                     properties,
                                      update_dict)
         try:
             server = self.compute_api.update_instance(
                 context, server, update_dict)
-            return {'optimizations': {id: getattr(server, id)}}
+            return {'properties': {id: getattr(server, id)}}
         except exception.InstanceNotFound:
             msg = _("Instance could not be found")
             raise exc.HTTPNotFound(explanation=msg)

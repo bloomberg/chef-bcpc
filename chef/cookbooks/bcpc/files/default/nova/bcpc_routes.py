@@ -17,16 +17,16 @@
 import functools
 
 from nova.api.openstack.compute import routes
-from nova.api.openstack.compute import server_optimizations
+from nova.api.openstack.compute import server_properties
 from nova.api.openstack.compute import server_system_metadata
 
 server_system_metadata_controller = functools.partial(
     routes._create_controller,
     server_system_metadata.ServerSystemMetadataController, [])
 
-server_optimizations_controller = functools.partial(
+server_properties_controller = functools.partial(
     routes._create_controller,
-    server_optimizations.ServerOptimizationsController, [])
+    server_properties.ServerPropertiesController, [])
 
 
 class BCPCAPIRouterV21(routes.APIRouterV21):
@@ -50,9 +50,9 @@ class BCPCAPIRouterV21(routes.APIRouterV21):
                 'PUT': [server_system_metadata_controller, 'update'],
                 'DELETE': [server_system_metadata_controller, 'delete'],
             }),
-            ('/servers/{server_id}/optimizations/{id}', {
-                'GET': [server_optimizations_controller, 'show'],
-                'PUT': [server_optimizations_controller, 'update'],
+            ('/servers/{server_id}/properties/{id}', {
+                'GET': [server_properties_controller, 'show'],
+                'PUT': [server_properties_controller, 'update'],
             }),
 
         )
