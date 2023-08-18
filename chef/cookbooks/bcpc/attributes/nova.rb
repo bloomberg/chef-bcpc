@@ -65,7 +65,7 @@ default['bcpc']['nova']['resume_guests_state_on_host_boot'] = false
 default['bcpc']['nova']['default_log_levels'] = nil
 
 # System metadata APIs
-default['bcpc']['nova']['server_system_metadata_apis']['enabled'] = false
+default['bcpc']['nova']['extended_apis']['enabled'] = false
 
 # The loopback address matches what Calico's Felix defaults to for metadata
 default['bcpc']['nova']['metadata']['listen'] = '127.0.0.1'
