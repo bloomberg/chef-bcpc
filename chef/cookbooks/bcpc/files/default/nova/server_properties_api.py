@@ -35,19 +35,22 @@ class ServerPropertiesController(wsgi.Controller):
 
     @wsgi.expected_errors(404)
     def show(self, req, server_id, id):
-        """Returns server details by server id."""
+        """Returns server property by server id."""
         context = req.environ['nova.context']
         server = common.get_instance(self.compute_api, context, server_id)
         context.can(so_policies.POLICY_ROOT % 'show',
                     target={'project_id': server.project_id})
-
-        opt_value = getattr(server, id) if server.obj_attr_is_set(id) else None
+        try:
+            opt_value = getattr(server, id)
+        except AttributeError:
+            msg = _("Attribute could not be found")
+            raise exc.HTTPNotFound(explanation=msg)
         return {'properties': {id: opt_value}}
 
     @wsgi.expected_errors((400, 403, 404, 409))
     @validation.schema(server_properties.update)
     def update(self, req, server_id, id, body):
-        """Update server then pass on to version-specific controller."""
+        """Update server property"""
 
         context = req.environ['nova.context']
         update_dict = {}
