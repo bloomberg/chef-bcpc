@@ -19,6 +19,7 @@ region = node['bcpc']['cloud']['region']
 config = data_bag_item(region, 'config')
 zone_config = ZoneConfig.new(node, region, method(:data_bag_item))
 cinder_config = zone_config.cinder_config
+alternate_backends = cinder_config.alternate_backends
 
 mysqladmin = mysqladmin()
 psqladmin = psqladmin()
@@ -165,6 +166,20 @@ directory '/etc/cinder/policy.d' do
   action :create
 end
 
+# add lightos active/active driver
+if zone_config.alternate_backends_enabled?
+  cookbook_file '/usr/lib/python3/dist-packages/cinder/volume/drivers/lightos.py' do
+    source 'cinder/lightos.py'
+    notifies :run, 'execute[py3compile-cinder]', :immediately
+    notifies :restart, 'service[cinder-volume]', :delayed
+  end
+
+  execute 'py3compile-cinder' do
+    action :nothing
+    command 'py3compile -p python3-cinder'
+  end
+end
+
 # add AccessList filter and update cinder entry_points.txt
 if zone_config.enabled?
   cookbook_file '/usr/lib/python3/dist-packages/cinder/scheduler/filters/access_filter.py' do
@@ -213,7 +228,9 @@ template '/etc/cinder/cinder.conf' do
     backends: cinder_config.backends,
     config: config,
     headnodes: headnodes(all: true),
+    alternate_backends_enabled:  zone_config.alternate_backends_enabled?,
     rmqnodes: rmqnodes(all: true),
+    alternate_backends: cinder_config.alternate_backends,
     scheduler_default_filters: cinder_config.filters
   )
 
@@ -342,8 +359,7 @@ end
 
 cinder_config.backends.each do |backend|
   backend_name = backend['name']
-  create_args = []
-  create_args.append(backend_name)
+  create_args = [].append(backend_name)
 
   if backend['private']
     create_args.append('--private')
@@ -369,6 +385,41 @@ cinder_config.backends.each do |backend|
     DOC
 
     not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
+  end
+end
+
+if zone_config.alternate_backends_enabled?
+  alternate_backends.each do |backend|
+    backend_name = backend['backend_name']
+    backend_properties = backend['volume_type_properties']
+    create_args = [].append(backend_name)
+
+    if backend['private']
+      create_args.append('--private')
+    else
+      create_args.append('--public')
+    end
+
+    execute "create alternate backend type: #{backend_name}" do
+      environment os_adminrc
+      retries 3
+      command <<-EOH
+        openstack volume type create #{create_args.join(' ')}
+      EOH
+      not_if { node.run_state['os_vol_type_props'].key? backend_name }
+    end
+
+    execute "set cinder alternate backend properties for: #{backend_name}" do
+      environment os_adminrc
+      retries 3
+      command <<-DOC
+        openstack volume type set #{backend_name} \
+          --property volume_backend_name=#{backend_name} \
+          #{backend_properties}
+      DOC
+
+      not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
+    end
   end
 end
 

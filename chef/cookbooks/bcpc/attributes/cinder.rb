@@ -26,3 +26,7 @@ default['bcpc']['cinder']['qos']['volume_types'] = []
 default['bcpc']['cinder']['ceph']['user'] = 'cinder'
 default['bcpc']['cinder']['ceph']['pool']['name'] = 'volumes'
 default['bcpc']['cinder']['ceph']['pool']['size'] = 3
+
+# altername backends
+default['bcpc']['cinder']['alternate_backends']['enabled'] = false
+default['bcpc']['cinder']['alternate_backends']['backends'] = []
