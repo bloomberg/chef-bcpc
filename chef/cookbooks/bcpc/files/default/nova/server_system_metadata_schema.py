@@ -1,3 +1,4 @@
+# Copyright 2014 NEC Corporation.
 # Copyright 2023, Bloomberg L.P.
 # All Rights Reserved.
 #

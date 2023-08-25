@@ -1,3 +1,4 @@
+# Copyright 2011 OpenStack Foundation
 # Copyright 2023, Bloomberg L.P.
 # All Rights Reserved.
 #
