@@ -5360,6 +5360,7 @@ class API:
 
         instance.system_metadata = _sys_metadata
         instance.save()
+
         return _sys_metadata
 
     @block_extended_resource_request
