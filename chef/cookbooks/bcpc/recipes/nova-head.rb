@@ -355,15 +355,27 @@ end
 #
 # configure nova ends
 
-cookbook_file '/etc/nova/api-paste.ini' do
-  source 'nova/api-paste.ini'
+# Add code for server system metadata APIs
+extended_apis = node['bcpc']['nova']['extended_apis']
+
+api_router_factory =
+  if extended_apis['enabled']
+    'nova.api.openstack.compute.bcpc:BCPCAPIRouterV21.factory'
+  else
+    'nova.api.openstack.compute:APIRouterV21.factory'
+  end
+
+template '/etc/nova/api-paste.ini' do
+  source 'nova/api-paste.ini.erb'
   mode '0640'
-  notifies :restart, 'service[nova-api]', :immediately
+
+  variables(
+    api_router_factory: api_router_factory
+  )
+
+  notifies :restart, 'service[nova-api]', :delayed
 end
 
-# Add code for server system metadata APIs
-
-extended_apis = node['bcpc']['nova']['extended_apis']
 if extended_apis['enabled']
   directory '/usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc' do
     action :create
@@ -392,14 +404,6 @@ if extended_apis['enabled']
       notifies :run, 'execute[py3compile-nova]', :delayed
       notifies :restart, 'service[nova-api]', :delayed
     end
-  end
-
-  bcpc_api_routes_class =
-    'nova.api.openstack.compute.bcpc:BCPCAPIRouterV21.factory'
-
-  execute 'configure nova-api routes implementation' do
-    command "crudini --set /etc/nova/api-paste.ini 'app:osapi_compute_app_v21' 'paste.app_factory' '#{bcpc_api_routes_class}'"
-    notifies :restart, 'service[nova-api]', :delayed
   end
 end
 
