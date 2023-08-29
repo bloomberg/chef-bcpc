@@ -23,11 +23,13 @@ from nova.api.openstack.compute import server_system_metadata
 
 server_system_metadata_controller = functools.partial(
     routes._create_controller,
-    server_system_metadata.ServerSystemMetadataController, [])
+    server_system_metadata.ServerSystemMetadataController, []
+)
 
 server_properties_controller = functools.partial(
     routes._create_controller,
-    server_properties.ServerPropertiesController, [])
+    server_properties.ServerPropertiesController, []
+)
 
 
 class BCPCAPIRouterV21(routes.APIRouterV21):
