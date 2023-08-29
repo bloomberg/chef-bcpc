@@ -1,6 +1,5 @@
-# Copyright 2014 NEC Corporation.
-# Copyright 2023, Bloomberg L.P.
-# All rights reserved.
+# Copyright 2011 OpenStack Foundation
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -14,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 from webob import exc
 
 from nova.api.openstack import common
@@ -24,7 +24,7 @@ from nova.api import validation
 from nova.compute import api as compute
 from nova import exception
 from nova.i18n import _
-from nova.policies import server_properties as so_policies
+from nova.policies import server_properties as sp_policies
 
 
 class ServerPropertiesController(wsgi.Controller):
@@ -39,7 +39,7 @@ class ServerPropertiesController(wsgi.Controller):
         """Returns server property by server id."""
         context = req.environ['nova.context']
         server = common.get_instance(self.compute_api, context, server_id)
-        context.can(so_policies.POLICY_ROOT % 'show',
+        context.can(sp_policies.POLICY_ROOT % 'show',
                     target={'project_id': server.project_id})
         try:
             opt_value = getattr(server, id)
@@ -56,7 +56,7 @@ class ServerPropertiesController(wsgi.Controller):
         context = req.environ['nova.context']
         update_dict = {}
         server = common.get_instance(self.compute_api, context, server_id)
-        context.can(so_policies.POLICY_ROOT % 'update',
+        context.can(sp_policies.POLICY_ROOT % 'update',
                     target={'user_id': server.user_id,
                             'project_id': server.project_id})
 
