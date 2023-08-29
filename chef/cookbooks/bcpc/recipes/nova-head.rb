@@ -359,10 +359,10 @@ end
 extended_apis = node['bcpc']['nova']['extended_apis']
 
 api_router_factory =
-  if extended_apis['enabled']
-    'nova.api.openstack.compute.bcpc:BCPCAPIRouterV21.factory'
-  else
+  if init_cloud? || !extended_apis['enabled']
     'nova.api.openstack.compute:APIRouterV21.factory'
+  else
+    'nova.api.openstack.compute.bcpc:BCPCAPIRouterV21.factory'
   end
 
 template '/etc/nova/api-paste.ini' do
