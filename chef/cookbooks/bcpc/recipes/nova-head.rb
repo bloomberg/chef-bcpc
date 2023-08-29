@@ -365,80 +365,33 @@ end
 
 extended_apis = node['bcpc']['nova']['extended_apis']
 if extended_apis['enabled']
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/schemas/server_system_metadata.py' do
-    source 'nova/server_system_metadata_schema.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/server_system_metadata.py' do
-    source 'nova/server_system_metadata_api.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/server_system_metadata.py' do
-    source 'nova/server_system_metadata_policy.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/schemas/server_properties.py' do
-    source 'nova/server_properties_schema.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/server_properties.py' do
-    source 'nova/server_properties_api.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/server_properties.py' do
-    source 'nova/server_properties_policy.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/compute/api.py' do
-    source 'nova/compute_api.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/db/main/api.py' do
-    source 'nova/db_main_api.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/objects/instance.py' do
-    source 'nova/instance.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
-  cookbook_file '/usr/lib/python3/dist-packages/nova/policies/__init__.py' do
-    source 'nova/policies_init.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
-
   directory '/usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc' do
     action :create
   end
 
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc/__init__.py' do
-    source 'nova/bcpc_routes_init.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
-  end
+  extended_api_patches = {
+    # Net new files that we maintain
+    'server_system_metadata_schema.py' => 'api/openstack/compute/schemas/server_system_metadata.py',
+    'server_system_metadata_api.py' => 'api/openstack/compute/server_system_metadata.py',
+    'server_system_metadata_policy.py' => 'policies/server_system_metadata.py',
+    'server_properties_schema.py' => 'api/openstack/compute/schemas/server_properties.py',
+    'server_properties_api.py' => 'api/openstack/compute/server_properties.py',
+    'server_properties_policy.py' => 'policies/server_properties.py',
+    'bcpc_routes_init.py' => 'api/openstack/compute/bcpc/__init__.py',
+    'bcpc_routes.py' => 'api/openstack/compute/bcpc/bcpc_routes.py',
+    # Files that we are patching over
+    'compute_api.py' => 'compute/api.py',
+    'db_main_api.py' => 'db/main/api.py',
+    'instance.py' => 'objects/instance.py',
+    'policies_init.py' => 'policies/__init__.py',
+  }
 
-  cookbook_file '/usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc/bcpc_routes.py' do
-    source 'nova/bcpc_routes.py'
-    notifies :run, 'execute[py3compile-nova]', :delayed
-    notifies :restart, 'service[nova-api]', :delayed
+  extended_api_patches.each_pair do |source_file, dest_path|
+    cookbook_file "/usr/lib/python3/dist-packages/nova/#{dest_path}" do
+      source "nova/#{source_file}"
+      notifies :run, 'execute[py3compile-nova]', :delayed
+      notifies :restart, 'service[nova-api]', :delayed
+    end
   end
 
   bcpc_api_routes_class =
