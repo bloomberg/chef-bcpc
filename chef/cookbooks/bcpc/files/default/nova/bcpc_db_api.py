@@ -16,10 +16,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_db import api as oslo_db_api
-from nova.db.main.api import pick_context_manager_writer
 from nova.db.main.api import _instance_system_metadata_get_query
+from nova.db.main.api import pick_context_manager_writer
 from nova.db.utils import require_context
+from oslo_db import api as oslo_db_api
 
 
 @require_context

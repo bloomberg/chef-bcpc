@@ -46,6 +46,7 @@ class API(compute.API):
         instance is currently stopped.
 
         Returns the updated instance.
+
         """
         return self.update_instance(context, instance, updates)
 
@@ -55,18 +56,18 @@ class API(compute.API):
     def update_instance_system_metadata(self, context, instance,
                                         sys_metadata, delete=False):
         """Updates or creates instance system metadata.
-        
+
         If delete is True, system metadata items that are not specified in the
         `sys_metadata` argument will be deleted.
-        
+
         """
         if delete:
             _sys_metadata = sys_metadata
         else:
             _sys_metadata = dict(instance.system_metadata)
             _sys_metadata.update(sys_metadata)
-        
+
         instance.system_metadata = _sys_metadata
         instance.save()
-    
+
         return _sys_metadata
