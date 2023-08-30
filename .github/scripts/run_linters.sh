@@ -26,7 +26,6 @@ function main {
         ! -path \
             "./chef/cookbooks/bcpc/files/default/neutron/external_net_db.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
-        ! -path "./chef/cookbooks/bcpc/files/default/nova/compute_api.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/db_main_api.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/guest.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/instance.py" \

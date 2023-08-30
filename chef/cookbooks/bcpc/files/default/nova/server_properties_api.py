@@ -22,7 +22,7 @@ from nova.api.openstack.compute import helpers
 from nova.api.openstack.compute.schemas import server_properties
 from nova.api.openstack import wsgi
 from nova.api import validation
-from nova.compute import api as compute
+from nova.compute.bcpc import api as compute
 from nova import exception
 from nova.i18n import _
 from nova.policies import server_properties as sp_policies

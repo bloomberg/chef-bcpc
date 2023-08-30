@@ -377,8 +377,13 @@ template '/etc/nova/api-paste.ini' do
 end
 
 if extended_apis['enabled']
-  directory '/usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc' do
-    action :create
+  %w(
+    /usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc
+    /usr/lib/python3/dist-packages/nova/compute/bcpc
+  ).each do |path|
+    directory path do
+      action :create
+    end
   end
 
   extended_api_patches = {
@@ -389,10 +394,11 @@ if extended_apis['enabled']
     'server_properties_schema.py' => 'api/openstack/compute/schemas/server_properties.py',
     'server_properties_api.py' => 'api/openstack/compute/server_properties.py',
     'server_properties_policy.py' => 'policies/server_properties.py',
+    'bcpc_compute_init.py' => 'compute/bcpc/__init__.py',
+    'bcpc_compute_api.py' => 'compute/bcpc/api.py',
     'bcpc_routes_init.py' => 'api/openstack/compute/bcpc/__init__.py',
     'bcpc_routes.py' => 'api/openstack/compute/bcpc/bcpc_routes.py',
     # Files that we are patching over
-    'compute_api.py' => 'compute/api.py',
     'db_main_api.py' => 'db/main/api.py',
     'instance.py' => 'objects/instance.py',
     'policies_init.py' => 'policies/__init__.py',
