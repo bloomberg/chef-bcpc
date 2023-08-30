@@ -41,6 +41,17 @@ class API(compute.API):
     @compute.check_instance_lock
     @compute.check_instance_state(vm_state=[vm_states.STOPPED],
                                   task_state=None)
+    def update_instance_if_stopped(self, context, instance, updates):
+        """Updates a single Instance object with some updates dict if the
+        instance is currently stopped.
+
+        Returns the updated instance.
+        """
+        return self.update_instance(context, instance, updates)
+
+    @compute.check_instance_lock
+    @compute.check_instance_state(vm_state=[vm_states.STOPPED],
+                                  task_state=None)
     def update_instance_system_metadata(self, context, instance,
                                         sys_metadata, delete=False):
         """Updates or creates instance system metadata.

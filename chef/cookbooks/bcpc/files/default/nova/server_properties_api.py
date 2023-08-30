@@ -72,7 +72,7 @@ class ServerPropertiesController(wsgi.Controller):
                                      properties,
                                      update_dict)
         try:
-            server = self.compute_api.update_instance(
+            server = self.compute_api.update_instance_if_stopped(
                 context, server, update_dict)
             return {'properties': {id: getattr(server, id)}}
         except exception.InstanceNotFound:
