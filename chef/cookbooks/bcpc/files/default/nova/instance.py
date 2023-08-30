@@ -29,6 +29,7 @@ from nova import availability_zones as avail_zone
 from nova.compute import task_states
 from nova.compute import vm_states
 from nova.db.main import api as db
+from nova.db.main.bcpc import api as bcpc_db
 from nova.db.main import models
 from nova import exception
 from nova.i18n import _
@@ -1219,7 +1220,7 @@ class Instance(base.NovaPersistentObject, base.NovaObject,
         with the key still present in self.system_metadata, which it will
         update after completion.
         """
-        db.instance_system_metadata_delete(self._context, self.uuid, key)
+        bcpc_db.instance_system_metadata_delete(self._context, self.uuid, key)
         smd_was_changed = 'system_metadata' in self.obj_what_changed()
         del self.system_metadata[key]
         self._orig_system_metadata.pop(key, None)
