@@ -1,3 +1,4 @@
+# Copyright 2010 United States Government as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # Copyright 2011 Piston Cloud Computing, Inc.
 # Copyright 2012-2013 Red Hat, Inc.
