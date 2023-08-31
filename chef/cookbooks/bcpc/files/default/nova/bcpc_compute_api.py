@@ -42,11 +42,10 @@ class API(compute.API):
     @compute.check_instance_state(vm_state=[vm_states.STOPPED],
                                   task_state=None)
     def update_instance_if_stopped(self, context, instance, updates):
-        """Updates a single Instance object with some updates dict if the
-        instance is currently stopped.
+        """Updates a stopped instance object
 
-        Returns the updated instance.
-
+        Updates a single instance object with some updates dict if the
+        instance is currently stopped and returns the updated instance.
         """
         return self.update_instance(context, instance, updates)
 
@@ -59,7 +58,6 @@ class API(compute.API):
 
         If delete is True, system metadata items that are not specified in the
         `sys_metadata` argument will be deleted.
-
         """
         if delete:
             _sys_metadata = sys_metadata

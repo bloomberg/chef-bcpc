@@ -43,11 +43,11 @@ class ServerPropertiesController(wsgi.Controller):
         context.can(sp_policies.POLICY_ROOT % 'show',
                     target={'project_id': server.project_id})
         try:
-            opt_value = getattr(server, id)
+            property_value = getattr(server, id)
         except AttributeError:
             msg = _("Attribute could not be found")
             raise exc.HTTPNotFound(explanation=msg)
-        return {'properties': {id: opt_value}}
+        return {'properties': {id: property_value}}
 
     @wsgi.expected_errors((400, 403, 404, 409))
     @validation.schema(server_properties.update)

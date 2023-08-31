@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from nova.api.validation import parameter_types
 
 update = {
     'type': 'object',
@@ -22,7 +21,13 @@ update = {
         'properties': {
             'type': 'object',
             'properties': {
-                'os_type': parameter_types.name_or_none
+              'os_type': {
+                'oneOf': [
+                  {'type': 'string',
+                   'enum': ['windows', 'linux']},
+                  {'type': 'null'},
+                ]
+              }
             },
             'additionalProperties': False,
         },
