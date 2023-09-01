@@ -355,10 +355,64 @@ end
 #
 # configure nova ends
 
-cookbook_file '/etc/nova/api-paste.ini' do
-  source 'nova/api-paste.ini'
+# Add code for server system metadata APIs
+extended_apis = node['bcpc']['nova']['extended_apis']
+
+api_router_factory =
+  if init_cloud? || !extended_apis['enabled']
+    'nova.api.openstack.compute:APIRouterV21.factory'
+  else
+    'nova.api.openstack.compute.bcpc:BCPCAPIRouterV21.factory'
+  end
+
+template '/etc/nova/api-paste.ini' do
+  source 'nova/api-paste.ini.erb'
   mode '0640'
-  notifies :restart, 'service[nova-api]', :immediately
+
+  variables(
+    api_router_factory: api_router_factory
+  )
+
+  notifies :restart, 'service[nova-api]', :delayed
+end
+
+if extended_apis['enabled']
+  %w(
+    /usr/lib/python3/dist-packages/nova/api/openstack/compute/bcpc
+    /usr/lib/python3/dist-packages/nova/compute/bcpc
+    /usr/lib/python3/dist-packages/nova/db/main/bcpc
+  ).each do |path|
+    directory path do
+      action :create
+    end
+  end
+
+  extended_api_patches = {
+    # Net new files that we maintain
+    'server_system_metadata_schema.py' => 'api/openstack/compute/schemas/server_system_metadata.py',
+    'server_system_metadata_api.py' => 'api/openstack/compute/server_system_metadata.py',
+    'server_system_metadata_policy.py' => 'policies/server_system_metadata.py',
+    'server_properties_schema.py' => 'api/openstack/compute/schemas/server_properties.py',
+    'server_properties_api.py' => 'api/openstack/compute/server_properties.py',
+    'server_properties_policy.py' => 'policies/server_properties.py',
+    'bcpc_compute_init.py' => 'compute/bcpc/__init__.py',
+    'bcpc_compute_api.py' => 'compute/bcpc/api.py',
+    'bcpc_db_init.py' => 'db/main/bcpc/__init__.py',
+    'bcpc_db_api.py' => 'db/main/bcpc/api.py',
+    'bcpc_routes_init.py' => 'api/openstack/compute/bcpc/__init__.py',
+    'bcpc_routes.py' => 'api/openstack/compute/bcpc/bcpc_routes.py',
+    # Files that we are patching over
+    'instance.py' => 'objects/instance.py',
+    'policies_init.py' => 'policies/__init__.py',
+  }
+
+  extended_api_patches.each_pair do |source_file, dest_path|
+    cookbook_file "/usr/lib/python3/dist-packages/nova/#{dest_path}" do
+      source "nova/#{source_file}"
+      notifies :run, 'execute[py3compile-nova]', :delayed
+      notifies :restart, 'service[nova-api]', :delayed
+    end
+  end
 end
 
 execute 'wait for nova to come online' do
