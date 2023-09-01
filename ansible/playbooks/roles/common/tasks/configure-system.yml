@@ -103,6 +103,7 @@
     - accounts-daemon
     - atd
     - fwupd
+    - fwupd-refresh
     - irqbalance
     - multipathd.socket
     - multipathd

@@ -133,3 +133,37 @@
 #locale_categories:
 #  LANG: "en_US.UTF-8"
 #  LC_TIME: "C.UTF-8"
+
+###############################################################################
+# zones
+###############################################################################
+
+zones:
+  enabled: true
+  partitions:
+    - zone: dev
+      ceph:
+        client: cinder
+      cinder:
+        backend:
+          name: ceph
+          private: true
+          type: ceph
+          pool:
+            name: volumes
+        alternate_backends:
+          - name: lightos
+            backend_name: dev-lightos
+            private: true
+            properties: {}
+            volume_type_properties:
+              lightos:project_name: dev
+          - name: lvmdriver
+            backend_name: dev-lvmdriver
+            private: true
+            properties: {}
+            volume_type_properties: {}
+      nova:
+        ceph:
+          pool:
+            name: vms

@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Library:: zone_config
 #
-# Copyright:: 2020 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,14 @@ class ZoneConfig
   end
 
   attr_reader :cinder_config, :node, :nova_config, :nova_compute_config
+
+  def alternate_backends
+    @node['bcpc']['cinder']['alternate_backends']['backends']
+  end
+
+  def alternate_backends_enabled?
+    @node['bcpc']['cinder']['alternate_backends']['enabled']
+  end
 
   def databag(id:)
     @data_bag_item.call(@region, id)
@@ -89,6 +97,43 @@ class CinderConfig
     end
 
     backends
+  end
+
+  def alternate_backends
+    alternate_backends = []
+
+    if !@zone_config.enabled? || !@zone_config.alternate_backends_enabled?
+      return alternate_backends
+    end
+
+    zones = @zone_config.zone_attr()
+    databag = @zone_config.databag(id: 'zones')
+    general_backend_configs = Hash[
+      @zone_config.alternate_backends()
+                  .map { |backend| [backend[:name].to_s, backend] }]
+    zones.each do |zone|
+      next if zone['cinder']['alternate_backends'].nil?
+      backends = zone['cinder']['alternate_backends']
+      backend_databags = Hash[
+      databag[zone['zone']]['alternate-backends']
+                         .map { |b| [b[:name].to_s, b] }]
+      backends.each do |backend|
+        next unless general_backend_configs[backend['name']]['enabled']
+        alternate_backends.append({
+          'backend_name' => backend['backend_name'],
+          'volume_driver' => general_backend_configs[backend['name']]['volume_driver'],
+          'properties' => {}.merge(
+          general_backend_configs[backend['name']]['properties'])
+              .merge(backend_databags[backend['name']]['properties'])
+              .merge(backend['properties'] || {}),
+          'private' => backend['private'],
+          'volume_type_properties' => {}.merge(backend['volume_type_properties'])
+            .map { |k, v| "--property #{k}=#{v}" }.join(' '),
+        })
+      end
+    end
+
+    alternate_backends
   end
 
   def ceph_clients

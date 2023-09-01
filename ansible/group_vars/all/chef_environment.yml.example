@@ -27,6 +27,34 @@ chef_environment:
         ceph:
           pool:
             size: 2
+        alternate_backends:
+          enabled: true
+          backends:
+            - name: lightos
+              enabled: true
+              properties:
+                lightos_api_address:
+                  - 10.10.13.26
+                  - 10.10.13.25
+                  - 10.10.12.27
+                  - 10.10.13.24
+                lightos_api_port: 443
+                lightos_default_compression: true
+                lightos_default_num_replicas: 3
+                lightos_skip_ssl_verify: true
+              volume_driver: cinder.volume.drivers.lightos.LightOSVolumeDriver
+            - name: lvmdriver
+              enabled: true
+              properties:
+                image_volume_cache_enabled: True
+                volume_clear: zero
+                lvm_type: auto
+                target_prefix: iqn.2010-10.org.openstack
+                target_port: 3260
+                target_protocol: iscsi
+                target_helper: lioadm
+                volume_group: stack-volumes-lvmdriver
+              volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
         qos:
           enabled: true
           volume_types:

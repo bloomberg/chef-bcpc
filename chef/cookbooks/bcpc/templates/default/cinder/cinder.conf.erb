@@ -17,7 +17,7 @@ my_ip = <%= node['service_ip'] %>
 transport_url = rabbit://<%= @rmqnodes.map {|n| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{n['service_ip']}:5672" }.join(',') %>
 glance_api_servers = <%= "https://#{node['bcpc']['cloud']['fqdn']}:9292" %>
 glance_api_insecure = true
-enabled_backends = <%= @backends.map {|b| b['name']}.join(',') %>
+enabled_backends = <%= @backends.map {|b| b['name']}.concat(@alternate_backends.map {|b| b['backend_name']}).join(',') %>
 enable_v3_api = true
 <% if @scheduler_default_filters.any? %>
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
@@ -79,4 +79,15 @@ rbd_max_clone_depth = <%= node['bcpc']['cinder']['rbd_max_clone_depth'] %>
 rbd_store_chunk_size = 4
 rados_connect_timeout = -1
 
+<% end %>
+<% if @alternate_backends_enabled%>
+<% @alternate_backends.each do |backend| %>
+[<%= backend['backend_name'] %>]
+volume_driver = <%= backend['volume_driver'] %>
+volume_backend_name = <%= backend['backend_name'] %>
+<% backend['properties'].each do |property_name, property_value| %>
+<%= property_name %> = <%= property_value.is_a?(Array) ? property_value.join(',') : property_value %>
+<% end %>
+
+<% end %>
 <% end %>
