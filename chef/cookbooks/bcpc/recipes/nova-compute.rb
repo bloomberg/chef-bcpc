@@ -256,10 +256,13 @@ cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do
 end
 
 # (rendition of): https://review.opendev.org/c/openstack/nova/+/852002
-cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
-  source 'nova/guest.py'
-  notifies :run, 'execute[py3compile-nova]', :immediately
-  notifies :restart, 'service[nova-compute]', :delayed
+# Fixed in qemu as of 1:4.2-3ubuntu6.25 in Focal, 1:6.2+dfsg-2ubuntu6.7 in Jammy
+if ['18.04', '20.04'].include?(node['platform_version'])
+  cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
+    source 'nova/guest.py'
+    notifies :run, 'execute[py3compile-nova]', :immediately
+    notifies :restart, 'service[nova-compute]', :delayed
+  end
 end
 
 execute 'py3compile-nova' do
