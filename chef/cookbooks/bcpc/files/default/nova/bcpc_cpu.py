@@ -61,12 +61,24 @@ class BCPCCPUWeigher(weights.BaseHostWeigher):
         LOG.warning("Host %s has `cpu.idle.percent` missing.", host_state.host)
         return 1
 
+    def _get_cpu_psi(self, host_state):
+        """Extract CPU PSI percentage from host metrics."""
+        for metric in host_state.metrics.to_list():
+            if metric['name'] == 'cpu.psi.percent':
+                return metric['value']
+
+        LOG.warning("Host %s has `cpu.psi.percent` missing.", host_state.host)
+
+        # Defaulting the value to 0 as to not influence the weight
+        return 0
+
     def _weigh_object(self, host_state, weight_properties):
         """Higher weights win.  We want spreading to be the default."""
         vcpus_total = host_state.vcpus_total * host_state.cpu_allocation_ratio
         # The number of vCPUs that will be used on the host (VM included)
         used_vcpus = host_state.vcpus_used + weight_properties.flavor.vcpus
         cpu_idle = self._get_cpu_idle(host_state)
+        cpu_psi = self._get_cpu_psi(host_state)
 
         # Compute the average usage of every current vCPU
         average_usage = 0
@@ -80,11 +92,13 @@ class BCPCCPUWeigher(weights.BaseHostWeigher):
 
         weight = free_percentage
         if free_percentage > 0:
-            weight = free_percentage * new_idle
+            # As both idle time and PSI are time percentages, subtracting makes
+            # sense to measure the remaining time availability of the CPU
+            weight = free_percentage * new_idle - cpu_psi
         elif new_idle > 0:
             # When the CPU is overloaded the free percentage is negative.
             # To prevent the weight from growing when the idle time is lower,
             # the reverse if the idle percentage is used.
-            weight = free_percentage * (1 / new_idle)
+            weight = free_percentage * (1 / new_idle) - cpu_psi
 
         return weight
