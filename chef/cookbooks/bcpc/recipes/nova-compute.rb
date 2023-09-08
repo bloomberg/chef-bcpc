@@ -265,6 +265,14 @@ if ['18.04', '20.04'].include?(node['platform_version'])
   end
 end
 
+# To include CPU PSI in the scheduler's formula, the resource tracker has to
+# fetch the metric from the compute node.
+cookbook_file '/usr/lib/python3/dist-packages/nova/compute/resource_tracker.py' do
+  source 'nova/resource_tracker.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
 execute 'py3compile-nova' do
   action :nothing
   command 'py3compile -p python3-nova'
