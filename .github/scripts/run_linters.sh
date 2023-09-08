@@ -31,6 +31,8 @@ function main {
         ! -path "./chef/cookbooks/bcpc/files/default/nova/instance.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/policies_init.py" \
+        ! -path \
+            "./chef/cookbooks/bcpc/files/default/nova/resource_tracker.py" \
         -print0 | xargs -0 -t flake8
     ansible-lint -x var-naming ansible/
     cookstyle --version && cookstyle --fail-level A
