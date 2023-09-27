@@ -2,11 +2,9 @@
 # managed by ansible
 ###############################################################################
 
-{% if ansible_distribution_version in ['20.04', '22.04'] %}
 remote-control:
     control-enable: {{ 'yes' if 'headnodes' is in group_names else 'no' }}
     control-interface: 127.0.0.1
-{% endif %}
 
 server:
     access-control: 0.0.0.0/0 allow

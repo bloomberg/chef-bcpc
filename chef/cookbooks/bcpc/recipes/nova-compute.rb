@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-compute
 #
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -257,7 +257,7 @@ end
 
 # (rendition of): https://review.opendev.org/c/openstack/nova/+/852002
 # Fixed in qemu as of 1:4.2-3ubuntu6.25 in Focal, 1:6.2+dfsg-2ubuntu6.7 in Jammy
-if ['18.04', '20.04'].include?(node['platform_version'])
+if node['platform_version'] == '20.04'
   cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/guest.py' do
     source 'nova/guest.py'
     notifies :run, 'execute[py3compile-nova]', :immediately

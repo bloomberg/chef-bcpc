@@ -79,22 +79,7 @@
     group: root
     mode: '0644'
 
-- name: Stop and disable unused services (Bionic)
-  service:
-    name: "{{ item }}"
-    enabled: no
-    state: stopped
-  with_items:
-    - irqbalance
-    - iscsid
-    - lxcfs
-    - lxd
-    - rpcbind
-    - snapd
-  ignore_errors: yes  # noqa ignore-errors
-  when: ansible_distribution_version == "18.04"
-
-- name: Stop and disable unused services (Focal and Jammy)
+- name: Stop and disable unused services
   service:
     name: "{{ item }}"
     enabled: no
@@ -114,20 +99,8 @@
     - udisks2
     - upower
   ignore_errors: yes # noqa ignore-errors
-  when: ansible_distribution_version in ["20.04", "22.04"]
 
-- name: Purge unused service packages (Bionic)
-  apt:
-    name: "{{ item }}"
-    purge: yes
-    state: absent
-  with_items:
-    - ubuntu-advantage-tools
-    - update-notifier-common
-    - ubuntu-release-upgrader-core
-  when: ansible_distribution_version == "18.04"
-
-- name: Purge unused service packages (Focal and Jammy)
+- name: Purge unused service packages
   apt:
     name: "{{ item }}"
     purge: yes
@@ -146,7 +119,6 @@
     - ubuntu-release-upgrader-core
     - udisks2
     - upower
-  when: ansible_distribution_version in ["20.04", "22.04"]
 
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages

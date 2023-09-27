@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: ceph-packages
 #
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,18 +51,16 @@ else
   package 'ceph-deploy'
 end
 
-# workaround python3.8 deprecation of platform.linux_distribution.
+# workaround python3.8+ deprecation of platform.linux_distribution.
 # ceph-deploy has not been rewired to workaround this, so we do it here.
-if platform?('ubuntu') && ['20.04', '22.04'].include?(node['platform_version'])
-  package 'python3-distro'
+package 'python3-distro'
 
-  cookbook_file '/usr/lib/python3/dist-packages/ceph_deploy/hosts/remotes.py' do
-    source 'ceph/remotes.py'
-    notifies :run, 'execute[py3compile-ceph-deploy]', :immediately
-  end
+cookbook_file '/usr/lib/python3/dist-packages/ceph_deploy/hosts/remotes.py' do
+  source 'ceph/remotes.py'
+  notifies :run, 'execute[py3compile-ceph-deploy]', :immediately
+end
 
-  execute 'py3compile-ceph-deploy' do
-    action :nothing
-    command 'py3compile -p ceph-deploy'
-  end
+execute 'py3compile-ceph-deploy' do
+  action :nothing
+  command 'py3compile -p ceph-deploy'
 end

@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: rabbitmq
 #
-# Copyright:: 2022 Bloomberg Finance L.P.
+# Copyright:: 2023 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,16 +20,6 @@ apt_repository 'rabbitmq' do
   components ['main']
   key 'rabbitmq/rabbitmq.key'
   only_if { node['bcpc']['rabbitmq']['source']['repo']['enabled'] }
-end
-
-if platform?('ubuntu') && node['platform_version'] == '18.04'
-  template '/etc/apt/preferences.d/99rabbitmq' do
-    source 'rabbitmq/apt-preferences.erb'
-    variables(
-      release: node['bcpc']['rabbitmq']['source']['distribution']['name']
-    )
-    only_if { node['bcpc']['rabbitmq']['source']['distribution']['enabled'] }
-  end
 end
 
 region = node['bcpc']['cloud']['region']
@@ -93,7 +83,7 @@ begin
     end
 
     hosts = hosts.join(' ')
-    healthcheck_path = if ['18.04', '20.04'].include?(node['platform_version'])
+    healthcheck_path = if node['platform_version'] == '20.04'
                          '/api/healthchecks/node'
                        else
                          '/api/health/checks/alarms'

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2023, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 # the outside such as running DHCP and adding a masquerade source NAT rule.
 
 # The distribution_codename is the codename of the operating system
-# distribution, which should either be "bionic", "focal", or "jammy"
+# distribution, which should either be "focal" or "jammy"
 
 set -eux
 
-distribution_codename=$(lsb_release -sc)
 on_edge_flag=0
 
 on_edge() {
@@ -48,12 +47,8 @@ switch_config() {
 }
 
 base_config() {
-    if [ "${distribution_codename}" == "bionic" ]; then
-        disabled_services=(rpcbind lxcfs snapd lxd iscsid)
-    else
-        disabled_services=(multipathd.socket multipathd snapd.socket \
-            snapd snapd.seeded udisks2)
-    fi
+    disabled_services=(multipathd.socket multipathd snapd.socket \
+        snapd snapd.seeded udisks2)
 
     for s in "${disabled_services[@]}"; do
         systemctl stop "${s}"
@@ -78,13 +73,6 @@ systemd_configuration() {
     for nameserver in ${nameservers}; do
         echo "nameserver ${nameserver}"
     done | tee /etc/resolv.conf
-}
-
-apt_configuration() {
-    # ref: ansible/playbooks/roles/common/tasks/configure-bgp.yml
-    if [ "${distribution_codename}" == "bionic" ]; then
-        cp "/vagrant/apt-preferences" /etc/apt/preferences.d/98-bird
-    fi
 }
 
 package_installation() {
@@ -112,7 +100,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-apt_configuration
 package_installation
 base_config "${1}"
 switch_config "${1}"

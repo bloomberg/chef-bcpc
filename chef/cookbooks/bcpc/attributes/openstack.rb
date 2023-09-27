@@ -2,7 +2,7 @@
 # openstack
 ###############################################################################
 if platform?('ubuntu')
-  if node['platform_version'] == '18.04' || node['platform_version'] == '20.04'
+  if node['platform_version'] == '20.04'
     default['bcpc']['openstack']['repo']['enabled'] = true
   elsif ['22.04'].include? node['platform_version']
     default['bcpc']['openstack']['repo']['enabled'] = false
