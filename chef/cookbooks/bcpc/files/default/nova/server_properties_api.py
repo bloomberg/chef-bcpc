@@ -78,3 +78,10 @@ class ServerPropertiesController(wsgi.Controller):
         except exception.InstanceNotFound:
             msg = _("Instance could not be found")
             raise exc.HTTPNotFound(explanation=msg)
+        except exception.InstanceIsLocked as e:
+            raise exc.HTTPConflict(explanation=e.format_message())
+        except exception.InstanceInvalidState as state_error:
+            msg = _('update server properties')
+            common.raise_http_conflict_for_instance_invalid_state(state_error,
+                                                                  msg,
+                                                                  server.uuid)
