@@ -7,13 +7,8 @@ default['bcpc']['proxysql']['enabled'] = false
 
 # Repository
 default['bcpc']['proxysql']['repo']['enabled'] = true
-if platform?('ubuntu') && node['platform_version'] == '18.04'
-  default['bcpc']['proxysql']['repo']['url'] =
-   'https://repo.proxysql.com/ProxySQL/proxysql-2.2.x/bionic/'
-elsif platform?('ubuntu') && node['platform_version'] == '20.04'
-  default['bcpc']['proxysql']['repo']['url'] =
-   'https://repo.proxysql.com/ProxySQL/proxysql-2.2.x/focal/'
-end
+default['bcpc']['proxysql']['repo']['url'] =
+ 'https://repo.proxysql.com/ProxySQL/proxysql-2.2.x/focal/'
 default['bcpc']['proxysql']['repo']['key'] = 'proxysql/release.key'
 default['bcpc']['proxysql']['repo']['distribution'] = './'
 default['bcpc']['proxysql']['repo']['components'] = []

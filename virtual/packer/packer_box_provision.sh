@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2023, Bloomberg Finance L.P.
 #
 # Chef Bento
 # Copyright 2012-2019, Chef Software, Inc.
@@ -130,13 +130,7 @@ function cleanup_image {
 function download_debs {
     # Resynchronize package index files after above cleanup
     apt-get update
-    if [ "${distribution_codename}" == "bionic" ]; then
-        apt-get install --download-only -y -t bionic-backports \
-            bird2 init-system-helpers
-    else
-        apt-get install --download-only -y bird2
-    fi
-    apt-get install --download-only -y chrony tinyproxy unbound
+    apt-get install --download-only -y bird2 chrony tinyproxy unbound
 }
 
 main

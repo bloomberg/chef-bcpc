@@ -6,12 +6,6 @@
 default['bcpc']['rabbitmq']['source']['repo']['enabled'] = false
 default['bcpc']['rabbitmq']['source']['repo']['url'] = 'http://dl.bintray.com/rabbitmq/debian'
 
-if platform?('ubuntu') && node['platform_version'] == '18.04'
-  # source rabbitmq from a different distribution
-  default['bcpc']['rabbitmq']['source']['distribution']['enabled'] = true
-  default['bcpc']['rabbitmq']['source']['distribution']['name'] = 'bionic-backports'
-end
-
 # if changing this setting, you will need to reset Mnesia
 # on all RabbitMQ nodes in the cluster
 default['bcpc']['rabbitmq']['durable_queues'] = true

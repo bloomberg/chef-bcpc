@@ -1,7 +1,0 @@
-Package: bird2
-Pin: release a=bionic-backports
-Pin-Priority: 500
-
-Package: init-system-helpers
-Pin: release a=bionic-backports
-Pin-Priority: 500
