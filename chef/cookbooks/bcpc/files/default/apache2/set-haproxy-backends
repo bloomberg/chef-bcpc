@@ -1,0 +1,10 @@
+#!/bin/dash
+
+if [ $# -ne 2 ]; then
+    echo "Usage: ${0} <drain|maint|ready> <server>"
+    echo "Set all backends of <server> to state <drain|maint|ready>"
+fi
+
+for backend in `echo 'show servers state' | socat stdio /var/run/haproxy/haproxy.asok | awk "/${2}/ {print \\$2}"`; do
+    echo "set server ${backend}/${2} state ${1}" | socat stdio /var/run/haproxy/haproxy.asok
+done

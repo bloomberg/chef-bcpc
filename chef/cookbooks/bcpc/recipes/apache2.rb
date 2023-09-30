@@ -49,6 +49,45 @@ cron_d 'logrotate-apache2' do
   shell   '/bin/sh'
 end
 
+# drain headnodes one minute prior to rotation, resume one minute after
+# this ensures that we do not drop requests when we logrotate daily
+cookbook_file '/usr/local/bcpc/bin/set-haproxy-backends' do
+  source 'apache2/set-haproxy-backends'
+  mode '0755'
+end
+
+unless init_cloud?
+  headnodes.sort.each_with_index do |headnode, each_headnode_index|
+    headnode_splay_minutes = each_headnode_index * logrotation['splay_minutes']
+
+    st_drain_minute = (logrotation['start_minute'] + headnode_splay_minutes - 1) % 60
+    st_drain_hour = logrotation['start_hour'] +
+                    (logrotation['start_minute'] + headnode_splay_minutes - 1) / 60
+
+    st_resume_minute = (logrotation['start_minute'] + headnode_splay_minutes + 1) % 60
+    st_resume_hour = logrotation['start_hour'] +
+                     (logrotation['start_minute'] + headnode_splay_minutes + 1) / 60
+
+    cron_d "drain-headnode-#{each_headnode_index}" do
+      command "/usr/local/bcpc/bin/set-haproxy-backends drain #{headnode['hostname']}"
+      comment "Drains connections from #{headnode['hostname']} before it rotates"
+      hour    st_drain_hour
+      minute  st_drain_minute
+      path    '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
+      shell   '/bin/sh'
+    end
+
+    cron_d "resume-headnode-#{each_headnode_index}" do
+      command "/usr/local/bcpc/bin/set-haproxy-backends ready #{headnode['hostname']}"
+      comment "Resumes connections to #{headnode['hostname']} after it rotates"
+      hour    st_resume_hour
+      minute  st_resume_minute
+      path    '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
+      shell   '/bin/sh'
+    end
+  end
+end
+
 remote_file '/etc/apache2/logrotate.conf' do
   only_if { ::File.exist?('/etc/logrotate.d/apache2') }
   source 'file:///etc/logrotate.d/apache2'
