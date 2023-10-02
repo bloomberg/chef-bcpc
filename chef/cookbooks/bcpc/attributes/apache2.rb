@@ -14,7 +14,7 @@
 #     splay_minutes.
 default['bcpc']['apache2']['logrotation']['start_hour'] = 22
 default['bcpc']['apache2']['logrotation']['start_minute'] = 0
-default['bcpc']['apache2']['logrotation']['splay_minutes'] = 1
+default['bcpc']['apache2']['logrotation']['splay_minutes'] = 2
 
 # Explicitly disable HTTP keep-alive for now.  As part of log rotation (or
 # when a "systemctl reload apache2" is run), a graceful restart is triggered
