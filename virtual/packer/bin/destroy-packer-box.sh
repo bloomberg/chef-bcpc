@@ -22,22 +22,29 @@ os_config_variables="${packer_dir}/config/variables.json"
 for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
     PACKER_BOX_NAME=$(jq -r ".[\"${OS_RELEASE}\"].output_packer_box_name" \
         "${os_config_variables}")
-
+    BASE_BOX_PROVIDER=$(jq -r ".[\"${OS_RELEASE}\"].base_box_provider" \
+        "${os_config_variables}")
     # Remove packer-box from vagrant box list if the packer-box exists
     if [ "$PACKER_BOX_NAME" == "null" ]; then
         printf "Variable \"output_packer_box_name\" in %s is undefined.\n" \
             "$os_config_variables for key ${OS_RELEASE}"
         exit 1
     fi
+
+    # Set the environment variable VAGRANT_DEFAULT_PROVIDER to
+    # match BASE_BOX_PROVIDER on the variables.json file
+    export VAGRANT_DEFAULT_PROVIDER="$BASE_BOX_PROVIDER"
+
     output_box_exists=$(vagrant box list --machine-readable \
                         | grep -i "$PACKER_BOX_NAME" \
                         || true)
     if [ -n "$output_box_exists" ]; then
         vagrant box remove --force --all "$PACKER_BOX_NAME"
         if [ "$VAGRANT_DEFAULT_PROVIDER" == "libvirt" ]; then
-            virsh vol-delete \
-                --pool default \
-                "${PACKER_BOX_NAME}_vagrant_box_image_0_box.img" || true
+            vols="${PACKER_BOX_NAME}_vagrant_box_image_0_*_box.img"
+            for vol in /var/lib/libvirt/images/$vols; do
+                virsh vol-delete --pool default "$vol" || true
+            done
             virsh pool-refresh default
         fi
     fi
@@ -47,6 +54,7 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
         virsh destroy output-vagrant_source || true
         virsh undefine output-vagrant_source || true
         virsh vol-delete --pool default output-vagrant_source.img || true
+        virsh pool-refresh default
     fi
 
     # Remove the output directory from packer build

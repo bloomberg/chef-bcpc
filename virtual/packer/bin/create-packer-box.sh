@@ -31,6 +31,11 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
     BASE_BOX_PROVIDER=$(jq -r '.base_box_provider' "${config_variables}")
     VAGRANT_CACERT=$(jq -r '.vagrant_cacert' "${config_variables}")
     PACKER_BOX_NAME=$(jq -r '.output_packer_box_name' "${config_variables}")
+
+    # Set the environment variable VAGRANT_DEFAULT_PROVIDER to
+    # match BASE_BOX_PROVIDER on the variables.json file
+    export VAGRANT_DEFAULT_PROVIDER="$BASE_BOX_PROVIDER"
+
     if [ "$BASE_BOX" == "null" ] \
         || [ "$BASE_BOX_VERSION" == "null" ] \
         || [ "$PACKER_BOX_NAME" == "null" ]; then
@@ -68,6 +73,7 @@ for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
         virsh destroy output-vagrant_source || true
         virsh undefine output-vagrant_source || true
         virsh vol-delete --pool default output-vagrant_source.img || true
+        virsh pool-refresh default
     fi
 
     # create the packer box
