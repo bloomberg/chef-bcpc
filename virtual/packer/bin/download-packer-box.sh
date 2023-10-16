@@ -29,17 +29,19 @@ if [ "$BUCKET" == "null" ]; then
     exit 1
 fi
 
-if [ -z "${VAGRANT_DEFAULT_PROVIDER}" ]; then
-    echo "VAGRANT_DEFAULT_PROVIDER is not defined"
-    exit 1
-fi
 
 for OS_RELEASE in $(jq -r '. | keys[]' "${os_config_variables}"); do
-    OS_RELEASE_AND_PROVIDER="${OS_RELEASE}_${VAGRANT_DEFAULT_PROVIDER}"
-
     # Generate configuration variables for this OS release
     PACKER_BOX_NAME=$(jq -r ".[\"${OS_RELEASE}\"].output_packer_box_name" \
         "${os_config_variables}")
+    BASE_BOX_PROVIDER=$(jq -r ".[\"${OS_RELEASE}\"].base_box_provider" \
+        "${os_config_variables}")
+
+    # Set the environment variable VAGRANT_DEFAULT_PROVIDER to
+    # match BASE_BOX_PROVIDER on the variables.json file
+    export VAGRANT_DEFAULT_PROVIDER="$BASE_BOX_PROVIDER"
+
+    OS_RELEASE_AND_PROVIDER="${OS_RELEASE}_${VAGRANT_DEFAULT_PROVIDER}"
 
     # Download base box from s3 storage
     mkdir -p "output-vagrant-${OS_RELEASE}"
