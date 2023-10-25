@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'base64'
+
 class ZoneConfig
   def initialize(node, region, data_bag_item)
     @cinder_config = CinderConfig.new(self)
@@ -124,7 +126,8 @@ class CinderConfig
           'volume_driver' => general_backend_configs[backend['name']]['volume_driver'],
           'properties' => {}.merge(
           general_backend_configs[backend['name']]['properties'])
-              .merge(backend_databags[backend['name']]['properties'])
+              .merge(Hash[backend_databags[backend['name']]['properties']
+                              .map { |key, value| [key, Base64.decode64(value)] }])
               .merge(backend['properties'] || {}),
           'private' => backend['private'],
           'volume_type_properties' => {}.merge(backend['volume_type_properties'])
