@@ -5,3 +5,4 @@
     - common
     - chef-node
     - haproxy
+    - headnode
