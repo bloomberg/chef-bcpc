@@ -1,9 +1,0 @@
-###############################################################################
-#  keystone
-###############################################################################
-
-keystone_config_files:
-  - src: keystone-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/keystone.cfg
-    mode: '0644'
-    notification: reload haproxy

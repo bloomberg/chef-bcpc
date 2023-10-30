@@ -1,9 +1,0 @@
-- name: template cinder haproxy config
-  template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: root
-    group: root
-    mode: "{{ item.mode }}"
-  with_items: "{{ cinder_config_files }}"
-  notify: "{{ item.notification }}"

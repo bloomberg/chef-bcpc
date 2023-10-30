@@ -1,9 +1,9 @@
-- name: template heat haproxy config
+- name: template haproxy client configs
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: "{{ item.mode }}"
-  with_items: "{{ heat_config_files }}"
+  with_items: "{{ haproxy_client_config_files }}"
   notify: "{{ item.notification }}"
