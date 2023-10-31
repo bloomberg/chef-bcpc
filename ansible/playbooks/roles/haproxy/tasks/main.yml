@@ -13,4 +13,4 @@
 
 - import_tasks: configure-haproxy-clients.yml
   become: true
-  tags: [never,configure-haproxy-clients]
+  tags: [never,configure-haproxy]

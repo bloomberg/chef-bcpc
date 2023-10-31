@@ -122,12 +122,6 @@ configure-haproxy :
 		-i ${inventory} ${playbooks}/site.yml \
 		-t configure-haproxy -f 1 --limit headnodes
 
-configure-haproxy-clients :
-
-	ansible-playbook -v \
-		-i ${inventory} ${playbooks}/site.yml \
-		-t configure-haproxy-clients -f 1 --limit headnodes
-
 run-chef-client : \
 	run-chef-client-bootstraps \
 	run-chef-client-etcdnodes \
