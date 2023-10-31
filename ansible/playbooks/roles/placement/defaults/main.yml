@@ -1,9 +1,0 @@
-###############################################################################
-#  placement
-###############################################################################
-
-placement_config_files:
-  - src: placement-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/placement.cfg
-    mode: '0644'
-    notification: reload haproxy

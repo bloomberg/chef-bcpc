@@ -1,9 +1,0 @@
-###############################################################################
-#  nova
-###############################################################################
-
-nova_config_files:
-  - src: nova-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/nova.cfg
-    mode: '0644'
-    notification: reload haproxy

@@ -1,3 +1,0 @@
-- import_tasks: configure-cinder-haproxy.yml
-  become: true
-  tags: [never,configure-cinder-haproxy]

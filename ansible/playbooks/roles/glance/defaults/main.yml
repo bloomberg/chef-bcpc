@@ -1,9 +1,0 @@
-###############################################################################
-#  glance
-###############################################################################
-
-glance_config_files:
-  - src: glance-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/glance.cfg
-    mode: '0644'
-    notification: reload haproxy

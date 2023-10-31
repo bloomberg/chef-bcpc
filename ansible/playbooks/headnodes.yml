@@ -4,13 +4,5 @@
   roles:
     - common
     - chef-node
-    - cinder
-    - glance
     - haproxy
     - headnode
-    - heat
-    - keystone
-    - neutron
-    - nova
-    - placement
-    - watcher
