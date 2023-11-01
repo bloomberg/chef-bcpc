@@ -43,6 +43,40 @@ haproxy_config_files:
     mode: '0644'
     notification: reload haproxy
 
+haproxy_client_config_files:
+  - src: keystone-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/keystone.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: glance-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/glance.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: neutron-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/neutron.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: placement-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/placement.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: nova-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/nova.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: cinder-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/cinder.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: heat-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/heat.cfg
+    mode: '0644'
+    notification: reload haproxy
+  - src: watcher-haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.d/watcher.cfg
+    mode: '0644'
+    notification: reload haproxy
+
 ###############################################################################
 # QoS protection-related configuration options
 ###############################################################################

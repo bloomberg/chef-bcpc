@@ -1,9 +1,0 @@
-###############################################################################
-#  watcher
-###############################################################################
-
-watcher_config_files:
-  - src: watcher-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/watcher.cfg
-    mode: '0644'
-    notification: reload haproxy

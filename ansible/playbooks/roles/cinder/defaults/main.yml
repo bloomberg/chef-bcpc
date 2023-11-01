@@ -1,9 +1,0 @@
-###############################################################################
-#  cinder
-###############################################################################
-
-cinder_config_files:
-  - src: cinder-haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.d/cinder.cfg
-    mode: '0644'
-    notification: reload haproxy

@@ -10,3 +10,7 @@
 - import_tasks: configure-haproxy.yml
   become: true
   tags: [never,configure-haproxy]
+
+- import_tasks: configure-haproxy-clients.yml
+  become: true
+  tags: [never,configure-haproxy]
