@@ -24,7 +24,6 @@ all : \
 	configure-web-server \
 	configure-common-node \
 	configure-haproxy \
-	configure-haproxy-clients \
 	run-chef-client \
 	configure-ceph \
 	add-cloud-images \
