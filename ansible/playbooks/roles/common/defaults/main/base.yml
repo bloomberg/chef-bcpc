@@ -333,8 +333,8 @@ hardware_io_scheduler: mq-deadline
 # providing consistent, deterministic device naming conventions.
 general_nvme_multipath: false
 
-# Compute node (worknode) specific NVMe multipath support
-compute_nvme_multipath: true
+# node (worknode and headnode) specific NVMe multipath support
+multipath_enabled_node: true
 
 # Select whether or not to load newer CPU microcode mitigations at runtime
 # when possible (and when it is newer than what the BIOS firmware provides).
