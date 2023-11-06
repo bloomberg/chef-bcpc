@@ -35,6 +35,7 @@ default_store = rbd
 rbd_store_pool = <%= node['bcpc']['glance']['ceph']['pool']['name'] %>
 rbd_store_user = <%= node['bcpc']['glance']['ceph']['user'] %>
 rbd_store_ceph_conf = /etc/ceph/ceph.conf
+rbd_thin_provisioning = true
 
 
 [image_format]
