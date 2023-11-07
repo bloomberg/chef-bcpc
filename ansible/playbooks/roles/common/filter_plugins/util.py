@@ -157,17 +157,17 @@ def optimal_nvme_lbaf(a, *args, **kw):
     return ordered_lbafs[0]['index']
 
 
-def is_host_worknode(host_variables):
-    """Check if host is worknode chef role.
+def is_host_multipath_enabled(host_variables):
+    """Check if host is worknode or headnode chef role.
 
     Parameters:
     host_variables (dict): dict of hostvars[host]
 
     Returns:
-    is_worknode (bool): true if host is worknode otherwise false
+    is_host_multipath_enabled (bool): true if worknode or headnode
     """
     for role in host_variables['run_list']:
-        if role == "role[worknode]":
+        if role == "role[worknode]" or role == "role[headnode]":
             return True
     return False
 
@@ -182,7 +182,7 @@ class FilterModule(object):
         'osadmin': osadmin,
         'etcdnode_to_cnames': etcdnode_to_cnames,
         'optimal_nvme_lbaf': optimal_nvme_lbaf,
-        'host_worknode': is_host_worknode,
+        'host_multipath': is_host_multipath_enabled,
     }
 
     def filters(self):
