@@ -41,6 +41,16 @@
   vars:
     kernel_module_name: ip_conntrack
 
+- name: Ensure nvme_tcp is loaded at boot
+  template:
+    src: system/modules-load.conf.j2
+    dest: /etc/modules-load.d/nvme_tcp.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    kernel_module_name: nvme_tcp
+
 # Configure grub
 - name: Configure grub
   template:
