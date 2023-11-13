@@ -19,7 +19,7 @@
     optimal_lbaf: "{{ nvme_id_ns.lbafs | optimal_nvme_lbaf }}"
 
 - name: Format the NVMe namespace
-  command: "nvme format {{ '' if ansible_distribution_release in == 'focal' else '--force' }} --lbaf={{ optimal_lbaf }} --ses=1 {{ block_device }}"
+  command: "nvme format {{ '' if ansible_distribution_release == 'focal' else '--force' }} --lbaf={{ optimal_lbaf }} --ses=1 {{ block_device }}"
   register: nvme_format_result
   changed_when: nvme_format_result.rc == 0
   become: yes
