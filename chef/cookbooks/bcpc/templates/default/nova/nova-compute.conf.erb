@@ -1,5 +1,5 @@
-# for an overview of all the available configuration options for nova@ussuri
-# go to: https://docs.openstack.org/nova/ussuri/configuration/config.html
+# for an overview of all the available configuration options
+# go to: https://docs.openstack.org/nova/yoga/configuration/config.html
 #
 [DEFAULT]
 compute_driver = libvirt.LibvirtDriver
@@ -15,6 +15,7 @@ rbd_secret_uuid = <%= @rbd_secret_uuid %>
 disk_cachemodes = "network=writeback"
 hw_disk_discard = unmap
 live_migration_uri = qemu+ssh://nova@%s/system
+live_migration_permit_auto_converge = true
 <% unless @cpu_mode.nil? %>
 cpu_mode = <%= @cpu_mode %>
 <% end -%>
@@ -24,4 +25,3 @@ cpu_model = <%= @cpu_model %>
 <% unless @cpu_model_extra_flag.empty? %>
 cpu_model_extra_flags = <%= @cpu_model_extra_flag.join(',') %>
 <% end -%>
-live_migration_permit_auto_converge = true
