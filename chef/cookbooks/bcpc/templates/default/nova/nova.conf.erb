@@ -1,5 +1,5 @@
-# for an overview of all the available configuration options for nova@ussuri
-# go to: https://docs.openstack.org/nova/ussuri/configuration/config.html
+# for an overview of all the available configuration options
+# go to: https://docs.openstack.org/nova/yoga/configuration/config.html
 #
 [DEFAULT]
 debug = false
@@ -11,7 +11,6 @@ ssl_only = false
 key = /etc/nova/ssl-bcpc.key
 cert = /etc/nova/ssl-bcpc.pem
 my_ip = <%= node['service_ip'] %>
-enable_new_services = false
 cpu_allocation_ratio = <%= node['bcpc']['nova']['cpu_allocation_ratio'] %>
 force_config_drive = true
 ram_allocation_ratio = <%= node['bcpc']['nova']['ram_allocation_ratio'] %>
