@@ -228,7 +228,7 @@ template '/etc/nova/nova.conf' do
     vip: node['bcpc']['cloud']['vip']
   )
   notifies :restart, 'service[nova-compute]', :immediately
-  notifies :restart, 'service[nova-api-metadata]', :immediately
+  notifies :restart, 'service[nova-api-metadata]', :delayed
 end
 
 flags = node['cpu']['0']['flags'] & %w(svm vmx)
