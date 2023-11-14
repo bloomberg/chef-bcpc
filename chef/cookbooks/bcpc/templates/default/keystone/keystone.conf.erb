@@ -6,6 +6,8 @@ notification_opt_out = identity.authenticate.success
 public_endpoint = https://<%= node["bcpc"]['cloud']["fqdn"]%>:5000/
 admin_endpoint = https://<%= node["bcpc"]["cloud"]["fqdn"]%>:35357/
 
+[assignment]
+
 [cache]
 enabled = <%= node['bcpc']['keystone']['enable_caching'] %>
 backend = oslo_cache.memcache_pool
@@ -18,6 +20,8 @@ memcache_pool_connection_get_timeout = 1
 [catalog]
 cache_time = 3600
 
+[credential]
+
 [database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
 max_overflow = <%= node['bcpc']['keystone']['db']['max_overflow'] %>
@@ -25,6 +29,12 @@ max_pool_size = <%= node['bcpc']['keystone']['db']['max_pool_size'] %>
 
 [domain_config]
 cache_time = 300
+
+[endpoint_filter]
+
+[endpoint_policy]
+
+[federation]
 
 [fernet_tokens]
 key_repository = /etc/keystone/fernet-keys/
@@ -35,12 +45,18 @@ domain_specific_drivers_enabled = true
 domain_config_dir = /etc/keystone/domains
 cache_time = 600
 
+[identity_mapping]
+
+[oauth1]
+
 [oslo_messaging_notifications]
 <% if node['bcpc']['keystone']['drivers']['notification'] %>
 driver = <%= node['bcpc']['keystone']['drivers']['notification'] %>
 <% else %>
 driver =
 <% end %>
+
+[policy]
 
 [oslo_policy]
 policy_dirs = policy.d
