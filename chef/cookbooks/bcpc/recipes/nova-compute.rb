@@ -187,6 +187,15 @@ bash 'remove default virsh net' do
   only_if 'virsh net-list | grep -i default'
 end
 
+# Deliver a manifest for Cascade Lake that excludes the `mpx` feature so
+# that later processor families that lack the feature, such as Ice Lake,
+# can still support a Cascade Lake CPU baseline.
+# https://gitlab.com/libvirt/libvirt/-/issues/304
+cookbook_file '/usr/share/libvirt/cpu_map/x86_Cascadelake-Server.xml' do
+  source 'libvirt/x86_Cascadelake-Server.xml'
+  notifies :restart, 'service[libvirtd]', :delayed
+end
+
 execute 'reload systemd' do
   action :nothing
   command 'systemctl daemon-reload'
