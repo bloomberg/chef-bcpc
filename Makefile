@@ -24,6 +24,7 @@ all : \
 	configure-web-server \
 	configure-common-node \
 	configure-haproxy \
+	apply-duct-tape \
 	run-chef-client \
 	configure-ceph \
 	add-cloud-images \
@@ -120,6 +121,11 @@ configure-haproxy :
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
 		-t configure-haproxy -f 1 --limit headnodes
+
+apply-duct-tape :
+
+	@echo "Sleeping to avoid suspected race condition?"
+	@sleep 300
 
 run-chef-client : \
 	run-chef-client-bootstraps \
