@@ -366,6 +366,13 @@ system_readahead_kb: 512
 # unbound
 ###############################################################################
 
+# Note that this value defaults to 3600 upstream as of current unbound
+# releases, which is far too high for "service discovery"-like purposes. This
+# non-default tunable exists to document the fact that a negative TTL minimum
+# value that goes far lower than what the SOA specifies may be needed in some
+# cases.
+cache_max_negative_ttl: 60
+
 unbound_powerdns_enabled: true
 
 ###############################################################################
