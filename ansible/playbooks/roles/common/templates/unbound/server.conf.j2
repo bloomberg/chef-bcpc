@@ -8,6 +8,7 @@ remote-control:
 
 server:
     access-control: 0.0.0.0/0 allow
+    cache-max-negative-ttl: {{ cache_max_negative_ttl }}
     chroot: ""
     directory: /etc/unbound
     do-ip4: yes
