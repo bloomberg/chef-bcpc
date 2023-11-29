@@ -19,24 +19,6 @@ default['bcpc']['keystone']['debug'] = false
 # Set the number of Keystone WSGI processes
 default['bcpc']['keystone']['workers'] = nil
 
-# The driver section below allows either 'sql' or 'ldap' (or 'templated' for catalog)
-# Note that not all drivers may support SQL/LDAP, only tinker if you know what you're getting into
-default['bcpc']['keystone']['drivers']['assignment'] = 'sql'
-default['bcpc']['keystone']['drivers']['catalog'] = 'sql'
-default['bcpc']['keystone']['drivers']['credential'] = 'sql'
-default['bcpc']['keystone']['drivers']['domain_config'] = 'sql'
-default['bcpc']['keystone']['drivers']['endpoint_filter'] = 'sql'
-default['bcpc']['keystone']['drivers']['endpoint_policy'] = 'sql'
-default['bcpc']['keystone']['drivers']['federation'] = 'sql'
-default['bcpc']['keystone']['drivers']['identity'] = 'sql'
-default['bcpc']['keystone']['drivers']['identity_mapping'] = 'sql'
-default['bcpc']['keystone']['drivers']['oauth1'] = 'sql'
-default['bcpc']['keystone']['drivers']['policy'] = 'sql'
-default['bcpc']['keystone']['drivers']['revoke'] = 'sql'
-default['bcpc']['keystone']['drivers']['role'] = 'sql'
-default['bcpc']['keystone']['drivers']['token'] = 'memcache_pool'
-default['bcpc']['keystone']['drivers']['trust'] = 'sql'
-
 # Notifications driver
 default['bcpc']['keystone']['drivers']['notification'] = 'log'
 default['bcpc']['keystone']['notification_format'] = 'cadf'
