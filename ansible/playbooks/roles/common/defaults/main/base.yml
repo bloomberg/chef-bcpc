@@ -230,14 +230,14 @@ assets_files:
   # Remove this until when we have a new tested baseline
   # https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1964636
   - name: apparmor
-    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/apparmor_2.13.3-7ubuntu5.2_amd64.deb
-    checksum: sha256:a377c3ac00ea9d008f55299ff97e88d7199ea127c2f70195ba506c8273cfa7c9
+    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/apparmor_2.13.3-7ubuntu5.3_amd64.deb
+    checksum: sha256:9d8db85f466edc2a77b42e9d3f77f7c481d9122b82dcbffa97a56850f00a5646
     filename: apparmor_2.13.3-7ubuntu5.2_amd64.deb
     environment: "{{ internet_proxy | default({}) }}"
 
   - name: libapparmor1
-    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/libapparmor1_2.13.3-7ubuntu5.2_amd64.deb
-    checksum: sha256:ada0314841a62b200c96228b25ad0bfb7c4d6bf23906d4467ce2d8afb9f31606
+    url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/libapparmor1_2.13.3-7ubuntu5.3_amd64.deb
+    checksum: sha256:f96b92e473863bb1d55cdd0b0c68a47871d04092f3a86d6a49bbf1dc3ba9ae32
     filename: libapparmor1_2.13.3-7ubuntu5.2_amd64.deb
     environment: "{{ internet_proxy | default({}) }}"
 
