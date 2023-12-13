@@ -232,13 +232,13 @@ assets_files:
   - name: apparmor
     url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/apparmor_2.13.3-7ubuntu5.3_amd64.deb
     checksum: sha256:9d8db85f466edc2a77b42e9d3f77f7c481d9122b82dcbffa97a56850f00a5646
-    filename: apparmor_2.13.3-7ubuntu5.2_amd64.deb
+    filename: apparmor_2.13.3-7ubuntu5.3_amd64.deb
     environment: "{{ internet_proxy | default({}) }}"
 
   - name: libapparmor1
     url: http://mirrors.kernel.org/ubuntu/pool/main/a/apparmor/libapparmor1_2.13.3-7ubuntu5.3_amd64.deb
     checksum: sha256:f96b92e473863bb1d55cdd0b0c68a47871d04092f3a86d6a49bbf1dc3ba9ae32
-    filename: libapparmor1_2.13.3-7ubuntu5.2_amd64.deb
+    filename: libapparmor1_2.13.3-7ubuntu5.3_amd64.deb
     environment: "{{ internet_proxy | default({}) }}"
 
 # all file assets
