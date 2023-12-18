@@ -30,3 +30,5 @@ default['bcpc']['cinder']['ceph']['pool']['size'] = 3
 # altername backends
 default['bcpc']['cinder']['alternate_backends']['enabled'] = false
 default['bcpc']['cinder']['alternate_backends']['backends'] = []
+default['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project_id'] = nil
+default['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_user_id'] = nil
