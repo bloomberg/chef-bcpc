@@ -23,8 +23,8 @@ enable_v3_api = true
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% end %>
 <% if @alternate_backends_enabled%>
-cinder_internal_tenant_project_id = <%= node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project_id'] %>
-cinder_internal_tenant_user_id = <%= node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_user_id'] %>
+cinder_internal_tenant_project_id = <%= @cinder_internal_tenant_project_id %>
+cinder_internal_tenant_user_id = <%= @cinder_internal_tenant_user_id %>
 <% end %>
 
 [backend]

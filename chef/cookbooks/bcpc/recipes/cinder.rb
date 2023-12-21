@@ -210,6 +210,64 @@ if zone_config.enabled?
   end
 end
 
+if zone_config.alternate_backends_enabled?
+  internal_project_id = ''
+  internal_user_id = ''
+  # configure Cinder internal project and user id
+  internal_project = node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project'] || ''
+#  unless internal_project.to_s.strip.empty?
+  ruby_block 'collect Cinder internal project uuid' do
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      os_command = "openstack project show #{internal_project} -c id -f value"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+      if os_command_out.error?
+        raise "Unable to find the project id for project name #{internal_project}"
+      end
+      internal_project_id = os_command_out.stdout.chomp()
+      unless internal_project_id.empty? 
+        cinder_internal_tenant_project_id = internal_project_id
+      end
+    end
+    not_if internal_project.to_s.strip.empty?
+  end
+#  end
+
+  internal_user = node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_user'] || ''
+  ruby_block 'collect Cinder internal user uuid' do
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      os_command = "openstack user show #{internal_user} -c id -f value"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+      if os_command_out.error?
+        raise "Unable to find the user id for user name #{internal_user}"
+      end
+      internal_user_id = os_command_out.stdout.chomp()
+      #node.run_state['cinder_internal_tenant_user_id'] = internal_user_id
+      #require 'pry'; binding.pry
+      unless internal_user_id.empty? 
+        cinder_internal_tenant_user_id = internal_user_id
+      end
+    end
+    not_if internal_user.to_s.strip.empty?
+  end
+
+  # unless !node.run_state['cinder_internal_tenant_project_id'].to_s.strip.empty? && !node.run_state['cinder_internal_tenant_user_id'].to_s.strip.empty?
+  #   template '/etc/cinder/cinder.conf' do
+  #     source 'cinder/cinder.conf.erb'
+  #     require 'pry'; binding.pry
+  #     variables(
+  #       cinder_internal_tenant_project_id: node.run_state['cinder_internal_tenant_project_id'],
+  #       cinder_internal_tenant_user_id: node.run_state['cinder_internal_tenant_user_id']
+  #     )
+
+  #     notifies :restart, 'service[cinder-api]', :delayed
+  #     notifies :restart, 'service[cinder-scheduler]', :delayed
+  #     notifies :restart, 'service[cinder-volume]', :delayed
+  #   end
+  # end
+end
+
 # lay down cinder configuration files
 cookbook_file '/etc/cinder/api-paste.ini' do
   source 'cinder/api-paste.ini'
@@ -231,7 +289,9 @@ template '/etc/cinder/cinder.conf' do
     alternate_backends_enabled:  zone_config.alternate_backends_enabled?,
     rmqnodes: rmqnodes(all: true),
     alternate_backends: cinder_config.alternate_backends,
-    scheduler_default_filters: cinder_config.filters
+    scheduler_default_filters: cinder_config.filters,
+    cinder_internal_tenant_project_id: internal_project_id,
+    cinder_internal_tenant_user_id: internal_user_id
   )
 
   notifies :restart, 'service[cinder-api]', :delayed
@@ -421,6 +481,7 @@ if zone_config.alternate_backends_enabled?
       not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
     end
   end
+
 end
 
 # cinder qos
