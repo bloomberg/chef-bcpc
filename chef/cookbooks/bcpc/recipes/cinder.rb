@@ -210,7 +210,7 @@ if zone_config.enabled?
   end
 end
 
-if zone_config.alternate_backends_enabled?
+if !init_cloud? && zone_config.alternate_backends_enabled?
   cinder_internal_tenant_project_id = ''
   internal_project = node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project'] || ''
   ruby_block 'collect Cinder internal project uuid' do
