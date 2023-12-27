@@ -22,7 +22,7 @@ enable_v3_api = true
 <% if @scheduler_default_filters.any? %>
 scheduler_default_filters = <%= @scheduler_default_filters.join(',') %>
 <% end %>
-<% if @alternate_backends_enabled%>
+<% if !@init_cloud && @alternate_backends_enabled %>
 cinder_internal_tenant_project_id = <%= @cinder_internal_tenant_project_id %>
 cinder_internal_tenant_user_id = <%= @cinder_internal_tenant_user_id %>
 <% end %>

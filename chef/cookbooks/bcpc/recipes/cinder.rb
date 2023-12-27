@@ -270,6 +270,7 @@ template '/etc/cinder/cinder.conf' do
     rmqnodes: rmqnodes(all: true),
     alternate_backends: cinder_config.alternate_backends,
     scheduler_default_filters: cinder_config.filters,
+    init_cloud: init_cloud?,
     cinder_internal_tenant_project_id: lazy { cinder_internal_tenant_project_id },
     cinder_internal_tenant_user_id: lazy { cinder_internal_tenant_user_id }
   )
