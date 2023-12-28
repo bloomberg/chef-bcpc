@@ -135,13 +135,6 @@ package %w(
   options '--no-install-recommends'
 end
 
-service 'nova-api'
-service 'nova-scheduler'
-service 'nova-conductor'
-service 'nova-novncproxy' do
-  service_name 'apache2'
-end
-
 # create policy.d dir for policy overrides
 directory '/etc/nova/policy.d' do
   action :create
@@ -337,10 +330,10 @@ template '/etc/nova/nova.conf' do
   )
 
   notifies :run, 'execute[update cell1]', :immediately
-  notifies :restart, 'service[nova-api]', :immediately
-  notifies :restart, 'service[nova-scheduler]', :immediately
-  notifies :restart, 'service[nova-conductor]', :immediately
-  notifies :restart, 'service[nova-novncproxy]', :immediately
+  notifies :restart, 'service[nova-api]', :delayed
+  notifies :restart, 'service[nova-scheduler]', :delayed
+  notifies :restart, 'service[nova-conductor]', :delayed
+  notifies :restart, 'service[nova-novncproxy]', :delayed
 end
 
 execute 'update cell1' do
@@ -414,6 +407,11 @@ if extended_apis['enabled']
     end
   end
 end
+
+service 'nova-api'
+service 'nova-conductor'
+service 'nova-novncproxy'
+service 'nova-scheduler'
 
 execute 'wait for nova to come online' do
   environment os_adminrc
