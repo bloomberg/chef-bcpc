@@ -165,27 +165,9 @@
     - "linux-image-{{ kernel_version }}-{{ kernel_variant }}"
     - "linux-modules-{{ kernel_version }}-{{ kernel_variant }}"
     - "linux-modules-extra-{{ kernel_version }}-{{ kernel_variant }}"
-    # HWE kernel-specific tools are pulled in by {{ version }}-generic metapackages.
+    # HWE kernel-specific tools are pulled in by {{ version }}-generic
+    # metapackages.
     - "linux-tools-{{ kernel_version }}-{{ 'generic' if kernel_variant != 'lowlatency' else 'lowlatency' }}"
-
-# bpftool workaround for Jammy systems running Lunar and later kernels:
-# Calico 3.26 BPF objects only interop with bpftool linked against libbpf < 1.0
-# Lunar kernel tools ship with a bpftool linked against libbpf 1.1, so...
-- name: Configure older version of bpftool
-  block:
-    - name: Install a version of kernel tools that ships with Jammy kernels
-      apt:
-        name: linux-tools-5.15.0-83-generic
-
-    - name: Symlink the bpftool shim directly to the one from the Jammy kernel
-      file:
-        src: /usr/lib/linux-tools/5.15.0-83-generic/bpftool
-        dest: /usr/sbin/bpftool
-        owner: root
-        group: root
-        state: link
-        force: true
-  when: kernel_variant == 'generic-hwe-22.04-edge'
 
 # Install kexec-tools
 - name: Install kexec-tools
