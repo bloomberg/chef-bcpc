@@ -36,24 +36,23 @@ def transit_interfaces(a, *args, **kw):
             raise ValueError(msg)
         ip_address = ipaddress.IPv4Interface(transit['ip']).ip
         interface = find_interface(facts=ansible_facts,
-                                   ip_address=ip_address)
+                                   ip=ip_address)
         transit['name'] = interface['device']
         interfaces.append(transit)
 
     return interfaces
 
 
-def find_interface(facts, ip_address):
-
+def find_interface(facts, ip):
     interfaces = facts['interfaces']
+
     for interface in interfaces:
         if interface in ['lo', 'service0', 'usb0']:
             continue
-        if facts.get(interface, {}).get('ipv4', {}).get('address') == \
-            str(ip_address):
+        if facts.get(interface, {}).get('ipv4', {}).get('address') == str(ip):
             return facts[interface]
 
-    raise ValueError("could not find interface with IP: " + str(ip_address))
+    raise ValueError("could not find interface with IP: " + str(ip))
 
 
 def update_chef_node_host_vars(a, *args, **kw):
