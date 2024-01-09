@@ -210,6 +210,44 @@ if zone_config.enabled?
   end
 end
 
+if !init_cloud? && zone_config.alternate_backends_enabled?
+  cinder_internal_tenant_project_id = ''
+  internal_project = node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project'] || ''
+  ruby_block 'collect Cinder internal project uuid' do
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      os_command = "openstack project show #{internal_project} -c id -f value"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+      if os_command_out.error?
+        raise "Unable to find the project id for project name #{internal_project}"
+      end
+      internal_project_id = os_command_out.stdout.chomp()
+      unless internal_project_id.empty?
+        cinder_internal_tenant_project_id = internal_project_id
+      end
+    end
+    not_if internal_project.empty?
+  end
+
+  cinder_internal_tenant_user_id = ''
+  internal_user = node['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_user'] || ''
+  ruby_block 'collect Cinder internal user uuid' do
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      os_command = "openstack user show #{internal_user} -c id -f value"
+      os_command_out = shell_out(os_command, env: os_adminrc)
+      if os_command_out.error?
+        raise "Unable to find the user id for user name #{internal_user}"
+      end
+      internal_user_id = os_command_out.stdout.chomp()
+      unless internal_user_id.empty?
+        cinder_internal_tenant_user_id = internal_user_id
+      end
+    end
+    not_if internal_user.empty?
+  end
+end
+
 # lay down cinder configuration files
 cookbook_file '/etc/cinder/api-paste.ini' do
   source 'cinder/api-paste.ini'
@@ -231,7 +269,10 @@ template '/etc/cinder/cinder.conf' do
     alternate_backends_enabled:  zone_config.alternate_backends_enabled?,
     rmqnodes: rmqnodes(all: true),
     alternate_backends: cinder_config.alternate_backends,
-    scheduler_default_filters: cinder_config.filters
+    scheduler_default_filters: cinder_config.filters,
+    init_cloud: init_cloud?,
+    cinder_internal_tenant_project_id: lazy { cinder_internal_tenant_project_id },
+    cinder_internal_tenant_user_id: lazy { cinder_internal_tenant_user_id }
   )
 
   notifies :restart, 'service[cinder-api]', :delayed
