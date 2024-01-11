@@ -15,6 +15,11 @@ storageheadnodes = \
 stubnodes = $$(ansible stubnodes -i ${inventory} --list | tail -n +2 | wc -l)
 
 all : \
+	prechef \
+	runchef \
+	postchef
+
+prechef : \
 	sync-assets \
 	configure-operator \
 	configure-node \
@@ -23,8 +28,12 @@ all : \
 	configure-chef-nodes \
 	configure-web-server \
 	configure-common-node \
-	configure-haproxy \
-	run-chef-client \
+	configure-haproxy
+
+runchef : \
+	run-chef-client
+
+postchef : \
 	configure-ceph \
 	add-cloud-images \
 	register-compute-nodes \
