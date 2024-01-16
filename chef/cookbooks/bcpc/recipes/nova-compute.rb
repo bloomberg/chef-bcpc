@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: nova-compute
 #
-# Copyright:: 2023 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -233,7 +233,10 @@ end
 
 flags = node['cpu']['0']['flags'] & %w(svm vmx)
 virt_type = flags.empty? ? 'qemu' : 'kvm'
-vendor_id = node['cpu']['0']['vendor_id']
+vendor_id = node.fetch('cpu_config', nil)
+if vendor_id.nil?
+  vendor_id = node['cpu']['0']['vendor_id']
+end
 cpu_config = node['bcpc']['nova']['cpu_config'][vendor_id]
 
 template '/etc/nova/nova-compute.conf' do
