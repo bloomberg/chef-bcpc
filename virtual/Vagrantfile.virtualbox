@@ -87,7 +87,7 @@ Vagrant.configure('2') do |config|
           virtualbox__intnet: Util.vbox_name(t_iface['neighbor']['name']),
           mac: t_iface['mac'].delete(':'),
           nic_type: '82543GC',
-          auto_config: false)
+          auto_config: true)
       end
 
       subconfig.vm.provider 'virtualbox' do |vb|
