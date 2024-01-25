@@ -184,8 +184,8 @@ assets_files:
     environment: "{{ internet_proxy | default({}) }}"
 
   - name: calicoctl
-    url: https://github.com/projectcalico/calico/releases/download/v3.26.1/calicoctl-linux-amd64
-    checksum: sha256:c8f61c1c8e2504410adaff4a7255c65785fe7805eebfd63340ccd3c472aa42cf
+    url: https://github.com/projectcalico/calico/releases/download/v3.27.0/calicoctl-linux-amd64
+    checksum: sha256:46e79ae146b3dd90998f56511cf5d6db64deb97cb784235caf1f99e0672d66e4
     filename: calicoctl
     environment: "{{ internet_proxy | default({}) }}"
 

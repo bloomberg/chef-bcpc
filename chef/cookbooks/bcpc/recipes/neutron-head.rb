@@ -129,14 +129,12 @@ end
 #
 # create network service and endpoints ends
 
-# neutron package installation and service definition starts
+# neutron base installation starts
 #
-package 'neutron-server'
-
-package 'calico-control' do
-  action :upgrade
-  notifies :restart, 'service[neutron-server]', :delayed
-end
+package %w(
+  neutron-common
+  python3-neutron
+)
 
 # install patches for both neutron and neutron-lib
 # https://bugs.launchpad.net/neutron/+bug/1918145
@@ -162,26 +160,21 @@ execute 'py3compile-neutron-lib' do
   command 'py3compile -p python3-neutron-lib'
 end
 
-# neutron-server can fail to restart during bootstrap; add a throttle to
-# reduce intervals between starts from 100ms to 3sec to avoid failures.
+# Remove these next three resources after 8.4.11 is released
+file '/etc/systemd/system/neutron-server.service.d/override.conf' do
+  action :delete
+  notifies :run, 'execute[reload systemd]', :immediately
+end
+
+directory '/etc/systemd/system/neutron-server.service.d' do
+  action :delete
+end
+
 execute 'reload systemd' do
   action :nothing
   command 'systemctl daemon-reload'
 end
-
-directory '/etc/systemd/system/neutron-server.service.d' do
-  action :create
-end
-
-cookbook_file '/etc/systemd/system/neutron-server.service.d/override.conf' do
-  source 'neutron/override.conf'
-  notifies :run, 'execute[reload systemd]', :immediately
-end
-
-service 'neutron-server'
-
-#
-# neutron package installation and service definition ends
+# neutron base installation ends
 
 # add neutron to etcd so that it will be able to read the etcd ssl certs
 group 'etcd' do
@@ -262,28 +255,36 @@ template '/etc/neutron/neutron.conf' do
     headnodes: headnodes(all: true),
     rmqnodes: rmqnodes(all: true)
   )
-  notifies :restart, 'service[neutron-server]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
 end
 
 cookbook_file '/etc/neutron/plugins/ml2/ml2_conf.ini' do
   source 'neutron/neutron.ml2_conf.ini.erb'
-  notifies :restart, 'service[neutron-server]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
 end
 
 cookbook_file '/etc/neutron/api-paste.ini' do
   source 'neutron/api-paste.ini'
   mode '0640'
-  notifies :restart, 'service[neutron-server]', :immediately
+  notifies :restart, 'service[neutron-server]', :delayed
 end
 
-# configure neutron ends
+package 'calico-control' do
+  action :upgrade
+  notifies :restart, 'service[neutron-server]', :delayed
+end
+
+package 'neutron-server'
+service 'neutron-server'
 
 execute 'wait for neutron to come online' do
   environment os_adminrc
   retries 15
   command 'openstack network list'
 end
+# configure neutron ends
 
+# create networks starts
 ruby_block 'collect openstack network, subnet, and router list' do
   block do
     Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
@@ -306,7 +307,6 @@ ruby_block 'collect openstack network, subnet, and router list' do
   action :run
 end
 
-# create networks starts
 node['bcpc']['neutron']['networks'].each do |network|
   fixed_network = network['name']
   default_network_mtu = node['bcpc']['neutron']['network']['default_network_mtu']

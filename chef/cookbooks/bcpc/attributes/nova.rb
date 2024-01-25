@@ -112,6 +112,7 @@ default['bcpc']['nova']['db-archive']['cron_minute'] = '0'
 
 # select from between this many equally optimal hosts when launching an instance
 default['bcpc']['nova']['scheduler']['host_subset_size'] = 3
+default['bcpc']['nova']['scheduler']['shuffle_best_same_weighed_hosts'] = true
 
 # Anti-affinity availability zone scheduler filter
 default['bcpc']['nova']['scheduler']['filter']['anti_affinity_availability_zone']['enabled'] = false
