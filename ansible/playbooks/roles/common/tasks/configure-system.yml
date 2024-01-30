@@ -135,44 +135,39 @@
   user:
     name: "{{ item }}"
     state: absent
-    remove: no
-  loop: "{{ remove_users }}"
-  vars:
-    remove_users:
-      - 'backup'
-      - 'games'
-      - 'gnats'
-      - 'irc'
-      - 'list'
-      - 'lp'
-      - 'mail'
-      - 'news'
-      - 'proxy'
-      - 'uucp'
+  loop:
+    - 'backup'
+    - 'games'
+    - 'gnats'
+    - 'irc'
+    - 'list'
+    - 'lp'
+    - 'mail'
+    - 'news'
+    - 'proxy'
+    - 'uucp'
 
 # Remove unnecessary groups from defaults
 - name: Remove specified groups
   group:
     name: "{{ item }}"
     state: absent
-  loop: "{{ remove_groups }}"
-  vars:
-    remove_groups:
-      - 'audio'
-      - 'cdrom'
-      - 'fax'
-      - 'floppy'
-      - 'games'
-      - 'gnats'
-      - 'irc'
-      - 'list'
-      - 'lp'
-      - 'mail'
-      - 'news'
-      - 'tape'
-      - 'uucp'
-      - 'video'
-      - 'voice'
+  loop:
+    - 'audio'
+    - 'cdrom'
+    - 'fax'
+    - 'floppy'
+    - 'games'
+    - 'gnats'
+    - 'irc'
+    - 'list'
+    - 'lp'
+    - 'mail'
+    - 'news'
+    - 'tape'
+    - 'uucp'
+    - 'video'
+    - 'voice'
 
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages
