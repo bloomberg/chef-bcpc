@@ -88,6 +88,9 @@ default['bcpc']['ceph']['osd_scrub_sleep'] = 0.05
 default['bcpc']['ceph']['osd_memory_target'] = 8589934592
 default['bcpc']['ceph']['mon_osd_down_out_interval'] = 300
 
+# Set Ceph OSD suicide timeouts
+default['bcpc']['ceph']['osd_op_thread_suicide_timeout'] = 25
+
 # BlueStore tuning
 default['bcpc']['ceph']['bluestore_rocksdb_options'] = nil
 

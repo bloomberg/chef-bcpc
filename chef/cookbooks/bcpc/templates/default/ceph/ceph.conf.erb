@@ -64,6 +64,9 @@ osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 
+# settings to timeout degraded OSDs
+osd op thread suicide timeout = <%= @node['bcpc']['ceph']['osd_op_thread_suicide_timeout'] %>
+
 # bluestore tuning
 <% unless node['bcpc']['ceph']['bluestore_rocksdb_options'].nil? %>
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
