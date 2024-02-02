@@ -1,4 +1,4 @@
-- include: upload-extra-cookbook.yml
+- include_tasks: upload-extra-cookbook.yml
   with_items: "{{ all_chef_extra_cookbooks }}"
 
 - name: load external cookbooks info chef

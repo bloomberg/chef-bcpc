@@ -5,7 +5,7 @@
     mode: 0755
     recurse: true
 
-- include: upload-web-server-file.yml
+- include_tasks: upload-web-server-file.yml
   with_items: "{{ all_web_server_assets }}"
 
-- include: chef-web-server.yml
+- include_tasks: chef-web-server.yml
