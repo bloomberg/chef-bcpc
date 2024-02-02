@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2024, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,8 +35,9 @@ function install_linters_linux {
 
     sudo apt-get install -y shellcheck
     pip install -U pip setuptools wheel
-    pip install -I --force \
-        ansible==4.10.0 \
+    pip install --force-reinstall \
+        ansible \
+        'ansible-core>=2.15.0,<2.16' \
         ansible-lint==5.4.0 \
         bashate==2.1.0 \
         hacking==4.1.0
