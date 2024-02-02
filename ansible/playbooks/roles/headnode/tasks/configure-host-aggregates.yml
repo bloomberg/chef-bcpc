@@ -25,4 +25,5 @@
     "{{ groups['worknodes'] }}"
   args:
     executable: /bin/bash
+    run_once: true
   changed_when: false

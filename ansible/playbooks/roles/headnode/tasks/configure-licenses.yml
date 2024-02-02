@@ -23,6 +23,7 @@
     "{{ license_traits['traits'] }}"
   args:
     executable: /bin/bash
+    run_once: true
   changed_when: false
 
 - name: configuring host traits
@@ -65,4 +66,5 @@
     "{{ groups['worknodes'] }}"
   args:
     executable: /bin/bash
+    run_once: true
   changed_when: false

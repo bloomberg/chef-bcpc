@@ -1,3 +1,5 @@
 - name: nova-manage discover_hosts
   changed_when: false
   command: nova-manage cell_v2 discover_hosts --verbose
+  args:
+    run_once: true

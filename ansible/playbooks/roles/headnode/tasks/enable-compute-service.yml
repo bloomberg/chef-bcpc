@@ -16,5 +16,6 @@
       xargs -n 1 -I % openstack compute service set --enable % nova-compute
   args:
     executable: /bin/bash
+    run_once: true
   environment:
     "{{ cloud_vars | osadmin() }}"
