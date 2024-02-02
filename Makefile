@@ -243,13 +243,13 @@ enable-compute-service :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t enable-compute-service --limit headnodes
+		-t enable-compute-service --limit headnodes[0]
 
 register-compute-nodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
-		-t register-compute-nodes --limit headnodes
+		-t register-compute-nodes --limit headnodes[0]
 
 sync-chef :
 
@@ -273,13 +273,13 @@ configure-host-aggregates :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/headnodes.yml \
-		-t configure-host-aggregates --limit headnodes
+		-t configure-host-aggregates --limit headnodes[0]
 
 configure-licenses :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/headnodes.yml \
-		-t configure-licenses --limit headnodes
+		-t configure-licenses --limit headnodes[0]
 
 define SUCCESS_BANNER
                 _
