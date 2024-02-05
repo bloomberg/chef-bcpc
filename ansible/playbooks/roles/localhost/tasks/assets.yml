@@ -5,6 +5,6 @@
     mode: 0764
     recurse: true
 
-- include: download-asset.yml
+- include_tasks: download-asset.yml
   with_items:
     "{{ assets_files + additional_assets_files | default([]) }}"

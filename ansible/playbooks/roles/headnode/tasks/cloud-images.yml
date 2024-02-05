@@ -1,3 +1,3 @@
-- include: import-cloud-image.yml
+- include_tasks: import-cloud-image.yml
   with_items:
     "{{ all_cloud_images }}"
