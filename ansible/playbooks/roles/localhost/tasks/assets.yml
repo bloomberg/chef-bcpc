@@ -1,10 +1,11 @@
-- name: create assets folder
+- name: Create assets folder
   file:
     path: "{{ assets_download_dir }}"
     state: directory
-    mode: 0764
+    mode: '0764'
     recurse: true
 
-- include_tasks: download-asset.yml
+- name: Include tasks associated with downloading build assets
+  include_tasks: download-asset.yml
   with_items:
     "{{ assets_files + additional_assets_files | default([]) }}"

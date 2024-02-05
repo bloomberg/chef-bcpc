@@ -1,4 +1,4 @@
-- name: reweight ceph osds
+- name: Reweight Ceph OSDs
   changed_when: false
   shell: |
     set -o pipefail

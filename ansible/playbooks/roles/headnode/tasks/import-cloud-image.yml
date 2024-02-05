@@ -1,10 +1,10 @@
-- name: set file fact
+- name: Set file fact
   set_fact:
     file_asset: "{{ item.file_asset | find_asset(all_file_assets) }}"
     license_trait: "{{ license_traits['traits'] \
       | items2dict(key_name='name', value_name='trait') }}"
 
-- name: "check for {{ item.file_asset }}"
+- name: "Check for {{ item.file_asset }}"
   command: "openstack image show {{ item.file_asset }}"
   register: image_check
   failed_when: image_check.rc != 0
@@ -13,14 +13,14 @@
   environment:
     "{{ cloud_vars | osadmin() }}"
 
-- name: "upload {{ item.file_asset }} cloud image"
+- name: "Upload cloud image: {{ item.file_asset }}"
   copy:
     src: "{{ assets_download_dir }}/{{ file_asset.filename }}"
     dest: "/var/tmp/"
-    mode: 0644
+    mode: '0644'
   when: image_check is failed
 
-- name: "import {{ item.file_asset }} cloud image"
+- name: "Import cloud image: {{ item.file_asset }}"
   when: image_check is failed
   shell: |
     set -xe
@@ -69,3 +69,4 @@
     executable: /bin/bash
   environment:
     "{{ cloud_vars | osadmin() }}"
+  changed_when: true

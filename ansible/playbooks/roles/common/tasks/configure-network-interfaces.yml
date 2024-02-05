@@ -1,42 +1,43 @@
-- name: rename default netplan config
+- name: Rename default netplan config
   command: mv /etc/netplan/01-netcfg.yaml /etc/netplan/01-netcfg.yaml.orig
   args:
     removes: /etc/netplan/01-netcfg.yaml
     creates: /etc/netplan/01-netcfg.yaml.orig
   register: netplan
 
-- name: rename default vagrant netplan config
+- name: Rename default vagrant netplan config
   command: mv /etc/netplan/50-vagrant.yaml /etc/netplan/50-vagrant.yaml.orig
   args:
     removes: /etc/netplan/50-vagrant.yaml
     creates: /etc/netplan/50-vagrant.yaml.orig
   register: netplan
 
-- name: install virtualbox nat interface config
+- name: Install VirtualBox NAT interface config
   template:
     src: netplan/virtualbox.yaml.j2
     dest: "/etc/netplan/virtualbox.yaml"
-    mode: 0644
+    mode: '0644'
   register: netplan
   when: ansible_virtualization_type == 'virtualbox'
 
-- name: install libvirt nat interface config
+- name: Install libvirt NAT interface config
   template:
     src: netplan/libvirt.yaml.j2
     dest: "/etc/netplan/libvirt.yaml"
-    mode: 0644
+    mode: '0644'
   register: netplan
   when: libvirt_kvm_guest
 
-- name: netplan transit interfaces
+- name: Create netplan transit interface configuration
   template:
     src: netplan/transit.yaml.j2
     dest: "/etc/netplan/{{ item['name'] }}.yaml"
-    mode: 0644
+    mode: '0644'
   with_items:
     "{{ interfaces['transit'] | transit_interfaces(ansible_facts) }}"
   register: netplan
 
-- name: netplan apply
+- name: Apply netplan configuration
   command: netplan apply
   when: netplan.changed  # noqa no-handler
+  changed_when: true

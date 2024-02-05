@@ -26,11 +26,11 @@ ansible_ssh_common_args: >
 # additional_runlists
 ###############################################################################
 
-#additional_runlists:
-#  node:
-#    - recipe[bcpc::default]
-#  bootstrap:
-#    - recipe[bcpc::default]
+# additional_runlists:
+#   node:
+#     - recipe[bcpc::default]
+#   bootstrap:
+#     - recipe[bcpc::default]
 
 ###############################################################################
 # cloud
@@ -42,24 +42,25 @@ cloud_infrastructure_domain: "{{ cloud_domain }}"
 cloud_fqdn: "openstack.{{ cloud_domain }}"
 cloud_region: "{{ chef_environment['name'] }}"
 
-cloud_vars: "{{ {} | combine(
-                      {
-                        'chef': {
-                          'environment': chef_environment,
-                          'databags': chef_databags,
-                          'roles': chef_roles
-                        }
-                      },
-                      {
-                        'cloud': {
-                          'ip': cloud_ip,
-                          'domain': cloud_domain,
-                          'fqdn': cloud_fqdn,
-                          'region': cloud_region
-                        }
-                      }
-                    )
-            }}"
+cloud_vars: >
+  "{{ {} | combine(
+    {
+      'chef': {
+        'environment': chef_environment,
+        'databags': chef_databags,
+        'roles': chef_roles
+      }
+    },
+    {
+      'cloud': {
+        'ip': cloud_ip,
+        'domain': cloud_domain,
+        'fqdn': cloud_fqdn,
+        'region': cloud_region
+      }
+    }
+  )
+  }}"
 
 ###############################################################################
 # cloud images
@@ -311,6 +312,26 @@ license_traits:
       trait: "{{ license_trait_keyword }}NONE"
 
 ###############################################################################
+# unbound
+###############################################################################
+
+# Note that this value defaults to 3600 upstream as of current unbound
+# releases, which is far too high for "service discovery"-like purposes. This
+# non-default tunable exists to document the fact that a negative TTL minimum
+# value that goes far lower than what the SOA specifies may be needed in some
+# cases.
+cache_max_negative_ttl: 60
+
+unbound_powerdns_enabled: true
+
+###############################################################################
+# locales
+###############################################################################
+
+locale_categories:
+  LANG: "C.UTF-8"
+
+###############################################################################
 # grub
 ###############################################################################
 
@@ -355,29 +376,9 @@ system_additional_reserved_ports: []
 # Select IPv6 support.
 system_enable_ipv6: false
 
-# Any other sysctl parameters that are to be overridden
-system_parameters_kernel.pid_max: 4194303
-system_parameters_net.nf_conntrack_max: 262144
-
 # Read-ahead value for all block devices, in kb
 system_readahead_kb: 512
 
-###############################################################################
-# unbound
-###############################################################################
-
-# Note that this value defaults to 3600 upstream as of current unbound
-# releases, which is far too high for "service discovery"-like purposes. This
-# non-default tunable exists to document the fact that a negative TTL minimum
-# value that goes far lower than what the SOA specifies may be needed in some
-# cases.
-cache_max_negative_ttl: 60
-
-unbound_powerdns_enabled: true
-
-###############################################################################
-# locales
-###############################################################################
-
-locale_categories:
-  LANG: "C.UTF-8"
+# Any other sysctl parameters that are to be overridden
+system_parameters_kernel.pid_max: 4194303 # noqa: var-naming
+system_parameters_net.nf_conntrack_max: 262144 # noqa: var-naming

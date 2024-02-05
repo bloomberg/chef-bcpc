@@ -1,3 +1,4 @@
-- import_tasks: chef-node.yml
+- name: Include tasks associated with all registered Chef nodes
+  import_tasks: chef-node.yml
   become: true
-  tags: [never,chef-node]
+  tags: [never, chef-node]

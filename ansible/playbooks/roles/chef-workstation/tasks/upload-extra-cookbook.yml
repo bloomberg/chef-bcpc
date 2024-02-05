@@ -1,8 +1,8 @@
-- name: set file fact
+- name: Set file fact
   set_fact:
     cookbook_file: "{{ item.file_asset | find_asset(all_file_assets) }}"
 
-- name: upload external cookbook
+- name: Upload external cookbook
   unarchive:
     src: "{{ assets_download_dir }}/{{ cookbook_file.filename }}"
     dest: "/var/bcpc/chef/extra-cookbooks/"

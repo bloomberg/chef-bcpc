@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# Copyright 2022, Bloomberg Finance L.P.
+# Copyright 2024, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,19 +29,24 @@ function main {
 #
 
 function install_linters_linux {
-    python3 -m venv /tmp/linter_venv
+    sudo apt-get install -y shellcheck
+
+    sudo gem install cookstyle -v 7.32.1
+
+    python3 -m venv --system-site-packages /tmp/linter_venv
     # shellcheck disable=SC1091
     source /tmp/linter_venv/bin/activate
 
-    sudo apt-get install -y shellcheck
-    pip install -U pip setuptools wheel
-    pip install -I --force \
-        ansible==4.10.0 \
-        ansible-lint==5.4.0 \
-        bashate==2.1.0 \
-        hacking==4.1.0
+    pip install -U pip setuptools virtualenv wheel
+    pip install --force-reinstall \
+        ansible \
+        "ansible-compat<4" \
+        "ansible-core>=2.15.0,<2.16" \
+        ansible-lint==6.16.2 \
+        bashate==2.1.1 \
+        hacking==6.1.0 \
+        pytest
 
-    sudo gem install cookstyle -v 7.32.1
 }
 
 main

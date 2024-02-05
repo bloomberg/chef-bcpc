@@ -1,31 +1,37 @@
-- import_tasks: register-compute-nodes.yml
+- name: Include tasks associated with registering compute nodes in Nova
+  import_tasks: register-compute-nodes.yml
   become: true
   run_once: true
-  tags: [never,register-compute-nodes]
+  tags: [never, register-compute-nodes]
 
-- import_tasks: enable-compute-service.yml
+- name: Include tasks associated with enabling compute services in Nova
+  import_tasks: enable-compute-service.yml
   become: true
   run_once: true
-  tags: [never,enable-compute-service]
+  tags: [never, enable-compute-service]
 
-- import_tasks: cloud-images.yml
+- name: Include tasks associated with adding images in Glance
+  import_tasks: cloud-images.yml
   become: true
   run_once: true
-  tags: [never,add-cloud-images]
+  tags: [never, add-cloud-images]
 
-- import_tasks: configure-host-aggregates.yml
+- name: Include tasks associated with configuring host aggregates in Nova
+  import_tasks: configure-host-aggregates.yml
   become: true
   run_once: true
-  tags: [never,configure-host-aggregates]
+  tags: [never, configure-host-aggregates]
 
-- import_tasks: configure-licenses.yml
+- name: Include tasks associated with configuring licenses in Nova
+  import_tasks: configure-licenses.yml
   become: true
   run_once: true
-  tags: [never,configure-licenses]
+  tags: [never, configure-licenses]
   when: license_traits['enabled']
 
-- import_tasks: remove-licenses.yml
+- name: Include tasks associated with removing licenses in Nova
+  import_tasks: remove-licenses.yml
   become: true
   run_once: true
-  tags: [never,configure-licenses]
+  tags: [never, configure-licenses]
   when: not license_traits['enabled']

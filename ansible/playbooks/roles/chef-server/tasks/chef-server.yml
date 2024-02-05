@@ -1,14 +1,14 @@
-- name: upload chef-server install package
+- name: Upload chef-server install package
   copy:
     src: "{{ assets_download_dir }}/{{ chef_server_package.filename }}"
     dest: "/var/tmp/{{ chef_server_package.filename }}"
-    mode: 0644
+    mode: '0644'
 
-- name: install chef-server install package
+- name: Install chef-server install package
   apt:
     deb: "/var/tmp/{{ chef_server_package.filename }}"
 
-- name: configure chef server
+- name: Configure chef server
   shell: |
     if chef-server-ctl reconfigure; then
       touch /opt/opscode/.reconfigured
@@ -16,20 +16,20 @@
   args:
     creates: /opt/opscode/.reconfigured
 
-- name: create chef server rsa private keys folder
+- name: Create Chef server RSA private keys folder
   file:
     path: /etc/chef
     state: directory
     recurse: true
 
-- name: check for association user
+- name: Check for association user
   command: chef-server-ctl user-show "{{ chef_admin_username }}"
   register: association_check
   failed_when: association_check.rc != 0
   ignore_errors: true
   changed_when: false
 
-- name: create chef association user
+- name: Create Chef association user
   when: association_check is failed
   command: |
     chef-server-ctl user-create \
@@ -39,15 +39,16 @@
       '{{ chef_admin_email }}' \
       '{{ chef_admin_password }}' \
       --filename '{{ chef_admin_client_key }}'
+  changed_when: true
 
-- name: check for organization
+- name: Check for organization
   command: chef-server-ctl org-show "{{ chef_org_short_name }}"
   register: organization_check
   failed_when: organization_check.rc != 0
   changed_when: false
   ignore_errors: true
 
-- name: create organization
+- name: Create organization
   when: organization_check is failed
   command: |
     chef-server-ctl org-create \
@@ -55,3 +56,4 @@
       '{{ chef_org_long_name }}' \
       --association_user '{{ chef_admin_username }}' \
       --filename '{{ chef_org_validator_pem }}'
+  changed_when: true

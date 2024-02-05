@@ -1,5 +1,5 @@
 ---
-- name: "destroy ceph osds"
+- name: Destroy Ceph OSDs
   when: destroy_osds
   shell: |
     set -o pipefail
@@ -26,3 +26,4 @@
     done
   args:
     executable: /bin/bash
+  changed_when: true

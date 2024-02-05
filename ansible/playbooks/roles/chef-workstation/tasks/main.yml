@@ -1,12 +1,16 @@
-- import_tasks: chef-workstation.yml
+- name: Include tasks associated with the Chef workstation
+  import_tasks: chef-workstation.yml
   become: true
-  tags: [never,chef-workstation]
+  tags: [never, chef-workstation]
 
-- import_tasks: generate-chef-environment.yml
-  tags: [never,chef-workstation,generate-chef-environment,sync-chef]
+- name: Include tasks associated with generating the Chef environment
+  import_tasks: generate-chef-environment.yml
+  tags: [never, chef-workstation, generate-chef-environment, sync-chef]
 
-- import_tasks: extra-cookbooks.yml
-  tags: [never,chef-workstation,upload-extra-cookbooks]
+- name: Include tasks associated with the extra Chef cookbooks
+  import_tasks: extra-cookbooks.yml
+  tags: [never, chef-workstation, upload-extra-cookbooks]
 
-- import_tasks: sync-chef.yml
-  tags: [never,chef-workstation,sync-chef,upload-extra-cookbooks]
+- name: Include tasks associated with syncing property changes to Chef
+  import_tasks: sync-chef.yml
+  tags: [never, chef-workstation, sync-chef, upload-extra-cookbooks]

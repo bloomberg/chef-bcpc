@@ -1,5 +1,6 @@
-- hosts: localhost
-  gather_facts: false
+- name: Roles associated with localhost
+  hosts: localhost
+  gather_facts: true
   roles:
     - common
     - localhost

@@ -1,11 +1,13 @@
-- name: create web server assets folder
+- name: Create web server assets folder
   file:
     path: /var/bcpc/www/files
     state: directory
-    mode: 0755
+    mode: '0755'
     recurse: true
 
-- include_tasks: upload-web-server-file.yml
+- name: Include tasks associated with uploading build assets to bootstraps
+  include_tasks: upload-web-server-file.yml
   with_items: "{{ all_web_server_assets }}"
 
-- include_tasks: chef-web-server.yml
+- name: Include tasks associated with provisioning the boostraps' web server
+  include_tasks: chef-web-server.yml

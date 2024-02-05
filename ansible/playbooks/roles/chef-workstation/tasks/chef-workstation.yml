@@ -1,76 +1,76 @@
-- name: upload chef-client package
+- name: Upload chef-client package
   copy:
     src: "{{ assets_download_dir }}/{{ chef_client_package.filename }}"
     dest: "/var/tmp/{{ chef_client_package.filename }}"
-    mode: 0644
+    mode: '0644'
 
-- name: install chef-client
+- name: Install chef-client
   apt:
     deb: "/var/tmp/{{ chef_client_package.filename }}"
 
-- name: create .chef directory
+- name: Create .chef directory
   become: false
   file:
     path: "/home/{{ operator_username }}/.chef"
     state: directory
-    mode: 0755
+    mode: '0755'
 
-- name: get contents of chef validation key
+- name: Get contents of Chef validation key
   slurp:
     src: /etc/chef/validator.pem
   register: chef_validation_key
   delegate_to: "{{ chef_server_host }}"
 
-- name: install chef validation key
+- name: Install Chef validation key
   become: false
   copy:
     dest: /etc/chef/validator.pem
     content: "{{ chef_validation_key['content'] | b64decode }}"
-    mode: 0644
+    mode: '0644'
 
-- name: get contents of chef client key
+- name: Get contents of Chef client key
   slurp:
     src: '{{ chef_admin_client_key }}'
   register: chef_client_key
   delegate_to: "{{ chef_server_host }}"
 
-- name: install chef client key
+- name: Install Chef client key
   become: false
   copy:
     dest: "{{ chef_admin_client_key }}"
     content: "{{ chef_client_key['content'] | b64decode }}"
-    mode: 0644
+    mode: '0644'
 
-- name: create .chef/knife.rb
+- name: Create .chef/knife.rb
   become: false
   template:
     src: knife.rb.j2
     dest: "/home/{{ operator_username }}/.chef/knife.rb"
-    mode: 0600
+    mode: '0600'
 
-- name: fetch knife ssl certs
+- name: Fetch knife SSL certs
   become: false
   command: knife ssl fetch
   changed_when: false
 
-- name: create /etc/chef/trusted_certs directory
+- name: Create /etc/chef/trusted_certs directory
   file:
     path: /etc/chef/trusted_certs
     state: directory
-    mode: 0755
+    mode: '0755'
 
-- name: copy chef server ssl certs /etc/chef/trusted_certs
-  synchronize:
+- name: Copy Chef server SSL certs /etc/chef/trusted_certs
+  ansible.posix.synchronize:
     src: "/home/{{ operator_username }}/.chef/trusted_certs/"
     dest: /etc/chef/trusted_certs/
   delegate_to: "{{ chef_server_host }}"
 
-- name: create chef org directory structure
+- name: Create Chef org directory structure
   become: true
   file:
     state: directory
     path: "/var/bcpc/chef/{{ item }}"
-    mode: 0755
+    mode: '0755'
     owner: "{{ operator_username }}"
     group: "{{ operator_group }}"
   with_items:
@@ -80,13 +80,14 @@
     - "{{ chef_org_short_name }}/roles"
     - extra-cookbooks
 
-- name: check for environment databag
+- name: Check for environment databag
   command: knife data bag show "{{ cloud_region }}"
   register: databag_check
   failed_when: databag_check.rc != 0
   changed_when: false
   ignore_errors: true
 
-- name: create environment data bag
+- name: Create environment data bag
   when: databag_check is failed
   command: knife data bag create "{{ cloud_region }}"
+  changed_when: true

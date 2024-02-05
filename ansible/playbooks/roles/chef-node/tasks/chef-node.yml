@@ -1,71 +1,71 @@
-- name: upload chef-client package
+- name: Download chef-client package
   copy:
     src: "{{ assets_download_dir }}/{{ chef_client_package.filename }}"
     dest: "/var/tmp/{{ chef_client_package.filename }}"
-    mode: 0644
+    mode: '0644'
 
-- name: install chef-client package
+- name: Install chef-client package
   apt:
     deb: "/var/tmp/{{ chef_client_package.filename }}"
 
 # https://github.com/chef/ohai/issues/1791
-- name: replace cpu.rb to account for changes in /proc/cpuinfo
+- name: Replace cpu.rb to account for changes in /proc/cpuinfo
   copy:
     src: ohai/cpu.rb
     dest: /opt/cinc/embedded/lib/ruby/gems/2.6.0/gems/ohai-15.6.3/lib/ohai/plugins/cpu.rb
-    mode: 0664
+    mode: '0664'
 
 # https://github.com/chef/ohai/issues/1414
 # https://github.com/chef/ohai/pull/1423
-- name: replace dmi.rb to account for Ohai::Common::DMI.convenience_keys() fix
+- name: Replace dmi.rb to account for Ohai::Common::DMI.convenience_keys() fix
   copy:
     src: ohai/dmi.rb
     dest: /opt/cinc/embedded/lib/ruby/gems/2.6.0/gems/ohai-15.6.3/lib/ohai/common/dmi.rb
-    mode: 0664
+    mode: '0664'
 
-- name: create /etc/chef directory
+- name: Create /etc/chef directory
   file:
     path: /etc/chef
     state: directory
-    mode: 0755
+    mode: '0755'
 
-- name: link /etc/cinc to /etc/chef
+- name: Link /etc/cinc to /etc/chef
   file:
     src: chef
     dest: /etc/cinc
     state: link
 
-- name: create /var/chef directory
+- name: Create /var/chef directory
   file:
     path: /var/chef
     state: directory
-    mode: 0755
+    mode: '0755'
 
-- name: link /var/cinc to /var/chef
+- name: Link /var/cinc to /var/chef
   file:
     src: chef
     dest: /var/cinc
     state: link
 
-- name: get contents of chef validation key
+- name: Get contents of Chef validation key
   slurp:
     src: '{{ chef_org_validator_pem }}'
   register: chef_validation_key
   delegate_to: "{{ chef_server_host }}"
 
-- name: install chef validation key
+- name: Install Chef validation key
   copy:
     dest: "{{ chef_org_validator_pem }}"
     content: "{{ chef_validation_key['content'] | b64decode }}"
-    mode: 0644
+    mode: '0644'
 
-- name: create trusted certs directory
+- name: Create trusted certs directory
   file:
     path: /etc/chef/trusted_certs
     state: directory
     recurse: true
 
-- name: get chef server ssl crt
+- name: Get Chef server SSL certificate
   slurp:
     src: '{{ src }}'
   vars:
@@ -74,28 +74,28 @@
   register: chef_server_ssl_crt
   delegate_to: "{{ chef_server_host }}"
 
-- name: install chef server ssl crt
+- name: Install Chef server SSL certificate
   copy:
     dest: '{{ dest }}'
     content: "{{ chef_server_ssl_crt['content'] | b64decode }}"
-    mode: 0644
+    mode: '0644'
   vars:
     filename: '{{ chef_server_fqdn | replace(".", "_") }}.crt'
     dest: '/etc/chef/trusted_certs/{{ filename }}'
 
-- name: create chef client log directory
+- name: Create Chef client log directory
   file:
     path: /var/log/chef
     state: directory
     recurse: true
 
-- name: install client.rb
+- name: Install client.rb
   template:
     src: client.rb.j2
     dest: /etc/chef/client.rb
-    mode: 0644
+    mode: '0644'
 
-- name: check if registered
+- name: Check if registered
   become: false
   command: knife node show "{{ node_fqdn }}"
   register: node_registered_check
@@ -104,11 +104,12 @@
   changed_when: false
   delegate_to: "{{ chef_server_host }}"
 
-- name: register with chef server
+- name: Register with Chef server
   when: node_registered_check is failed
   command: chef-client
+  changed_when: true
 
-- name: check node environment
+- name: Check node environment
   become: false
   shell: knife node show -E "{{ node_fqdn }}" | grep "{{ cloud_region }}"
   register: node_env_check
@@ -117,14 +118,15 @@
   changed_when: false
   delegate_to: "{{ chef_server_host }}"
 
-- name: set environment
+- name: Set environment
   when: node_env_check is failed
   become: false
   command: |
     knife node environment set "{{ node_fqdn }}" "{{ cloud_region }}"
   delegate_to: "{{ chef_server_host }}"
+  changed_when: true
 
-- name: check node runlist
+- name: Check node runlist
   become: false
   shell: knife node show -r "{{ node_fqdn }}" | grep role
   register: node_runlist_check
@@ -133,13 +135,14 @@
   changed_when: false
   delegate_to: "{{ chef_server_host }}"
 
-- name: set run list
+- name: Set run list
   when: node_runlist_check is failed
   become: false
   command: knife node run_list add "{{ node_fqdn }}" "{{ node_runlist }}"
   delegate_to: "{{ chef_server_host }}"
+  changed_when: true
 
-- name: capture node details
+- name: Capture node details
   become: false
   command: knife node show "{{ node_fqdn }}" --long --format json
   register: node_details_raw
@@ -147,7 +150,7 @@
   delegate_to: "{{ chef_server_host }}"
   no_log: true
 
-- name: define node_details
+- name: Define node_details
   set_fact:
     node_details: >
       {{
@@ -157,15 +160,15 @@
       }}
   no_log: true
 
-- name: write node_details to file
+- name: Write node_details to file
   copy:
     content: "{{ node_details | to_nice_json }}"
     dest: "{{ node_fqdn }}.json"
-    mode: 0644
+    mode: '0644'
   delegate_to: "{{ chef_server_host }}"
   no_log: true
 
-- name: import node changes
+- name: Import node changes
   command: knife node from file "{{ node_fqdn }}.json"
   delegate_to: "{{ chef_server_host }}"
   changed_when: false

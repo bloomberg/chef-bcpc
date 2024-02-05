@@ -4,6 +4,7 @@
   register: fs_check
 
 - name: Partition volume and format filesystem
+  when: not fs_check.stat.exists
   block:
     - name: Format NVMe namespace
       include_tasks: format-nvme.yml
@@ -15,19 +16,18 @@
       command: "parted -s -a optimal -- {{ item.block_device }} mklabel gpt mkpart {{ item.volume_label }} ext4 0% 100%"
       register: parted_result
       changed_when: parted_result.rc == 0
-      become: yes
+      become: true
 
     - name: Format filesystem
       command: "mkfs.ext4 -L {{ item.volume_label }} /dev/disk/by-partlabel/{{ item.volume_label }}"
       register: mkfs_ext4_result
       changed_when: mkfs_ext4_result.rc == 0
-      become: yes
-  when: not fs_check.stat.exists
+      become: true
 
 - name: Determine mount name
   command: "systemd-escape -p --suffix=mount '{{ item.mount_path }}'"
   register: systemd_escape
-  changed_when: False
+  changed_when: false
 
 - name: Configure mount unit
   template:
@@ -36,15 +36,15 @@
     owner: root
     group: root
     mode: '0644'
-  become: yes
+  become: true
 
 - name: Manage mount unit
-  service:
+  systemd_service:
     name: "{{ systemd_escape.stdout.strip() }}"
-    daemon_reload: yes
+    daemon_reload: true
     state: started
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
 
 - name: Manage initial mount directory permissions
   file:
@@ -53,5 +53,5 @@
     owner: "{{ item.get('mount_owner', 'root') }}"
     group: "{{ item.get('mount_group', 'root') }}"
     mode: "{{ item.get('mount_mode', '0755') }}"
-  become: yes
+  become: true
   when: not fs_check.stat.exists

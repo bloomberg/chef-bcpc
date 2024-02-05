@@ -1,5 +1,6 @@
-- hosts: worknodes
-  gather_facts: yes
+- name: Roles associated with worknodes
+  hosts: worknodes
+  gather_facts: true
   roles:
     - common
     - chef-node

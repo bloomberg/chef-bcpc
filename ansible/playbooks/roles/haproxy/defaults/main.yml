@@ -136,4 +136,9 @@ haproxy_qos_slo_url: null
 # The value of the Retry-After header specified in 429 responses
 haproxy_qos_retry_after: 5
 
-html_response: "<html><body><h1>429 Too Many Requests</h1>\nYou have executed too many requests and have been rate limited. Please see the service SLO{{ ' at ' + haproxy_qos_slo_url if haproxy_qos_slo_url is not none }} for more information.\n</body></html>\n\n"
+html_response: >
+  "<html><body><h1>429 Too Many Requests</h1>\n"
+  "You have executed too many requests and have been rate limited."
+  "Please see the service "
+  "SLO{{ ' at ' + haproxy_qos_slo_url if haproxy_qos_slo_url is not none }}"
+  for more information.\n</body></html>\n\n"
