@@ -130,6 +130,45 @@
     - udisks2
     - upower
 
+# Remove unnecessary user accounts (vs. nologin shells)
+- name: Remove specified user accounts
+  user:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - 'backup'
+    - 'games'
+    - 'gnats'
+    - 'irc'
+    - 'list'
+    - 'lp'
+    - 'mail'
+    - 'news'
+    - 'proxy'
+    - 'uucp'
+
+# Remove unnecessary groups from defaults
+- name: Remove specified groups
+  group:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - 'audio'
+    - 'cdrom'
+    - 'fax'
+    - 'floppy'
+    - 'games'
+    - 'gnats'
+    - 'irc'
+    - 'list'
+    - 'lp'
+    - 'mail'
+    - 'news'
+    - 'tape'
+    - 'uucp'
+    - 'video'
+    - 'voice'
+
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages
   apt:
