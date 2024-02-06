@@ -179,7 +179,6 @@ nodes:
       run_list:
         - role[storagenode]
 
-
   - host: r2n1
     group: headnodes
     hardware_profile: headnode
