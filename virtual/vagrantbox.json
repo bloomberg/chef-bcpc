@@ -12,7 +12,7 @@
       "vagrant_box_version": "0"
   },
   "worknodes": {
-      "vagrant_box": "bcc-ubuntu-22.04",
+      "vagrant_box": "bcc-ubuntu-20.04",
       "vagrant_box_version": "0"
   }
 }
