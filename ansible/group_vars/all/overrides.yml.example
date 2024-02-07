@@ -151,6 +151,10 @@ zones:
           type: ceph
           pool:
             name: volumes
+          qos:
+            read_bytes_sec: 750000001
+            read_bytes_sec_max: 1500000001
+            write_bytes_sec: 750000001
         alternate_backends:
           - name: lightos
             backend_name: dev-lightos
@@ -158,6 +162,10 @@ zones:
             properties: {}
             volume_type_properties:
               lightos:project_name: dev
+            qos:
+              read_bytes_sec: 750000001
+              read_bytes_sec_max: 1500000001
+              write_bytes_sec: 750000001
           - name: lvmdriver
             backend_name: dev-lvmdriver
             private: true

@@ -439,3 +439,41 @@ def etcd_advertised_name(member = node)
   hosts_to_cnames = node['bcpc']['etcd']['host_to_cnames']
   hosts_to_cnames.fetch(member['hostname'], member['service_ip'])
 end
+
+def add_qos_to_volume_type(backend)
+  Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+
+  # create a qos policy
+  qos_name = "#{backend['name']}-qos"
+  qos_create_opts = []
+  backend['qos'].each do |k, v|
+    qos_create_opts.push("--property #{k}=#{v}")
+  end
+
+  cmd = 'openstack volume qos create ' \
+    "#{qos_create_opts.join(' ')} #{qos_name}"
+  cmd_out = shell_out(cmd, env: os_adminrc)
+  raise 'unable to create a qos policy' if cmd_out.error?
+
+  # associate the qos policy to the volume type
+  cmd = 'openstack volume qos associate ' \
+    "#{qos_name} #{backend['name']}"
+  cmd_out = shell_out(cmd, env: os_adminrc)
+  raise 'unable to associate the qos policy' if cmd_out.error?
+end
+
+def remove_qos_from_volume_type(backend)
+  Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+
+  # disassociate the qos policy from the volume type
+  qos_name = "#{backend['name']}-qos"
+  cmd = 'openstack volume qos disassociate ' \
+    "--volume-type #{backend['name']} #{qos_name}"
+  cmd_out = shell_out(cmd, env: os_adminrc)
+  raise 'unable to disassociate the qos policy' if cmd_out.error?
+
+  # delete the qos policy
+  cmd = "openstack volume qos delete #{qos_name}"
+  cmd_out = shell_out(cmd, env: os_adminrc)
+  raise 'unable to delete the qos policy' if cmd_out.error?
+end

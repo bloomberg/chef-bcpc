@@ -37,6 +37,10 @@ class ZoneConfig
     @node['bcpc']['cinder']['alternate_backends']['enabled']
   end
 
+  def qos_default_limits
+    @node['bcpc']['cinder']['qos_limits']
+  end
+
   def databag(id:)
     @data_bag_item.call(@region, id)
   end
@@ -89,13 +93,25 @@ class CinderConfig
     databag = @zone_config.databag(id: 'zones')
     zones.each do |zone|
       backend = zone['cinder']['backend']
-      backends.append({
+
+      backend_to_add = {
         'name' => backend['name'],
         'private' => backend['private'],
         'client' => zone['ceph']['client'],
         'pool' => backend['pool']['name'],
         'libvirt_secret' => databag[zone['zone']]['libvirt']['secret'],
-      })
+      }
+
+      # Check if we have enabled qos for the specific storage backend
+      # If so, combine the default qos limits along with any override values
+      # and store them into this backend struct, so that they can be used
+      # to create corresponding qos policy.
+      backend_to_add['qos_enabled'] = @zone_config.node['bcpc']['cinder']['ceph']['qos_enabled']
+      if backend_to_add['qos_enabled']
+        backend_to_add['qos'] = get_combined_qos_limits(zone['cinder']['backend']['qos'])
+      end
+
+      backends.append(backend_to_add)
     end
 
     backends
@@ -121,22 +137,39 @@ class CinderConfig
                          .map { |b| [b[:name].to_s, b] }]
       backends.each do |backend|
         next unless general_backend_configs[backend['name']]['enabled']
-        alternate_backends.append({
+        alternate_backend_to_add = {
           'backend_name' => backend['backend_name'],
           'volume_driver' => general_backend_configs[backend['name']]['volume_driver'],
           'properties' => {}.merge(
           general_backend_configs[backend['name']]['properties'])
-              .merge(Hash[backend_databags[backend['name']]['properties']
-                              .map { |key, value| [key, Base64.decode64(value)] }])
-              .merge(backend['properties'] || {}),
+                            .merge(Hash[backend_databags[backend['name']]['properties']
+                            .map { |key, value| [key, Base64.decode64(value)] }])
+                            .merge(backend['properties'] || {}),
           'private' => backend['private'],
           'volume_type_properties' => {}.merge(backend['volume_type_properties'])
-            .map { |k, v| "--property #{k}=#{v}" }.join(' '),
-        })
+                                        .map { |k, v| "--property #{k}=#{v}" }
+                                        .join(' '),
+        }
+
+        # Check if we have enabled qos for the specific storage backend
+        # If so, combine the default qos limits along with any override values
+        # and store them into this alternate_backend struct, so that they can
+        # be used to create corresponding qos policy.
+        alternate_backend_to_add['qos_enabled'] = general_backend_configs[backend['name']]['qos_enabled']
+        if alternate_backend_to_add['qos_enabled']
+          alternate_backend_to_add['qos'] = get_combined_qos_limits(backend['qos'])
+        end
+
+        alternate_backends.append(alternate_backend_to_add)
       end
     end
 
     alternate_backends
+  end
+
+  # Combine default qos limits with override values
+  def get_combined_qos_limits(overrides)
+    overrides ? @zone_config.qos_default_limits.merge(overrides) : @zone_config.qos_default_limits
   end
 
   def ceph_clients

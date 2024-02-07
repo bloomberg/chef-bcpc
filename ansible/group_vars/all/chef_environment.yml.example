@@ -27,11 +27,13 @@ chef_environment:
         ceph:
           pool:
             size: 2
+          qos_enabled: false
         alternate_backends:
           enabled: true
           backends:
             - name: lightos
               enabled: true
+              qos_enabled: true
               properties:
                 lightos_api_address:
                   - 10.10.13.26
@@ -55,25 +57,15 @@ chef_environment:
                 target_helper: lioadm
                 volume_group: stack-volumes-lvmdriver
               volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
-        qos:
-          enabled: true
-          volume_types:
-            - name: ceph
-              limits:
-                # for fixed iops per volume
-                read_iops_sec: 2000
-                write_iops_sec: 1000
-                # for burst iops per volume
-                read_iops_sec_max: 4000
-                write_iops_sec_max: 2000
-                # for fixed bandwidth per volume
-                read_bytes_sec: 1000000000
-                write_bytes_sec: 500000000
-                # for burst bandwidth per volume
-                read_bytes_sec_max: 2000000000
-                write_bytes_sec_max: 1000000000
-                # for burst bucket size:
-                size_iops_sec: 4096
+        qos_limits:
+          read_bytes_sec: 750000000
+          read_bytes_sec_max: 1500000000
+          write_bytes_sec: 750000000
+          write_bytes_sec_max: 1500000000
+          read_iops_sec: 30000
+          read_iops_sec_max: 60000
+          write_iops_sec: 30000
+          write_iops_sec_max: 60000
       cloud:
         domain: "{{ cloud_domain }}"
         fqdn: "{{ cloud_fqdn }}"
