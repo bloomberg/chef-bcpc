@@ -82,6 +82,11 @@ rbd_flatten_volume_from_snapshot = <%= node['bcpc']['cinder']['rbd_flatten_volum
 rbd_max_clone_depth = <%= node['bcpc']['cinder']['rbd_max_clone_depth'] %>
 rbd_store_chunk_size = 4
 rados_connect_timeout = -1
+<% if backend['qos_enabled'] %>
+<% backend['qos'].each do |limit_name, limit_value| %>
+<%= limit_name %> = <%= limit_value %>
+<% end %>
+<% end %>
 
 <% end %>
 <% if @alternate_backends_enabled%>
@@ -91,6 +96,11 @@ volume_driver = <%= backend['volume_driver'] %>
 volume_backend_name = <%= backend['backend_name'] %>
 <% backend['properties'].each do |property_name, property_value| %>
 <%= property_name %> = <%= property_value.is_a?(Array) ? property_value.join(',') : property_value %>
+<% end %>
+<% if backend['qos_enabled'] %>
+<% backend['qos'].each do |limit_name, limit_value| %>
+<%= limit_name %> = <%= limit_value %>
+<% end %>
 <% end %>
 
 <% end %>

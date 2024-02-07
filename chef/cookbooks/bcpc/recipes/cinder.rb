@@ -438,6 +438,28 @@ cinder_config.backends.each do |backend|
 
     not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
   end
+
+  ruby_block "add a qos policy to the volume type #{backend_name}" do
+    qos_name = "#{backend_name}-qos"
+    block do
+      add_qos_to_volume_type(backend)
+    end
+    only_if { backend['qos_enabled'] }
+    not_if <<-DOC
+      openstack volume qos show #{qos_name}
+    DOC
+  end # ruby block
+
+  ruby_block "remove the qos policy from the volume type #{backend_name}" do
+    qos_name = "#{backend_name}-qos"
+    block do
+      remove_qos_from_volume_type(backend)
+    end
+    not_if { backend['qos_enabled'] }
+    only_if <<-DOC
+      openstack volume qos show #{qos_name}
+    DOC
+  end # ruby block
 end
 
 if zone_config.alternate_backends_enabled?
@@ -472,68 +494,27 @@ if zone_config.alternate_backends_enabled?
 
       not_if { node.run_state['os_vol_type_props'].dig(backend_name, 'volume_backend_name') == backend_name }
     end
-  end
-end
 
-# cinder qos
-node['bcpc']['cinder']['qos']['volume_types'].each do |volume_type|
-  ruby_block "create a qos policy for the volume type #{volume_type['name']}" do
-    qos_name = "#{volume_type['name']}-qos"
-    block do
-      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
-
-      # create a qos policy
-      qos_create_opts = []
-
-      volume_type.fetch('limits', []).each do |key, value|
-        qos_create_opts.push("--property #{key}=#{value}")
+    ruby_block "add a qos policy to the volume type #{backend_name}" do
+      qos_name = "#{backend_name}-qos"
+      block do
+        add_qos_to_volume_type(backend)
       end
+      only_if { backend['qos_enabled'] }
+      not_if <<-DOC
+        openstack volume qos show #{qos_name}
+      DOC
+    end # ruby block
 
-      cmd = "openstack volume qos create \
-        #{qos_create_opts.join(' ')} \
-        #{qos_name}"
-      cmd_out = shell_out(cmd, env: os_adminrc)
-
-      raise 'unable to create a qos policy' if cmd_out.error?
-
-      # associate the qos policy to the volume type
-      cmd = "openstack volume qos associate \
-        #{qos_name} \
-        #{volume_type['name']}"
-      cmd_out = shell_out(cmd, env: os_adminrc)
-
-      raise 'unable to associate the qos policy' if cmd_out.error?
-    end
-
-    only_if { node['bcpc']['cinder']['qos']['enabled'] }
-    not_if <<-DOC
-      openstack volume qos show #{qos_name}
-    DOC
-  end
-
-  ruby_block "delete the qos policy on the volume type #{volume_type['name']}" do
-    qos_name = "#{volume_type['name']}-qos"
-    block do
-      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
-
-      # disassociate the qos policy from the volume type
-      cmd = "openstack volume qos disassociate \
-        --volume-type #{volume_type['name']} \
-        #{qos_name}"
-      cmd_out = shell_out(cmd, env: os_adminrc)
-
-      raise 'unable to disassociate the qos policy' if cmd_out.error?
-
-      # delete the qos policy
-      cmd = "openstack volume qos delete #{qos_name}"
-      cmd_out = shell_out(cmd, env: os_adminrc)
-
-      raise 'unable to delete the qos policy' if cmd_out.error?
-    end
-
-    not_if { node['bcpc']['cinder']['qos']['enabled'] }
-    only_if <<-DOC
-      openstack volume qos show #{qos_name}
-    DOC
-  end
-end
+    ruby_block "remove the qos policy from the volume type #{backend_name}" do
+      qos_name = "#{backend_name}-qos"
+      block do
+        remove_qos_from_volume_type(backend)
+      end
+      not_if { backend['qos_enabled'] }
+      only_if <<-DOC
+        openstack volume qos show #{qos_name}
+      DOC
+    end # ruby block
+  end # for loop
+end # if
