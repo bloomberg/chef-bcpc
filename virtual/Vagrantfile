@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Copyright:: 2023 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,17 +103,15 @@ Vagrant.configure('2') do |config|
       transit = host_vars['interfaces']['transit']
 
       transit.each do |t_iface|
-        args = {}.tap do |a|
-          a[:auto_config] = true
-          a[:ip] = t_iface['ip'].split('/')[0]
-          a[:mac] = t_iface['mac'].delete(':')
-          a[:libvirt__network_name] =
-            Util.libvirt_prefix() + t_iface['neighbor']['name']
-          a[:libvirt__dhcp_enabled] = false
-          a[:libvirt__forward_mode] = 'veryisolated'
-          a[:libvirt__mtu] = 9000
-        end
-        subconfig.vm.network('private_network', args)
+        subconfig.vm.network('private_network',
+                             ip: t_iface['ip'].split('/')[0],
+                             mac: t_iface['mac'].delete(':'),
+                             auto_config: true,
+                             libvirt__network_name: Util.libvirt_prefix() +
+                                                    t_iface['neighbor']['name'],
+                             libvirt__dhcp_enabled: false,
+                             libvirt__forward_mode: 'veryisolated',
+                             libvirt__mtu: 9000)
       end
 
       subconfig.vm.provider :libvirt do |lv|
