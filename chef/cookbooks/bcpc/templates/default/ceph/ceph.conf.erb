@@ -66,8 +66,8 @@ osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 
 # settings to timeout degraded OSDs
 # OSDs that are attached to hardware experiencing soft failures (e.g.,
-# NVMe fails to throw interrupts after I/O completion) may not be down & out
-# by Ceph due to the loose default timeout value. Set the timeout to a lower
+# NVMe fails to throw interrupts after I/O completion) may not be marked down & out
+# by Ceph due to the loose default timeout value. Setting the timeout to a lower
 # value will let OSDs to suicide when experiencing performance degradation
 # so that Ceph can detect the crash and stop sending requests to them, ensuring
 # the cluster's performance will not be impacted.
