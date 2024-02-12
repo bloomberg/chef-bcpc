@@ -17,6 +17,50 @@
 
 include_recipe 'bcpc::calico-apt'
 
+# 22.04 + HWE-edge kernel (now kernel 6.x) provides a bpftool which is
+# linked against a newer version of libbpf that is incapable of loading
+# BPF objects that Felix needs. To workaround this, install the non-HWE
+# version of bpftool and have Felix use that one -- i.e., use the same
+# bpftool that would be installed had we not selected the HWE kernel.
+if Integer(node['kernel']['release'].split('.')[0]) == 6
+  linux_tools_version = ''
+
+  ruby_block 'Query the installed version of linux-tools-generic' do
+    block do
+      Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
+      apt_query = "apt-cache show linux-tools-generic | awk -F ':' '/Version:/ {gsub(/ /, \"\", $2) ; print $2; exit}'"
+
+      # The version in the path and the package are different...
+      # The package has versions like x.y.z.m.n but the path to the
+      # tool is found at x.y.z-m instead... so regex it is:
+      linux_tools_version = shell_out(apt_query).stdout.chomp()
+      linux_tools_version = linux_tools_version.split(/\.([^.]*)$/)[0]
+      linux_tools_version = linux_tools_version.split(/\.([^.]*)$/).join('-')
+    end
+  end
+
+  package 'linux-tools-generic' do
+    action :upgrade
+  end
+
+  directory '/etc/systemd/system/calico-felix.service.d' do
+    action :create
+  end
+
+  template '/etc/systemd/system/calico-felix.service.d/override.conf' do
+    source 'calico/override.conf.erb'
+    notifies :run, 'execute[reload systemd]', :immediately
+    variables(
+      linux_tools_version: lazy { linux_tools_version }
+    )
+  end
+
+  execute 'reload systemd' do
+    action :nothing
+    command 'systemctl daemon-reload'
+  end
+end
+
 package 'calico-felix' do
   action :upgrade
 end
