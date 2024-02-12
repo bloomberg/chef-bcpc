@@ -271,8 +271,17 @@ end
 
 # Ensure that the MTU is not changed during a live-migration
 # https://bugs.launchpad.net/nova/+bug/1984009
+#
+# Also backport a bug stemming from a libvirt change:
+# https://bugs.launchpad.net/nova/+bug/1978489
 cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/migration.py' do
   source 'nova/migration.py'
+  notifies :run, 'execute[py3compile-nova]', :immediately
+  notifies :restart, 'service[nova-compute]', :delayed
+end
+
+cookbook_file '/usr/lib/python3/dist-packages/nova/virt/libvirt/driver.py' do
+  source "nova/driver_#{node['platform_version']}.py"
   notifies :run, 'execute[py3compile-nova]', :immediately
   notifies :restart, 'service[nova-compute]', :delayed
 end
