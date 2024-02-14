@@ -1,3 +1,4 @@
-- include_tasks: import-cloud-image.yml
+- name: Include tasks associated with importing Glance images
+  include_tasks: import-cloud-image.yml
   with_items:
     "{{ all_cloud_images }}"

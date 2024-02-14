@@ -1,5 +1,6 @@
-- hosts: stubnodes
-  gather_facts: yes
+- name: Roles associated with storagenodes
+  hosts: stubnodes
+  gather_facts: true
   serial: "{{ step | default(ansible_play_batch | length) }}"
   roles:
     - common

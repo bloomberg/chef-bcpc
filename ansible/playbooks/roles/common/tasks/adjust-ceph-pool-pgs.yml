@@ -1,4 +1,4 @@
-- name: adjust ceph pool pgs
+- name: Adjust Ceph pool PGs
   changed_when: false
   shell: |
     set -o pipefail

@@ -1,3 +1,4 @@
-- import_tasks: chef-server.yml
+- name: Include tasks associated with the Chef server
+  import_tasks: chef-server.yml
   become: true
-  tags: [never,chef-server]
+  tags: [never, chef-server]
