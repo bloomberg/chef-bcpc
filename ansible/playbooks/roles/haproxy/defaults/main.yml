@@ -1,5 +1,5 @@
 ###############################################################################
-#  haproxy
+#  HAProxy
 ###############################################################################
 
 haproxy_creds: "{{
@@ -90,8 +90,10 @@ haproxy_qos_path: roles/haproxy/templates/haproxy.cfg.qos.j2
 # The amount of time to wait for HTTP headers to be sent (timeout http-request)
 # and the amount of time to wait for a new HTTP request to appear (timeout
 # http-keep-alive).
+#
 # NOTE: If `http-keep-alive` is exceeded client TCP connections are closed
 # silently.
+#
 # NOTE: It is **highly** recommended that `http-keep-alive` not be set to 5s.
 # If set to 5s there is the possibility of a race condition when the --wait
 # option of the OpenStack client is used, which periodically executes API
@@ -136,4 +138,9 @@ haproxy_qos_slo_url: null
 # The value of the Retry-After header specified in 429 responses
 haproxy_qos_retry_after: 5
 
-html_response: "<html><body><h1>429 Too Many Requests</h1>\nYou have executed too many requests and have been rate limited. Please see the service SLO{{ ' at ' + haproxy_qos_slo_url if haproxy_qos_slo_url is not none }} for more information.\n</body></html>\n\n"
+html_response: >
+  "<html><body><h1>429 Too Many Requests</h1>\n"
+  "You have executed too many requests and have been rate limited."
+  "Please see the service "
+  "SLO{{ ' at ' + haproxy_qos_slo_url if haproxy_qos_slo_url is not none }}"
+  for more information.\n</body></html>\n\n"

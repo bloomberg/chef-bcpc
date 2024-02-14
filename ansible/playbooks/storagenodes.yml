@@ -1,5 +1,6 @@
-- hosts: storagenodes
-  gather_facts: yes
+- name: Roles associated with storagenodes
+  hosts: storagenodes
+  gather_facts: true
   roles:
     - common
     - chef-node

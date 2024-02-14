@@ -1,11 +1,11 @@
-- name: set hostname
+- name: Set hostname
   hostname:
     name: "{{ inventory_hostname }}"
 
-- name: populate /etc/hosts
+- name: Populate /etc/hosts
   template:
     src: etc/hosts.j2
     dest: /etc/hosts
-    mode: 0644
+    mode: '0644'
   vars:
     host_to_etcdnode_cname: "{{ etcd['host_indexes'] | etcdnode_to_cnames(cloud_domain) }}"

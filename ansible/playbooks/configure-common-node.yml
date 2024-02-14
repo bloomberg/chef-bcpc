@@ -1,6 +1,6 @@
 # When we bring-up a new cluster, there are some circular dependencies that
 # present themselves (depending on how roles are broken out).  This playbook
-# attempts to resolve those dependencies before chef is used to converge
+# attempts to resolve those dependencies before Chef is used to converge
 # each node so that things go smoothly.
 #
 # The list of dependencies we resolve in configure-web-server [1] and here [2]:
@@ -10,21 +10,23 @@
 #
 # In the future, we should move Consul, etcd, etc. out of Chef and into
 # Ansible so these dependencies can be resolved more elegantly.
-- hosts: "{{ groups.get('etcdnodes', groups.get('headnodes', [])) }}"
-  gather_facts: yes
-  become: yes
+- name: Begin provisioning etcd cluster to be used by Calico
+  hosts: "{{ groups.get('etcdnodes', groups.get('headnodes', [])) }}"
+  gather_facts: true
+  become: true
   tasks:
-    - name: provision the first etcd server
+    - name: Provision the first etcd server
       become: true
       command: chef-client -o bcpc::etcd-member
-      run_once: true
+      run_once: true # noqa: run-once[task]
       changed_when: false
 
-- hosts: cloud
-  gather_facts: yes
-  become: yes
+- name: Configure all hosts using recipes associated with common role
+  hosts: cloud
+  gather_facts: true
+  become: true
   tasks:
-    - name: run chef-client with role[node]'s run_list
+    - name: Run chef-client with role[node]'s run_list
       become: true
       command: chef-client -o role[node]
       changed_when: false

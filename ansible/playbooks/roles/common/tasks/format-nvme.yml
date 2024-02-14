@@ -2,12 +2,12 @@
   apt:
     name: nvme-cli
     state: present
-  become: yes
+  become: true
 
 - name: Identify the namespace
   command: nvme id-ns -o json "{{ block_device }}"
-  become: yes
-  changed_when: False
+  become: true
+  changed_when: false
   register: nvme_namespace
 
 - name: Deserialize id-ns output
@@ -22,4 +22,4 @@
   command: "nvme format {{ '' if ansible_distribution_release == 'focal' else '--force' }} --lbaf={{ optimal_lbaf }} --ses=1 {{ block_device }}"
   register: nvme_format_result
   changed_when: nvme_format_result.rc == 0
-  become: yes
+  become: true

@@ -5,7 +5,7 @@
     license_aggregate: "{{ license_traits['traits'] \
       | items2dict(key_name='name', value_name='aggregate') }}"
 
-- name: remove custom traits from hosts
+- name: Remove custom traits from hosts
   shell: |
     set -o pipefail
     host_name={{ item }}
@@ -26,7 +26,7 @@
     executable: /bin/bash
   changed_when: false
 
-- name: remove hosts from licensed aggregates and delete aggregates
+- name: Remove hosts from licensed aggregates and delete aggregates
   shell: |
     set -o pipefail
     aggregate={{ item }}
@@ -48,7 +48,7 @@
     executable: /bin/bash
   changed_when: false
 
-- name: remove custom licensed traits
+- name: Remove custom licensed traits
   shell: |
     set -o pipefail
     trait={{ item }}
