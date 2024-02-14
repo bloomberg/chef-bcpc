@@ -54,7 +54,8 @@ def graphics_listen_addrs(migrate_data):
 
 
 def get_updated_guest_xml(instance, guest, migrate_data, get_volume_config,
-                          get_vif_config=None, new_resources=None):
+                          get_vif_config=None, new_resources=None,
+                          is_target_focal=False):
     xml_doc = etree.fromstring(guest.get_xml_desc(dump_migratable=True))
     xml_doc = _update_graphics_xml(xml_doc, migrate_data)
     xml_doc = _update_serial_xml(xml_doc, migrate_data)
@@ -62,7 +63,8 @@ def get_updated_guest_xml(instance, guest, migrate_data, get_volume_config,
         xml_doc, migrate_data, instance, get_volume_config)
     xml_doc = _update_perf_events_xml(xml_doc, migrate_data)
     xml_doc = _update_memory_backing_xml(xml_doc, migrate_data)
-    xml_doc = _update_quota_xml(instance, xml_doc)
+    xml_doc = _update_quota_xml(instance, xml_doc, is_target_focal,
+                                len(guest._domain.vcpus()))
     if get_vif_config is not None:
         xml_doc = _update_vif_xml(xml_doc, migrate_data, get_vif_config)
     if 'dst_numa_info' in migrate_data:
@@ -72,15 +74,29 @@ def get_updated_guest_xml(instance, guest, migrate_data, get_volume_config,
     return etree.tostring(xml_doc, encoding='unicode')
 
 
-def _update_quota_xml(instance, xml_doc):
+def _update_quota_xml(instance, xml_doc, is_target_focal, guest_vcpus):
     flavor_shares = instance.flavor.extra_specs.get('quota:cpu_shares')
-    cputune = xml_doc.find('./cputune')
-    shares = xml_doc.find('./cputune/shares')
-    if shares is not None and not flavor_shares:
-        cputune.remove(shares)
-    # Remove the cputune element entirely if it has no children left.
-    if cputune is not None and not list(cputune):
-        xml_doc.remove(cputune)
+    # Erase cputune/shares when migrating to Jammy/cgroupsv2
+    if not is_target_focal:
+        cputune = xml_doc.find('./cputune')
+        shares = xml_doc.find('./cputune/shares')
+        if shares is not None and not flavor_shares:
+            cputune.remove(shares)
+        # Remove the cputune element entirely if it has no children left.
+        if cputune is not None and not list(cputune):
+            xml_doc.remove(cputune)
+    # Set former value of cputune/shares when migrating to Focal/cgroupsv1
+    else:
+        shares = xml_doc.find('./cputune/shares')
+        if shares is None:
+            cputune = xml_doc.find('./cputune')
+            if cputune is None:
+                cputune = etree.SubElement(xml_doc, 'cputune')
+            shares = etree.SubElement(cputune, 'shares')
+        if flavor_shares:
+            shares.text = str(flavor_shares)
+        else:
+            shares.text = str(1000 * guest_vcpus)
     return xml_doc
 
 

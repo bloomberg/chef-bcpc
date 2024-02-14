@@ -39,6 +39,7 @@ import os
 import pwd
 import random
 import shutil
+import socket
 import sys
 import tempfile
 import threading
@@ -5681,11 +5682,15 @@ class LibvirtDriver(driver.ComputeDriver):
         if not is_able or CONF.libvirt.virt_type not in ('lxc', 'kvm', 'qemu'):
             return
 
+        if guest.cputune is None:
+            guest.cputune = vconfig.LibvirtConfigGuestCPUTune()
+            # Setting the default cpu.shares value to be a value
+            # dependent on the number of vcpus
+        guest.cputune.shares = 1024 * guest.vcpus
+
         for name in cputuning:
             key = "quota:cpu_" + name
             if key in flavor.extra_specs:
-                if guest.cputune is None:
-                    guest.cputune = vconfig.LibvirtConfigGuestCPUTune()
                 setattr(guest.cputune, name,
                         int(flavor.extra_specs[key]))
 
@@ -9911,12 +9916,16 @@ class LibvirtDriver(driver.ComputeDriver):
                 if isinstance(instance, objects.Instance):
                     new_resources = self._sorted_migrating_resources(
                         instance, instance.flavor)
+                node = f"{dest}.{socket.getfqdn().split('.', 1)[1]}"
+                dest_node = objects.ComputeNode.get_by_nodename(context, node)
+                is_target_focal = dest_node.hypervisor_version == 4002001
                 new_xml_str = libvirt_migrate.get_updated_guest_xml(
                     # TODO(sahid): It's not a really good idea to pass
                     # the method _get_volume_config and we should to find
                     # a way to avoid this in future.
                     instance, guest, migrate_data, self._get_volume_config,
-                    get_vif_config=get_vif_config, new_resources=new_resources)
+                    get_vif_config=get_vif_config, new_resources=new_resources,
+                    is_target_focal=is_target_focal)
 
             # NOTE(pkoniszewski): Because of precheck which blocks
             # tunnelled block live migration with mapped volumes we
