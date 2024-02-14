@@ -1,5 +1,6 @@
-- hosts: bootstraps
-  gather_facts: yes
+- name: Roles associated with bootstraps
+  hosts: bootstraps
+  gather_facts: true
   roles:
     - common
     - chef-server

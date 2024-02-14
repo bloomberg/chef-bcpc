@@ -1,28 +1,28 @@
-- name: install chrony
+- name: Install chrony
   apt:
     name: chrony
 
-- name: configure chrony
+- name: Configure chrony
   template:
     src: chrony/chrony.conf.j2
     dest: /etc/chrony/chrony.conf
-    mode: 0644
+    mode: '0644'
   register: chrony
 
-- name: configure chrony defaults
+- name: Configure chrony defaults
   template:
     src: chrony/default.j2
     dest: /etc/default/chrony
-    mode: 0644
+    mode: '0644'
   register: chrony_defaults
 
-- name: install service to start monitoring sources after getting a default route
+- name: Install service to monitor sources after getting a default route
   block:
-    - name: install the systemd unit
+    - name: Install the systemd unit
       copy:
         content: |
           [Unit]
-          Description=Wait for default route and bring Chrony sources online
+          Description=Wait for default route and bring chrony sources online
           After=bird.service chrony.service
           Requires=chrony.service
 
@@ -35,18 +35,18 @@
           [Install]
           WantedBy=multi-user.target
         dest: /etc/systemd/system/wait-for-default-route.service
-        mode: 0644
+        mode: '0644'
       register: chrony_custom
 
-    - name: enable the service at reboot
+    - name: Enable the service at reboot
       service:
         name: wait-for-default-route
-        daemon_reload: yes
-        enabled: yes
-      when: chrony_custom.changed
+        daemon_reload: true
+        enabled: true
+      when: chrony_custom.changed # noqa: no-handler
 
-- name: restart chrony
+- name: Restart chrony
   systemd:
     name: chrony
     state: restarted
-  when: chrony.changed or chrony_defaults.changed  # noqa no-handler
+  when: chrony.changed or chrony_defaults.changed

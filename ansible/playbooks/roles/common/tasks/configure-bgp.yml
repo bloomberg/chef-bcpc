@@ -1,45 +1,46 @@
-- import_tasks: define-transits.yml
+- name: Include tasks associated with defining transit interfaces
+  import_tasks: define-transits.yml
 
-- name: install bird
+- name: Install BIRD
   apt:
     name: bird2
 
-- name: create /var/log/bird
+- name: Create /var/log/bird
   file:
     path: /var/log/bird
     state: directory
     group: bird
     owner: bird
-    mode: 0755
+    mode: '0755'
 
-- name: create bird.log with correct permission
+- name: Create bird.log with correct permission
   file:
     path: /var/log/bird/bird.log
     state: touch
     group: bird
     owner: bird
-    mode: 0644
+    mode: '0644'
 
-- name: configure bird
+- name: Configure BIRD
   template:
     src: bird/bird.conf.j2
     dest: /etc/bird/bird.conf
-    mode: 0640
+    mode: '0640'
   register: bird_conf
 
-- name: reload bird
+- name: Reload BIRD
   service:
     name: bird
     state: reloaded
-  when: bird_conf.changed  # noqa no-handler
+  when: bird_conf.changed # noqa: no-handler
 
-- name: deploy bird logrotate config file
+- name: Deploy BIRD logrotate config file
   template:
     src: bird/bird.logrotate
     dest: /etc/logrotate.d/bird
-    mode: 0644
+    mode: '0644'
 
-- name: check for default gateway from tor
+- name: Check for default gateway from TOR
   shell: |
     set -o pipefail
     /usr/sbin/birdc show route | grep 0.0.0.0/0

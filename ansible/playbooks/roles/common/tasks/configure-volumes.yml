@@ -3,5 +3,7 @@
     matching_configs: "{{ volume_configs | dict2items | selectattr('key', 'in', group_names) | map(attribute='value') | list | flatten }}"
 
 - name: Partition and format volumes
-  include_role: name=common tasks_from=configure-volume
+  include_role:
+    name: common
+    tasks_from: configure-volume
   with_items: "{{ matching_configs }}"

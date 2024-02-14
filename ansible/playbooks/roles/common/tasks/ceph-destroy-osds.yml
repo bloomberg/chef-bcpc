@@ -1,5 +1,5 @@
 ---
-- name: "destroy ceph osds"
+- name: Destroy Ceph OSDs
   when: destroy_osds
   shell: |
     set -o pipefail
@@ -10,7 +10,7 @@
     for disk in ${disks}; do
       device="/dev/${disk}"
 
-      # only target ceph formatted disks
+      # only target Ceph formatted disks
       if pvdisplay ${device} | grep -qw ceph; then
 
         # prefer to use ceph-volume if available
@@ -26,3 +26,4 @@
     done
   args:
     executable: /bin/bash
+  changed_when: true

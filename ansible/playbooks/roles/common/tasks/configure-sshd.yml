@@ -1,14 +1,14 @@
-- name: configure sshd
+- name: Configure SSH server
   template:
     src: ssh/sshd_config.j2
     dest: /etc/ssh/sshd_config
-    mode: 0644
+    mode: '0644'
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   register: sshd
 
-- name: restart sshd
+- name: Restart SSH server
   service:
     name: sshd
     state: restarted
-  when: sshd.changed  # noqa no-handler
+  when: sshd.changed # noqa: no-handler

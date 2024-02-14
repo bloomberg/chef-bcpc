@@ -1,9 +1,9 @@
-- name: upload cookbooks
-  synchronize:
+- name: Upload cookbooks
+  ansible.posix.synchronize:
     src: "{{ item }}"
     dest: "/var/bcpc/chef/{{ chef_org_short_name }}/"
-    delete: yes
-    recursive: yes
+    delete: true
+    recursive: true
     rsync_opts:
       - "--copy-links"
       - "--exclude=*.swp"
@@ -11,12 +11,12 @@
   with_items:
     - "{{ chef_cookbooks_dir }}"
 
-- name: upload environments, roles and databags
-  synchronize:
+- name: Upload environments, roles and databags
+  ansible.posix.synchronize:
     src: "{{ item }}"
     dest: "/var/bcpc/chef/{{ chef_org_short_name }}/"
-    delete: yes
-    recursive: yes
+    delete: true
+    recursive: true
     rsync_opts:
       - "--exclude=*.swp"
       - "--exclude=.*"
@@ -25,19 +25,19 @@
     - "{{ chef_roles_dir }}"
     - "{{ chef_databags_dir }}"
 
-- name: import config data bag
+- name: Import config data bag
   command: knife data bag from file "{{ cloud_region }}" config.json
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
   changed_when: false
 
-- name: import zones data bag
+- name: Import zones data bag
   command: knife data bag from file "{{ cloud_region }}" zones.json
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}/databags"
   changed_when: false
 
-- name: knife upload org
+- name: Knife upload organization
   command: knife upload .
   args:
     chdir: "/var/bcpc/chef/{{ chef_org_short_name }}"

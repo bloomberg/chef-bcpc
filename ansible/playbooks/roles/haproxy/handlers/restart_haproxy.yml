@@ -1,6 +1,6 @@
-- name: restart haproxy service
+- name: Restart HAProxy service
   service:
     name: haproxy
     state: restarted
-  become: yes
+  become: true
   listen: 'restart haproxy'

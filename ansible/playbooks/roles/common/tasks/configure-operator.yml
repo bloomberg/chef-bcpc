@@ -1,32 +1,32 @@
 ---
-- name: "create the cloud operator group"
+- name: Create the cloud operator group
   group:
     name: "{{ operator_group }}"
     state: present
 
-- name: "create the cloud operator user"
+- name: Create the cloud operator user
   user:
     name: "{{ operator_username }}"
     group: "{{ operator_group }}"
     shell: /bin/bash
 
-- name: "setup cloud operator user environment"
+- name: Setup cloud operator user environment
   copy:
     src: "files/operator/{{ item }}"
     dest: "/home/{{ operator_username }}/.{{ item }}"
     owner: "{{ operator_username }}"
     group: "{{ operator_group }}"
-    mode: 0644
+    mode: '0644'
   with_items:
     - bashrc
 
-- name: "populate cloud operator authorized key file"
-  authorized_key:
+- name: Populate cloud operator authorized key file
+  ansible.posix.authorized_key:
     user: "{{ operator_username }}"
     key: "{{ operator_authorized_key }}"
 
-- name: "install operators group sudoers file"
+- name: Install operators group sudoers file
   template:
     src: operator/sudoers.j2
     dest: "/etc/sudoers.d/{{ operator_username }}"
-    mode: 0644
+    mode: '0644'

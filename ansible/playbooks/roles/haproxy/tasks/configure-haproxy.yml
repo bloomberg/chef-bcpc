@@ -1,22 +1,22 @@
-- name: create haproxy config directories
+- name: Create HAProxy config directories
   file:
     path: "{{ item }}"
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
   with_items: "{{ haproxy_config_directories }}"
 
-- name: copy haproxy default path
+- name: Copy HAProxy default path
   copy:
     src: default
     dest: /etc/default/haproxy
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   notify: restart haproxy
 
-- name: template haproxy configs
+- name: Template HAProxy configs
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"

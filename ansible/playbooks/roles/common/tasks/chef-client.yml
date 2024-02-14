@@ -1,8 +1,8 @@
-- name: indicate start of chef-client run
+- name: Indicate start of chef-client run
   debug:
     msg: "running chef-client on {{ inventory_hostname }}"
 
-- name: run chef-client
+- name: Run chef-client
   become: true
   command: chef-client
   changed_when: false

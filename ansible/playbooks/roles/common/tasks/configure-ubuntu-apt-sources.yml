@@ -1,10 +1,10 @@
-- name: add ubuntu apt signing key
+- name: Add Ubuntu apt signing key
   apt_key:
     url: "{{ ubuntu_apt.key_url }}"
     state: present
   when: ubuntu_apt.key_url | default(false)
 
-- name: remove old sources.list.d files
+- name: Remove old sources.list.d files
   file:
     path: "/etc/apt/sources.list.d/{{ item }}"
     state: absent
@@ -14,32 +14,33 @@
     - ubuntu-archive-backports.list
     - ubuntu-archive-updates.list
 
-- name: check for i386 architecture support
+- name: Check for i386 architecture support
   shell: dpkg --print-foreign-architectures | grep i386
   register: check_for_i386_apt_support
   failed_when: check_for_i386_apt_support.rc == 0
   ignore_errors: true
   changed_when: false
 
-- name: remove i386 architecture from apt
+- name: Remove i386 architecture from apt
   command: dpkg --remove-architecture i386
   when: check_for_i386_apt_support is failed
+  changed_when: true
 
-- name: generate apt sources.list
+- name: Generate apt sources.list
   template:
     src: apt/sources.list.j2
     dest: /etc/apt/sources.list
-    mode: 0644
+    mode: '0644'
   register: sources_list
 
-- name: apt-get update
+- name: Update apt indices
   apt:
-    update_cache: yes
-  when: sources_list.changed  # noqa no-handler
+    update_cache: true
+  when: sources_list.changed # noqa: no-handler
 
 # Prevent upgrades to Cinc or Chef >= 15
-- name: install apt preferences file to pin Chef
+- name: Install apt preferences file to pin Chef
   copy:
     src: apt/99chef
     dest: /etc/apt/preferences.d/99chef
-    mode: 06444
+    mode: '0644'

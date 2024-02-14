@@ -1,15 +1,19 @@
-- import_tasks: configure-networking.yml
+- name: Include tasks associated with configuring networking
+  import_tasks: configure-networking.yml
   become: true
-  tags: [never,configure-networking]
+  tags: [never, configure-networking]
 
-- import_tasks: configure-system.yml
+- name: Include tasks associated with configuring the installed OS
+  import_tasks: configure-system.yml
   become: true
-  tags: [never,configure-system]
+  tags: [never, configure-system]
 
-- import_tasks: configure-hardware.yml
+- name: Include tasks associated with configuring hardware parameters
+  import_tasks: configure-hardware.yml
   become: true
-  tags: [never,configure-hardware]
+  tags: [never, configure-hardware]
 
-- import_tasks: configure-volumes.yml
+- name: Include tasks associated with configuring local block volumes
+  import_tasks: configure-volumes.yml
   become: true
-  tags: [never,configure-volumes]
+  tags: [never, configure-volumes]

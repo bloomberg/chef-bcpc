@@ -1,16 +1,20 @@
-- import_tasks: add-apt-repo.yml
+- name: Include tasks associated with configuring apt for HAProxy
+  import_tasks: add-apt-repo.yml
   become: true
-  tags: [never,configure-haproxy]
+  tags: [never, configure-haproxy]
   when: haproxy_repo_enabled
 
-- import_tasks: install-haproxy.yml
+- name: Include tasks associated with installing HAProxy
+  import_tasks: install-haproxy.yml
   become: true
-  tags: [never,configure-haproxy]
+  tags: [never, configure-haproxy]
 
-- import_tasks: configure-haproxy.yml
+- name: Include tasks associated with configuring HAProxy
+  import_tasks: configure-haproxy.yml
   become: true
-  tags: [never,configure-haproxy]
+  tags: [never, configure-haproxy]
 
-- import_tasks: configure-haproxy-clients.yml
+- name: Include tasks associated with configuring the clients of HAProxy
+  import_tasks: configure-haproxy-clients.yml
   become: true
-  tags: [never,configure-haproxy]
+  tags: [never, configure-haproxy]

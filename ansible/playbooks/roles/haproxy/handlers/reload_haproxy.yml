@@ -1,6 +1,6 @@
-- name: reload haproxy service
+- name: Reload HAProxy service
   service:
     name: haproxy
     state: reloaded
-  become: yes
+  become: true
   listen: 'reload haproxy'

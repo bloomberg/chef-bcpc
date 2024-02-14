@@ -17,7 +17,7 @@
       hashsize: "{{ vars['system_parameters_net.nf_conntrack_max'] // 8 }}"
 
 - name: Load nf_conntrack (ip_conntrack) kernel module
-  modprobe:
+  community.general.modprobe:
     name: nf_conntrack
 
 - name: Configure ip_conntrack kernel module hashsize setting
@@ -27,7 +27,7 @@
     owner: root
     group: root
     mode: '0600'
-    unsafe_writes: yes
+    unsafe_writes: true
   vars:
     value: "{{ vars['system_parameters_net.nf_conntrack_max'] // 8 }}"
 
@@ -51,7 +51,7 @@
   vars:
     kernel_module_name: nvme_tcp
 
-# Configure grub
+# Configure GRUB
 - name: Configure grub
   template:
     src: grub/default.j2
@@ -61,9 +61,10 @@
     mode: '0644'
   register: grub_defaults
 
-- name: Run update-grub
+- name: Generate GRUB configuration file
   command: update-grub
-  when: grub_defaults.changed  # noqa no-handler
+  when: grub_defaults.changed # noqa: no-handler
+  changed_when: true
 
 
 # Configure sysctl parameters
@@ -78,7 +79,8 @@
 
 - name: Reload sysctl settings
   command: sysctl -p /etc/sysctl.d/70-bcpc.conf
-  when: sysctl_bcpc.changed  # noqa no-handler
+  when: sysctl_bcpc.changed # noqa: no-handler
+  changed_when: true
 
 # Configure /etc/updatedb.conf
 - name: Configure /etc/updatedb.conf
@@ -92,7 +94,7 @@
 - name: Stop and disable unused services
   service:
     name: "{{ item }}"
-    enabled: no
+    enabled: false
     state: stopped
   with_items:
     - accounts-daemon
@@ -108,12 +110,12 @@
     - snapd.seeded
     - udisks2
     - upower
-  ignore_errors: yes # noqa ignore-errors
+  ignore_errors: true # noqa: ignore-errors
 
 - name: Purge unused service packages
   apt:
     name: "{{ item }}"
-    purge: yes
+    purge: true
     state: absent
   with_items:
     - accountsservice
@@ -172,8 +174,8 @@
 # Purge off dependencies of uneeded packages
 - name: Purge unused packages
   apt:
-    autoremove: yes
-    purge: yes
+    autoremove: true
+    purge: true
 
 # Configure motd-news
 - name: Configure motd-news
@@ -184,7 +186,7 @@
     group: root
     mode: '0644'
   vars:
-   enabled: false
+    enabled: false
 
 # Configure system kernel
 - name: Configure system kernel
