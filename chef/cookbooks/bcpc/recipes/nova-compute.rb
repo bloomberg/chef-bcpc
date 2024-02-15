@@ -117,19 +117,6 @@ unless storagenode?
   end
 end
 
-if zone_config.alternate_backends_enabled?
-  cookbook_file '/usr/lib/python3/dist-packages/os_brick/initiator/connectors/lightos.py' do
-    source 'cinder/lightos_connector.py'
-    notifies :run, 'execute[py3compile-os-brick]', :immediately
-    notifies :restart, 'service[nova-compute]', :delayed
-  end
-
-  execute 'py3compile-os-brick' do
-    action :nothing
-    command 'py3compile -p python3-os-brick'
-  end
-end
-
 # create hypervisor-specific client.*cinder Ceph keyring
 template "/etc/ceph/ceph.client.#{nova_compute_config.ceph_user}.keyring" do
   source 'nova/ceph.client.nova.keyring.erb'
