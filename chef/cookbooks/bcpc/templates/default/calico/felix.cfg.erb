@@ -51,3 +51,6 @@ AllowVXLANPacketsFromWorkloads = true
 
 # Set to true to allow IPIP encapsulated traffic from workloads.
 AllowIPIPPacketsFromWorkloads = true
+
+# Set to longer interval to reduce Felix CPU Usage
+IpsetsRefreshInterval = <%= node['bcpc']['calico']['felix']['IPSetsRefreshInterval'] %>
