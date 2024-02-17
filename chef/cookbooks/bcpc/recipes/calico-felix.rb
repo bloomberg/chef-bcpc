@@ -51,7 +51,9 @@ if Integer(node['kernel']['release'].split('.')[0]) == 6
     source 'calico/override.conf.erb'
     notifies :run, 'execute[reload systemd]', :immediately
     variables(
-      linux_tools_version: lazy { linux_tools_version }
+      linux_tools_version: lazy { linux_tools_version },
+      is_focal_node: node['platform_version'] == '20.04',
+      is_ceph_node: storageheadnode? || storagenode?
     )
   end
 
