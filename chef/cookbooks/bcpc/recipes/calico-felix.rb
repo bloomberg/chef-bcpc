@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: calico-felix
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,9 +51,7 @@ if Integer(node['kernel']['release'].split('.')[0]) == 6
     source 'calico/override.conf.erb'
     notifies :run, 'execute[reload systemd]', :immediately
     variables(
-      linux_tools_version: lazy { linux_tools_version },
-      is_focal_node: node['platform_version'] == '20.04',
-      is_ceph_node: storageheadnode? || storagenode?
+      linux_tools_version: lazy { linux_tools_version }
     )
   end
 
@@ -88,7 +86,9 @@ template '/etc/calico/felix.cfg' do
   variables(
     cert_type: cert_type,
     failsafe_inbound: node['bcpc']['calico']['felix']['failsafe']['inbound'],
-    failsafe_outbound: node['bcpc']['calico']['felix']['failsafe']['outbound']
+    failsafe_outbound: node['bcpc']['calico']['felix']['failsafe']['outbound'],
+    is_focal_node: node['platform_version'] == '20.04',
+    is_ceph_node: storageheadnode? || storagenode?
   )
   notifies :restart, 'service[calico-felix]', :immediately
 end

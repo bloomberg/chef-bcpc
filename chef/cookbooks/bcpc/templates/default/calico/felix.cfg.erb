@@ -51,3 +51,13 @@ AllowVXLANPacketsFromWorkloads = true
 
 # Set to true to allow IPIP encapsulated traffic from workloads.
 AllowIPIPPacketsFromWorkloads = true
+<% unless @is_ceph_node or @is_focal_node %>
+
+# Significant regressions in performance are noted for some workloads when
+# nftables is used vs. iptables. This does not seem to have impacted Ceph
+# workloads much, but does impact some hypervisor workloads considerably.
+#
+# NOTE: In order for this setting to change, hosts *MUST* be rebooted. Do
+# not attempt to change this dynamically without considerable testing.
+IptablesBackend = Legacy
+<% end %>

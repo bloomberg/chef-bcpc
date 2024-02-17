@@ -1,11 +1,2 @@
 [Service]
 Environment="PATH=/usr/lib/linux-tools/<%= @linux_tools_version %>-generic:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-# Significant regressions in performance are noted for some workloads when
-# nftables is used vs. iptables. This does not seem to have impacted Ceph
-# workloads much, but does impact some hypervisor workloads considerably.
-#
-# NOTE: In order for this setting to change, hosts *MUST* be rebooted. Do
-# not attempt to change this dynamically without considerable testing.
-<% unless @is_ceph_node or @is_focal_node %>
-Environment="FELIX_IPTABLESBACKEND=Legacy"
-<% end %>
