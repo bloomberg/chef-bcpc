@@ -28,6 +28,10 @@ default['bcpc']['mysql']['thread_cache_size'] = 1024
 default['bcpc']['mysql']['tmp_table_size'] = '128M'
 default['bcpc']['mysql']['wsrep_slave_threads'] = 16
 
+# error log settings
+default['bcpc']['mysql']['log_error_verbosity'] = 2
+default['bcpc']['mysql']['log_error_location'] = 'syslog'
+
 # slow query log settings
 default['bcpc']['mysql']['slow_query_log'] = true
 default['bcpc']['mysql']['slow_query_log_file'] = '/var/log/mysql/slow.log'
