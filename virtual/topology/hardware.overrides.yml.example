@@ -6,6 +6,9 @@ profiles:
     ram_gb: 32
     cpus: 4
     swap_gb: 16
+    ext_disks:
+      count: 1
+      size_gb: 32
   worknode:
     ram_gb: 32
     cpus: 8
