@@ -57,6 +57,7 @@ def get_updated_guest_xml(instance, guest, migrate_data, get_volume_config,
                           get_vif_config=None, new_resources=None,
                           is_target_focal=False):
     xml_doc = etree.fromstring(guest.get_xml_desc(dump_migratable=True))
+    xml_doc = _update_cpu_xml(xml_doc, is_target_focal)
     xml_doc = _update_graphics_xml(xml_doc, migrate_data)
     xml_doc = _update_serial_xml(xml_doc, migrate_data)
     xml_doc = _update_volume_xml(
@@ -72,6 +73,41 @@ def get_updated_guest_xml(instance, guest, migrate_data, get_volume_config,
     if new_resources:
         xml_doc = _update_device_resources_xml(xml_doc, new_resources)
     return etree.tostring(xml_doc, encoding='unicode')
+
+
+def _update_cpu_xml(xml_doc, is_target_focal=False):
+    """Add PKU feature to the CPU as needed when migrating towards Jammy."""
+    if is_target_focal:
+        return xml_doc
+
+    cpu = xml_doc.find('./cpu')
+    if cpu is None:
+        LOG.warning('_update_cpu_xml: Cannot find CPU in domain, skip')
+        return xml_doc
+
+    model = cpu.find('./model')
+    if model is None:
+        LOG.warning('_update_cpu_xml: Cannot find CPU model in domain, skip')
+        return xml_doc
+
+    # Skylake and later have PKU natively; scan for PKU if Broadwell.
+    has_pku_feature = model.text != 'Broadwell'
+
+    if not has_pku_feature:
+        for feature in cpu.findall('./feature'):
+            if feature.get('name') == 'pku':
+                has_pku_feature = True
+                break
+
+    # CPU does not have PKU listed as a feature. Assume guest has been running
+    # on a Skylake or later class processor and has had its xfeatures tainted
+    # with the PKU feature flag.
+    if not has_pku_feature:
+        pku = etree.SubElement(cpu, 'feature')
+        pku.set('policy', 'require')
+        pku.set('name', 'pku')
+
+    return xml_doc
 
 
 def _update_quota_xml(instance, xml_doc, is_target_focal, guest_vcpus):
