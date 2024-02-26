@@ -1,40 +1,50 @@
-- name: gather network and hardware/vm facts
+- name: Gather network and hardware/virtualization facts
   setup:
     gather_subset: "!all,!min,hardware,network,virtual"
 
-- name: define libvirt_kvm_guest
+- name: Define libvirt_kvm_guest
   set_fact:
     libvirt_kvm_guest: >-
       {{ ansible_virtualization_type == 'kvm'
           and ansible_virtualization_role == 'guest'
           and ansible_system_vendor == 'QEMU' }}
 
-- import_tasks: configure-etc-hosts.yml
+- name: Include tasks associated with configuring /etc/hosts
+  import_tasks: configure-etc-hosts.yml
   tags: [configure-etc-hosts]
 
-- import_tasks: configure-network-interfaces.yml
+- name: Include tasks associated with configuring network interfaces
+  import_tasks: configure-network-interfaces.yml
   tags: [configure_network_interfaces]
 
-- import_tasks: configure-service-ip.yml
+- name: Include tasks associated with configuring the service IP
+  import_tasks: configure-service-ip.yml
   tags: [configure_service_ip]
 
-- import_tasks: configure-bgp.yml
+- name: Include tasks associated with configuring BGP
+  import_tasks: configure-bgp.yml
   tags: [configure-bgp]
 
-- import_tasks: configure-resolver.yml
+- name: Include tasks associated with configuring hostname resolver
+  import_tasks: configure-resolver.yml
   tags: [configure-resolver]
 
-- import_tasks: configure-local-proxy.yml
+- name: Include tasks associated with configuring the local proxy
+  import_tasks: configure-local-proxy.yml
   tags: [configure-local-proxy]
 
-- import_tasks: configure-ubuntu-apt-sources.yml
+- name: Include tasks associated with configuring apt for Ubuntu
+  import_tasks: configure-ubuntu-apt-sources.yml
   tags: [configure-ubuntu-apt-sources]
 
-- import_tasks: configure-chrony.yml
+- name: Include tasks associated with configuring chrony
+  import_tasks: configure-chrony.yml
   tags: [configure-chrony]
 
-- import_tasks: configure-sshd.yml
+- name: Include tasks associated with configuring the SSH server
+  import_tasks: configure-sshd.yml
   tags: [configure-sshd]
 
-- import_tasks: configure-root-user-ssh.yml
+- name: Include tasks associated with configuring SSH for the root user
+  import_tasks: configure-root-user-ssh.yml
   tags: [configure-root-user-ssh]

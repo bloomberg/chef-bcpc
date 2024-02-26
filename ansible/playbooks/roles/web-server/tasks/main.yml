@@ -1,3 +1,4 @@
-- import_tasks: web-server.yml
+- name: Include tasks associated with the boostraps' web server
+  import_tasks: web-server.yml
   become: true
-  tags: [never,web-server]
+  tags: [never, web-server]

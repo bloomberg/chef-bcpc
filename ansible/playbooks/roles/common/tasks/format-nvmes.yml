@@ -1,9 +1,9 @@
 - name: Derive a list of NVMe block devices
-  ansible.builtin.find:
+  find:
     paths: /sys/block
     patterns: '^nvme\d+n\d+$'
-    use_regex: yes
-    recurse: no
+    use_regex: true
+    recurse: false
     file_type: link
   register: found_nvmes
 

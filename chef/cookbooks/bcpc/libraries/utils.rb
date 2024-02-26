@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Library:: utils
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -269,7 +269,16 @@ end
 def node_network_map
   # try to get node information via the node hostname
   match = node['hostname'].match(/^.*r(\d+)n(\d+).*$/i)
-  raise 'could not determine node information from hostname' if match.nil?
+  # before failing, try matching on the hostname from the metadata API
+  if match.nil?
+    begin
+      client = Net::HTTP.new('169.254.169.254', nil, nil)
+      hostname = client.get('/latest/meta-data/hostname').body.split('.')[0]
+      match = hostname.match(/^.*r(\d+)n(\d+).*$/i)
+    rescue Net::OpenTimeout
+    end
+    raise 'could not determine node information from hostname' if match.nil?
+  end
 
   {
     'rack_id' => match.captures[0].to_i,

@@ -30,3 +30,5 @@ default['bcpc']['calico']['felix']['failsafe']['outbound'] = [
   'tcp:2379',
   'tcp:2380',
 ]
+
+default['bcpc']['calico']['felix']['IPSetsRefreshInterval'] = 90

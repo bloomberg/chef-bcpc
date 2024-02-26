@@ -1,9 +1,26 @@
-- import_playbook: localhost.yml
-- import_playbook: stubnodes.yml
-- import_playbook: bootstraps.yml
-- import_playbook: etcdnodes.yml
-- import_playbook: headnodes.yml
-- import_playbook: rmqnodes.yml
-- import_playbook: storageheadnodes.yml
-- import_playbook: worknodes.yml
-- import_playbook: storagenodes.yml
+- name: Import playbook associated with localhost
+  import_playbook: localhost.yml
+
+- name: Import playbook associated with stubnodes
+  import_playbook: stubnodes.yml
+
+- name: Import playbook associated with bootstraps
+  import_playbook: bootstraps.yml
+
+- name: Import playbook associated with etcdnodes
+  import_playbook: etcdnodes.yml
+
+- name: Import playbook associated with headnodes
+  import_playbook: headnodes.yml
+
+- name: Import playbook associated with rmqnodes
+  import_playbook: rmqnodes.yml
+
+- name: Import playbook associated with storageheadnodes
+  import_playbook: storageheadnodes.yml
+
+- name: Import playbook associated with worknodes
+  import_playbook: worknodes.yml
+
+- name: Import playbook associated with storagenodes
+  import_playbook: storagenodes.yml

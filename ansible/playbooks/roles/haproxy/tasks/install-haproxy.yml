@@ -1,4 +1,4 @@
-- name: install haproxy dependencies
+- name: Install HAProxy dependencies
   apt:
     name: "{{ item.name }}"
     state: "{{ item.state }}"

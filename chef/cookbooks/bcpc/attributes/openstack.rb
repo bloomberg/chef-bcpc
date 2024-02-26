@@ -18,6 +18,7 @@ default['bcpc']['openstack']['admin']['username'] = 'admin'
 default['bcpc']['openstack']['admin']['project'] = 'admin'
 
 default['bcpc']['openstack']['services']['workers'] = 1
+default['bcpc']['openstack']['services']['worker_threads'] = 1
 
 ###############################################################################
 # openstack flavors

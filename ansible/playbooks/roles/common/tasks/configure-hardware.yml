@@ -19,7 +19,7 @@
         paths:
           - "/lib/modules/{{ kernel_uname['stdout'].strip() }}/kernel/drivers/edac"
         file_type: file
-        use_regex: yes
+        use_regex: true
         patterns:
           - "^\\w+\\.ko$"
       register: edac_kos
@@ -33,9 +33,10 @@
                                | list | sort }}"
 
 - name: Disable EDAC controllers
+  when: not hardware_edac_polling
   block:
     - name: Unload kernel modules for EDAC
-      modprobe:
+      community.general.modprobe:
         name: "{{ item }}"
         state: absent
       with_items: "{{ kernel_edac_modules }}"
@@ -49,21 +50,21 @@
         mode: '0644'
       vars:
         modules: "{{ kernel_edac_modules }}"
-  when: not hardware_edac_polling
 
 - name: Enable EDAC controllers
+  when: hardware_edac_polling
   block:
     - name: Ensure EDAC modules are not blacklisted
       file:
         path: /etc/modprobe.d/edac.conf
         state: absent
-  when: hardware_edac_polling
 
 # IPMI module configuration and loading
 - name: Configure the kernel's IPMI module
+  when: ansible_virtualization_role in ["NA", "host"]
   block:
     - name: Load ipmi_devintf kernel module
-      modprobe:
+      community.general.modprobe:
         name: ipmi_devintf
 
     - name: Ensure ipmi_devintf is loaded at boot
@@ -75,7 +76,6 @@
         mode: '0644'
       vars:
         kernel_module_name: ipmi_devintf
-  when: ansible_virtualization_role in ["NA", "host"]
 
 # Configure I/O scheduler algorithm
 - name: Configure disk scheduler algorithm
@@ -99,14 +99,17 @@
 
 - name: Reload udevadm rules
   command: udevadm control --reload-rules
-  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
+  when: udev_io_scheduler.changed or udev_readahead.changed
+  changed_when: true
 
 - name: Replay udev events
   command: udevadm trigger
-  when: udev_io_scheduler.changed or udev_readahead.changed  # noqa no-handler
+  when: udev_io_scheduler.changed or udev_readahead.changed
+  changed_when: true
 
 # Control processor microcode application
 - name: Control processor microcode application
+  when: ansible_virtualization_role in ["NA", "host"]
   block:
     - name: Check if AMD processor
       command: grep -q AuthenticAMD /proc/cpuinfo
@@ -153,4 +156,4 @@
     - name: Update initramfs for all kernels
       command: update-initramfs -uk all
       when: amd_microcode.changed or intel_microcode.changed
-  when: ansible_virtualization_role in ["NA", "host"]
+      changed_when: true

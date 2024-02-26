@@ -174,20 +174,9 @@ if zone_config.alternate_backends_enabled?
     notifies :restart, 'service[cinder-volume]', :delayed
   end
 
-  cookbook_file '/usr/lib/python3/dist-packages/os_brick/initiator/connectors/lightos.py' do
-    source 'cinder/lightos_connector.py'
-    notifies :run, 'execute[py3compile-os-brick]', :immediately
-    notifies :restart, 'service[cinder-volume]', :delayed
-  end
-
   execute 'py3compile-cinder' do
     action :nothing
     command 'py3compile -p python3-cinder'
-  end
-
-  execute 'py3compile-os-brick' do
-    action :nothing
-    command 'py3compile -p python3-os-brick'
   end
 end
 

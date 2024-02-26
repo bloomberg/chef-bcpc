@@ -33,8 +33,25 @@ file '/etc/apache2/conf-available/openstack-dashboard.conf' do
   action :delete
 end
 
+horizon_processes = if !node['bcpc']['horizon']['workers'].nil?
+                      node['bcpc']['horizon']['workers']
+                    else
+                      node['bcpc']['openstack']['services']['workers']
+                    end
+
+horizon_threads = if !node['bcpc']['horizon']['worker_threads'].nil?
+                    node['bcpc']['horizon']['worker_threads']
+                  else
+                    node['bcpc']['openstack']['services']['worker_threads']
+                  end
+
 template '/etc/apache2/sites-available/openstack-dashboard.conf' do
   source 'horizon/apache-openstack-dashboard.conf.erb'
+
+  variables(
+    processes: horizon_processes,
+    threads: horizon_threads
+  )
   notifies :run, 'execute[enable openstack-dashboard]', :immediately
   notifies :restart, 'service[horizon]', :immediately
 end

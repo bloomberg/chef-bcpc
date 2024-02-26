@@ -1,4 +1,4 @@
-- name: configuring host aggregates
+- name: Configuring host aggregates
   shell: |
     set -o pipefail
 

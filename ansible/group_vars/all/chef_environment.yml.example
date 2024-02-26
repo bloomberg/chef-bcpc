@@ -3,7 +3,7 @@
 ###############################################################################
 
 # This file overrides various defaults defined in both
-# ansible/playbooks/roles/common/defaults/main/chef.yml and in the chef
+# ansible/playbooks/roles/common/defaults/main/chef.yml and in the Chef
 # attribute files found in chef/cookbooks/bcpc/attributes.
 #
 # Below is a sample file for your convenience.
@@ -48,7 +48,7 @@ chef_environment:
             - name: lvmdriver
               enabled: true
               properties:
-                image_volume_cache_enabled: True
+                image_volume_cache_enabled: true
                 volume_clear: zero
                 lvm_type: auto
                 target_prefix: iqn.2010-10.org.openstack

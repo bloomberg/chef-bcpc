@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# Copyright 2023, Bloomberg Finance L.P.
+# Copyright 2024, Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,16 +25,20 @@ function main {
     find . -name "*.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/cinder/lightos.py" \
         ! -path \
-            "./chef/cookbooks/bcpc/files/default/cinder/lightos_connector.py" \
-        ! -path \
             "./chef/cookbooks/bcpc/files/default/neutron/external_net_db.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/driver_20.04.py" \
+        ! -path "./chef/cookbooks/bcpc/files/default/nova/driver_22.04.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/guest.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/instance.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/migration.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/policies_init.py" \
         -print0 | xargs -0 -t flake8
-    ansible-lint -x var-naming ansible/
+    ansible-lint \
+        -x "fqcn[action-core]" \
+        -x "schema[vars]" \
+        -x "var-naming[no-role-prefix]" \
+        ansible/
     cookstyle --version && cookstyle --fail-level A
 }
 

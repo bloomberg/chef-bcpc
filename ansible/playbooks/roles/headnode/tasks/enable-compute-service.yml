@@ -1,4 +1,4 @@
-- name: enable compute service
+- name: Enable compute service
   changed_when: false
   shell: |
     set -o pipefail

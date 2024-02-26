@@ -1,35 +1,43 @@
-- import_tasks: configure-operator.yml
+- name: Include tasks associated with configuring the cloud operator account
+  import_tasks: configure-operator.yml
   become: true
-  tags: [never,configure-operator]
+  tags: [never, configure-operator]
   when: configure_operator | default(true)
 
-- import_tasks: chef-client.yml
+- name: Include tasks associated with setting up Chef client
+  import_tasks: chef-client.yml
   become: true
-  tags: [never,chef-client]
+  tags: [never, chef-client]
 
-- import_tasks: adjust-ceph-pool-pgs.yml
+- name: Include tasks associated with adjusting the PGs in Ceph pools
+  import_tasks: adjust-ceph-pool-pgs.yml
   become: true
   run_once: true
-  tags: [never,adjust-ceph-pool-pgs]
+  tags: [never, adjust-ceph-pool-pgs]
 
-- import_tasks: ceph-destroy-osds.yml
+- name: Include tasks associated with destroying Ceph OSDs
+  import_tasks: ceph-destroy-osds.yml
   become: true
-  tags: [never,ceph-destroy-osds]
+  tags: [never, ceph-destroy-osds]
 
-- import_tasks: reweight-ceph-osds.yml
-  become: true
-  run_once: true
-  tags: [never,configure-ceph,reweight-ceph-osds]
-
-- import_tasks: set-ceph-pools-size.yml
+- name: Include tasks associated with reweighting Ceph OSDs
+  import_tasks: reweight-ceph-osds.yml
   become: true
   run_once: true
-  tags: [never,configure-ceph,set-ceph-pools-size]
+  tags: [never, configure-ceph, reweight-ceph-osds]
 
-- import_tasks: configure-node.yml
+- name: Include tasks associated with setting the size of Ceph pools
+  import_tasks: set-ceph-pools-size.yml
   become: true
-  tags: [never,configure-node]
+  run_once: true
+  tags: [never, configure-ceph, set-ceph-pools-size]
 
-- import_tasks: format-nvmes.yml
+- name: Include tasks associated with configuring the base node information
+  import_tasks: configure-node.yml
   become: true
-  tags: [never,format-nvmes]
+  tags: [never, configure-node]
+
+- name: Include tasks associated with formatting NVMe drives
+  import_tasks: format-nvmes.yml
+  become: true
+  tags: [never, format-nvmes]
