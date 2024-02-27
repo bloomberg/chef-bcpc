@@ -51,6 +51,19 @@
   vars:
     kernel_module_name: nvme_tcp
 
+# Remove and purge ufw from bootstrap nodes
+- name: If 'ufw' is installed but not configured/enabled, disable it
+  service:
+    name: ufw
+    state: stopped
+    enabled: no
+
+- name: Uninstall 'ufw' _only_ when not actively enabled or in use
+  apt:
+    name: ufw
+    state: absent
+    purge: yes
+
 # Configure grub
 - name: Configure grub
   template:

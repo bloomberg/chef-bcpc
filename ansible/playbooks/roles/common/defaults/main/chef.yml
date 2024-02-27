@@ -62,7 +62,6 @@ chef_roles:
     run_list:
       - role[node]
       - recipe[bcpc::web-server]
-      - recipe[bcpc::ufw]
       - recipe[bcpc::rally]
       - recipe[bcpc::rally-deploy]
 
