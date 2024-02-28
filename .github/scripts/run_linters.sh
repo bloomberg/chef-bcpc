@@ -25,6 +25,8 @@ function main {
     find . -name "*.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/cinder/lightos.py" \
         ! -path \
+            "./chef/cookbooks/bcpc/files/default/cinder/lightos_connector.py" \
+        ! -path \
             "./chef/cookbooks/bcpc/files/default/neutron/external_net_db.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/neutron/model_query.py" \
         ! -path "./chef/cookbooks/bcpc/files/default/nova/driver_20.04.py" \
