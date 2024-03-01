@@ -95,6 +95,7 @@ user_domain_name = Default
 username = <%= @config['heat']['creds']['os']['username'] %>
 password = <%= @config['heat']['creds']['os']['password'] %>
 www_authenticate_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
+token_cache_time = <%= node['bcpc']['heat']['keystone_authtoken']['token_cache_time'] %>
 
 # Optionally specify a list of memcached server(s) to use for caching. If left
 # undefined, tokens will instead be cached in-process. (list value)

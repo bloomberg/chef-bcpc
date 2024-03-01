@@ -16,3 +16,6 @@ default['bcpc']['placement']['workers'] = nil
 
 # Placement default log levels
 default['bcpc']['placement']['default_log_levels'] = nil
+
+# specify keystone_authtoken configs
+default['bcpc']['placement']['keystone_authtoken']['token_cache_time'] = 600

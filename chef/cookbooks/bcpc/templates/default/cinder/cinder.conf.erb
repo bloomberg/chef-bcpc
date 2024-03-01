@@ -70,6 +70,7 @@ username = <%= @config['cinder']['creds']['os']['username'] %>
 password = <%= @config['cinder']['creds']['os']['password'] %>
 service_token_roles = admin
 service_token_roles_required = True
+token_cache_time = <%= node['bcpc']['cinder']['keystone_authtoken']['token_cache_time'] %>
 
 <% @backends.each do |backend| %>
 [<%= backend['name'] %>]

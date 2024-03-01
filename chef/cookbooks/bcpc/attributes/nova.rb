@@ -132,3 +132,6 @@ default['bcpc']['nova']['scheduler']['filter']['isolated_aggregate_filtering']['
 
 # (Integer) Automatically confirm resizes after N seconds.
 default['bcpc']['nova']['resize_confirm_window'] = 30
+
+# specify keystone_authtoken configs
+default['bcpc']['nova']['keystone_authtoken']['token_cache_time'] = 600
