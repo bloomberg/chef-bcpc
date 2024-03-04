@@ -32,3 +32,6 @@ default['bcpc']['cinder']['alternate_backends']['enabled'] = false
 default['bcpc']['cinder']['alternate_backends']['backends'] = []
 default['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_project_id'] = nil
 default['bcpc']['cinder']['alternate_backends']['cinder_internal_tenant_user_id'] = nil
+
+# specify keystone_authtoken configs
+default['bcpc']['cinder']['keystone_authtoken']['token_cache_time'] = 600

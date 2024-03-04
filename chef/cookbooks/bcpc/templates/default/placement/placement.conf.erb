@@ -22,6 +22,7 @@ project_domain_name = Default
 user_domain_name = Default
 username = <%= @config['placement']['creds']['os']['username'] %>
 password = <%= @config['placement']['creds']['os']['password'] %>
+token_cache_time = <%= node['bcpc']['placement']['keystone_authtoken']['token_cache_time'] %>
 
 [placement]
 randomize_allocation_candidates = <%= node['bcpc']['placement']['placement']['randomize_allocation_candidates'] %>

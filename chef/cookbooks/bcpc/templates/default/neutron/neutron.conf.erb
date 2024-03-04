@@ -55,6 +55,7 @@ user_domain_name = Default
 project_name = service
 username = <%= @os['username'] %>
 password = <%= @os['password'] %>
+token_cache_time = <%= node['bcpc']['neutron']['keystone_authtoken']['token_cache_time'] %>
 
 [nova]
 auth_url = <%= "https://#{node['bcpc']['cloud']['fqdn']}:35357" %>

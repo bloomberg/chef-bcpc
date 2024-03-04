@@ -18,3 +18,6 @@ default['bcpc']['heat']['engine_workers'] = nil
 # defaults to 5 upstream, which can be exceeded with sufficiently complex
 # templates. Bumping this from 5 to 8 provides sufficient headroom.
 default['bcpc']['heat']['max_nested_stack_depth'] = 8
+
+# specify keystone_authtoken configs
+default['bcpc']['heat']['keystone_authtoken']['token_cache_time'] = 600
