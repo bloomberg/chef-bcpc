@@ -16,3 +16,6 @@ default['bcpc']['placement']['workers'] = nil
 
 # Placement default log levels
 default['bcpc']['placement']['default_log_levels'] = nil
+
+# Placement candidate allocation configs
+default['bcpc']['placement']['placement']['randomize_allocation_candidates'] = true

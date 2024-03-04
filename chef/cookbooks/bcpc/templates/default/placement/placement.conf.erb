@@ -23,6 +23,9 @@ user_domain_name = Default
 username = <%= @config['placement']['creds']['os']['username'] %>
 password = <%= @config['placement']['creds']['os']['password'] %>
 
+[placement]
+randomize_allocation_candidates = <%= node['bcpc']['placement']['placement']['randomize_allocation_candidates'] %>
+
 [placement_database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}" %>
 max_overflow = <%= node['bcpc']['placement']['db']['max_overflow'] %>
