@@ -6,6 +6,7 @@
 # go to: https://docs.openstack.org/glance/yoga/configuration/glance_api.html
 #
 [DEFAULT]
+enabled_backends = ceph:rbd
 debug = <%= node['bcpc']['glance']['debug'] %>
 show_image_direct_url = true
 enable_v1_api = false
@@ -18,7 +19,6 @@ workers = <%= node['bcpc']['glance']['workers'] %>
 workers = <%= node['bcpc']['openstack']['services']['workers'] %>
 <% end %>
 admin_role = <%= node['bcpc']['keystone']['roles']['admin'] %>
-image_cache_dir = /var/lib/glance/image-cache/
 log_file = /var/log/glance/api.log
 transport_url = rabbit://<%= @rmqnodes.map{|x| "#{@config['rabbit']['username']}:#{@config['rabbit']['password']}@#{x['service_ip']}:5672" }.join(',') %>
 image_member_quota = -1
@@ -30,8 +30,9 @@ max_overflow=<%= node['bcpc']['glance']['db']['max_overflow'] %>
 
 
 [glance_store]
-stores = rbd
-default_store = rbd
+default_backend = ceph
+
+[ceph]
 rbd_store_pool = <%= node['bcpc']['glance']['ceph']['pool']['name'] %>
 rbd_store_user = <%= node['bcpc']['glance']['ceph']['user'] %>
 rbd_store_ceph_conf = /etc/ceph/ceph.conf
