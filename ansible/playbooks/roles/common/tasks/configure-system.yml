@@ -109,6 +109,7 @@
     - snapd
     - snapd.seeded
     - udisks2
+    - ufw
     - upower
   ignore_errors: true # noqa: ignore-errors
 
@@ -130,6 +131,7 @@
     - update-notifier-common
     - ubuntu-release-upgrader-core
     - udisks2
+    - ufw
     - upower
 
 # Remove unnecessary user accounts (vs. nologin shells)
