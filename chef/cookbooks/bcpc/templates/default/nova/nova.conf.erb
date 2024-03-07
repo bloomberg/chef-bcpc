@@ -83,6 +83,7 @@ username = <%= @config['nova']['creds']['os']['username'] %>
 password = <%= @config['nova']['creds']['os']['password'] %>
 service_token_roles = admin
 service_token_roles_required = True
+token_cache_time = <%= node['bcpc']['nova']['keystone_authtoken']['token_cache_time'] %>
 
 [api_database]
 connection = <%= "mysql+pymysql://#{@db['username']}:#{@db['password']}@#{@db['host']}:#{@db['port']}/#{@db['dbname']}_api" %>

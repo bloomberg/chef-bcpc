@@ -53,6 +53,7 @@ user_domain_name = Default
 project_name = service
 username = <%= @os['username'] %>
 password = <%= @os['password'] %>
+token_cache_time = <%= node['bcpc']['glance']['keystone_authtoken']['token_cache_time'] %>
 
 [oslo_concurrency]
 lock_path = /var/lock/glance

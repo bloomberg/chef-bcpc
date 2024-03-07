@@ -18,6 +18,7 @@ password = <%= @config['watcher']['creds']['os']['password'] %>
 auth_uri = <%= "https://#{@node['bcpc']['cloud']['fqdn']}:5000/" %>
 memcached_servers = <%= @headnodes.map{ |n| "#{n['service_ip']}:11211" }.join(',') %>
 auth_type = password
+token_cache_time = <%= node['bcpc']['watcher']['keystone_authtoken']['token_cache_time'] %>
 
 [oslo_concurrency]
 lock_path = /var/lock/watcher

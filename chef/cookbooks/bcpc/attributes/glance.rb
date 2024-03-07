@@ -22,3 +22,6 @@ default['bcpc']['glance']['ceph']['pool']['size'] = 3
 # image format
 default['bcpc']['glance']['image_format']['container_formats'] = ['bare']
 default['bcpc']['glance']['image_format']['disk_formats'] = ['raw']
+
+# specify keystone_authtoken configs
+default['bcpc']['glance']['keystone_authtoken']['token_cache_time'] = 600
