@@ -66,7 +66,6 @@
   when: grub_defaults.changed # noqa: no-handler
   changed_when: true
 
-
 # Configure sysctl parameters
 - name: Configure sysctl parameters
   template:
@@ -82,14 +81,12 @@
   when: sysctl_bcpc.changed # noqa: no-handler
   changed_when: true
 
-# Configure /etc/updatedb.conf
-- name: Configure /etc/updatedb.conf
-  copy:
-    src: files/updatedb/conf
-    dest: /etc/updatedb.conf
-    owner: root
-    group: root
-    mode: '0644'
+# TODO: Remove stanza after a couple of releases have passed
+# Remove /etc/updatedb.conf
+- name: Remove /etc/updatedb.conf
+  file:
+    path: /etc/updatedb.conf
+    state: absent
 
 - name: Stop and disable unused services
   service:
@@ -231,3 +228,60 @@
 - name: Configure locale categories
   command: update-locale {{ categories }}
   changed_when: false
+
+# Install common packages
+- name: Install common packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "bash-completion"
+    - "bc"
+    - "bmon"
+    - "conntrack"
+    - "cpu-checker"
+    - "crudini"
+    - "curl"
+    - "dhcpdump"
+    - "ethtool"
+    - "fio"
+    - "htop"
+    - "iotop"
+    - "iperf"
+    - "jq"
+    - "ksh"
+    - "linux-tools-common"
+    - "lldpd"
+    - "nmap"
+    - "python3-ldap"
+    - "python3-memcache"
+    - "python3-mysqldb"
+    - "python3-openstackclient"
+    - "python3-pip"
+    - "python3-six"
+    - "rsyslog"
+    - "screen"
+    - "sosreport"
+    - "sysstat"
+    - "tmux"
+    - "traceroute"
+    - "tshark"
+    - "vim"
+    - "xinetd"
+
+# Configure /etc/screenrc
+- name: Configure /etc/screenrc
+  copy:
+    src: files/screen/screenrc
+    dest: /etc/screenrc
+    owner: root
+    group: root
+    mode: '0644'
+
+# Configure /etc/vim/vimrc
+- name: Configure /etc/vim/vimrc
+  copy:
+    src: files/vim/vimrc
+    dest: /etc/vim/vimrc
+    owner: root
+    group: root
+    mode: '0644'
