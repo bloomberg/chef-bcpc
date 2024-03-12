@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: keystone
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -204,12 +204,6 @@ end
 # install override for cloud_admin definition
 cookbook_file '/etc/keystone/policy.d/cloud_admin.yml' do
   source 'keystone/cloud_admin.yml'
-end
-
-# Remove old json file
-# TODO: Remove me once enough time has passed since this file has been removed.
-file '/etc/keystone/policy.d/cloud_admin.json' do
-  action :delete
 end
 
 # configure keystone service starts

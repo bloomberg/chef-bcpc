@@ -1,7 +1,7 @@
 # Cookbook:: bcpc
 # Recipe:: proxysql
 #
-# Copyright:: 2021 Bloomberg Finance L.P.
+# Copyright:: 2024 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,22 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Remove old vars-user files
-# TODO: Remove me once enough time has passed since this file has been removed.
-file 'vars-user' do
-  path "#{node['bcpc']['proxysql']['datadir']}/files/vars-user"
-  action :delete
-end
-
-# Remove old Percona-based ProxySQL if service is not enabled
-# TODO: Remove me once enough time has passed since the default package has been
-# changed to ProxySQL 2.2.
-package 'remove proxysql2' do
-  package_name 'proxysql2'
-  action :purge
-  not_if { node['bcpc']['proxysql']['enabled'] }
-end
 
 # Remove ProxySQL if it is not enabled
 # NOTE: As of 2.2.2 uninstalling ProxySQL does not actually stop the ProxySQL
