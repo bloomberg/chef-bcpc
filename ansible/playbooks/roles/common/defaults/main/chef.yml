@@ -116,7 +116,6 @@ chef_roles:
       - recipe[bcpc::apparmor]
       - recipe[bcpc::cloud-archive]
       - recipe[bcpc::postfix]
-      - recipe[bcpc::common-packages]
       - recipe[bcpc::kexec]
       - recipe[bcpc::apport]
       - recipe[bcpc::etckeeper]
