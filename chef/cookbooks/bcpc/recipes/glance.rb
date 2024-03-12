@@ -123,6 +123,7 @@ end
 
 # glance package installation and service definition
 package %w(
+  ceph-common
   glance
   qemu-utils
 )
