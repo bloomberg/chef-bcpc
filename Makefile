@@ -243,12 +243,14 @@ enable-compute-service :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
+		-e "run_once=true" \
 		-t enable-compute-service --limit headnodes
 
 register-compute-nodes :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/site.yml \
+		-e "run_once=true" \
 		-t register-compute-nodes --limit headnodes
 
 sync-chef :
@@ -273,12 +275,14 @@ configure-host-aggregates :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/headnodes.yml \
+		-e "run_once=true" \
 		-t configure-host-aggregates --limit headnodes
 
 configure-licenses :
 
 	ansible-playbook -v \
 		-i ${inventory} ${playbooks}/headnodes.yml \
+		-e "run_once=true" \
 		-t configure-licenses --limit headnodes
 
 define SUCCESS_BANNER
