@@ -64,6 +64,15 @@ osd recovery max active = <%= @node['bcpc']['ceph']['osd_recovery_max_active'] %
 osd recovery op priority = <%= @node['bcpc']['ceph']['osd_recovery_op_priority'] %>
 osd max backfills  = <%= @node['bcpc']['ceph']['osd_max_backfills'] %>
 
+# settings to timeout degraded OSDs
+# OSDs that are attached to hardware experiencing soft failures (e.g.,
+# NVMe fails to throw interrupts after I/O completion) may not be marked down & out
+# by Ceph due to the loose default timeout value. Setting the timeout to a lower
+# value will let OSDs to suicide when experiencing performance degradation
+# so that Ceph can detect the crash and stop sending requests to them, ensuring
+# the cluster's performance will not be impacted.
+osd op thread suicide timeout = <%= @node['bcpc']['ceph']['osd_op_thread_suicide_timeout'] %>
+
 # bluestore tuning
 <% unless node['bcpc']['ceph']['bluestore_rocksdb_options'].nil? %>
 bluestore rocksdb options = <%= @node['bcpc']['ceph']['bluestore_rocksdb_options'].join(',') %>
