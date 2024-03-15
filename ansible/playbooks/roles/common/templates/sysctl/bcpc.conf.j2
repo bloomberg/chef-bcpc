@@ -30,6 +30,9 @@ net.ipv4.tcp_max_tw_buckets = 2000000
 net.ipv4.tcp_tw_reuse = 1
 net.ipv4.tcp_fin_timeout = 10
 
+# Use 5-tuple (proto, addr, port) hashing for ECMP
+net.ipv4.fib_multipath_hash_policy = 1
+
 # Disable TCP slow start on idle connections
 net.ipv4.tcp_slow_start_after_idle = 0
 
