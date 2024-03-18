@@ -372,7 +372,68 @@ kernel_version: ''
 
 # Use this to *add* more reserved ports; i.e. modify value of
 # net.ipv4.ip_local_reserved_ports
-system_additional_reserved_ports: []
+system_additional_reserved_ports:
+  # memcached
+  - 11211
+  # rabbitmq
+  - 5672
+  - 15672
+  - 55672
+  # libvirtd
+  - 16509
+  - 16514
+  # erlang
+  - 25672
+  # keystone
+  - 35357
+  - 35358
+  # haproxy
+  - 32768
+  # etcd
+  - 2379
+  - 2380
+  # ceph-mon
+  - 3300
+  # cinder
+  - 8776
+  # glance-API
+  - 9292
+  # amqpchk (xinetd)
+  - 5673
+  # keystone-public
+  - 5000
+  # consul
+  - 8300
+  - 8301
+  - 8302
+  - 8500
+  - 8600
+  # heat-api
+  - 8000
+  - 8004
+  # horizon
+  - 9999
+  # mysql
+  - 3306
+  - 4567
+  # nova
+  - 6080
+  - 8444
+  - 8774
+  # neutron
+  - 9696
+  # placement
+  - 8778
+  # powerdns
+  - 5300
+  - 8081
+  # proxysql
+  - 6032
+  - 6033
+  - 6070
+  - 6071
+  # watcher
+  - 9322
 
 # Select IPv6 support.
 system_enable_ipv6: false
