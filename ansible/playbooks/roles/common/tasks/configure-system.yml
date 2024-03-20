@@ -105,6 +105,7 @@
     - snapd.socket
     - snapd
     - snapd.seeded
+    - systemd-networkd-wait-online
     - udisks2
     - ufw
     - upower

@@ -435,6 +435,9 @@ system_additional_reserved_ports:
   # watcher
   - 9322
 
+# Assert tsc clocksource on baremetal
+system_set_clocksource: true
+
 # Select IPv6 support.
 system_enable_ipv6: false
 
