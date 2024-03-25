@@ -444,7 +444,8 @@ def add_qos_to_volume_type(backend)
   Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
 
   # create a qos policy
-  qos_name = "#{backend['name']}-qos"
+  backend_name = "#{backend['backend_name']}"
+  qos_name = "#{backend_name}-qos"
   qos_create_opts = []
   backend['qos'].each do |k, v|
     qos_create_opts.push("--property #{k}=#{v}")
@@ -457,7 +458,7 @@ def add_qos_to_volume_type(backend)
 
   # associate the qos policy to the volume type
   cmd = 'openstack volume qos associate ' \
-    "#{qos_name} #{backend['name']}"
+    "#{qos_name} #{backend_name}"
   cmd_out = shell_out(cmd, env: os_adminrc)
   raise 'unable to associate the qos policy' if cmd_out.error?
 end
@@ -466,9 +467,10 @@ def remove_qos_from_volume_type(backend)
   Chef::Resource::RubyBlock.send(:include, Chef::Mixin::ShellOut)
 
   # disassociate the qos policy from the volume type
-  qos_name = "#{backend['name']}-qos"
+  backend_name = "#{backend['backend_name']}"
+  qos_name = "#{backend_name}-qos"
   cmd = 'openstack volume qos disassociate ' \
-    "--volume-type #{backend['name']} #{qos_name}"
+    "--volume-type #{backend_name} #{qos_name}"
   cmd_out = shell_out(cmd, env: os_adminrc)
   raise 'unable to disassociate the qos policy' if cmd_out.error?
 
