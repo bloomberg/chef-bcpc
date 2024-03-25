@@ -2,7 +2,7 @@
 # information about usuable directives.
 
 {% for server in ntp['servers'] %}
-server {{server}}
+server {{server}} iburst
 {% endfor %}
 
 # This directive specify the file into which chronyd will store the rate
