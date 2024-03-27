@@ -464,7 +464,7 @@ end
 
 if zone_config.alternate_backends_enabled?
   alternate_backends.each do |backend|
-    backend_name = backend['backend_name']
+    backend_name = backend['name']
     backend_properties = backend['volume_type_properties']
     create_args = [].append(backend_name)
 
