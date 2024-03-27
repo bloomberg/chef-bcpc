@@ -138,7 +138,7 @@ class CinderConfig
       backends.each do |backend|
         next unless general_backend_configs[backend['name']]['enabled']
         alternate_backend_to_add = {
-          'backend_name' => backend['backend_name'],
+          'name' => backend['backend_name'],
           'volume_driver' => general_backend_configs[backend['name']]['volume_driver'],
           'properties' => {}.merge(
           general_backend_configs[backend['name']]['properties'])
