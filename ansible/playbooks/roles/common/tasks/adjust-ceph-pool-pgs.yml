@@ -4,28 +4,22 @@
     set -o pipefail
 
     power2() {
-      if [ $1 -lt 1 ]; then echo 2; return; fi
+      if [ "$1" -lt 1 ]; then echo 2; return; fi
       echo "x = l($1) / l(2); scale = 0; 2 ^ ((x + 0.5) / 1)" | bc -l
     }
 
     pool_size() {
-      pool="$1"
-      echo $(ceph osd pool get ${pool} size -f json | jq '.size')
+      ceph osd pool get "$1" size -f json | jq '.size'
     }
 
     pool_pg_num() {
-      pool="$1"
-      echo $(ceph osd pool get ${pool} pg_num -f json | jq '.pg_num')
+      ceph osd pool get "$1" pg_num -f json | jq '.pg_num'
     }
 
     pool_pg_num_calc() {
-      pool="$1"
-      size=$(pool_size ${pool})
-      pg_num=$(pool_pg_num ${pool})
+      size=$(pool_size "$1")
       num_osd=$(ceph osd ls 2> /dev/null | wc -l)
-      target_pg_num=$(power2 $(echo "(100 * $num_osd * 80 * 0.01) / $size" | bc))
-
-      echo "${target_pg_num}"
+      echo "$((100 * num_osd * 80 / size))"
     }
 
     pools=$(ceph osd lspools -f json | jq -r '.[] .poolname')
